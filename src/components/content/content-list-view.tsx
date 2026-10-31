@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ContentTypeBadge } from "@/components/content/content-type-badge";
 import { StatusBadge } from "@/components/content/status-badge";
 import { formatDateId, formatDateTimeId, formatNumberId } from "@/lib/dates";
 import { PLATFORM_LABEL, STATUS_LABEL, type ContentStatus } from "@/lib/content-status";
@@ -60,12 +61,15 @@ export function ContentListView({
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[52rem] border-collapse text-sm">
+            <table className="w-full min-w-[58rem] border-collapse text-sm">
               <caption className="sr-only">Daftar konten pada lingkup akses Anda</caption>
               <thead>
                 <tr className="border-b border-border text-left text-xs font-medium tracking-wide text-ink-muted uppercase">
                   <th scope="col" className="px-4 py-3">
                     Konten
+                  </th>
+                  <th scope="col" className="px-4 py-3">
+                    Jenis konten
                   </th>
                   <th scope="col" className="px-4 py-3">
                     Organisasi
@@ -97,6 +101,9 @@ export function ContentListView({
                       <p className="mt-0.5 text-xs text-ink-muted">
                         {item.referenceCode} · v{item.version}
                       </p>
+                    </td>
+                    <td className="px-4 py-4">
+                      <ContentTypeBadge contentType={item.contentType} />
                     </td>
                     <td className="px-4 py-4 text-ink-muted">{item.stakeholderName}</td>
                     <td className="px-4 py-4 text-ink-muted">

@@ -2,8 +2,6 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -50,6 +48,7 @@
   --color-brand-teal-500: var(--brand-teal-500);
   --color-brand-teal-100: var(--brand-teal-100);
   --color-brand-green-700: var(--brand-green-700);
+  --color-brand-green-600: var(--brand-green-600);
   --color-brand-green-500: var(--brand-green-500);
   --color-brand-green-100: var(--brand-green-100);
   --color-ink: var(--ink);
@@ -76,41 +75,42 @@
 }
 
 :root {
-  /* DAKOSTA approved brand palette (independent civic analytics studio) */
-  --brand-blue-900: #052f5f;
-  --brand-blue-800: #063c7c;
-  --brand-blue-700: #084a96;
-  --brand-blue-600: #0864b4;
-  --brand-blue-500: #0a78ca;
-  --brand-blue-100: #e6f2fb;
-  --brand-teal-700: #016f6e;
-  --brand-teal-600: #04908f;
-  --brand-teal-500: #03a9a7;
-  --brand-teal-100: #e0f7f6;
-  --brand-green-700: #08764f;
-  --brand-green-500: #13bf7d;
-  --brand-green-100: #e3f8ef;
+  /* DAKOSTA palette: green–teal–blue nuances, no affiliation marks. */
+  --brand-blue-900: #053a63;
+  --brand-blue-800: #004e86;
+  --brand-blue-700: #005b9f;
+  --brand-blue-600: #0a6ebd;
+  --brand-blue-500: #1280cf;
+  --brand-blue-100: #e8f2fb;
+  --brand-teal-700: #00695f;
+  --brand-teal-600: #00857c;
+  --brand-teal-500: #00a99d;
+  --brand-teal-100: #e0f7f4;
+  --brand-green-700: #006b3c;
+  --brand-green-600: #008c4a;
+  --brand-green-500: #00a651;
+  --brand-green-100: #e7f6ec;
   --brand-gradient: linear-gradient(
     100deg,
-    #084a96 0%,
-    #0a78ca 45%,
-    #03a9a7 75%,
-    #13bf7d 100%
+    #006b3c 0%,
+    #00a651 38%,
+    #00a99d 68%,
+    #005b9f 100%
   );
-  --ink: #152b3b;
-  --ink-muted: #526a7c;
+  --ink: #122a38;
+  --ink-muted: #4f6779;
   --surface: #ffffff;
-  --surface-muted: #f5f8fa;
-  --positive: #218353;
-  --warning: #b46d15;
-  --danger: #b43f42;
-  --focus: #145ca8;
-  --status-draft: #526a7c;
-  --status-submitted: #0a78ca;
+  --surface-muted: #f4f8f7;
+  --positive: #0f7a46;
+  --warning: #b45309;
+  --danger: #b4232a;
+  --focus: #005a32;
+  --status-draft: #4f6779;
+  --status-submitted: #005b9f;
   --status-review: #8f560f;
-  --status-approved: #1d6b44;
-  --status-revision: #7d4a0e;
-  --status-rejected: #8e3033;
+  --status-approved: #0f7a46;
+  --status-revision: #b45309;
+  --status-rejected: #b4232a;
   --font-mono-stack: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
 
   --background: var(--surface);
@@ -119,68 +119,33 @@
   --card-foreground: var(--ink);
   --popover: var(--surface);
   --popover-foreground: var(--ink);
-  --primary: var(--brand-blue-500);
+  --primary: var(--brand-green-700);
   --primary-foreground: #ffffff;
   --secondary: var(--surface-muted);
   --secondary-foreground: var(--ink);
   --muted: var(--surface-muted);
   --muted-foreground: var(--ink-muted);
-  --accent: var(--brand-blue-100);
-  --accent-foreground: var(--brand-blue-700);
+  --accent: var(--brand-green-100);
+  --accent-foreground: var(--brand-green-700);
   --destructive: var(--danger);
   --destructive-foreground: #ffffff;
-  --border: #dce7ec;
-  --input: #dce7ec;
+  --border: #d9e6e1;
+  --input: #d9e6e1;
   --ring: var(--focus);
-  --chart-1: #0a78ca;
-  --chart-2: #03a9a7;
-  --chart-3: #13bf7d;
-  --chart-4: #084a96;
-  --chart-5: #b46d15;
+  --chart-1: #00a651;
+  --chart-2: #00857c;
+  --chart-3: #005b9f;
+  --chart-4: #b45309;
+  --chart-5: #64748b;
   --radius: 0.75rem;
-  --sidebar: #f7fbfd;
+  --sidebar: #f7fbf9;
   --sidebar-foreground: var(--ink);
-  --sidebar-primary: var(--brand-blue-700);
+  --sidebar-primary: var(--brand-green-700);
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: var(--brand-blue-100);
-  --sidebar-accent-foreground: var(--brand-blue-700);
-  --sidebar-border: #dce7ec;
+  --sidebar-accent: var(--brand-green-100);
+  --sidebar-accent-foreground: var(--brand-green-700);
+  --sidebar-border: #d9e6e1;
   --sidebar-ring: var(--focus);
-}
-
-.dark {
-  --background: #0b1722;
-  --foreground: #eaf2f7;
-  --card: #10202c;
-  --card-foreground: #eaf2f7;
-  --popover: #10202c;
-  --popover-foreground: #eaf2f7;
-  --primary: #3aa4e8;
-  --primary-foreground: #06131d;
-  --secondary: #172b3a;
-  --secondary-foreground: #eaf2f7;
-  --muted: #172b3a;
-  --muted-foreground: #a7bccb;
-  --accent: #153a52;
-  --accent-foreground: #eaf2f7;
-  --destructive: #e07a7c;
-  --destructive-foreground: #21090a;
-  --border: #24404f;
-  --input: #24404f;
-  --ring: #5db5ee;
-  --chart-1: #3aa4e8;
-  --chart-2: #2cc3c1;
-  --chart-3: #35d190;
-  --chart-4: #7fb3e6;
-  --chart-5: #d9a03f;
-  --sidebar: #0e1d28;
-  --sidebar-foreground: #eaf2f7;
-  --sidebar-primary: #3aa4e8;
-  --sidebar-primary-foreground: #06131d;
-  --sidebar-accent: #153a52;
-  --sidebar-accent-foreground: #eaf2f7;
-  --sidebar-border: #24404f;
-  --sidebar-ring: #5db5ee;
 }
 
 @layer base {
@@ -206,7 +171,7 @@
     @apply focus-visible:outline-focus focus-visible:outline-2 focus-visible:outline-offset-2;
   }
   ::selection {
-    background: var(--brand-teal-100);
+    background: var(--brand-green-100);
     color: var(--brand-blue-900);
   }
   h1,

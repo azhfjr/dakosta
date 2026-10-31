@@ -5,7 +5,7 @@ import {
   resolveTargetAmount,
   type TargetScopeSource,
 } from "@/lib/targets";
-import { targetCreateSchema, targetUpdateSchema } from "@/lib/validation/target";
+import { targetCreateSchema, targetSyncSchema, targetUpdateSchema } from "@/lib/validation/target";
 
 const rows = [
   { stakeholderId: null, themeId: null, subTheme: null, targetCount: 30 },
@@ -132,5 +132,45 @@ describe("target validation", () => {
   it("requires at least one field when updating", () => {
     expect(targetUpdateSchema.safeParse({}).success).toBe(false);
     expect(targetUpdateSchema.safeParse({ targetCount: 0 }).success).toBe(true);
+  });
+
+  it("accepts one sync entry per input source", () => {
+    const parsed = targetSyncSchema.parse({
+      month: "2026-10",
+      entries: [
+        { source: "FASKES_FKTP", targetCount: 3 },
+        { source: "FASKES_FKRTL", targetCount: 5 },
+        { source: "PEMDA", targetCount: 2 },
+        { source: "OTHER", targetCount: 1 },
+      ],
+    });
+    expect(parsed.entries).toHaveLength(4);
+  });
+
+  it("rejects duplicate sources, empty entries, and negative counts", () => {
+    expect(
+      targetSyncSchema.safeParse({
+        month: "2026-10",
+        entries: [
+          { source: "PEMDA", targetCount: 2 },
+          { source: "PEMDA", targetCount: 3 },
+        ],
+      }).success,
+    ).toBe(false);
+    expect(
+      targetSyncSchema.safeParse({ month: "2026-10", entries: [] }).success,
+    ).toBe(false);
+    expect(
+      targetSyncSchema.safeParse({
+        month: "2026-10",
+        entries: [{ source: "OTHER", targetCount: -1 }],
+      }).success,
+    ).toBe(false);
+    expect(
+      targetSyncSchema.safeParse({
+        month: "2026-10",
+        entries: [{ source: "FASKES", targetCount: 1 }],
+      }).success,
+    ).toBe(false);
   });
 });

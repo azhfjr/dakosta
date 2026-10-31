@@ -63,6 +63,10 @@ const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
   // Authed pages read cookies/session on every request; prerendering them fails.
   cacheComponents: false,
+  experimental: {
+    // Kurangi modul ikon/grafik yang ikut ter-bundle di tiap rute.
+    optimizePackageImports: ["lucide-react", "recharts", "sonner"],
+  },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

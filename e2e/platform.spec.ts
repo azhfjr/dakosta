@@ -262,7 +262,7 @@ test.describe("Impor akun CSV", () => {
     }
   });
 
-  test("komit impor menuntut konfirmasi kata sandi Master", async () => {
+  test("komit impor dinonaktifkan untuk akun demo", async () => {
     const master = await apiContext(ADMIN_STATE);
     try {
       const commit = await call(master, "/api/v1/admin/imports/commit", {
@@ -270,7 +270,7 @@ test.describe("Impor akun CSV", () => {
         data: { importId: "00000000-0000-4000-8000-000000000000" },
       });
       expect(commit.status).toBe(403);
-      expect(commit.body.error?.code).toBe("STEP_UP_REQUIRED");
+      expect(commit.body.error?.message).toContain("Akun demo tidak dapat");
     } finally {
       await master.dispose();
     }

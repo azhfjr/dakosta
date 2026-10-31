@@ -9,7 +9,7 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",
-    theme_color: "#084A96",
+    theme_color: "#006B3C",
     lang: "id",
     icons: [
       { src: "/brand/dakosta-icon-192.png", sizes: "192x192", type: "image/png" },

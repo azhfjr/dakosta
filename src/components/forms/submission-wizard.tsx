@@ -41,6 +41,12 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { PLATFORM_LABEL, type ContentStatus } from "@/lib/content-status";
 import {
+  draftKey as buildDraftKey,
+  fallbackStakeholderId,
+  hydrateDraft,
+  legacyDraftKey,
+} from "@/lib/submissions/draft";
+import {
   CONTENT_TYPES,
   CONTENT_TYPE_LABELS,
   MAIN_THEMES,
@@ -120,8 +126,6 @@ const STEPS: Array<{ number: StepNumber; title: string; hint: string }> = [
   { number: 4, title: "Tinjau", hint: "Kirim" },
 ];
 
-const DRAFT_KEY_BASE = "dakosta:lapor:draft:v1";
-
 export type SubmissionWizardInitial = {
   submissionId: string;
   referenceCode: string;
@@ -190,17 +194,17 @@ export function SubmissionWizard({
   stakeholders,
   edufastPolicies,
   today,
+  draftOwnerId,
   initial,
 }: {
   stakeholders: WizardStakeholder[];
   edufastPolicies: EdufastPolicySnapshot;
   today: string;
+  draftOwnerId: string;
   initial?: SubmissionWizardInitial;
 }) {
   const router = useRouter();
-  const draftKey = initial
-    ? `${DRAFT_KEY_BASE}:${initial.submissionId}`
-    : DRAFT_KEY_BASE;
+  const draftKey = buildDraftKey(draftOwnerId, initial?.submissionId ?? null);
 
   const [step, setStep] = useState<StepNumber>(initial ? 2 : 1);
   const [draftLoaded, setDraftLoaded] = useState(false);
@@ -210,8 +214,7 @@ export function SubmissionWizard({
   );
   const [idempotencyKey, setIdempotencyKey] = useState(createIdempotencyKey);
   const [stakeholderId, setStakeholderId] = useState(
-    initial?.stakeholderId ??
-      (stakeholders.length === 1 ? stakeholders[0]!.id : ""),
+    initial?.stakeholderId ?? fallbackStakeholderId(stakeholders),
   );
   const [publishedUrl, setPublishedUrl] = useState(initial?.publishedUrl ?? "");
   const [platform, setPlatform] = useState<string>(
@@ -242,6 +245,7 @@ export function SubmissionWizard({
   const draftRef = useRef<{ key: string; draft: DraftState } | null>(null);
 
   const [errors, setErrors] = useState<FieldErrors>({});
+  const [conflict, setConflict] = useState<{ message: string } | null>(null);
   const [pending, setPending] = useState<"DRAFT" | "SUBMIT" | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [duplicateInfo, setDuplicateInfo] = useState<DuplicateInfo | null>(null);
@@ -265,6 +269,12 @@ export function SubmissionWizard({
   useEffect(() => {
     // Hidrasi draf sekali setelah mount: localStorage tidak tersedia saat SSR.
     /* eslint-disable react-hooks/set-state-in-effect */
+    try {
+      // Kunci global pra-perbaikan tidak pernah dipakai lagi.
+      window.localStorage.removeItem(legacyDraftKey());
+    } catch {
+      // Penyimpanan lokal diblokir; tidak ada yang perlu dibersihkan.
+    }
     if (initial) {
       setDraftLoaded(true);
       return;
@@ -272,39 +282,30 @@ export function SubmissionWizard({
     try {
       const raw = window.localStorage.getItem(draftKey);
       if (raw) {
-        const draft = JSON.parse(raw) as Partial<DraftState>;
-        if (typeof draft.submissionId === "string") setSubmissionId(draft.submissionId);
-        if (typeof draft.idempotencyKey === "string" && draft.idempotencyKey.length >= 8) {
-          setIdempotencyKey(draft.idempotencyKey);
+        const hydrated = hydrateDraft(JSON.parse(raw), stakeholders);
+        if (typeof hydrated.submissionId === "string") setSubmissionId(hydrated.submissionId);
+        if (typeof hydrated.idempotencyKey === "string") setIdempotencyKey(hydrated.idempotencyKey);
+        if (typeof hydrated.stakeholderId === "string") setStakeholderId(hydrated.stakeholderId);
+        if (typeof hydrated.publishedUrl === "string") setPublishedUrl(hydrated.publishedUrl);
+        if (typeof hydrated.platform === "string") setPlatform(hydrated.platform);
+        if (typeof hydrated.contentType === "string") {
+          setContentType(hydrated.contentType as ContentType);
         }
-        if (typeof draft.stakeholderId === "string") setStakeholderId(draft.stakeholderId);
-        if (typeof draft.publishedUrl === "string") setPublishedUrl(draft.publishedUrl);
-        if (
-          typeof draft.platform === "string" &&
-          (PLATFORMS as readonly string[]).includes(draft.platform)
-        ) {
-          setPlatform(draft.platform);
+        if (typeof hydrated.mainTheme === "string") {
+          setMainTheme(hydrated.mainTheme as MainTheme);
         }
-        if (typeof draft.contentType === "string") {
-          const match = CONTENT_TYPES.find((item) => item === draft.contentType);
-          if (match) setContentType(match);
+        if (typeof hydrated.subTheme === "string") {
+          setSubTheme(hydrated.subTheme as SubTheme);
         }
-        if (draft.mainTheme === "EDUFAST" || draft.mainTheme === "NON_EDUFAST") {
-          setMainTheme(draft.mainTheme);
+        if (typeof hydrated.title === "string") setTitle(hydrated.title);
+        if (typeof hydrated.narrative === "string") setNarrative(hydrated.narrative);
+        if (typeof hydrated.dateCreated === "string") setDateCreated(hydrated.dateCreated);
+        if (typeof hydrated.publishedAt === "string") setPublishedAt(hydrated.publishedAt);
+        if (hydrated.location) {
+          setLocation(hydrated.location);
         }
-        if (typeof draft.subTheme === "string") {
-          const match = SUB_THEMES.find((item) => item === draft.subTheme);
-          if (match) setSubTheme(match);
-        }
-        if (typeof draft.title === "string") setTitle(draft.title);
-        if (typeof draft.narrative === "string") setNarrative(draft.narrative);
-        if (typeof draft.dateCreated === "string") setDateCreated(draft.dateCreated);
-        if (typeof draft.publishedAt === "string") setPublishedAt(draft.publishedAt);
-        if (draft.location && typeof draft.location.latitude === "number") {
-          setLocation(draft.location);
-        }
-        if (typeof draft.locationLabel === "string") setLocationLabel(draft.locationLabel);
-        if (typeof draft.privacyAttested === "boolean") setPrivacyAttested(draft.privacyAttested);
+        if (typeof hydrated.locationLabel === "string") setLocationLabel(hydrated.locationLabel);
+        if (typeof hydrated.privacyAttested === "boolean") setPrivacyAttested(hydrated.privacyAttested);
       }
     } catch {
       // Draft lokal rusak — mulai dari formulir kosong.
@@ -312,7 +313,16 @@ export function SubmissionWizard({
       setDraftLoaded(true);
     }
     /* eslint-enable react-hooks/set-state-in-effect */
-  }, [initial, draftKey]);
+  }, [initial, draftKey, stakeholders]);
+
+  // Akun satu organisasi selalu memakai organisasi tersebut.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    if (stakeholders.length === 1 && stakeholderId !== stakeholders[0]!.id) {
+      setStakeholderId(stakeholders[0]!.id);
+    }
+  }, [stakeholders, stakeholderId]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (!draftLoaded || result) return;
@@ -386,7 +396,9 @@ export function SubmissionWizard({
     const next: FieldErrors = {};
 
     if (target >= 1) {
-      if (!stakeholderId) next.stakeholderId = "Pilih organisasi pelapor.";
+      if (stakeholders.length > 1 && !stakeholderId) {
+        next.stakeholderId = "Pilih organisasi pelapor.";
+      }
       if (!publishedUrl.trim()) next.publishedUrl = "Tautan konten wajib diisi.";
       else if (!isValidHttpsUrl(publishedUrl.trim())) {
         next.publishedUrl = "Gunakan URL lengkap berawalan https://.";
@@ -430,6 +442,27 @@ export function SubmissionWizard({
     return Object.keys(next).length === 0;
   }
 
+  /** Draf hanya membutuhkan field minimum yang juga diwajibkan server. */
+  function validateDraft(): boolean {
+    const next: FieldErrors = {};
+    if (!publishedUrl.trim()) next.publishedUrl = "Tautan konten wajib diisi.";
+    else if (!isValidHttpsUrl(publishedUrl.trim())) {
+      next.publishedUrl = "Gunakan URL lengkap berawalan https://.";
+    }
+    if (!platform) next.platform = "Pilih platform konten.";
+    if (!dateCreated) next.dateCreated = "Tanggal pembuatan wajib diisi.";
+    else if (dateCreated > today) next.dateCreated = "Tanggal tidak boleh di masa depan.";
+    if (publishedAt && publishedAt > today) {
+      next.publishedAt = "Tanggal terbit tidak boleh di masa depan.";
+    }
+    const pii = detectClientPii(`${title}\n${narrative}`);
+    if (pii) {
+      next.narrative = `Narasi terdeteksi memuat ${pii}. Hapus data pribadi sebelum menyimpan.`;
+    }
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  }
+
   function goToStep(target: StepNumber) {
     if (target > step && !validateStep(step)) return;
     setStep(target);
@@ -466,6 +499,7 @@ export function SubmissionWizard({
     setStep(1);
     setSubmissionId(null);
     setIdempotencyKey(createIdempotencyKey());
+    setStakeholderId(fallbackStakeholderId(stakeholders));
     setPublishedUrl("");
     setContentType("");
     setMainTheme("NON_EDUFAST");
@@ -478,9 +512,12 @@ export function SubmissionWizard({
     setLocationLabel("");
     setPrivacyAttested(false);
     setErrors({});
+    setConflict(null);
     setLastSavedAt(null);
     try {
-      window.localStorage.removeItem(draftKey);
+      const keys = new Set([draftKey, buildDraftKey(draftOwnerId, submissionId)]);
+      keys.forEach((key) => window.localStorage.removeItem(key));
+      window.localStorage.removeItem(legacyDraftKey());
     } catch {
       // abaikan
     }
@@ -499,17 +536,20 @@ export function SubmissionWizard({
         setStep(2);
         return;
       }
-    } else if (!validateStep(1)) {
+    } else if (!validateDraft()) {
       return;
     }
 
     setPending(action);
 
+    const effectiveStakeholderId =
+      stakeholders.length === 1 ? stakeholders[0]!.id : stakeholderId;
+
     const body = {
       action,
       submissionId: submissionId ?? undefined,
       idempotencyKey,
-      stakeholderId,
+      stakeholderId: effectiveStakeholderId || undefined,
       publishedUrl: publishedUrl.trim(),
       platform,
       contentType: contentType || undefined,
@@ -550,6 +590,15 @@ export function SubmissionWizard({
           return;
         }
 
+        if (code === "CONFLICT") {
+          setConflict({
+            message:
+              payload?.error?.message ??
+              "Konten ini sudah berubah status dan tidak dapat diubah lagi.",
+          });
+          return;
+        }
+
         setErrors({ form: payload?.error?.message ?? "Konten tidak dapat disimpan. Coba lagi." });
         return;
       }
@@ -569,6 +618,7 @@ export function SubmissionWizard({
       setDuplicateInfo(null);
       try {
         window.localStorage.removeItem(draftKey);
+        window.localStorage.removeItem(buildDraftKey(draftOwnerId, saved.id));
       } catch {
         // abaikan
       }
@@ -1242,6 +1292,43 @@ export function SubmissionWizard({
               }}
             >
               Tetap kirim
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={conflict !== null} onOpenChange={(open) => !open && setConflict(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="size-5 text-status-revision" aria-hidden />
+              Konten sudah berubah status
+            </DialogTitle>
+            <DialogDescription>
+              {conflict?.message ??
+                "Konten ini tidak lagi dapat diubah. Muat ulang untuk melihat status terbaru."}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11"
+              onClick={() => {
+                setConflict(null);
+                router.refresh();
+              }}
+            >
+              Muat ulang
+            </Button>
+            <Button
+              type="button"
+              className="h-11"
+              onClick={() => {
+                setConflict(null);
+                resetWizard();
+              }}
+            >
+              Mulai konten baru
             </Button>
           </DialogFooter>
         </DialogContent>

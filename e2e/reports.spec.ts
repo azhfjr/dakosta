@@ -1,0 +1,229 @@
+import {
+  expect,
+  request as playwrightRequest,
+  test,
+  type APIRequestContext,
+} from "@playwright/test";
+
+import { demoPassword } from "./demo-password";
+import { ADMIN_STATE, CLIENT_STATE, baseURL } from "./support";
+
+type ApiEnvelope<T> = {
+  data?: T;
+  error?: { code?: string; message?: string } | null;
+};
+
+type SyncResult = {
+  month: string;
+  created: number;
+  updated: number;
+  perSource: Array<{
+    source: string;
+    label: string;
+    targetCount: number;
+    organizations: number;
+    created: number;
+    updated: number;
+  }>;
+};
+
+function jakartaMonth(offset = 0): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Jakarta",
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(new Date());
+  const year = Number(parts.find((part) => part.type === "year")?.value);
+  const month = Number(parts.find((part) => part.type === "month")?.value);
+  const shifted = new Date(Date.UTC(year, month - 1 + offset, 1));
+  return `${shifted.getUTCFullYear()}-${String(shifted.getUTCMonth() + 1).padStart(2, "0")}`;
+}
+
+async function postJson<T>(
+  context: APIRequestContext,
+  path: string,
+  data: unknown,
+): Promise<{ status: number; body: ApiEnvelope<T>; text: string }> {
+  const response = await context.post(path, { data });
+  const text = await response.text();
+  let body: ApiEnvelope<T> = {};
+  try {
+    body = JSON.parse(text) as ApiEnvelope<T>;
+  } catch {
+    body = {};
+  }
+  return { status: response.status(), body, text };
+}
+
+async function confirmStepUp(context: APIRequestContext): Promise<void> {
+  const response = await context.post("/api/v1/me/step-up", {
+    data: { password: demoPassword() },
+  });
+  expect(response.status(), await response.text()).toBe(200);
+}
+
+test.describe("Laporan pencapaian PDF", () => {
+  test("Master mengunduh laporan PDF satu klik", async () => {
+    const admin = await playwrightRequest.newContext({
+      baseURL,
+      storageState: ADMIN_STATE,
+    });
+    try {
+      const month = jakartaMonth();
+      const response = await admin.get(
+        `/api/v1/reports/achievement?month=${month}&source=FASKES_FKTP,FASKES_FKRTL,PEMDA,OTHER`,
+      );
+      expect(response.status()).toBe(200);
+      expect(response.headers()["content-type"]).toContain("application/pdf");
+      expect(response.headers()["content-disposition"]).toContain(
+        `attachment; filename="laporan-pencapaian-${month}.pdf"`,
+      );
+      expect(response.headers()["cache-control"]).toContain("no-store");
+
+      const buffer = Buffer.from(await response.body());
+      expect(buffer.subarray(0, 5).toString()).toBe("%PDF-");
+      expect(buffer.length).toBeGreaterThan(1_000);
+    } finally {
+      await admin.dispose();
+    }
+  });
+
+  test("tautan unduh tersedia pada analitik Master dan stakeholder", async ({
+    browser,
+  }) => {
+    for (const [state, path] of [
+      [ADMIN_STATE, "/admin/analitik"],
+      [CLIENT_STATE, "/client/analitik"],
+    ] as const) {
+      const context = await browser.newContext({ storageState: state });
+      try {
+        const page = await context.newPage();
+        await page.goto(path);
+        const link = page
+          .getByRole("link", { name: "Unduh laporan PDF" })
+          .first();
+        await expect(link).toBeVisible();
+        const href = await link.getAttribute("href");
+        expect(href).toMatch(/^\/api\/v1\/reports\/achievement\?month=\d{4}-\d{2}/);
+        expect(await link.getAttribute("download")).not.toBeNull();
+      } finally {
+        await context.close();
+      }
+    }
+  });
+
+  test("stakeholder menerima laporan dalam cakupannya sendiri", async () => {
+    const client = await playwrightRequest.newContext({
+      baseURL,
+      storageState: CLIENT_STATE,
+    });
+    try {
+      const response = await client.get(
+        `/api/v1/reports/achievement?month=${jakartaMonth()}`,
+      );
+      expect(response.status()).toBe(200);
+      expect(response.headers()["content-type"]).toContain("application/pdf");
+      const buffer = Buffer.from(await response.body());
+      expect(buffer.subarray(0, 5).toString()).toBe("%PDF-");
+    } finally {
+      await client.dispose();
+    }
+  });
+
+  test("laporan tanpa sesi ditolak", async () => {
+    const anonymous = await playwrightRequest.newContext({ baseURL });
+    try {
+      const response = await anonymous.get(
+        `/api/v1/reports/achievement?month=${jakartaMonth()}`,
+      );
+      expect(response.status()).toBe(401);
+    } finally {
+      await anonymous.dispose();
+    }
+  });
+});
+
+test.describe("Sinkronisasi target Master", () => {
+  test.use({ storageState: ADMIN_STATE });
+
+  test("panel sinkronisasi menerapkan target ke seluruh organisasi aktif", async ({
+    page,
+  }) => {
+    const month = jakartaMonth(-5);
+    await page.goto(`/admin/target?month=${month}`);
+    await expect(
+      page.getByRole("heading", {
+        name: "Sinkronisasi target semua organisasi",
+        level: 2,
+      }),
+    ).toBeVisible();
+
+    const inputs = page.locator('input[id^="sync-"]');
+    await expect(inputs.first()).toBeVisible();
+    await inputs.first().fill("2");
+
+    await page.getByRole("button", { name: "Sinkronkan target" }).click();
+    const confirm = page.getByRole("alertdialog", {
+      name: "Sinkronkan target periode ini?",
+    });
+    await expect(confirm).toBeVisible();
+    await confirm.getByRole("button", { name: "Sinkronkan sekarang" }).click();
+
+    const dialog = page.getByRole("dialog", { name: "Konfirmasi kata sandi" });
+    await expect(dialog).toBeVisible();
+    await dialog.locator("#step-up-password").fill(demoPassword());
+    await dialog.getByRole("button", { name: "Konfirmasi" }).click();
+    await expect(dialog).toBeHidden();
+
+    await expect(
+      page.getByRole("status").filter({ hasText: `Hasil sinkronisasi ${month}` }),
+    ).toBeVisible();
+  });
+
+  test("API memerlukan step-up dan idempoten saat diulang", async () => {
+    const admin = await playwrightRequest.newContext({
+      baseURL,
+      storageState: ADMIN_STATE,
+    });
+    try {
+      const month = jakartaMonth(-5);
+      const entries = [
+        { source: "FASKES_FKTP", targetCount: 2 },
+        { source: "FASKES_FKRTL", targetCount: 2 },
+        { source: "PEMDA", targetCount: 2 },
+        { source: "OTHER", targetCount: 2 },
+      ];
+
+      const denied = await postJson<SyncResult>(
+        admin,
+        "/api/v1/admin/targets/sync",
+        { month, entries },
+      );
+      expect(denied.status, denied.text).toBe(403);
+      expect(denied.body.error?.code).toBe("STEP_UP_REQUIRED");
+
+      await confirmStepUp(admin);
+
+      const first = await postJson<SyncResult>(
+        admin,
+        "/api/v1/admin/targets/sync",
+        { month, entries },
+      );
+      expect(first.status, first.text).toBe(200);
+      expect(first.body.data?.perSource.length).toBeGreaterThan(0);
+
+      const second = await postJson<SyncResult>(
+        admin,
+        "/api/v1/admin/targets/sync",
+        { month, entries },
+      );
+      expect(second.status, second.text).toBe(200);
+      expect(second.body.data?.created).toBe(0);
+      expect(second.body.data?.updated).toBe(
+        first.body.data!.created + first.body.data!.updated,
+      );
+    } finally {
+      await admin.dispose();
+    }
+  });
+});

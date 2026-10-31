@@ -268,3 +268,30 @@ Bukti eksekusi produksi:
 Catatan: `DEMO_MODE` dan `/api/v1/demo/login` tetap nonaktif di produksi; akun
 demo masuk melalui `/masuk`. Tidak ada variabel environment produksi yang
 diubah selama prosedur ini.
+
+## 11. Hardening performa & UX analitik (2026-10-31)
+
+Perubahan yang diverifikasi pada build produksi lokal (`NEXT_DIST_DIR=.next-verify`,
+`npm run start:verify` port 3400):
+
+| Perubahan | Dampak |
+| --- | --- |
+| Header halaman dirender di luar batas `Suspense` (beranda semua peran + analitik admin/wilayah/cabang/client) | LCP turun dari 2,8–3,9 s menjadi 1,1–1,6 s; skeleton `PageSkeleton` menjaga CLS ≤ 0,099 |
+| Scope authz digabung ke satu kueri membership (alias join wilayah/cabang/organisasi) | Satu round-trip serial lebih sedikit per permintaan; TTFB client turun ~1,33 s → ~1,05 s |
+| Grafik di luar viewport ditunda per-frame (`ChartFrame` + IntersectionObserver), animasi Recharts dimatikan saat paint pertama | Chunk Recharts tidak memblokir paint awal |
+| Badge notifikasi menampilkan angka aktual dan `aria-label` memuat angka yang sama | Menutup pelanggaran axe `label-content-name-mismatch` |
+| Ekspektasi E2E diselaraskan dengan containment demo | Aksi akun/impor oleh master demo diuji sebagai `403` dengan pesan penjagaan; step-up tetap diuji lewat pencabutan konten (`STEP_UP_REQUIRED`) |
+
+Gate akhir (build produksi lokal, 2026-10-31):
+
+| Pemeriksaan | Hasil |
+| --- | --- |
+| Lint / typecheck | Bersih |
+| Unit (Vitest) | 15 file, **89/89 lulus** |
+| E2E penuh (Playwright, build produksi) | **48/48 lulus**, termasuk a11y dan tata letak 360 px |
+| Route sweep (`audit:routes`) | Semua rute peran & API tanpa 5xx |
+| Anggaran performa (`PERF_RUNS=3`) | Seluruh 8 rute `OK`: TTFB p95 1,03–1,07 s; LCP p95 1,08–1,59 s; CLS ≤ 0,099; JS 227–353 KB |
+
+Catatan: deploy rilis ini ke produksi belum dilakukan dan menunggu konfirmasi
+eksplisit; tidak ada environment variable, migrasi, seed, atau sinkronisasi
+target produksi yang dijalankan pada sesi hardening ini.

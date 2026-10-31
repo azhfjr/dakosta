@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { and, count, eq } from "drizzle-orm";
 import { Info, PlusCircle, RotateCcw } from "lucide-react";
 
 import { DistributionCard } from "@/components/analytics/distribution-card";
 import { KpiDashboard } from "@/components/dashboard/kpi-dashboard";
+import { PageHeader } from "@/components/shell/page-header";
+import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { Button } from "@/components/ui/button";
 import { getDb, schema } from "@/db";
 import {
@@ -15,7 +18,7 @@ import {
 } from "@/lib/analytics/distribution";
 import { recordAudit } from "@/lib/audit";
 import { contentScopePredicate } from "@/lib/authz/predicates";
-import { formatNumberId } from "@/lib/dates";
+import { formatDateTimeId, formatNumberId } from "@/lib/dates";
 import {
   getDashboardOverview,
   getKpiFilterOptions,
@@ -29,6 +32,8 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = "force-dynamic";
+
+type DashboardUser = Awaited<ReturnType<typeof requireRole>>;
 
 export default async function ClientHomePage({
   searchParams,
@@ -51,6 +56,35 @@ export default async function ClientHomePage({
     redirect("/akses-ditolak");
   }
 
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title={`Beranda ${user.name}`}
+        description="Capaian konten organisasi Anda, dihitung hanya dari konten yang telah disetujui reviewer cabang. Dasar tanggal default adalah tanggal konten."
+        meta={`Diperbarui ${formatDateTimeId(new Date())} WIB`}
+        actions={
+          <Button asChild className="h-10">
+            <Link href="/client/lapor">
+              <PlusCircle className="size-4" aria-hidden />
+              Lapor konten
+            </Link>
+          </Button>
+        }
+      />
+      <Suspense fallback={<PageSkeleton label="Memuat dasbor…" />}>
+        <ClientHomeBody user={user} filters={filters} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function ClientHomeBody({
+  user,
+  filters,
+}: {
+  user: DashboardUser;
+  filters: ReturnType<typeof parseKpiFiltersFromParams>;
+}) {
   const [overview, options, contentType, mainTheme, compliance, revisionCount] =
     await Promise.all([
       getDashboardOverview(user, filters),
@@ -121,14 +155,7 @@ export default async function ClientHomePage({
         contentDetailBase="/client/konten"
         stakeholderChartTitle="Organisasi Anda"
         notice={notice}
-        headerActions={
-          <Button asChild className="h-10">
-            <Link href="/client/lapor">
-              <PlusCircle className="size-4" aria-hidden />
-              Lapor konten
-            </Link>
-          </Button>
-        }
+        hideHeader
       />
 
       <section aria-label="Komposisi konten" className="grid gap-6 xl:grid-cols-3">

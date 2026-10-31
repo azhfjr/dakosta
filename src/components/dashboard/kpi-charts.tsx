@@ -15,38 +15,20 @@ import {
   YAxis,
 } from "recharts";
 
-import { formatNumberId } from "@/lib/dates";
 import {
-  STATUS_LABEL,
-  type ContentStatus,
-} from "@/lib/content-status";
+  CHART_AXIS,
+  CHART_GRID,
+  CHART_TOOLTIP_LABEL,
+  STATUS_CHART_COLOR,
+  tooltipStyle,
+} from "@/lib/chart-theme";
+import { formatNumberId } from "@/lib/dates";
+import { STATUS_LABEL } from "@/lib/content-status";
 import type {
   NamedTotal,
   StatusTotal,
   TrendPoint,
 } from "@/lib/kpi/formulas";
-
-const STATUS_COLOR: Record<ContentStatus, string> = {
-  APPROVED: "#218353",
-  SUBMITTED: "#0a78ca",
-  RESUBMITTED: "#0a78ca",
-  IN_REVIEW: "#b46d15",
-  REVISION_REQUIRED: "#9a5b12",
-  REJECTED: "#b43f42",
-  DRAFT: "#8aa0b1",
-  REVOKED: "#597184",
-  ARCHIVED: "#597184",
-};
-
-const GRID = "#e5edf3";
-const AXIS = "#597184";
-
-const tooltipStyle = {
-  borderRadius: 10,
-  border: "1px solid #dbe6ee",
-  boxShadow: "0 8px 24px rgba(16, 42, 67, 0.08)",
-  fontSize: 12,
-} as const;
 
 function truncate(value: string, length: number): string {
   return value.length > length ? `${value.slice(0, length - 1)}…` : value;
@@ -127,7 +109,7 @@ export function KpiCharts({
     .map((row) => ({
       ...row,
       label: STATUS_LABEL[row.status],
-      color: STATUS_COLOR[row.status],
+      color: STATUS_CHART_COLOR[row.status],
     }));
   const statusTotal = statusData.reduce((sum, row) => sum + row.total, 0);
   const themeTotal = themes.reduce((sum, row) => sum + row.total, 0);
@@ -154,30 +136,30 @@ export function KpiCharts({
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trend} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
                   <defs>
-                    <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#0a78ca" stopOpacity={0.24} />
-                      <stop offset="100%" stopColor="#0a78ca" stopOpacity={0.02} />
+                    <linearGradient id="kpi-trend-fill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--chart-3)" stopOpacity={0.26} />
+                      <stop offset="100%" stopColor="var(--chart-3)" stopOpacity={0.02} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid stroke={GRID} strokeDasharray="3 3" vertical={false} />
+                  <CartesianGrid stroke={CHART_GRID} strokeDasharray="3 3" vertical={false} />
                   <XAxis
                     dataKey="label"
                     interval={interval}
                     tickLine={false}
                     axisLine={false}
-                    tick={{ fill: AXIS, fontSize: 11 }}
+                    tick={{ fill: CHART_AXIS, fontSize: 11 }}
                     minTickGap={8}
                   />
                   <YAxis
                     allowDecimals={false}
                     tickLine={false}
                     axisLine={false}
-                    tick={{ fill: AXIS, fontSize: 11 }}
+                    tick={{ fill: CHART_AXIS, fontSize: 11 }}
                     width={36}
                   />
                   <Tooltip
                     contentStyle={tooltipStyle}
-                    labelStyle={{ color: "#0f2a43", fontWeight: 600 }}
+                    labelStyle={{ color: CHART_TOOLTIP_LABEL, fontWeight: 600 }}
                     formatter={(value) => [
                       `${formatNumberId(Number(value))} konten`,
                       "Disetujui",
@@ -186,9 +168,9 @@ export function KpiCharts({
                   <Area
                     type="monotone"
                     dataKey="total"
-                    stroke="#0a78ca"
+                    stroke="var(--chart-3)"
                     strokeWidth={2}
-                    fill="url(#trendFill)"
+                    fill="url(#kpi-trend-fill)"
                     dot={false}
                     activeDot={{ r: 4 }}
                     isAnimationActive={false}
@@ -298,13 +280,13 @@ export function KpiCharts({
                   layout="vertical"
                   margin={{ top: 4, right: 16, left: 0, bottom: 0 }}
                 >
-                  <CartesianGrid stroke={GRID} horizontal={false} />
+                  <CartesianGrid stroke={CHART_GRID} horizontal={false} />
                   <XAxis
                     type="number"
                     allowDecimals={false}
                     tickLine={false}
                     axisLine={false}
-                    tick={{ fill: AXIS, fontSize: 11 }}
+                    tick={{ fill: CHART_AXIS, fontSize: 11 }}
                   />
                   <YAxis
                     type="category"
@@ -312,7 +294,7 @@ export function KpiCharts({
                     width={112}
                     tickLine={false}
                     axisLine={false}
-                    tick={{ fill: AXIS, fontSize: 11 }}
+                    tick={{ fill: CHART_AXIS, fontSize: 11 }}
                     tickFormatter={(value: string) => truncate(value, 18)}
                   />
                   <Tooltip
@@ -324,7 +306,7 @@ export function KpiCharts({
                   />
                   <Bar
                     dataKey="total"
-                    fill="#04908f"
+                    fill="var(--chart-2)"
                     radius={[0, 6, 6, 0]}
                     barSize={16}
                     isAnimationActive={false}
@@ -362,13 +344,13 @@ export function KpiCharts({
                   layout="vertical"
                   margin={{ top: 4, right: 16, left: 0, bottom: 0 }}
                 >
-                  <CartesianGrid stroke={GRID} horizontal={false} />
+                  <CartesianGrid stroke={CHART_GRID} horizontal={false} />
                   <XAxis
                     type="number"
                     allowDecimals={false}
                     tickLine={false}
                     axisLine={false}
-                    tick={{ fill: AXIS, fontSize: 11 }}
+                    tick={{ fill: CHART_AXIS, fontSize: 11 }}
                   />
                   <YAxis
                     type="category"
@@ -376,7 +358,7 @@ export function KpiCharts({
                     width={124}
                     tickLine={false}
                     axisLine={false}
-                    tick={{ fill: AXIS, fontSize: 11 }}
+                    tick={{ fill: CHART_AXIS, fontSize: 11 }}
                     tickFormatter={(value: string) => truncate(value, 20)}
                   />
                   <Tooltip
@@ -388,7 +370,7 @@ export function KpiCharts({
                   />
                   <Bar
                     dataKey="total"
-                    fill="#0a78ca"
+                    fill="var(--chart-1)"
                     radius={[0, 6, 6, 0]}
                     barSize={16}
                     isAnimationActive={false}

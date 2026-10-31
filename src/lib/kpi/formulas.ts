@@ -55,6 +55,7 @@ export type DrilldownItem = {
   subTheme: SubTheme | null;
   themeName: string;
   platform: string;
+  contentType: string | null;
   dateCreated: string;
   submittedAt: Date | null;
   approvedAt: Date | null;

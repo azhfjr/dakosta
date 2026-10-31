@@ -14,6 +14,7 @@ import {
 } from "drizzle-orm";
 
 import { getDb, schema } from "@/db";
+import { recordAudit } from "@/lib/audit";
 import { contentScopePredicate, isOrganizationInScope } from "@/lib/authz/predicates";
 import { errors, AppError } from "@/lib/errors";
 import { CONTENT_STATUSES, type ContentStatus } from "@/lib/content-status";
@@ -58,6 +59,7 @@ export type SubmissionListItem = {
   status: ContentStatus;
   version: number;
   platform: string;
+  contentType: string | null;
   themeName: string;
   stakeholderName: string;
   dateCreated: string;
@@ -127,6 +129,15 @@ export type SubmissionDetail = {
 
 const STATUS_SET = new Set<string>(CONTENT_STATUSES);
 
+export function assertSubmissionEditable(status: string): void {
+  if (status !== "DRAFT" && status !== "REVISION_REQUIRED") {
+    throw errors.conflict(
+      "Konten ini sudah dikirim dan tidak dapat diubah. Muat ulang halaman untuk melihat status terbaru.",
+      { status },
+    );
+  }
+}
+
 function isContentStatus(value: string): value is ContentStatus {
   return STATUS_SET.has(value);
 }
@@ -192,6 +203,7 @@ export async function listSubmissions(
       status: schema.contentSubmissions.status,
       version: schema.contentSubmissions.version,
       platform: schema.contentSubmissions.platform,
+      contentType: schema.contentSubmissions.contentType,
       themeName: schema.themes.name,
       subTheme: schema.contentSubmissions.subTheme,
       stakeholderName: schema.stakeholders.name,
@@ -616,10 +628,29 @@ export async function saveSubmission(
   requestId?: string,
 ): Promise<SavedSubmission> {
   assertCan(user, "content:create");
+  const requestedStakeholderId = input.stakeholderId ?? null;
   const stakeholderId =
     user.scope.kind === "ORG" ? user.scope.organizationId : input.stakeholderId;
   if (!stakeholderId) {
     throw errors.validation("Organisasi pelapor belum terhubung ke akun Anda.");
+  }
+  if (
+    user.scope.kind === "ORG" &&
+    requestedStakeholderId &&
+    requestedStakeholderId !== stakeholderId
+  ) {
+    // Organisasi selalu berasal dari scope akun; kiriman klien hanya dicatat.
+    await recordAudit({
+      actorId: user.id,
+      actorRole: user.role,
+      action: "SCOPE_MISMATCH_IGNORED",
+      recordType: "CONTENT_SUBMISSION",
+      reason: "stakeholderId_from_client_ignored",
+      organizationId: stakeholderId,
+      requestId: requestId ?? null,
+      source: "API",
+      after: { requestedStakeholderId },
+    });
   }
   await assertStakeholderAccess(user, stakeholderId);
 
@@ -696,12 +727,7 @@ export async function saveSubmission(
       .limit(1);
 
     if (!row) throw errors.notFound("Konten tidak ditemukan.");
-    if (row.status !== "DRAFT" && row.status !== "REVISION_REQUIRED") {
-      throw errors.conflict(
-        "Konten ini sudah dikirim dan tidak dapat diubah. Muat ulang halaman untuk melihat status terbaru.",
-        { status: row.status, version: row.version },
-      );
-    }
+    assertSubmissionEditable(row.status);
     existing = row;
   }
 

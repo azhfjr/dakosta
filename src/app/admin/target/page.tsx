@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Gauge, Target as TargetIcon, TrendingUp } from "lucide-react";
 
 import { TargetManager } from "@/components/admin/target-manager";
+import { TargetSyncPanel } from "@/components/admin/target-sync-panel";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Button } from "@/components/ui/button";
 import { formatDateTimeId, formatNumberId } from "@/lib/dates";
@@ -10,6 +11,7 @@ import { isMonthKey, monthKeyFor } from "@/lib/kpi/formulas";
 import { monthOptions } from "@/lib/kpi/sql";
 import { requireRole } from "@/lib/session";
 import { getTargetOverview, listTargetStakeholders } from "@/lib/targets";
+import { getTargetSyncPreview } from "@/lib/targets/sync";
 
 export const metadata: Metadata = {
   title: "Target periode",
@@ -31,9 +33,10 @@ export default async function AdminTargetPage({
   const rawMonth = Array.isArray(params.month) ? params.month[0] : params.month;
   const month = isMonthKey(rawMonth) ? rawMonth : monthKeyFor();
 
-  const [overview, stakeholders] = await Promise.all([
+  const [overview, stakeholders, syncPreview] = await Promise.all([
     getTargetOverview(month),
     listTargetStakeholders(),
+    getTargetSyncPreview(month),
   ]);
 
   return (
@@ -113,6 +116,8 @@ export default async function AdminTargetPage({
           tone="teal"
         />
       </section>
+
+      <TargetSyncPanel month={month} sources={syncPreview.sources} />
 
       <TargetManager month={month} rows={overview.rows} stakeholders={stakeholders} />
     </div>

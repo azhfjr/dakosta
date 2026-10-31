@@ -13,20 +13,13 @@ import type {
 } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
 
-import { formatNumberId } from "@/lib/dates";
 import type { AppRole } from "@/lib/authz/types";
+import {
+  MAP_BRAND,
+  MAP_STATUS_COLOR as STATUS_COLOR,
+} from "@/lib/chart-theme";
+import { formatNumberId } from "@/lib/dates";
 import type { MapPoint, MapSite } from "@/lib/map";
-
-const STATUS_COLOR: Record<string, string> = {
-  APPROVED: "#218353",
-  SUBMITTED: "#0a78ca",
-  IN_REVIEW: "#b46d15",
-  REVISION_REQUIRED: "#9a5b12",
-  REJECTED: "#b43f42",
-  REVOKED: "#597184",
-  ARCHIVED: "#597184",
-  DRAFT: "#8aa0b1",
-};
 
 const STATUS_LABEL: Record<string, string> = {
   APPROVED: "Disetujui",
@@ -244,7 +237,7 @@ export function MapExplorer({
             source: SOURCE_SITES,
             paint: {
               "circle-radius": 11,
-              "circle-color": "#04908f",
+              "circle-color": MAP_BRAND.teal,
               "circle-opacity": 0.12,
             },
           });
@@ -254,7 +247,7 @@ export function MapExplorer({
             source: SOURCE_SITES,
             paint: {
               "circle-radius": 5.5,
-              "circle-color": "#04908f",
+              "circle-color": MAP_BRAND.teal,
               "circle-stroke-color": "#ffffff",
               "circle-stroke-width": 2,
             },
@@ -273,7 +266,7 @@ export function MapExplorer({
               "text-max-width": 12,
             },
             paint: {
-              "text-color": "#0f2a43",
+              "text-color": MAP_BRAND.ink,
               "text-halo-color": "#ffffff",
               "text-halo-width": 1.4,
             },
@@ -285,7 +278,7 @@ export function MapExplorer({
             source: SOURCE_SUBMISSIONS,
             filter: ["has", "point_count"],
             paint: {
-              "circle-color": "#0a78ca",
+              "circle-color": MAP_BRAND.blue,
               "circle-opacity": 0.92,
               "circle-stroke-color": "#ffffff",
               "circle-stroke-width": 2,
@@ -317,18 +310,18 @@ export function MapExplorer({
             "match",
             ["get", "status"],
             "APPROVED",
-            "#218353",
+            STATUS_COLOR.APPROVED,
             "SUBMITTED",
-            "#0a78ca",
+            STATUS_COLOR.SUBMITTED,
             "IN_REVIEW",
-            "#b46d15",
+            STATUS_COLOR.IN_REVIEW,
             "REVISION_REQUIRED",
-            "#9a5b12",
+            STATUS_COLOR.REVISION_REQUIRED,
             "REJECTED",
-            "#b43f42",
+            STATUS_COLOR.REJECTED,
             "REVOKED",
-            "#597184",
-            "#597184",
+            STATUS_COLOR.REVOKED,
+            STATUS_COLOR.ARCHIVED,
           ];
 
           map.addLayer({
@@ -549,7 +542,7 @@ export function MapExplorer({
           <li className="flex items-center gap-1.5">
             <span
               className="size-2.5 rounded-full border-2 bg-white"
-              style={{ borderColor: "#597184" }}
+              style={{ borderColor: STATUS_COLOR.REVOKED }}
               aria-hidden
             />
             Lokasi perkiraan (cincin)
@@ -557,7 +550,7 @@ export function MapExplorer({
           <li className="flex items-center gap-1.5">
             <span
               className="size-2.5 rounded-full"
-              style={{ backgroundColor: "#04908f" }}
+              style={{ backgroundColor: MAP_BRAND.teal }}
               aria-hidden
             />
             Lokasi stakeholder

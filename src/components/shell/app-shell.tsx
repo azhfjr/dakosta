@@ -23,12 +23,6 @@ export function AppShell({
 }) {
   return (
     <div className="min-h-dvh bg-surface-muted/60 lg:grid lg:grid-cols-[17rem_minmax(0,1fr)]">
-      <a
-        href="#konten"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-foreground focus:shadow-lg focus:outline-none focus:ring-3 focus:ring-focus/40"
-      >
-        Lewati ke konten utama
-      </a>
       <NotificationStream />
       <aside className="sticky top-0 hidden h-dvh flex-col border-r border-border bg-surface lg:flex">
         <div className="px-5 pt-5 pb-4">
@@ -86,8 +80,11 @@ export function AppShell({
               >
                 <Bell className="size-5" aria-hidden />
                 {unreadCount && unreadCount > 0 ? (
-                  <span className="absolute top-2 right-2 flex size-4 items-center justify-center rounded-full bg-status-rejected text-[10px] font-semibold text-white">
-                    {unreadCount > 9 ? "9+" : unreadCount}
+                  <span
+                    aria-hidden
+                    className="absolute top-1.5 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-status-rejected px-1 text-[10px] font-semibold text-white tabular"
+                  >
+                    {unreadCount}
                   </span>
                 ) : null}
               </Link>

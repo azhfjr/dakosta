@@ -1,20 +1,9 @@
-import { randomUUID } from "node:crypto";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 import { demoPassword } from "./demo-password";
 import { ADMIN_STATE } from "./support";
 
-async function confirmStepUpIfPrompted(page: Page): Promise<void> {
-  const dialog = page.getByRole("dialog", { name: "Konfirmasi kata sandi" });
-  const appeared = await dialog
-    .waitFor({ state: "visible", timeout: 3_000 })
-    .then(() => true)
-    .catch(() => false);
-  if (!appeared) return;
-  await dialog.locator("#step-up-password").fill(demoPassword());
-  await dialog.getByRole("button", { name: "Konfirmasi" }).click();
-  await expect(dialog).toBeHidden();
-}
+const DEMO_ACCOUNT_MESSAGE = "Akun demo tidak dapat mengubah akun";
 
 test.describe("Direktori akun Master", () => {
   test.use({ storageState: ADMIN_STATE });
@@ -41,45 +30,20 @@ test.describe("Direktori akun Master", () => {
     await expect(page.getByText(identity.data.email, { exact: true })).toBeVisible();
   });
 
-  test("Master mengubah jabatan dan lingkup akun dengan konfirmasi kata sandi", async ({
-    page,
-  }) => {
-    const email = `uji.ubah.${randomUUID().slice(0, 8)}@example.test`;
+  test("direktori akun demo bersifat baca-saja", async ({ page }) => {
     await page.goto("/admin/akun");
-    await page.locator("#acct-name").fill("Akun Uji Ubah");
-    await page.locator("#acct-email").fill(email);
-    await page.locator("#acct-org").selectOption({ index: 1 });
-    await page.getByRole("button", { name: "Buat akun" }).click();
-    await confirmStepUpIfPrompted(page);
     await expect(
-      page.getByRole("heading", { name: "Kata sandi sementara untuk Akun Uji Ubah" }),
+      page.getByRole("heading", { name: "Akun & akses", level: 1 }),
     ).toBeVisible();
+    await expect(
+      page.getByText(/Mode demo: pembuatan dan perubahan akun dinonaktifkan/),
+    ).toBeVisible();
+    await expect(page.locator("#acct-name")).toBeHidden();
 
-    const row = page.getByRole("row", { name: new RegExp(email) });
-    await expect(row).toBeVisible();
-    await row.getByRole("button", { name: "Ubah" }).click();
-
-    const dialog = page.getByRole("dialog", { name: "Ubah akun" });
-    await expect(dialog).toBeVisible();
-    await expect(dialog.locator("#edit-name")).toHaveValue("Akun Uji Ubah");
-    await dialog.locator("#edit-title").fill("Koordinator Uji");
-    await dialog.getByRole("button", { name: "Simpan perubahan" }).click();
-    await confirmStepUpIfPrompted(page);
-
-    await expect(page.getByText("Akun diperbarui. Sesi lama dicabut.")).toBeVisible();
-    await page.getByPlaceholder("Cari nama, email, lingkup").fill(email);
-    await expect(page.getByRole("row", { name: new RegExp(email) })).toContainText(
-      "Koordinator Uji",
-    );
-
-    await page.getByRole("button", { name: "Tangguhkan" }).last().click();
-    await confirmStepUpIfPrompted(page);
-    await expect(page.getByText("Akun ditangguhkan.")).toBeVisible();
-    await page.getByLabel("Filter status").selectOption("SUSPENDED");
-    await expect(page.getByRole("row", { name: new RegExp(email) })).toBeVisible();
-    await page.getByRole("button", { name: "Aktifkan" }).first().click();
-    await confirmStepUpIfPrompted(page);
-    await expect(page.getByText("Akun diaktifkan.")).toBeVisible();
+    const create = await page.request.post("/api/v1/admin/users", { data: {} });
+    expect(create.status()).toBe(403);
+    const body = (await create.json()) as { error?: { message?: string } };
+    expect(body.error?.message).toContain(DEMO_ACCOUNT_MESSAGE);
   });
 });
 
@@ -105,15 +69,17 @@ test.describe("Pengaman Master terakhir", () => {
       `/api/v1/admin/users/${identity.data.id}`,
       { data: { role: "STAKEHOLDER" } },
     );
-    expect(demote.status()).not.toBe(200);
+    expect(demote.status()).toBe(403);
+    const demoteBody = (await demote.json()) as { error?: { message?: string } };
+    expect(demoteBody.error?.message).toContain(DEMO_ACCOUNT_MESSAGE);
 
     const suspend = await page.request.patch(
       `/api/v1/admin/users/${identity.data.id}`,
       { data: { status: "SUSPENDED" } },
     );
-    expect(suspend.status()).toBe(409);
+    expect(suspend.status()).toBe(403);
     const suspendBody = (await suspend.json()) as { error?: { message?: string } };
-    expect(suspendBody.error?.message).toMatch(/Master Admin aktif terakhir/);
+    expect(suspendBody.error?.message).toContain(DEMO_ACCOUNT_MESSAGE);
 
     const after = await page.request.get("/api/v1/me");
     const stillMaster = (await after.json()) as { data: { role: string } };

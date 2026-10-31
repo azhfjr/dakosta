@@ -114,6 +114,7 @@ export type ReviewQueueItem = {
   status: ContentStatus;
   version: number;
   platform: string;
+  contentType: string | null;
   stakeholderName: string;
   themeName: string;
   submittedAt: Date | null;
@@ -190,6 +191,7 @@ export async function listReviewQueue(
         status: schema.contentSubmissions.status,
         version: schema.contentSubmissions.version,
         platform: schema.contentSubmissions.platform,
+        contentType: schema.contentSubmissions.contentType,
         submittedAt: schema.contentSubmissions.submittedAt,
         updatedAt: schema.contentSubmissions.updatedAt,
         stakeholderName: schema.stakeholders.name,

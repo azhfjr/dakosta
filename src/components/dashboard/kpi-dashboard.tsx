@@ -14,6 +14,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 
+import { ContentTypeBadge } from "@/components/content/content-type-badge";
 import { StatusBadge } from "@/components/content/status-badge";
 import { DeferredKpiCharts } from "@/components/dashboard/kpi-charts-lazy";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -152,6 +153,9 @@ function ContentTable({
                   Konten
                 </th>
                 <th scope="col" className="px-5 py-3">
+                  Jenis konten
+                </th>
+                <th scope="col" className="px-5 py-3">
                   Tema
                 </th>
                 <th scope="col" className="px-5 py-3">
@@ -183,6 +187,9 @@ function ContentTable({
                     <p className="text-xs text-ink-muted">
                       {item.referenceCode} · {item.stakeholderName}
                     </p>
+                  </td>
+                  <td className="px-5 py-3">
+                    <ContentTypeBadge contentType={item.contentType} />
                   </td>
                   <td className="px-5 py-3 text-ink-muted">{item.themeName}</td>
                   <td className="px-5 py-3 text-ink-muted">
@@ -217,6 +224,7 @@ export function KpiDashboard({
   notice,
   contentDetailBase,
   stakeholderChartTitle,
+  hideHeader,
 }: {
   overview: DashboardOverview;
   role: AppRole;
@@ -232,6 +240,8 @@ export function KpiDashboard({
   notice?: ReactNode;
   contentDetailBase: string;
   stakeholderChartTitle: string;
+  /** Header dirender oleh page agar bisa streaming sebelum data siap. */
+  hideHeader?: boolean;
 }) {
   const { approved } = overview;
   const targetMissing = approved.target === null;
@@ -271,20 +281,22 @@ export function KpiDashboard({
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            {title}
-          </h1>
-          <p className="mt-1 max-w-2xl text-sm text-ink-muted">{description}</p>
-        </div>
-        <div className="flex flex-col items-start gap-2 sm:items-end">
-          {headerActions}
-          <p className="text-xs text-ink-muted">
-            Diperbarui {formatDateTimeId(overview.generatedAt)} WIB
-          </p>
-        </div>
-      </header>
+      {hideHeader ? null : (
+        <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+              {title}
+            </h1>
+            <p className="mt-1 max-w-2xl text-sm text-ink-muted">{description}</p>
+          </div>
+          <div className="flex flex-col items-start gap-2 sm:items-end">
+            {headerActions}
+            <p className="text-xs text-ink-muted">
+              Diperbarui {formatDateTimeId(overview.generatedAt)} WIB
+            </p>
+          </div>
+        </header>
+      )}
 
       {notice}
 

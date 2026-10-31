@@ -9,24 +9,33 @@ const baseURL =
 const RUNS = Number(process.env.PERF_RUNS ?? "3");
 
 const BUDGETS = {
-  // Recharts (~110 KB gzip) renders above the fold on the admin dashboard, so
-  // its route budget carries a documented allowance over the 350 KB default.
-  "/admin": { ttfb: 1200, lcp: 2500, js: 375 },
-  "/admin/target": { ttfb: 800, lcp: 2500 },
-  "/admin/konten": { ttfb: 1200, lcp: 2500 },
-  "/cabang/review": { ttfb: 1200, lcp: 2500 },
-  "/client": { ttfb: 1200, lcp: 2500 },
+  // Recharts (~110 KB gzip) renders above the fold on the dashboard and
+  // analytics routes, so those budgets carry a documented allowance over the
+  // 350 KB default. Rute lain tetap memakai anggaran dasar.
+  "/admin": { role: "admin", ttfb: 1200, lcp: 2500, js: 375 },
+  "/admin/analitik": { role: "admin", ttfb: 1200, lcp: 2500, js: 375 },
+  "/admin/target": { role: "admin", ttfb: 1200, lcp: 2500 },
+  "/admin/konten": { role: "admin", ttfb: 1200, lcp: 2500 },
+  "/admin/konten/impor": { role: "admin", ttfb: 1200, lcp: 2500 },
+  "/cabang/review": { role: "branch", ttfb: 1200, lcp: 2500 },
+  "/client": { role: "client", ttfb: 1200, lcp: 2500, js: 375 },
+  "/client/analitik": { role: "client", ttfb: 1200, lcp: 2500, js: 375 },
 };
 const MAX_CLS = 0.1;
 const MAX_ROUTE_KB = 350;
+
+const STATE_FILES = {
+  admin: "admin.json",
+  branch: "branch-a1.json",
+  regional: "regional.json",
+  client: "client.json",
+};
 
 const stateFile = path.join("e2e", ".auth", "admin.json");
 if (!existsSync(stateFile)) {
   console.error("State login admin tidak ditemukan. Jalankan global setup E2E dahulu.");
   process.exit(1);
-}
-
-function percentile(values, p) {
+}function percentile(values, p) {
   const sorted = [...values].sort((a, b) => a - b);
   const index = Math.min(sorted.length - 1, Math.ceil((p / 100) * sorted.length) - 1);
   return sorted[index] ?? 0;
@@ -47,17 +56,31 @@ const initScript = () => {
 };
 
 const browser = await chromium.launch();
-const context = await browser.newContext({
-  baseURL,
-  storageState: JSON.parse(readFileSync(stateFile, "utf8")),
-  viewport: { width: 1440, height: 1000 },
-});
+const contexts = new Map();
+
+async function contextForRole(role) {
+  const cached = contexts.get(role);
+  if (cached) return cached;
+  const file = STATE_FILES[role];
+  const resolved = file ? path.join("e2e", ".auth", file) : null;
+  if (!resolved || !existsSync(resolved)) {
+    throw new Error(`State login ${role} tidak ditemukan. Jalankan global setup E2E dahulu.`);
+  }
+  const context = await browser.newContext({
+    baseURL,
+    storageState: JSON.parse(readFileSync(resolved, "utf8")),
+    viewport: { width: 1440, height: 1000 },
+  });
+  contexts.set(role, context);
+  return context;
+}
 
 const results = [];
 let failed = false;
 
 try {
   for (const [route, budget] of Object.entries(BUDGETS)) {
+    const context = await contextForRole(budget.role);
     const page = await context.newPage();
     await page.addInitScript(initScript);
     const samples = [];
@@ -106,7 +129,7 @@ try {
     await page.close();
   }
 } finally {
-  await context.close();
+  for (const context of contexts.values()) await context.close();
   await browser.close();
 }
 

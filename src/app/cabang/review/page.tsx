@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarClock, Inbox, Search } from "lucide-react";
 
+import { ContentTypeBadge } from "@/components/content/content-type-badge";
 import { StatusBadge } from "@/components/content/status-badge";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Button } from "@/components/ui/button";
@@ -170,6 +171,9 @@ export default async function BranchReviewQueuePage({
                     Konten
                   </th>
                   <th scope="col" className="px-4 py-3">
+                    Jenis konten
+                  </th>
+                  <th scope="col" className="px-4 py-3">
                     Organisasi
                   </th>
                   <th scope="col" className="px-4 py-3">
@@ -205,6 +209,9 @@ export default async function BranchReviewQueuePage({
                       <p className="text-xs text-ink-muted">
                         {item.referenceCode} · v{item.version}
                       </p>
+                    </td>
+                    <td className="px-4 py-4">
+                      <ContentTypeBadge contentType={item.contentType} />
                     </td>
                     <td className="px-4 py-4 text-ink-muted">
                       {item.stakeholderName}

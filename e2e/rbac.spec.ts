@@ -215,7 +215,9 @@ test.describe("Step-up Master dan pencabutan", () => {
         data: {},
       });
       expect(createAccount.status).toBe(403);
-      expect(createAccount.body.error?.code).toBe("STEP_UP_REQUIRED");
+      expect(createAccount.body.error?.message).toContain(
+        "Akun demo tidak dapat mengubah akun",
+      );
 
       const approved = await call<Array<{ id: string }>>(
         master,

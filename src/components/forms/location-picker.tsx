@@ -9,6 +9,7 @@ import { Crosshair, Loader2, MapPin, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MAP_BRAND } from "@/lib/chart-theme";
 import { BANDUNG_CENTER, MAP_STYLE_URL, formatCoordinatePair, isValidCoordinate } from "@/lib/geo";
 
 export type PickedLocation = {
@@ -124,7 +125,10 @@ export function LocationPicker({
     const coordinates: [number, number] = [value.longitude, value.latitude];
 
     if (!markerRef.current) {
-      const marker = new maplibregl.Marker({ color: "#084a96", draggable: true })
+      const marker = new maplibregl.Marker({
+        color: MAP_BRAND.greenDark,
+        draggable: true,
+      })
         .setLngLat(coordinates)
         .addTo(map);
 

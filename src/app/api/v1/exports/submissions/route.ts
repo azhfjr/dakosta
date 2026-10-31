@@ -21,8 +21,10 @@ import { getApiUser } from "@/lib/session";
 import {
   currentPeriod,
   isSubTheme,
+  CONTENT_TYPE_LABELS,
   MAIN_THEME_LABELS,
   SUB_THEME_LABELS,
+  type ContentType,
   type MainTheme,
 } from "@/lib/taxonomy";
 
@@ -118,6 +120,7 @@ export async function GET(request: Request) {
         mainTheme: schema.contentSubmissions.mainTheme,
         subTheme: schema.contentSubmissions.subTheme,
         platform: schema.contentSubmissions.platform,
+        contentType: schema.contentSubmissions.contentType,
         status: schema.contentSubmissions.status,
         dateCreated: schema.contentSubmissions.dateCreated,
         submittedAt: schema.contentSubmissions.submittedAt,
@@ -149,6 +152,7 @@ export async function GET(request: Request) {
         "Tema utama",
         "Sub-tema",
         "Platform",
+        "Jenis konten",
         "Status",
         "Tanggal konten",
         "Dikirim",
@@ -169,6 +173,9 @@ export async function GET(request: Request) {
           : "",
         isSubTheme(row.subTheme) ? SUB_THEME_LABELS[row.subTheme] : "",
         PLATFORM_LABEL[row.platform] ?? row.platform,
+        row.contentType
+          ? (CONTENT_TYPE_LABELS[row.contentType as ContentType] ?? row.contentType)
+          : "Belum ditentukan",
         STATUS_LABEL[row.status as keyof typeof STATUS_LABEL] ?? row.status,
         formatDateId(row.dateCreated),
         formatDateTimeId(row.submittedAt),

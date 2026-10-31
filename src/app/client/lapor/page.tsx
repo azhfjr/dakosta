@@ -224,6 +224,7 @@ export default async function ReportContentPage({
           stakeholders={stakeholders}
           edufastPolicies={edufastPolicies}
           today={jakartaToday()}
+          draftOwnerId={user.id}
           initial={initial}
         />
       )}

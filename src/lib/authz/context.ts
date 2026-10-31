@@ -1,6 +1,7 @@
 import "server-only";
 
 import { and, eq, isNull } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { headers } from "next/headers";
 import { cache } from "react";
 
@@ -16,102 +17,85 @@ import {
   type Scope,
 } from "./types";
 
+/**
+ * Data scope diambil dalam satu kueri bersama membership agar autentikasi tidak
+ * menambah round-trip serial ke basis data.
+ */
+const scopeRegion = alias(schema.regionalOffices, "scope_region");
+const scopeBranch = alias(schema.branchOffices, "scope_branch");
+const scopeBranchRegion = alias(schema.regionalOffices, "scope_branch_region");
+const scopeOrg = alias(schema.stakeholders, "scope_org");
+const scopeOrgBranch = alias(schema.branchOffices, "scope_org_branch");
+const scopeOrgRegion = alias(schema.regionalOffices, "scope_org_region");
+
+type ScopeData = {
+  regionId: string | null;
+  regionName: string | null;
+  branchId: string | null;
+  branchName: string | null;
+  branchRegionId: string | null;
+  branchRegionName: string | null;
+  orgId: string | null;
+  orgName: string | null;
+  orgBranchId: string | null;
+  orgBranchName: string | null;
+  orgRegionId: string | null;
+  orgRegionName: string | null;
+};
+
 async function loadScope(
-  row: typeof schema.userMemberships.$inferSelect,
+  data: ScopeData,
   role: AppRole,
 ): Promise<{ scope: Scope; scopeLabel: string } | null> {
-  const db = getDb();
-
   if (role === "MASTER_ADMIN") {
     return { scope: { kind: "GLOBAL" }, scopeLabel: "Seluruh organisasi" };
   }
 
   if (role === "REGIONAL_ADMIN") {
-    if (!row.regionalOfficeId) return null;
-    const [region] = await db
-      .select({ id: schema.regionalOffices.id, name: schema.regionalOffices.name })
-      .from(schema.regionalOffices)
-      .where(eq(schema.regionalOffices.id, row.regionalOfficeId))
-      .limit(1);
-    if (!region) return null;
+    if (!data.regionId || !data.regionName) return null;
+    const db = getDb();
     const branches = await db
       .select({ id: schema.branchOffices.id })
       .from(schema.branchOffices)
-      .where(eq(schema.branchOffices.regionalOfficeId, region.id));
+      .where(eq(schema.branchOffices.regionalOfficeId, data.regionId));
     return {
       scope: {
         kind: "REGION",
-        regionId: region.id,
-        regionName: region.name,
+        regionId: data.regionId,
+        regionName: data.regionName,
         branchIds: branches.map((branch) => branch.id),
       },
-      scopeLabel: region.name,
+      scopeLabel: data.regionName,
     };
   }
 
   if (role === "BRANCH_ADMIN") {
-    if (!row.branchOfficeId) return null;
-    const [branch] = await db
-      .select({
-        id: schema.branchOffices.id,
-        name: schema.branchOffices.name,
-        regionId: schema.regionalOffices.id,
-        regionName: schema.regionalOffices.name,
-      })
-      .from(schema.branchOffices)
-      .innerJoin(
-        schema.regionalOffices,
-        eq(schema.regionalOffices.id, schema.branchOffices.regionalOfficeId),
-      )
-      .where(eq(schema.branchOffices.id, row.branchOfficeId))
-      .limit(1);
-    if (!branch) return null;
+    if (!data.branchId || !data.branchName) return null;
+    if (!data.branchRegionId || !data.branchRegionName) return null;
     return {
       scope: {
         kind: "BRANCH",
-        branchId: branch.id,
-        branchName: branch.name,
-        regionId: branch.regionId,
-        regionName: branch.regionName,
+        branchId: data.branchId,
+        branchName: data.branchName,
+        regionId: data.branchRegionId,
+        regionName: data.branchRegionName,
       },
-      scopeLabel: branch.name,
+      scopeLabel: data.branchName,
     };
   }
 
-  if (!row.organizationId) return null;
-  const [organization] = await db
-    .select({
-      id: schema.stakeholders.id,
-      name: schema.stakeholders.name,
-      branchId: schema.stakeholders.branchOfficeId,
-      branchName: schema.branchOffices.name,
-      regionId: schema.regionalOffices.id,
-      regionName: schema.regionalOffices.name,
-    })
-    .from(schema.stakeholders)
-    .leftJoin(
-      schema.branchOffices,
-      eq(schema.branchOffices.id, schema.stakeholders.branchOfficeId),
-    )
-    .leftJoin(
-      schema.regionalOffices,
-      eq(schema.regionalOffices.id, schema.branchOffices.regionalOfficeId),
-    )
-    .where(eq(schema.stakeholders.id, row.organizationId))
-    .limit(1);
-  if (!organization) return null;
-
+  if (!data.orgId || !data.orgName) return null;
   return {
     scope: {
       kind: "ORG",
-      organizationId: organization.id,
-      organizationName: organization.name,
-      branchId: organization.branchId ?? null,
-      branchName: organization.branchName ?? null,
-      regionId: organization.regionId ?? null,
-      regionName: organization.regionName ?? null,
+      organizationId: data.orgId,
+      organizationName: data.orgName,
+      branchId: data.orgBranchId ?? null,
+      branchName: data.orgBranchName ?? null,
+      regionId: data.orgRegionId ?? null,
+      regionName: data.orgRegionName ?? null,
     },
-    scopeLabel: organization.name,
+    scopeLabel: data.orgName,
   };
 }
 
@@ -124,11 +108,43 @@ async function loadAuthContext(): Promise<AuthContext | null> {
     .select({
       membership: schema.userMemberships,
       profile: schema.userProfiles,
+      scope: {
+        regionId: scopeRegion.id,
+        regionName: scopeRegion.name,
+        branchId: scopeBranch.id,
+        branchName: scopeBranch.name,
+        branchRegionId: scopeBranchRegion.id,
+        branchRegionName: scopeBranchRegion.name,
+        orgId: scopeOrg.id,
+        orgName: scopeOrg.name,
+        orgBranchId: scopeOrgBranch.id,
+        orgBranchName: scopeOrgBranch.name,
+        orgRegionId: scopeOrgRegion.id,
+        orgRegionName: scopeOrgRegion.name,
+      },
     })
     .from(schema.userMemberships)
     .innerJoin(
       schema.userProfiles,
       eq(schema.userProfiles.userId, schema.userMemberships.userId),
+    )
+    .leftJoin(
+      scopeRegion,
+      eq(scopeRegion.id, schema.userMemberships.regionalOfficeId),
+    )
+    .leftJoin(
+      scopeBranch,
+      eq(scopeBranch.id, schema.userMemberships.branchOfficeId),
+    )
+    .leftJoin(
+      scopeBranchRegion,
+      eq(scopeBranchRegion.id, scopeBranch.regionalOfficeId),
+    )
+    .leftJoin(scopeOrg, eq(scopeOrg.id, schema.userMemberships.organizationId))
+    .leftJoin(scopeOrgBranch, eq(scopeOrgBranch.id, scopeOrg.branchOfficeId))
+    .leftJoin(
+      scopeOrgRegion,
+      eq(scopeOrgRegion.id, scopeOrgBranch.regionalOfficeId),
     )
     .where(
       and(
@@ -144,7 +160,7 @@ async function loadAuthContext(): Promise<AuthContext | null> {
   const role = row.membership.role;
   if (!isAppRole(role)) return null;
 
-  const resolved = await loadScope(row.membership, role);
+  const resolved = await loadScope(row.scope, role);
   if (!resolved) return null;
 
   return {

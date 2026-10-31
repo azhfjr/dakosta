@@ -29,6 +29,10 @@ const ACTION_LABEL: Record<string, string> = {
   DEMO_LOGIN: "Demo masuk",
   OUTBOX_DRAINED: "Outbox diproses",
   KPI_TARGET_UPDATED: "Target diperbarui",
+  TARGET_CREATED: "Target dibuat",
+  TARGET_UPDATED: "Target diperbarui",
+  TARGET_DELETED: "Target dihapus",
+  TARGET_SYNCED: "Target disinkronkan",
 };
 
 function actionLabel(action: string): string {

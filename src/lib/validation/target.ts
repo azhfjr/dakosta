@@ -27,3 +27,26 @@ export const targetUpdateSchema = z
 
 export type TargetCreateInput = z.infer<typeof targetCreateSchema>;
 export type TargetUpdateInput = z.infer<typeof targetUpdateSchema>;
+
+export const targetSyncSchema = z
+  .object({
+    month: targetMonthSchema,
+    entries: z
+      .array(
+        z.object({
+          source: z.enum(["FASKES_FKTP", "FASKES_FKRTL", "PEMDA", "OTHER"]),
+          targetCount: z.number().int().min(0).max(1_000_000),
+          reportingUnit: z.string().trim().min(1).max(40).optional(),
+        }),
+      )
+      .min(1)
+      .max(4),
+  })
+  .refine(
+    (value) =>
+      new Set(value.entries.map((entry) => entry.source)).size ===
+      value.entries.length,
+    { message: "Setiap sumber input hanya boleh muncul sekali." },
+  );
+
+export type TargetSyncInput = z.infer<typeof targetSyncSchema>;

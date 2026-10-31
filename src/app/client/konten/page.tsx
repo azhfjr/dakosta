@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Download, FileText, PlusCircle } from "lucide-react";
 
+import { ContentTypeBadge } from "@/components/content/content-type-badge";
 import { StatusBadge } from "@/components/content/status-badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -124,6 +125,9 @@ export default async function ClientContentListPage({
                     Konten
                   </th>
                   <th scope="col" className="px-5 py-3">
+                    Jenis konten
+                  </th>
+                  <th scope="col" className="px-5 py-3">
                     Tema
                   </th>
                   <th scope="col" className="px-5 py-3">
@@ -150,6 +154,9 @@ export default async function ClientContentListPage({
                       <p className="text-xs text-ink-muted">
                         {item.referenceCode} · {item.stakeholderName}
                       </p>
+                    </td>
+                    <td className="px-5 py-3">
+                      <ContentTypeBadge contentType={item.contentType} />
                     </td>
                     <td className="px-5 py-3 text-ink-muted">{item.themeName}</td>
                     <td className="px-5 py-3 text-ink-muted">

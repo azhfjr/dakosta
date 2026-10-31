@@ -282,6 +282,7 @@ export async function getDashboardOverview(
     subTheme: schema.contentSubmissions.subTheme,
     themeName: schema.themes.name,
     platform: schema.contentSubmissions.platform,
+    contentType: schema.contentSubmissions.contentType,
     dateCreated: schema.contentSubmissions.dateCreated,
     submittedAt: schema.contentSubmissions.submittedAt,
     approvedAt: schema.contentSubmissions.approvedAt,

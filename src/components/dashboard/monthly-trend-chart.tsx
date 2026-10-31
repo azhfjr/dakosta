@@ -11,18 +11,14 @@ import {
   YAxis,
 } from "recharts";
 
+import {
+  CHART_AXIS,
+  CHART_GRID,
+  CHART_TOOLTIP_LABEL,
+  tooltipStyle,
+} from "@/lib/chart-theme";
 import { formatNumberId } from "@/lib/dates";
 import type { MonthlyTrendPoint } from "@/lib/kpi/sql";
-
-const GRID = "#e5edf3";
-const AXIS = "#597184";
-
-const tooltipStyle = {
-  borderRadius: 10,
-  border: "1px solid #dbe6ee",
-  boxShadow: "0 8px 24px rgba(16, 42, 67, 0.08)",
-  fontSize: 12,
-} as const;
 
 export function MonthlyTrendChart({ data }: { data: MonthlyTrendPoint[] }) {
   const total = data.reduce((sum, point) => sum + point.approved, 0);
@@ -42,23 +38,23 @@ export function MonthlyTrendChart({ data }: { data: MonthlyTrendPoint[] }) {
                 margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
                 barGap={4}
               >
-                <CartesianGrid stroke={GRID} strokeDasharray="3 3" vertical={false} />
+                <CartesianGrid stroke={CHART_GRID} strokeDasharray="3 3" vertical={false} />
                 <XAxis
                   dataKey="label"
                   tickLine={false}
                   axisLine={false}
-                  tick={{ fill: AXIS, fontSize: 11 }}
+                  tick={{ fill: CHART_AXIS, fontSize: 11 }}
                 />
                 <YAxis
                   allowDecimals={false}
                   tickLine={false}
                   axisLine={false}
-                  tick={{ fill: AXIS, fontSize: 11 }}
+                  tick={{ fill: CHART_AXIS, fontSize: 11 }}
                   width={36}
                 />
                 <Tooltip
                   contentStyle={tooltipStyle}
-                  labelStyle={{ color: "#0f2a43", fontWeight: 600 }}
+                  labelStyle={{ color: CHART_TOOLTIP_LABEL, fontWeight: 600 }}
                   formatter={(value, name) => [
                     `${formatNumberId(Number(value))} konten`,
                     name === "approved" ? "Disetujui" : "Dikirim",
@@ -68,18 +64,18 @@ export function MonthlyTrendChart({ data }: { data: MonthlyTrendPoint[] }) {
                   formatter={(value) =>
                     value === "approved" ? "Disetujui" : "Dikirim"
                   }
-                  wrapperStyle={{ fontSize: 12, color: AXIS }}
+                  wrapperStyle={{ fontSize: 12, color: CHART_AXIS }}
                 />
                 <Bar
                   dataKey="approved"
-                  fill="#218353"
+                  fill="var(--status-approved)"
                   radius={[4, 4, 0, 0]}
                   maxBarSize={28}
                   isAnimationActive={false}
                 />
                 <Bar
                   dataKey="submitted"
-                  fill="#0a78ca"
+                  fill="var(--status-submitted)"
                   fillOpacity={0.45}
                   radius={[4, 4, 0, 0]}
                   maxBarSize={28}

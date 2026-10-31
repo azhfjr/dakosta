@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 
 import { demoPassword } from "./demo-password";
@@ -89,28 +88,18 @@ test.describe("Target KPI Master", () => {
 test.describe("Akun Master", () => {
   test.use({ storageState: ADMIN_STATE });
 
-  test("Master membuat akun baru dengan konfirmasi kata sandi sekali jalan", async ({
-    page,
-  }) => {
-    const email = `uji.akun.${randomUUID().slice(0, 8)}@example.test`;
+  test("pembuatan akun dinonaktifkan pada mode demo", async ({ page }) => {
     await page.goto("/admin/akun");
     await expect(
       page.getByRole("heading", { name: "Akun & akses", level: 1 }),
     ).toBeVisible();
-
-    await page.locator("#acct-name").fill("Akun Uji Otomatis");
-    await page.locator("#acct-email").fill(email);
-    await page.locator("#acct-org").selectOption({ index: 1 });
-    await page.getByRole("button", { name: "Buat akun" }).click();
-    await confirmStepUp(page);
-
     await expect(
-      page.getByRole("heading", {
-        name: "Kata sandi sementara untuk Akun Uji Otomatis",
-      }),
+      page.getByText(/Mode demo: pembuatan dan perubahan akun dinonaktifkan/),
     ).toBeVisible();
-    await page.getByPlaceholder("Cari nama, email, lingkup").fill(email);
-    await expect(page.getByText(email, { exact: true })).toBeVisible();
+    await expect(page.locator("#acct-name")).toBeHidden();
+    await expect(
+      page.getByRole("button", { name: "Buat akun" }),
+    ).toBeHidden();
   });
 });
 

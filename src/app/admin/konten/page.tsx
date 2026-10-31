@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FileText } from "lucide-react";
 
+import { ContentTypeBadge } from "@/components/content/content-type-badge";
 import { StatusBadge } from "@/components/content/status-badge";
 import { Button } from "@/components/ui/button";
 import { formatDateId, formatDateTimeId, formatNumberId } from "@/lib/dates";
@@ -225,6 +226,7 @@ export default async function AdminContentPage({
               <thead>
                 <tr className="border-b border-border text-left text-xs font-medium tracking-wide text-ink-muted uppercase">
                   <th scope="col" className="px-5 py-3">Konten</th>
+                  <th scope="col" className="px-5 py-3">Jenis konten</th>
                   <th scope="col" className="px-5 py-3">Stakeholder</th>
                   <th scope="col" className="px-5 py-3">Tema / platform</th>
                   <th scope="col" className="px-5 py-3">Tanggal konten</th>
@@ -252,6 +254,9 @@ export default async function AdminContentPage({
                       <p className="text-xs text-ink-muted">
                         {item.referenceCode} · v{item.version}
                       </p>
+                    </td>
+                    <td className="px-5 py-3">
+                      <ContentTypeBadge contentType={item.contentType} />
                     </td>
                     <td className="px-5 py-3 text-ink-muted">
                       {item.stakeholderName}

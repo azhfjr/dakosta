@@ -9,6 +9,7 @@ import {
   Search,
 } from "lucide-react";
 
+import { ContentTypeBadge } from "@/components/content/content-type-badge";
 import { StatusBadge } from "@/components/content/status-badge";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Button } from "@/components/ui/button";
@@ -313,6 +314,9 @@ export default async function ReviewQueuePage({
                     Konten
                   </th>
                   <th scope="col" className="px-5 py-3">
+                    Jenis konten
+                  </th>
+                  <th scope="col" className="px-5 py-3">
                     Stakeholder
                   </th>
                   <th scope="col" className="px-5 py-3">
@@ -350,6 +354,9 @@ export default async function ReviewQueuePage({
                         <p className="mt-0.5 text-xs text-ink-muted">
                           {item.referenceCode} · v{item.version}
                         </p>
+                      </td>
+                      <td className="px-5 py-4">
+                        <ContentTypeBadge contentType={item.contentType} />
                       </td>
                       <td className="px-5 py-4 text-ink-muted">
                         {item.stakeholderName}

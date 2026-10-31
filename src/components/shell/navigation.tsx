@@ -39,10 +39,12 @@ const ADMIN_NAV: NavItem[] = [
   { href: "/admin/edufast", label: "EDUFAST", icon: Target, ready: true },
   { href: "/admin/red-notice", label: "Red Notice", icon: Network, ready: true },
   { href: "/admin/impor", label: "Impor akun", icon: Upload, ready: true },
+  { href: "/admin/konten/impor", label: "Impor konten", icon: Upload, ready: true },
   { href: "/admin/akun", label: "Akun", icon: Users, ready: true },
   { href: "/admin/peta", label: "Peta", icon: Map, ready: true },
   { href: "/admin/analitik", label: "Analitik", icon: BarChart3, ready: true },
   { href: "/admin/target", label: "Target", icon: Target, ready: true },
+  { href: "/admin/laporan", label: "Laporan", icon: ScrollText, ready: true },
   { href: "/admin/notifikasi", label: "Notifikasi", icon: Bell, ready: true },
   { href: "/admin/audit", label: "Audit", icon: ScrollText, ready: true },
 ];
@@ -75,6 +77,7 @@ const CLIENT_NAV: NavItem[] = [
   { href: "/client", label: "Beranda", icon: Home, exact: true, ready: true },
   { href: "/client/lapor", label: "Lapor konten", icon: PlusCircle, ready: true },
   { href: "/client/konten", label: "Konten saya", icon: FileText, ready: true },
+  { href: "/client/analitik", label: "Analitik", icon: BarChart3, ready: true },
   { href: "/client/notifikasi", label: "Notifikasi", icon: Bell, ready: true },
   { href: "/client/profil", label: "Profil", icon: UserRound, ready: true },
 ];

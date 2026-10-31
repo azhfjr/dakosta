@@ -1,6 +1,5 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -31,7 +30,6 @@ async function fetchUnreadCount(): Promise<number | null> {
 
 export function NotificationStream() {
   const router = useRouter();
-  const queryClient = useQueryClient();
 
   useEffect(() => {
     let disposed = false;
@@ -43,7 +41,6 @@ export function NotificationStream() {
     const refresh = () => {
       if (disposed) return;
       router.refresh();
-      void queryClient.invalidateQueries();
     };
 
     const onNotification = (event: MessageEvent<string>) => {
@@ -144,7 +141,7 @@ export function NotificationStream() {
       );
       source?.close();
     };
-  }, [router, queryClient]);
+  }, [router]);
 
   return null;
 }

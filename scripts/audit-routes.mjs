@@ -28,11 +28,13 @@ const ROLE_PAGES = {
     "/admin/edufast",
     "/admin/impor",
     "/admin/konten",
+    "/admin/konten/impor",
     "/admin/notifikasi",
     "/admin/organisasi",
     "/admin/pengguna",
     "/admin/peta",
     "/admin/red-notice",
+    "/admin/stakeholder",
     "/admin/target",
     "/admin/validasi",
     "/admin/wilayah",
@@ -59,7 +61,14 @@ const ROLE_PAGES = {
     "/cabang/red-notice",
     "/cabang/review",
   ],
-  client: ["/client", "/client/konten", "/client/lapor", "/client/profil"],
+  client: [
+    "/client",
+    "/client/analitik",
+    "/client/konten",
+    "/client/lapor",
+    "/client/notifikasi",
+    "/client/profil",
+  ],
 };
 
 const ROLE_APIS = {
