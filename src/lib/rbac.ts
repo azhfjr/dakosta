@@ -1,35 +1,41 @@
 import "server-only";
 
-import { and, eq, inArray } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 import { getDb, schema } from "@/db";
+import { canRole } from "@/lib/authz/capabilities";
+import { isOrganizationInScope, organizationScopePredicate } from "@/lib/authz/predicates";
+import type { Capability } from "@/lib/authz/types";
 import { errors } from "@/lib/errors";
 import type { AppRole, SessionUser } from "@/lib/session";
 
-const PERMISSIONS = {
-  "content:create": ["CLIENT"],
-  "content:read_own": ["CLIENT"],
-  "content:read_all": ["ADMIN"],
-  "content:review": ["ADMIN"],
-  "content:update_own": ["CLIENT"],
-  "stakeholder:read": ["ADMIN", "CLIENT"],
-  "stakeholder:manage": ["ADMIN"],
-  "kpi:read_all": ["ADMIN"],
-  "kpi:read_own": ["CLIENT"],
-  "user:manage": ["ADMIN"],
-  "audit:read": ["ADMIN"],
-  "notification:read": ["ADMIN", "CLIENT"],
-  "export:read": ["ADMIN", "CLIENT"],
-  "demo:reset": ["ADMIN"],
-} as const satisfies Record<string, readonly AppRole[]>;
+const PERMISSION_TO_CAPABILITY = {
+  "content:create": "content:create",
+  "content:read_own": "content:read",
+  "content:read_all": "content:read",
+  "content:review": "content:review",
+  "content:update_own": "content:update_own",
+  "stakeholder:read": "organization:read",
+  "stakeholder:manage": "organization:manage",
+  "kpi:read_all": "analytics:read",
+  "kpi:read_own": "analytics:read",
+  "user:manage": "account:manage",
+  "audit:read": "audit:read",
+  "notification:read": "notification:read",
+  "export:read": "export:read",
+  "demo:reset": "demo:reset",
+} as const satisfies Record<string, Capability>;
 
-export type Permission = keyof typeof PERMISSIONS;
+export type Permission = keyof typeof PERMISSION_TO_CAPABILITY;
 
 export function can(role: AppRole, permission: Permission): boolean {
-  return (PERMISSIONS[permission] as readonly AppRole[]).includes(role);
+  return canRole(role, PERMISSION_TO_CAPABILITY[permission]);
 }
 
-export function assertCan(user: Pick<SessionUser, "role">, permission: Permission): void {
+export function assertCan(
+  user: Pick<SessionUser, "role">,
+  permission: Permission,
+): void {
   if (!can(user.role, permission)) {
     throw errors.forbidden(
       "Peran Anda tidak memiliki izin untuk tindakan ini.",
@@ -37,30 +43,35 @@ export function assertCan(user: Pick<SessionUser, "role">, permission: Permissio
   }
 }
 
-export async function getAccessibleStakeholderIds(user: SessionUser): Promise<string[]> {
-  if (user.role === "ADMIN") {
-    const rows = await getDb()
-      .select({ id: schema.stakeholders.id })
-      .from(schema.stakeholders)
-      .where(eq(schema.stakeholders.status, "ACTIVE"));
-    return rows.map((row) => row.id);
-  }
+export function canCapability(
+  user: Pick<SessionUser, "capabilities">,
+  capability: Capability,
+): boolean {
+  return (user.capabilities as readonly string[]).includes(capability);
+}
 
-  if (user.stakeholderIds.length === 0) return [];
+export function assertCapability(
+  user: Pick<SessionUser, "capabilities">,
+  capability: Capability,
+): void {
+  if (!canCapability(user, capability)) {
+    throw errors.forbidden("Peran Anda tidak memiliki izin untuk tindakan ini.");
+  }
+}
+
+export async function getAccessibleStakeholderIds(
+  user: SessionUser,
+): Promise<string[]> {
+  const scopePredicate = organizationScopePredicate(user.scope, {
+    id: schema.stakeholders.id,
+    branchId: schema.stakeholders.branchOfficeId,
+  });
 
   const rows = await getDb()
-    .select({ id: schema.userStakeholderMemberships.stakeholderId })
-    .from(schema.userStakeholderMemberships)
-    .innerJoin(
-      schema.stakeholders,
-      eq(schema.stakeholders.id, schema.userStakeholderMemberships.stakeholderId),
-    )
-    .where(
-      and(
-        eq(schema.userStakeholderMemberships.userId, user.id),
-        eq(schema.stakeholders.status, "ACTIVE"),
-      ),
-    );
+    .select({ id: schema.stakeholders.id })
+    .from(schema.stakeholders)
+    .where(scopePredicate);
+
   return rows.map((row) => row.id);
 }
 
@@ -68,25 +79,20 @@ export async function assertStakeholderAccess(
   user: SessionUser,
   stakeholderId: string,
 ): Promise<void> {
-  if (user.role === "ADMIN") return;
+  if (user.scope.kind === "GLOBAL") return;
 
-  if (user.stakeholderIds.length === 0) {
-    throw errors.forbidden("Akun Anda belum terhubung ke stakeholder mana pun.");
-  }
-
-  const [membership] = await getDb()
-    .select({ id: schema.userStakeholderMemberships.id })
-    .from(schema.userStakeholderMemberships)
-    .where(
-      and(
-        eq(schema.userStakeholderMemberships.userId, user.id),
-        eq(schema.userStakeholderMemberships.stakeholderId, stakeholderId),
-        inArray(schema.userStakeholderMemberships.stakeholderId, user.stakeholderIds),
-      ),
-    )
+  const [row] = await getDb()
+    .select({
+      id: schema.stakeholders.id,
+      branchOfficeId: schema.stakeholders.branchOfficeId,
+    })
+    .from(schema.stakeholders)
+    .where(eq(schema.stakeholders.id, stakeholderId))
     .limit(1);
 
-  if (!membership) {
-    throw errors.forbidden("Anda hanya dapat mengakses data stakeholder Anda sendiri.");
+  if (!row || !isOrganizationInScope(user.scope, row)) {
+    throw errors.forbidden(
+      "Anda hanya dapat mengakses data organisasi dalam lingkup Anda.",
+    );
   }
 }

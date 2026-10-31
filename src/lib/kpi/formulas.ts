@@ -1,3 +1,4 @@
+import type { AppRole } from "@/lib/authz/types";
 import type { ContentStatus } from "@/lib/content-status";
 
 export const MONTH_KEY_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
@@ -69,7 +70,7 @@ export type DashboardOverview = {
     attributionLabel: string;
   };
   scope: {
-    role: "ADMIN" | "CLIENT";
+    role: AppRole;
     restricted: boolean;
     stakeholderIds: string[];
     stakeholderName: string | null;

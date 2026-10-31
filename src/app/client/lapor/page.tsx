@@ -7,6 +7,7 @@ import { SubmissionWizard } from "@/components/forms/submission-wizard";
 import { Button } from "@/components/ui/button";
 import { getDb, schema } from "@/db";
 import { jakartaToday } from "@/lib/dates";
+import { listPolicies } from "@/lib/edufast/policy";
 import { requireRole } from "@/lib/session";
 
 export const metadata: Metadata = {
@@ -19,15 +20,24 @@ export default async function ReportContentPage() {
   const user = await requireRole("CLIENT");
   const db = getDb();
 
-  const [stakeholders, themes] = await Promise.all([
+  const [stakeholders, policies] = await Promise.all([
     user.stakeholderIds.length > 0
       ? db
           .select({
             id: schema.stakeholders.id,
             name: schema.stakeholders.name,
             serviceArea: schema.stakeholders.serviceArea,
+            organizationType: schema.stakeholders.organizationType,
+            faskesClass: schema.stakeholders.faskesClass,
+            latitude: schema.stakeholders.latitude,
+            longitude: schema.stakeholders.longitude,
+            branchName: schema.branchOffices.name,
           })
           .from(schema.stakeholders)
+          .leftJoin(
+            schema.branchOffices,
+            eq(schema.branchOffices.id, schema.stakeholders.branchOfficeId),
+          )
           .where(
             and(
               inArray(schema.stakeholders.id, user.stakeholderIds),
@@ -36,16 +46,14 @@ export default async function ReportContentPage() {
           )
           .orderBy(asc(schema.stakeholders.name))
       : Promise.resolve([]),
-    db
-      .select({
-        id: schema.themes.id,
-        name: schema.themes.name,
-        description: schema.themes.description,
-      })
-      .from(schema.themes)
-      .where(eq(schema.themes.active, true))
-      .orderBy(asc(schema.themes.sortOrder), asc(schema.themes.name)),
+    listPolicies(),
   ]);
+
+  const edufastPolicies = Object.fromEntries(
+    policies
+      .filter((policy) => policy.status === "PUBLISHED")
+      .map((policy) => [policy.period, policy.subThemes]),
+  );
 
   return (
     <div className="mx-auto w-full max-w-4xl space-y-6">
@@ -60,9 +68,9 @@ export default async function ReportContentPage() {
           Lapor konten kolaborasi
         </h1>
         <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">
-          Lengkapi tautan, narasi, dan lokasi konten. Admin akan memvalidasi sebelum
-          konten dihitung sebagai capaian. Semua data di ruang ini sintetis dan berlabel
-          DEMO.
+          Lengkapi tautan, narasi, tema, dan lokasi konten. Reviewer cabang akan
+          memvalidasi sebelum konten dihitung sebagai capaian. Jangan memuat data
+          pribadi, nomor identitas, atau rekam medis.
         </p>
       </header>
 
@@ -76,8 +84,8 @@ export default async function ReportContentPage() {
                   Akun belum terhubung ke stakeholder aktif
                 </h2>
                 <p className="mt-1 text-sm leading-relaxed text-ink-muted">
-                  Pelaporan memerlukan keterkaitan dengan minimal satu stakeholder aktif.
-                  Hubungi admin demo untuk menautkan akun Anda.
+                  Pelaporan memerlukan keterkaitan dengan minimal satu organisasi aktif.
+                  Hubungi Master Admin untuk menautkan akun Anda.
                 </p>
               </div>
               <Button asChild variant="outline" size="sm">
@@ -89,7 +97,7 @@ export default async function ReportContentPage() {
       ) : (
         <SubmissionWizard
           stakeholders={stakeholders}
-          themes={themes}
+          edufastPolicies={edufastPolicies}
           today={jakartaToday()}
         />
       )}

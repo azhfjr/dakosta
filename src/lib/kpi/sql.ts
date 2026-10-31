@@ -19,6 +19,12 @@ import { z } from "zod";
 
 import { getDb, schema } from "@/db";
 import { recordAudit } from "@/lib/audit";
+import {
+  contentScopePredicate,
+  isOrganizationInScope,
+  organizationScopePredicate,
+} from "@/lib/authz/predicates";
+import { getAccessibleStakeholderIds } from "@/lib/rbac";
 import type { ContentStatus } from "@/lib/content-status";
 import { errors } from "@/lib/errors";
 import {
@@ -74,7 +80,7 @@ export function parseKpiFiltersFromParams(
   const attribution = firstValue(params.attribution);
   return {
     month: isMonthKey(month) ? month : monthKeyFor(),
-    attribution: attribution === "date_created" ? "date_created" : "approved_at",
+    attribution: attribution === "approved_at" ? "approved_at" : "date_created",
     stakeholderId: optionalUuid(firstValue(params.stakeholderId)),
     themeId: optionalUuid(firstValue(params.themeId)),
   };
@@ -84,7 +90,7 @@ export function parseKpiFiltersFromQuery(searchParams: URLSearchParams): KpiFilt
   const parsed = kpiQuerySchema.parse(Object.fromEntries(searchParams.entries()));
   return {
     month: parsed.month ?? monthKeyFor(),
-    attribution: parsed.attribution ?? "approved_at",
+    attribution: parsed.attribution ?? "date_created",
     stakeholderId: parsed.stakeholderId ?? null,
     themeId: parsed.themeId ?? null,
   };
@@ -124,15 +130,11 @@ function submittedCondition(range: MonthRange): SQL {
 function scopeConditions(user: SessionUser, filters: KpiFilters): SQL[] {
   const conditions: SQL[] = [];
 
-  if (user.role === "CLIENT") {
-    if (user.stakeholderIds.length === 0) {
-      conditions.push(sql`false`);
-    } else {
-      conditions.push(
-        inArray(schema.contentSubmissions.stakeholderId, user.stakeholderIds),
-      );
-    }
-  }
+  const scopePredicate = contentScopePredicate(
+    user,
+    schema.contentSubmissions.stakeholderId,
+  );
+  if (scopePredicate) conditions.push(scopePredicate);
 
   if (filters.stakeholderId) {
     conditions.push(
@@ -164,7 +166,7 @@ function resolveTarget(
       (row) => row.stakeholderId === stakeholderId && row.themeId === themeId,
     );
 
-  if (role === "ADMIN") {
+  if (role === "MASTER_ADMIN") {
     if (filters.stakeholderId && filters.themeId) {
       const row = find(filters.stakeholderId, filters.themeId);
       return { target: row?.targetCount ?? null, source: row ? "STAKEHOLDER_THEME" : null };
@@ -226,20 +228,25 @@ async function assertClientScope(
   filters: KpiFilters,
   route: string,
 ): Promise<void> {
-  if (
-    user.role === "CLIENT" &&
-    filters.stakeholderId &&
-    !user.stakeholderIds.includes(filters.stakeholderId)
-  ) {
+  if (!filters.stakeholderId || user.scope.kind === "GLOBAL") return;
+  const [organization] = await getDb()
+    .select({
+      id: schema.stakeholders.id,
+      branchOfficeId: schema.stakeholders.branchOfficeId,
+    })
+    .from(schema.stakeholders)
+    .where(eq(schema.stakeholders.id, filters.stakeholderId))
+    .limit(1);
+  if (!organization || !isOrganizationInScope(user.scope, organization)) {
     await recordAudit({
       actorId: user.id,
       actorRole: user.role,
       action: "ACCESS_DENIED",
-      recordType: "STAKEHOLDER",
+      recordType: "ORGANIZATION",
       recordId: filters.stakeholderId,
-      after: { reason: "stakeholder_scope_mismatch", route },
+      after: { reason: "organization_scope_mismatch", route },
     });
-    throw errors.forbidden("Anda tidak memiliki akses ke stakeholder tersebut.");
+    throw errors.forbidden("Anda tidak memiliki akses ke organisasi tersebut.");
   }
 }
 
@@ -488,9 +495,13 @@ export async function getDashboardOverview(
     .map((row) => leadTimeDays(row.submittedAt, row.decidedAt))
     .filter((value): value is number => value !== null);
 
+  const ownedStakeholderIds =
+    user.scope.kind === "GLOBAL"
+      ? []
+      : (await getAccessibleStakeholderIds(user));
   const resolvedTarget = resolveTarget(
     user.role,
-    user.stakeholderIds,
+    ownedStakeholderIds,
     filters,
     targetRows.map((row) => ({
       stakeholderId: row.stakeholderId,
@@ -545,8 +556,8 @@ export async function getDashboardOverview(
     },
     scope: {
       role: user.role,
-      restricted: user.role === "CLIENT",
-      stakeholderIds: user.role === "CLIENT" ? user.stakeholderIds : [],
+      restricted: user.scope.kind !== "GLOBAL",
+      stakeholderIds: ownedStakeholderIds,
       stakeholderName: stakeholderRow[0]?.name ?? null,
       themeName: themeRow[0]?.name ?? null,
     },
@@ -688,12 +699,10 @@ export async function getTopStakeholderTotals(
 
 export async function getKpiFilterOptions(user: SessionUser) {
   const db = getDb();
-  const stakeholderScope =
-    user.role === "CLIENT"
-      ? user.stakeholderIds.length === 0
-        ? sql`false`
-        : inArray(schema.stakeholders.id, user.stakeholderIds)
-      : undefined;
+  const stakeholderScope = organizationScopePredicate(user.scope, {
+    id: schema.stakeholders.id,
+    branchId: schema.stakeholders.branchOfficeId,
+  });
 
   const [stakeholders, themes] = await Promise.all([
     db

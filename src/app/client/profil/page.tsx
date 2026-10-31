@@ -163,9 +163,8 @@ export default async function ClientProfilePage() {
       </section>
 
       <p className="text-xs leading-relaxed text-ink-muted">
-        Data pada akun ini bersifat sintetis untuk demonstrasi. Tidak ada data pasien,
-        NIK, atau nomor JKN yang disimpan. DAKOSTA adalah proyek independen dan tidak
-        berafiliasi dengan BPJS Kesehatan.
+        Akun ini tidak menyimpan data pasien, NIK, atau nomor JKN. DAKOSTA adalah
+        proyek independen dan tidak berafiliasi dengan BPJS Kesehatan.
       </p>
     </div>
   );

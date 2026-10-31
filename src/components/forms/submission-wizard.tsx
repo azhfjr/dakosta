@@ -40,18 +40,30 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { PLATFORM_LABEL, type ContentStatus } from "@/lib/content-status";
+import {
+  CONTENT_TYPES,
+  CONTENT_TYPE_LABELS,
+  MAIN_THEMES,
+  MAIN_THEME_LABELS,
+  periodLabel,
+  periodOfDate,
+  SUB_THEMES,
+  SUB_THEME_LABELS,
+  type ContentType,
+  type MainTheme,
+  type SubTheme,
+} from "@/lib/taxonomy";
 import { PLATFORMS } from "@/lib/validation/content";
 
 export type WizardStakeholder = {
   id: string;
   name: string;
   serviceArea: string;
-};
-
-export type WizardTheme = {
-  id: string;
-  name: string;
-  description: string | null;
+  branchName: string | null;
+  organizationType: string;
+  faskesClass: string | null;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 type StepNumber = 1 | 2 | 3 | 4;
@@ -61,7 +73,9 @@ type FieldErrors = Partial<
     | "stakeholderId"
     | "publishedUrl"
     | "platform"
-    | "themeId"
+    | "contentType"
+    | "mainTheme"
+    | "subTheme"
     | "title"
     | "narrative"
     | "dateCreated"
@@ -73,6 +87,9 @@ type FieldErrors = Partial<
     string
   >
 >;
+
+/** Published EDUFAST policy per period (`YYYY-MM` → allowed sub-themes). */
+export type EdufastPolicySnapshot = Record<string, SubTheme[]>;
 
 type DuplicateInfo = {
   submissionId: string;
@@ -110,7 +127,9 @@ type DraftState = {
   stakeholderId: string;
   publishedUrl: string;
   platform: string;
-  themeId: string;
+  contentType: string;
+  mainTheme: string;
+  subTheme: string;
   title: string;
   narrative: string;
   dateCreated: string;
@@ -135,13 +154,26 @@ function isValidHttpsUrl(value: string): boolean {
   }
 }
 
+/** Cermin klien dari `detectPii` server agar pengguna mendapat umpan balik lebih awal. */
+function detectClientPii(text: string): string | null {
+  const patterns: Array<{ pattern: RegExp; label: string }> = [
+    { pattern: /\b\d{16}\b/, label: "nomor 16 digit (mirip NIK)" },
+    { pattern: /\b\d{13}\b/, label: "nomor 13 digit (mirip kartu JKN)" },
+    { pattern: /\b(?:NIK|JKN|KIS|BPJS)\s*[:#=]?\s*\d{6,}/i, label: "nomor identitas berlabel" },
+  ];
+  for (const item of patterns) {
+    if (item.pattern.test(text)) return item.label;
+  }
+  return null;
+}
+
 export function SubmissionWizard({
   stakeholders,
-  themes,
+  edufastPolicies,
   today,
 }: {
   stakeholders: WizardStakeholder[];
-  themes: WizardTheme[];
+  edufastPolicies: EdufastPolicySnapshot;
   today: string;
 }) {
   const router = useRouter();
@@ -156,7 +188,9 @@ export function SubmissionWizard({
   );
   const [publishedUrl, setPublishedUrl] = useState("");
   const [platform, setPlatform] = useState<string>("INSTAGRAM");
-  const [themeId, setThemeId] = useState("");
+  const [contentType, setContentType] = useState<ContentType | "">("");
+  const [mainTheme, setMainTheme] = useState<MainTheme>("NON_EDUFAST");
+  const [subTheme, setSubTheme] = useState<SubTheme | "">("");
   const [title, setTitle] = useState("");
   const [narrative, setNarrative] = useState("");
   const [dateCreated, setDateCreated] = useState(today);
@@ -179,10 +213,12 @@ export function SubmissionWizard({
     () => stakeholders.find((item) => item.id === stakeholderId) ?? null,
     [stakeholders, stakeholderId],
   );
-  const selectedTheme = useMemo(
-    () => themes.find((item) => item.id === themeId) ?? null,
-    [themes, themeId],
-  );
+
+  const period = periodOfDate(dateCreated);
+  const policySubThemes = edufastPolicies[period] ?? [];
+  const edufastBlocked = mainTheme === "EDUFAST" && policySubThemes.length === 0;
+  const availableSubThemes: readonly SubTheme[] =
+    mainTheme === "EDUFAST" && policySubThemes.length > 0 ? policySubThemes : SUB_THEMES;
 
   useEffect(() => {
     // Hidrasi draf sekali setelah mount: localStorage tidak tersedia saat SSR.
@@ -203,7 +239,17 @@ export function SubmissionWizard({
         ) {
           setPlatform(draft.platform);
         }
-        if (typeof draft.themeId === "string") setThemeId(draft.themeId);
+        if (typeof draft.contentType === "string") {
+          const match = CONTENT_TYPES.find((item) => item === draft.contentType);
+          if (match) setContentType(match);
+        }
+        if (draft.mainTheme === "EDUFAST" || draft.mainTheme === "NON_EDUFAST") {
+          setMainTheme(draft.mainTheme);
+        }
+        if (typeof draft.subTheme === "string") {
+          const match = SUB_THEMES.find((item) => item === draft.subTheme);
+          if (match) setSubTheme(match);
+        }
         if (typeof draft.title === "string") setTitle(draft.title);
         if (typeof draft.narrative === "string") setNarrative(draft.narrative);
         if (typeof draft.dateCreated === "string") setDateCreated(draft.dateCreated);
@@ -230,7 +276,9 @@ export function SubmissionWizard({
       stakeholderId,
       publishedUrl,
       platform,
-      themeId,
+      contentType,
+      mainTheme,
+      subTheme,
       title,
       narrative,
       dateCreated,
@@ -252,7 +300,9 @@ export function SubmissionWizard({
     stakeholderId,
     publishedUrl,
     platform,
-    themeId,
+    contentType,
+    mainTheme,
+    subTheme,
     title,
     narrative,
     dateCreated,
@@ -266,13 +316,20 @@ export function SubmissionWizard({
     const next: FieldErrors = {};
 
     if (target >= 1) {
-      if (!stakeholderId) next.stakeholderId = "Pilih stakeholder pelapor.";
+      if (!stakeholderId) next.stakeholderId = "Pilih organisasi pelapor.";
       if (!publishedUrl.trim()) next.publishedUrl = "Tautan konten wajib diisi.";
       else if (!isValidHttpsUrl(publishedUrl.trim())) {
         next.publishedUrl = "Gunakan URL lengkap berawalan https://.";
       }
-      if (!themeId) next.themeId = "Pilih tema konten.";
       if (!platform) next.platform = "Pilih platform konten.";
+      if (!contentType) next.contentType = "Pilih jenis konten: Video atau Infografis.";
+      if (mainTheme === "EDUFAST" && policySubThemes.length === 0) {
+        next.mainTheme = `Belum ada kebijakan EDUFAST terbit untuk ${periodLabel(period)}. Pilih Non-EDUFAST atau hubungi Master Admin.`;
+      }
+      if (!subTheme) next.subTheme = "Pilih sub-tema konten.";
+      else if (!availableSubThemes.includes(subTheme)) {
+        next.subTheme = "Sub-tema tidak termasuk kebijakan EDUFAST periode ini.";
+      }
     }
 
     if (target >= 2) {
@@ -319,13 +376,30 @@ export function SubmissionWizard({
     }
   }
 
+  function useOrganizationLocation() {
+    const organization = selectedStakeholder;
+    if (!organization || organization.latitude === null || organization.longitude === null) {
+      return;
+    }
+    setLocation({
+      latitude: organization.latitude,
+      longitude: organization.longitude,
+      source: "manual_pin",
+      accuracyMeters: null,
+      consentAt: null,
+    });
+    setLocationLabel(`${organization.name} — lokasi organisasi`);
+  }
+
   function resetWizard() {
     setResult(null);
     setStep(1);
     setSubmissionId(null);
     setIdempotencyKey(createIdempotencyKey());
     setPublishedUrl("");
-    setThemeId("");
+    setContentType("");
+    setMainTheme("NON_EDUFAST");
+    setSubTheme("");
     setTitle("");
     setNarrative("");
     setDateCreated(today);
@@ -347,6 +421,14 @@ export function SubmissionWizard({
 
     if (action === "SUBMIT") {
       if (!validateStep(4)) return;
+      const pii = detectClientPii(`${title}\n${narrative}`);
+      if (pii) {
+        setErrors({
+          narrative: `Narasi terdeteksi memuat ${pii}. Hapus data pribadi sebelum mengirim.`,
+        });
+        setStep(2);
+        return;
+      }
     } else if (!validateStep(1)) {
       return;
     }
@@ -360,7 +442,9 @@ export function SubmissionWizard({
       stakeholderId,
       publishedUrl: publishedUrl.trim(),
       platform,
-      themeId,
+      contentType: contentType || undefined,
+      mainTheme: action === "SUBMIT" ? mainTheme : undefined,
+      subTheme: subTheme || undefined,
       title: title.trim() || undefined,
       narrative: narrative.trim(),
       dateCreated,
@@ -564,39 +648,55 @@ export function SubmissionWizard({
 
         {step === 1 ? (
           <div className="space-y-5">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="lapor-stakeholder">Stakeholder</Label>
-                {stakeholders.length === 1 ? (
-                  <Input
+            <div className="rounded-xl border border-border bg-surface-muted/60 p-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-ink-muted">
+                Organisasi pelapor
+              </p>
+              {stakeholders.length === 1 ? (
+                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+                  <span className="font-semibold text-foreground">{stakeholders[0]!.name}</span>
+                  <span className="text-ink-muted">•</span>
+                  <span className="text-ink-muted">
+                    {stakeholders[0]!.organizationType === "FASKES"
+                      ? (stakeholders[0]!.faskesClass ?? "Faskes")
+                      : stakeholders[0]!.organizationType === "PEMDA"
+                        ? "Pemerintah Daerah"
+                        : "Lainnya"}
+                  </span>
+                  {stakeholders[0]!.branchName ? (
+                    <>
+                      <span className="text-ink-muted">•</span>
+                      <span className="text-ink-muted">{stakeholders[0]!.branchName}</span>
+                    </>
+                  ) : null}
+                </div>
+              ) : (
+                <Select value={stakeholderId} onValueChange={setStakeholderId}>
+                  <SelectTrigger
                     id="lapor-stakeholder"
-                    value={`${stakeholders[0]!.name} — ${stakeholders[0]!.serviceArea}`}
-                    readOnly
-                    className="h-11 bg-surface-muted"
-                  />
-                ) : (
-                  <Select value={stakeholderId} onValueChange={setStakeholderId}>
-                    <SelectTrigger
-                      id="lapor-stakeholder"
-                      className="h-11 w-full"
-                      aria-invalid={errors.stakeholderId ? true : undefined}
-                    >
-                      <SelectValue placeholder="Pilih stakeholder" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {stakeholders.map((item) => (
-                        <SelectItem key={item.id} value={item.id}>
-                          {item.name} — {item.serviceArea}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-                {errors.stakeholderId ? (
-                  <p className="text-sm text-destructive">{errors.stakeholderId}</p>
-                ) : null}
-              </div>
+                    className="mt-2 h-11 w-full bg-surface"
+                    aria-invalid={errors.stakeholderId ? true : undefined}
+                  >
+                    <SelectValue placeholder="Pilih organisasi" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {stakeholders.map((item) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.name} — {item.serviceArea}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              <p className="mt-2 text-xs text-ink-muted">
+                Organisasi mengikuti akun Anda dan tidak dapat diubah dari formulir.
+              </p>
+              {errors.stakeholderId ? (
+                <p className="mt-1 text-sm text-destructive">{errors.stakeholderId}</p>
+              ) : null}
+            </div>
 
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="lapor-platform">Platform</Label>
                 <Select value={platform} onValueChange={setPlatform}>
@@ -613,6 +713,32 @@ export function SubmissionWizard({
                 </Select>
                 {errors.platform ? (
                   <p className="text-sm text-destructive">{errors.platform}</p>
+                ) : null}
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="lapor-content-type">Jenis konten</Label>
+                <Select
+                  value={contentType}
+                  onValueChange={(value) => setContentType(value as ContentType)}
+                >
+                  <SelectTrigger
+                    id="lapor-content-type"
+                    className="h-11 w-full"
+                    aria-invalid={errors.contentType ? true : undefined}
+                  >
+                    <SelectValue placeholder="Video atau Infografis" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CONTENT_TYPES.map((item) => (
+                      <SelectItem key={item} value={item}>
+                        {CONTENT_TYPE_LABELS[item]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.contentType ? (
+                  <p className="text-sm text-destructive">{errors.contentType}</p>
                 ) : null}
               </div>
             </div>
@@ -640,31 +766,79 @@ export function SubmissionWizard({
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-2">
-                <Label htmlFor="lapor-theme">Tema</Label>
-                <Select value={themeId} onValueChange={setThemeId}>
+                <Label htmlFor="lapor-main-theme">Tema utama</Label>
+                <Select
+                  value={mainTheme}
+                  onValueChange={(value) => {
+                    setMainTheme(value as MainTheme);
+                    setSubTheme("");
+                  }}
+                >
                   <SelectTrigger
-                    id="lapor-theme"
+                    id="lapor-main-theme"
                     className="h-11 w-full"
-                    aria-invalid={errors.themeId ? true : undefined}
+                    aria-invalid={errors.mainTheme ? true : undefined}
                   >
-                    <SelectValue placeholder="Pilih tema" />
+                    <SelectValue placeholder="Pilih tema utama" />
                   </SelectTrigger>
                   <SelectContent>
-                    {themes.map((item) => (
-                      <SelectItem key={item.id} value={item.id}>
-                        {item.name}
+                    {MAIN_THEMES.map((item) => (
+                      <SelectItem key={item} value={item}>
+                        {MAIN_THEME_LABELS[item]}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {selectedTheme?.description ? (
-                  <p className="text-xs text-ink-muted">{selectedTheme.description}</p>
-                ) : null}
-                {errors.themeId ? (
-                  <p className="text-sm text-destructive">{errors.themeId}</p>
+                {mainTheme === "EDUFAST" ? (
+                  <p
+                    className={[
+                      "text-xs leading-relaxed",
+                      edufastBlocked ? "text-destructive" : "text-ink-muted",
+                    ].join(" ")}
+                  >
+                    {edufastBlocked
+                      ? `Belum ada kebijakan EDUFAST terbit untuk ${periodLabel(period)}. Pilih Non-EDUFAST atau hubungi Master Admin.`
+                      : `Kebijakan ${periodLabel(period)} mengizinkan ${policySubThemes.length} sub-tema.`}
+                  </p>
+                ) : (
+                  <p className="text-xs text-ink-muted">
+                    Non-EDUFAST tersedia untuk semua sub-tema pada bulan apa pun.
+                  </p>
+                )}
+                {errors.mainTheme ? (
+                  <p className="text-sm text-destructive">{errors.mainTheme}</p>
                 ) : null}
               </div>
 
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="lapor-sub-theme">Sub-tema</Label>
+                <Select
+                  value={subTheme}
+                  onValueChange={(value) => setSubTheme(value as SubTheme)}
+                  disabled={edufastBlocked}
+                >
+                  <SelectTrigger
+                    id="lapor-sub-theme"
+                    className="h-11 w-full"
+                    aria-invalid={errors.subTheme ? true : undefined}
+                  >
+                    <SelectValue placeholder="Pilih sub-tema" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableSubThemes.map((item) => (
+                      <SelectItem key={item} value={item}>
+                        {SUB_THEME_LABELS[item]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.subTheme ? (
+                  <p className="text-sm text-destructive">{errors.subTheme}</p>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="lapor-title">Judul (opsional)</Label>
                 <Input
@@ -676,6 +850,10 @@ export function SubmissionWizard({
                   className="h-11"
                 />
               </div>
+              <p className="self-end text-xs leading-relaxed text-ink-muted">
+                Periode EDUFAST dihitung dari tanggal pembuatan konten pada langkah
+                berikutnya (Asia/Jakarta).
+              </p>
             </div>
           </div>
         ) : null}
@@ -753,6 +931,14 @@ export function SubmissionWizard({
               </p>
             ) : null}
 
+            {selectedStakeholder?.latitude !== null &&
+            selectedStakeholder?.longitude !== null ? (
+              <Button type="button" variant="outline" className="h-11" onClick={useOrganizationLocation}>
+                <MapPin className="size-4" aria-hidden />
+                Gunakan lokasi organisasi
+              </Button>
+            ) : null}
+
             <div className="flex flex-col gap-2">
               <Label htmlFor="lapor-location-label">Nama lokasi</Label>
               <Input
@@ -780,12 +966,33 @@ export function SubmissionWizard({
           <div className="space-y-5">
             <dl className="grid gap-3 rounded-xl border border-border bg-surface-muted/60 p-4 text-sm sm:grid-cols-2">
               <div>
-                <dt className="text-xs text-ink-muted">Stakeholder</dt>
-                <dd className="font-medium text-foreground">{selectedStakeholder?.name ?? "—"}</dd>
+                <dt className="text-xs text-ink-muted">Organisasi</dt>
+                <dd className="font-medium text-foreground">
+                  {selectedStakeholder?.name ?? "—"}
+                  {selectedStakeholder?.branchName ? (
+                    <span className="block text-xs font-normal text-ink-muted">
+                      {selectedStakeholder.branchName}
+                    </span>
+                  ) : null}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-ink-muted">Jenis konten</dt>
+                <dd className="font-medium text-foreground">
+                  {contentType ? CONTENT_TYPE_LABELS[contentType] : "—"}
+                </dd>
               </div>
               <div>
                 <dt className="text-xs text-ink-muted">Tema</dt>
-                <dd className="font-medium text-foreground">{selectedTheme?.name ?? "—"}</dd>
+                <dd className="font-medium text-foreground">
+                  {MAIN_THEME_LABELS[mainTheme]}
+                  {subTheme ? ` · ${SUB_THEME_LABELS[subTheme]}` : ""}
+                </dd>
+                {mainTheme === "EDUFAST" && policySubThemes.length > 0 ? (
+                  <dd className="text-xs text-ink-muted">
+                    Kebijakan {periodLabel(period)} · {policySubThemes.length} sub-tema
+                  </dd>
+                ) : null}
               </div>
               <div>
                 <dt className="text-xs text-ink-muted">Platform</dt>
@@ -827,8 +1034,7 @@ export function SubmissionWizard({
                     Saya memastikan konten ini tidak memuat data pribadi
                   </Label>
                   <p className="mt-1 text-xs leading-relaxed text-ink-muted">
-                    Tidak ada NIK, nomor JKN, rekam medis, atau data pasien. Konten hanya
-                    untuk demonstrasi sintetis.
+                    Tidak ada NIK, nomor JKN, rekam medis, atau data pasien.
                   </p>
                   {errors.privacyAttested ? (
                     <p className="mt-1 text-sm text-destructive">{errors.privacyAttested}</p>
@@ -839,7 +1045,8 @@ export function SubmissionWizard({
 
             <p className="flex items-start gap-2 text-sm text-ink-muted">
               <ClipboardCheck className="mt-0.5 size-4 shrink-0 text-brand-blue-700" aria-hidden />
-              Setelah dikirim, konten tidak dapat diubah sampai admin meminta revisi.
+              Setelah dikirim, konten tidak dapat diubah sampai reviewer cabang
+              meminta revisi.
             </p>
           </div>
         ) : null}

@@ -206,9 +206,9 @@ export function LoginForm({ demoMode }: { demoMode: boolean }) {
       )}
 
       <p className="text-sm leading-relaxed text-ink-muted">
-        Akun penguji dibuat oleh Admin demo. Registrasi publik ditutup. Jika
-        Anda menerima kredensial sementara, Anda akan diminta mengganti kata
-        sandi saat pertama masuk.
+        Akun dibuat oleh Master Admin. Registrasi publik ditutup. Jika Anda
+        menerima kredensial sementara, Anda akan diminta mengganti kata sandi
+        saat pertama masuk.
       </p>
     </div>
   );

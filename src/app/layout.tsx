@@ -20,14 +20,14 @@ export const metadata: Metadata = {
     template: "%s · DAKOSTA",
   },
   description:
-    "Dasbor demonstrasi kolaborasi konten stakeholder: pelaporan, validasi, capaian, peta, dan analitik. Proyek pribadi nonkomersial; tidak berafiliasi dengan BPJS Kesehatan.",
+    "Dasbor kolaborasi konten stakeholder: pelaporan, validasi berjenjang, capaian, peta, dan analitik. Proyek pribadi nonkomersial; tidak berafiliasi dengan BPJS Kesehatan.",
   applicationName: "DAKOSTA",
   authors: [{ name: "Ratu Sevilla Hizriyah" }],
   keywords: [
     "DAKOSTA",
     "dashboard konten",
     "kolaborasi stakeholder",
-    "proyek demonstrasi",
+    "pelaporan konten",
   ],
   icons: {
     icon: [
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     siteName: "DAKOSTA",
     title: "DAKOSTA — Dashboard Konten Kolaborasi Stakeholder",
     description:
-      "Demonstrasi alur pelaporan konten, validasi admin, dan capaian yang dihitung dari konten disetujui.",
+      "Alur pelaporan konten, validasi reviewer cabang, dan capaian yang dihitung dari konten disetujui.",
   },
 };
 

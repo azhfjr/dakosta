@@ -20,9 +20,9 @@ export default defineConfig({
   webServer: process.env.PLAYWRIGHT_BASE_URL
     ? undefined
     : {
-        command: "npm run dev",
+        command: "npm run dev:e2e",
         url: "http://localhost:3000/api/health",
-        reuseExistingServer: true,
-        timeout: 120_000,
+        reuseExistingServer: false,
+        timeout: 180_000,
       },
 });

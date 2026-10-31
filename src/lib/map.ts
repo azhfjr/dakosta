@@ -6,14 +6,17 @@ import {
   count,
   desc,
   eq,
-  inArray,
   ne,
-  sql,
   type SQL,
 } from "drizzle-orm";
 
 import { getDb, schema } from "@/db";
 import { recordAudit } from "@/lib/audit";
+import {
+  contentScopePredicate,
+  isOrganizationInScope,
+  organizationScopePredicate,
+} from "@/lib/authz/predicates";
 import type { ContentStatus } from "@/lib/content-status";
 import { errors } from "@/lib/errors";
 import { isValidCoordinate } from "@/lib/geo";
@@ -125,15 +128,11 @@ function scopeConditions(user: SessionUser, filters: MapFilters): SQL[] {
   const conditions: SQL[] = [eq(schema.contentSubmissions.archived, false)];
   conditions.push(ne(schema.contentSubmissions.status, "DRAFT"));
 
-  if (user.role === "CLIENT") {
-    if (user.stakeholderIds.length === 0) {
-      conditions.push(sqlFalse());
-    } else {
-      conditions.push(
-        inArray(schema.contentSubmissions.stakeholderId, user.stakeholderIds),
-      );
-    }
-  }
+  const scopePredicate = contentScopePredicate(
+    user,
+    schema.contentSubmissions.stakeholderId,
+  );
+  if (scopePredicate) conditions.push(scopePredicate);
 
   if (filters.stakeholderId) {
     conditions.push(
@@ -150,19 +149,13 @@ function scopeConditions(user: SessionUser, filters: MapFilters): SQL[] {
   return conditions;
 }
 
-function sqlFalse(): SQL {
-  return sql`false`;
-}
-
 function siteConditions(user: SessionUser, filters: MapFilters): SQL[] {
   const conditions: SQL[] = [eq(schema.stakeholders.status, "ACTIVE")];
-  if (user.role === "CLIENT") {
-    if (user.stakeholderIds.length === 0) {
-      conditions.push(sqlFalse());
-    } else {
-      conditions.push(inArray(schema.stakeholders.id, user.stakeholderIds));
-    }
-  }
+  const scopePredicate = organizationScopePredicate(user.scope, {
+    id: schema.stakeholders.id,
+    branchId: schema.stakeholders.branchOfficeId,
+  });
+  if (scopePredicate) conditions.push(scopePredicate);
   if (filters.stakeholderId) {
     conditions.push(eq(schema.stakeholders.id, filters.stakeholderId));
   }
@@ -178,20 +171,29 @@ export async function getMapOverview(
   user: SessionUser,
   filters: MapFilters,
 ): Promise<MapOverview> {
-  if (
-    user.role === "CLIENT" &&
-    filters.stakeholderId &&
-    !user.stakeholderIds.includes(filters.stakeholderId)
-  ) {
-    await recordAudit({
-      actorId: user.id,
-      actorRole: user.role,
-      action: "ACCESS_DENIED",
-      recordType: "STAKEHOLDER",
-      recordId: filters.stakeholderId,
-      after: { reason: "stakeholder_scope_mismatch", route: "/peta" },
-    });
-    throw errors.forbidden("Anda tidak memiliki akses ke stakeholder tersebut.");
+  if (filters.stakeholderId) {
+    const [organization] = await getDb()
+      .select({
+        id: schema.stakeholders.id,
+        branchOfficeId: schema.stakeholders.branchOfficeId,
+      })
+      .from(schema.stakeholders)
+      .where(eq(schema.stakeholders.id, filters.stakeholderId))
+      .limit(1);
+    if (
+      !organization ||
+      !isOrganizationInScope(user.scope, organization)
+    ) {
+      await recordAudit({
+        actorId: user.id,
+        actorRole: user.role,
+        action: "ACCESS_DENIED",
+        recordType: "ORGANIZATION",
+        recordId: filters.stakeholderId,
+        after: { reason: "organization_scope_mismatch", route: "/peta" },
+      });
+      throw errors.forbidden("Anda tidak memiliki akses ke organisasi tersebut.");
+    }
   }
 
   const db = getDb();
@@ -295,9 +297,13 @@ export async function getMapOverview(
         submittedAt: row.submittedAt?.toISOString() ?? null,
         updatedAt: row.updatedAt.toISOString(),
         href:
-          user.role === "ADMIN"
+          user.role === "MASTER_ADMIN"
             ? `/admin/validasi/${row.id}`
-            : `/client/konten/${row.id}`,
+            : user.role === "BRANCH_ADMIN"
+              ? `/cabang/review/${row.id}`
+              : user.role === "REGIONAL_ADMIN"
+                ? `/wilayah/konten/${row.id}`
+                : `/client/konten/${row.id}`,
       };
     });
 
@@ -323,9 +329,13 @@ export async function getMapOverview(
       precision: precisionOf(row.precision),
       submissionCount: countsByStakeholder.get(row.id) ?? 0,
       href:
-        user.role === "ADMIN"
+        user.role === "MASTER_ADMIN"
           ? `/admin/validasi?stakeholderId=${row.id}`
-          : `/client/konten`,
+          : user.role === "BRANCH_ADMIN"
+            ? `/cabang/organisasi`
+            : user.role === "REGIONAL_ADMIN"
+              ? `/wilayah/organisasi`
+              : `/client/konten`,
     }));
 
   const totals = {

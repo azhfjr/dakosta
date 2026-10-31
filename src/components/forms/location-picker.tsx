@@ -246,8 +246,8 @@ export function LocationPicker({
       </div>
 
       <p className="text-xs leading-relaxed text-ink-muted">
-        Klik peta untuk menandai titik konten. Lokasi dipakai hanya untuk pemetaan demo
-        dan disimpan sebagai perkiraan bila bukan GPS perangkat.
+        Klik peta untuk menandai titik konten. Lokasi dipakai untuk pemetaan
+        organisasi dan disimpan sebagai perkiraan bila bukan GPS perangkat.
       </p>
 
       {gpsError ? (

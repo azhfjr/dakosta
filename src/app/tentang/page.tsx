@@ -3,11 +3,12 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { SiteFooter } from "@/components/site-footer";
+import { isDemoMode } from "@/lib/env";
 
 export const metadata: Metadata = {
   title: "Tentang & Disclaimer",
   description:
-    "Identitas proyek, batas penggunaan, dan disclaimer DAKOSTA sebagai demonstrasi pribadi nonkomersial.",
+    "Identitas proyek, batas penggunaan, dan disclaimer DAKOSTA sebagai proyek pribadi nonkomersial.",
 };
 
 export default function TentangPage() {
@@ -41,8 +42,8 @@ export default function TentangPage() {
               DAKOSTA adalah proyek pribadi independen yang dibuat oleh Ratu
               Sevilla Hizriyah untuk belajar full-stack, mendemonstrasikan alur
               kerja kolaborasi, dan menjadi bagian portofolio. Aplikasi ini bukan
-              sistem resmi, bukan produk institusi, dan tidak digunakan untuk
-              operasi nyata.
+              sistem resmi, bukan produk institusi, dan tidak mewakili lembaga
+              mana pun.
             </p>
             <div className="h-1.5 w-28 rounded-full brand-rule" aria-hidden />
           </header>
@@ -66,9 +67,9 @@ export default function TentangPage() {
               resmi.
             </p>
             <p className="mt-3 text-sm leading-relaxed text-ink-muted">
-              Seluruh akun, stakeholder, lokasi, tautan, dan konten pada demo
-              bersifat sintetis dan berlabel DEMO. Keputusan approval adalah
-              simulasi oleh Admin demo, bukan validasi editorial institusional.
+              {isDemoMode
+                ? "Seluruh akun, organisasi, lokasi, tautan, dan konten pada mode demo bersifat sintetis dan berlabel DEMO. Keputusan approval adalah simulasi, bukan validasi editorial institusional."
+                : "Keputusan approval dilakukan oleh reviewer operator DAKOSTA, bukan validasi editorial institusional. Data organisasi hanya mencakup registry kantor dan konten publikasi tanpa data pribadi peserta."}
             </p>
           </section>
 
@@ -93,10 +94,12 @@ export default function TentangPage() {
                 Geolokasi perangkat hanya diminta setelah Anda memilih tindakan
                 dan memberi izin; penandaan manual selalu tersedia.
               </li>
-              <li>
-                Data demo dapat direset oleh Admin demo. Reset tidak menyentuh
-                data di luar dataset demo.
-              </li>
+              {isDemoMode ? (
+                <li>
+                  Data demo dapat direset oleh Master Admin. Reset tidak
+                  menyentuh data di luar dataset demo.
+                </li>
+              ) : null}
             </ul>
           </section>
 
@@ -126,7 +129,7 @@ export default function TentangPage() {
 
           <p className="border-t border-border pt-6 text-sm text-ink-muted">
             <Link className="font-medium text-brand-blue-700 hover:underline" href="/masuk">
-              Masuk ke ruang demo
+              {isDemoMode ? "Masuk ke ruang demo" : "Masuk ke ruang kerja"}
             </Link>{" "}
             atau kembali ke{" "}
             <Link className="font-medium text-brand-blue-700 hover:underline" href="/">

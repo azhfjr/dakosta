@@ -1,7 +1,7 @@
-import { config } from "dotenv";
+import { assertDestructiveTargetAllowed, loadScriptEnv } from "./_env";
 
-config({ path: ".env.local" });
-config();
+const scriptTarget = loadScriptEnv();
+assertDestructiveTargetAllowed(scriptTarget, "Reset demo");
 
 import { sql } from "drizzle-orm";
 import { drizzle, type NeonDatabase } from "drizzle-orm/neon-serverless";
@@ -20,11 +20,25 @@ const TABLES_IN_DELETE_ORDER = [
   "content_submissions",
   "kpi_targets",
   "locations",
+  "account_import_rows",
+  "account_imports",
+  "account_invitations",
+  "edufast_policy_events",
+  "edufast_policy_subthemes",
+  "edufast_monthly_policies",
+  "organization_transfers",
   "user_stakeholder_memberships",
+  "user_memberships",
   "user_role_memberships",
+  "stakeholders",
+  "themes",
+  "branch_offices",
+  "regional_offices",
   "user_profiles",
   "audit_logs",
   "demo_rate_limits",
+  "rate_limits",
+  "migration_runs",
   "session",
   "account",
   "verification",
@@ -41,9 +55,10 @@ async function resetDemo(db: SeedDb): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  if (process.env.VERCEL_ENV === "production" && process.env.SEED_CONFIRM !== "yes") {
+  const runtimeEnv = process.env.APP_ENV ?? process.env.VERCEL_ENV;
+  if (runtimeEnv === "production") {
     throw new Error(
-      "Reset produksi memerlukan SEED_CONFIRM=yes. Tidak ada perubahan yang dilakukan.",
+      "Reset demo dilarang di production. Tidak ada perubahan yang dilakukan.",
     );
   }
 

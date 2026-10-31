@@ -14,6 +14,7 @@ import type {
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import { formatNumberId } from "@/lib/dates";
+import type { AppRole } from "@/lib/authz/types";
 import type { MapPoint, MapSite } from "@/lib/map";
 
 const STATUS_COLOR: Record<string, string> = {
@@ -182,7 +183,7 @@ export function MapExplorer({
   points: MapPoint[];
   sites: MapSite[];
   styleUrl: string;
-  role: "ADMIN" | "CLIENT";
+  role: AppRole;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -563,7 +564,7 @@ export function MapExplorer({
           </li>
         </ul>
         <p>
-          {role === "CLIENT"
+          {role === "STAKEHOLDER"
             ? "Peta hanya menampilkan data stakeholder Anda."
             : "Klik penanda untuk detail konten."}
         </p>

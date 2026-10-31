@@ -19,5 +19,11 @@ export default function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/client/:path*", "/ganti-password"],
+  matcher: [
+    "/admin/:path*",
+    "/wilayah/:path*",
+    "/cabang/:path*",
+    "/client/:path*",
+    "/ganti-password",
+  ],
 };

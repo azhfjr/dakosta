@@ -1,49 +1,24 @@
-import { randomBytes } from "node:crypto";
-
-import { and, eq, inArray } from "drizzle-orm";
-import { headers } from "next/headers";
-import { z } from "zod";
-
-import { getDb, schema } from "@/db";
 import { getRequestId, jsonError, jsonOk, readJson } from "@/lib/api";
 import { recordAudit } from "@/lib/audit";
-import { getAuth } from "@/lib/auth";
-import { AppError, errors } from "@/lib/errors";
-import { getApiUserWithRole } from "@/lib/session";
-import { listAdminUsers, listStakeholderOptions } from "@/lib/users";
+import { requireMasterApi, requireStepUp, assertSameOrigin } from "@/lib/authz/guards";
+import {
+  createAccount,
+  createAccountInputSchema,
+  listAccounts,
+  listScopeOptions,
+} from "@/lib/accounts";
+import { consumeRateLimit, getClientIp, getRateLimitHeaders } from "@/lib/rate-limit";
+import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const DEMO_EMAIL_DOMAIN = "@demo.dakosta.local";
-
-const createSchema = z.object({
-  name: z.string().trim().min(2, "Nama minimal 2 karakter.").max(80),
-  email: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .email("Format email tidak valid.")
-    .refine(
-      (value) => value.endsWith(DEMO_EMAIL_DOMAIN),
-      `Gunakan alamat demo berakhiran ${DEMO_EMAIL_DOMAIN}.`,
-    ),
-  displayTitle: z.string().trim().max(80).optional(),
-  stakeholderIds: z
-    .array(z.string().uuid())
-    .min(1, "Pilih minimal satu stakeholder.")
-    .max(10),
-});
-
 export async function GET(request: Request) {
   const requestId = getRequestId(request);
   try {
-    await getApiUserWithRole("ADMIN");
-    const [users, stakeholders] = await Promise.all([
-      listAdminUsers(),
-      listStakeholderOptions(),
-    ]);
-    return jsonOk({ users, stakeholders }, { requestId });
+    await requireMasterApi();
+    const [users, options] = await Promise.all([listAccounts(), listScopeOptions()]);
+    return jsonOk({ users, options }, { requestId });
   } catch (error) {
     return jsonError(error, requestId);
   }
@@ -52,102 +27,48 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const requestId = getRequestId(request);
   try {
-    const admin = await getApiUserWithRole("ADMIN");
-    const body = createSchema.parse(await readJson(request));
-
-    const db = getDb();
-    const uniqueStakeholderIds = [...new Set(body.stakeholderIds)];
-
-    const validStakeholders = await db
-      .select({ id: schema.stakeholders.id })
-      .from(schema.stakeholders)
-      .where(
-        and(
-          inArray(schema.stakeholders.id, uniqueStakeholderIds),
-          eq(schema.stakeholders.status, "ACTIVE"),
-        ),
-      );
-
-    if (validStakeholders.length !== uniqueStakeholderIds.length) {
-      throw errors.validation("Ada stakeholder yang tidak aktif atau tidak ditemukan.");
-    }
-
-    const tempPassword = randomBytes(9).toString("base64url");
-
-    let createdUserId: string | null = null;
-    try {
-      const created = await getAuth().api.createUser({
-        body: {
-          email: body.email,
-          name: body.name,
-          password: tempPassword,
-          role: "user",
+    assertSameOrigin(request);
+    const master = await requireMasterApi();
+    await requireStepUp();
+    const limit = await consumeRateLimit({
+      key: `account:create:${master.userId}:${getClientIp(request)}`,
+      limit: 20,
+      windowSeconds: 60,
+    });
+    if (!limit.allowed) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "RATE_LIMITED",
+            message: "Terlalu banyak pembuatan akun. Coba lagi sebentar.",
+          },
+          meta: { requestId },
         },
-        headers: await headers(),
-      });
-      createdUserId = created.user.id;
-
-      await db.transaction(async (tx) => {
-        await tx.insert(schema.userProfiles).values({
-          userId: createdUserId!,
-          mustChangePassword: true,
-          isDemo: true,
-          active: true,
-          displayTitle: body.displayTitle || null,
-        });
-
-        await tx.insert(schema.userRoleMemberships).values({
-          userId: createdUserId!,
-          role: "CLIENT",
-        });
-
-        await tx.insert(schema.userStakeholderMemberships).values(
-          uniqueStakeholderIds.map((stakeholderId) => ({
-            userId: createdUserId!,
-            stakeholderId,
-          })),
-        );
-      });
-    } catch (error) {
-      if (createdUserId) {
-        await getAuth()
-          .api.removeUser({
-            body: { userId: createdUserId },
-            headers: await headers(),
-          })
-          .catch(() => undefined);
-      }
-      if (error instanceof AppError) throw error;
-      throw new AppError(
-        "USER_CREATE_FAILED",
-        "Akun tidak dapat dibuat. Periksa apakah email sudah terdaftar.",
-        409,
+        { status: 429, headers: await getRateLimitHeaders(limit) },
       );
     }
+
+    const body = createAccountInputSchema.parse(await readJson(request));
+    const account = await createAccount(body);
 
     await recordAudit({
-      actorId: admin.id,
-      actorRole: admin.role,
-      action: "USER_CREATED",
+      actorId: master.userId,
+      actorRole: master.role,
+      action: "ACCOUNT_CREATED",
       recordType: "USER",
-      recordId: createdUserId,
+      recordId: account.userId,
       after: {
-        email: body.email,
-        role: "CLIENT",
-        stakeholderIds: uniqueStakeholderIds,
+        email: account.email,
+        role: body.role,
+        regionalOfficeId: body.regionalOfficeId ?? null,
+        branchOfficeId: body.branchOfficeId ?? null,
+        organizationId: body.organizationId ?? null,
       },
       requestId,
+      source: "APP",
     });
 
-    return jsonOk(
-      {
-        userId: createdUserId,
-        email: body.email,
-        tempPassword,
-        mustChangePassword: true,
-      },
-      { requestId, status: 201 },
-    );
+    return jsonOk(account, { requestId, status: 201 });
   } catch (error) {
     return jsonError(error, requestId);
   }

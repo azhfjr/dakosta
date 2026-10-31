@@ -5,12 +5,13 @@ import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { getNavItems, isActivePath } from "@/components/shell/navigation";
+import type { AppRole } from "@/lib/authz/types";
 
 export function SidebarNav({
   role,
   onNavigate,
 }: {
-  role: "ADMIN" | "CLIENT";
+  role: AppRole;
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();

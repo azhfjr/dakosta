@@ -1,14 +1,16 @@
 import "server-only";
 
-import { and, asc, count, desc, eq, inArray, ne, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, isNull, ne, type SQL } from "drizzle-orm";
 
 import { getDb, schema } from "@/db";
+import { contentScopePredicate, isOrganizationInScope } from "@/lib/authz/predicates";
 import { errors, AppError } from "@/lib/errors";
 import { CONTENT_STATUSES, type ContentStatus } from "@/lib/content-status";
 import { resolvePrecision } from "@/lib/geo";
 import { drainOutbox } from "@/lib/notifications";
 import { assertStakeholderAccess, assertCan } from "@/lib/rbac";
 import { generateReferenceCode } from "@/lib/reference";
+import { assertEdufastSelection } from "@/lib/edufast/policy";
 import type { SessionUser } from "@/lib/session";
 import { normalizePublishedUrl } from "@/lib/url";
 import {
@@ -75,6 +77,11 @@ export type SubmissionDetail = {
   updatedAt: Date;
   decisionReason: string | null;
   theme: { id: string; name: string };
+  contentType: string | null;
+  mainTheme: string | null;
+  subTheme: string | null;
+  edufastPolicyVersion: number | null;
+  resubmissionCount: number;
   stakeholder: { id: string; name: string; serviceArea: string };
   location: {
     latitude: number;
@@ -145,10 +152,11 @@ export async function listSubmissions(
   assertCan(user, "stakeholder:read");
 
   const conditions: SQL[] = [];
-  if (user.role === "CLIENT") {
-    if (user.stakeholderIds.length === 0) return [];
-    conditions.push(inArray(schema.contentSubmissions.stakeholderId, user.stakeholderIds));
-  }
+  const scopePredicate = contentScopePredicate(
+    user,
+    schema.contentSubmissions.stakeholderId,
+  );
+  if (scopePredicate) conditions.push(scopePredicate);
   if (filters.status) {
     conditions.push(eq(schema.contentSubmissions.status, filters.status));
   }
@@ -201,16 +209,11 @@ export async function getSubmissionStatusCounts(
   assertCan(user, "stakeholder:read");
 
   const conditions: SQL[] = [];
-  if (user.role === "CLIENT") {
-    if (user.stakeholderIds.length === 0) {
-      return Object.fromEntries(
-        CONTENT_STATUSES.map((status) => [status, 0]),
-      ) as Record<ContentStatus, number>;
-    }
-    conditions.push(
-      inArray(schema.contentSubmissions.stakeholderId, user.stakeholderIds),
-    );
-  }
+  const scopePredicate = contentScopePredicate(
+    user,
+    schema.contentSubmissions.stakeholderId,
+  );
+  if (scopePredicate) conditions.push(scopePredicate);
 
   const rows = await getDb()
     .select({ status: schema.contentSubmissions.status, total: count() })
@@ -297,6 +300,7 @@ export async function getSubmissionDetail(
       themeName: schema.themes.name,
       stakeholderName: schema.stakeholders.name,
       stakeholderArea: schema.stakeholders.serviceArea,
+      stakeholderBranchId: schema.stakeholders.branchOfficeId,
       location: schema.locations,
     })
     .from(schema.contentSubmissions)
@@ -311,19 +315,21 @@ export async function getSubmissionDetail(
 
   if (!row) throw errors.notFound("Konten tidak ditemukan.");
 
-  if (user.role === "CLIENT") {
-    const allowed = user.stakeholderIds.includes(row.submission.stakeholderId);
-    if (!allowed) {
-      await db.insert(schema.auditLogs).values({
-        actorId: user.id,
-        actorRole: user.role,
-        action: "ACCESS_DENIED",
-        recordType: "CONTENT_SUBMISSION",
-        recordId: submissionId,
-        after: { reason: "cross_stakeholder_read" },
-      });
-      throw errors.forbidden("Anda hanya dapat mengakses konten stakeholder Anda.");
-    }
+  if (
+    !isOrganizationInScope(user.scope, {
+      id: row.submission.stakeholderId,
+      branchOfficeId: row.stakeholderBranchId,
+    })
+  ) {
+    await db.insert(schema.auditLogs).values({
+      actorId: user.id,
+      actorRole: user.role,
+      action: "ACCESS_DENIED",
+      recordType: "CONTENT_SUBMISSION",
+      recordId: submissionId,
+      after: { reason: "cross_scope_read" },
+    });
+    throw errors.notFound("Konten tidak ditemukan.");
   }
 
   const [reviewRows, revisionRows] = await Promise.all([
@@ -374,6 +380,11 @@ export async function getSubmissionDetail(
     updatedAt: submission.updatedAt,
     decisionReason: submission.decisionReason,
     theme: { id: submission.themeId, name: row.themeName },
+    contentType: submission.contentType,
+    mainTheme: submission.mainTheme,
+    subTheme: submission.subTheme,
+    edufastPolicyVersion: submission.edufastPolicyVersion,
+    resubmissionCount: submission.resubmissionCount,
     stakeholder: {
       id: submission.stakeholderId,
       name: row.stakeholderName,
@@ -450,24 +461,33 @@ async function notifyAdmins(
     stakeholderName: string;
     title: string | null;
     version: number;
+    branchOfficeId: string | null;
+    organizationId: string;
   },
 ) {
-  const admins = await tx
-    .select({ id: schema.user.id })
+  const recipients = await tx
+    .select({ id: schema.user.id, role: schema.userMemberships.role })
     .from(schema.user)
     .innerJoin(schema.userProfiles, eq(schema.userProfiles.userId, schema.user.id))
     .innerJoin(
-      schema.userRoleMemberships,
-      eq(schema.userRoleMemberships.userId, schema.user.id),
+      schema.userMemberships,
+      eq(schema.userMemberships.userId, schema.user.id),
     )
     .where(
       and(
         eq(schema.userProfiles.active, true),
-        eq(schema.userRoleMemberships.role, "ADMIN"),
+        eq(schema.userProfiles.status, "ACTIVE"),
+        isNull(schema.userMemberships.revokedAt),
+        input.branchOfficeId
+          ? and(
+              eq(schema.userMemberships.role, "BRANCH_ADMIN"),
+              eq(schema.userMemberships.branchOfficeId, input.branchOfficeId),
+            )
+          : eq(schema.userMemberships.role, "MASTER_ADMIN"),
       ),
     );
 
-  if (admins.length === 0) return;
+  if (recipients.length === 0) return;
 
   const dedupeBase = `content.submitted:${input.submissionId}:${input.version}`;
   const notificationTitle = "Konten baru menunggu validasi";
@@ -475,8 +495,12 @@ async function notifyAdmins(
     input.title ? ` — ${input.title}` : ""
   }.`;
 
-  for (const admin of admins) {
+  for (const admin of recipients) {
     const dedupeKey = `${dedupeBase}:${admin.id}`;
+    const href =
+      admin.role === "BRANCH_ADMIN"
+        ? `/cabang/review/${input.submissionId}`
+        : `/admin/validasi/${input.submissionId}`;
 
     const inserted = await tx
       .insert(schema.notifications)
@@ -487,7 +511,9 @@ async function notifyAdmins(
         body: notificationBody,
         objectType: "CONTENT_SUBMISSION",
         objectId: input.submissionId,
-        href: `/admin/validasi/${input.submissionId}`,
+        href,
+        branchOfficeId: input.branchOfficeId,
+        organizationId: input.organizationId,
         dedupeKey,
       })
       .onConflictDoNothing()
@@ -515,7 +541,7 @@ async function notifyAdmins(
           recipientId: admin.id,
           title: notificationTitle,
           body: notificationBody,
-          href: `/admin/validasi/${input.submissionId}`,
+          href,
           referenceCode: input.referenceCode,
         },
         recipientId: admin.id,
@@ -531,6 +557,9 @@ function snapshotFor(input: {
   publishedUrl: string;
   platform: string;
   themeId: string;
+  contentType?: string | null;
+  mainTheme?: string | null;
+  subTheme?: string | null;
   dateCreated: string;
   publishedAt: string | null;
   location: SubmissionLocationInput | null;
@@ -541,6 +570,9 @@ function snapshotFor(input: {
     publishedUrl: input.publishedUrl,
     platform: input.platform,
     themeId: input.themeId,
+    contentType: input.contentType ?? null,
+    mainTheme: input.mainTheme ?? null,
+    subTheme: input.subTheme ?? null,
     dateCreated: input.dateCreated,
     publishedAt: input.publishedAt,
     location: input.location
@@ -560,7 +592,12 @@ export async function saveSubmission(
   requestId?: string,
 ): Promise<SavedSubmission> {
   assertCan(user, "content:create");
-  await assertStakeholderAccess(user, input.stakeholderId);
+  const stakeholderId =
+    user.scope.kind === "ORG" ? user.scope.organizationId : input.stakeholderId;
+  if (!stakeholderId) {
+    throw errors.validation("Organisasi pelapor belum terhubung ke akun Anda.");
+  }
+  await assertStakeholderAccess(user, stakeholderId);
 
   const db = getDb();
 
@@ -583,11 +620,12 @@ export async function saveSubmission(
       name: schema.stakeholders.name,
       latitude: schema.stakeholders.latitude,
       longitude: schema.stakeholders.longitude,
+      branchOfficeId: schema.stakeholders.branchOfficeId,
     })
     .from(schema.stakeholders)
     .where(
       and(
-        eq(schema.stakeholders.id, input.stakeholderId),
+        eq(schema.stakeholders.id, stakeholderId),
         eq(schema.stakeholders.status, "ACTIVE"),
       ),
     )
@@ -600,12 +638,31 @@ export async function saveSubmission(
   const [theme] = await db
     .select({ id: schema.themes.id })
     .from(schema.themes)
-    .where(and(eq(schema.themes.id, input.themeId), eq(schema.themes.active, true)))
+    .where(
+      input.themeId
+        ? and(eq(schema.themes.id, input.themeId), eq(schema.themes.active, true))
+        : eq(schema.themes.active, true),
+    )
+    .orderBy(asc(schema.themes.sortOrder))
     .limit(1);
 
   if (!theme) {
     throw errors.validation("Tema tidak ditemukan atau tidak aktif.");
   }
+
+  const taxonomy = {
+    contentType: input.contentType ?? null,
+    mainTheme: input.mainTheme ?? null,
+    subTheme: input.subTheme ?? null,
+  };
+  const edufast =
+    input.action === "SUBMIT" && input.mainTheme === "EDUFAST"
+      ? await assertEdufastSelection({
+          dateCreated: input.dateCreated,
+          mainTheme: input.mainTheme,
+          subTheme: input.subTheme ?? "",
+        })
+      : { policyId: null, policyVersion: null };
 
   let normalized: { normalizedUrl: string; normalizedUrlHash: string };
   try {
@@ -684,7 +741,12 @@ export async function saveSubmission(
   if (existing) {
     const isResubmission = existing.status === "REVISION_REQUIRED";
     const nextVersion = input.action === "SUBMIT" && isResubmission ? existing.version + 1 : existing.version;
-    const nextStatus = input.action === "SUBMIT" ? "SUBMITTED" : existing.status;
+    const nextStatus: ContentStatus =
+      input.action === "SUBMIT"
+        ? isResubmission
+          ? "RESUBMITTED"
+          : "SUBMITTED"
+        : (existing.status as ContentStatus);
 
     try {
       await db.transaction(async (tx) => {
@@ -701,7 +763,15 @@ export async function saveSubmission(
             normalizedUrl: normalized.normalizedUrl,
             normalizedUrlHash: normalized.normalizedUrlHash,
             platform: input.platform,
-            themeId: input.themeId,
+            themeId: theme.id,
+            contentType: taxonomy.contentType,
+            mainTheme: taxonomy.mainTheme,
+            subTheme: taxonomy.subTheme,
+            edufastPolicyId: edufast.policyId,
+            edufastPolicyVersion: edufast.policyVersion,
+            resubmissionCount: isResubmission
+              ? existing!.resubmissionCount + 1
+              : existing!.resubmissionCount,
             dateCreated: input.dateCreated,
             publishedAt,
             locationId,
@@ -737,7 +807,10 @@ export async function saveSubmission(
                 narrative,
                 publishedUrl: input.publishedUrl,
                 platform: input.platform,
-                themeId: input.themeId,
+                themeId: theme.id,
+                contentType: taxonomy.contentType,
+                mainTheme: taxonomy.mainTheme,
+                subTheme: taxonomy.subTheme,
                 dateCreated: input.dateCreated,
                 publishedAt,
                 location: input.location ?? null,
@@ -755,6 +828,8 @@ export async function saveSubmission(
             stakeholderName: stakeholder.name,
             title: updated.title,
             version: updated.version,
+            branchOfficeId: stakeholder.branchOfficeId ?? null,
+            organizationId: stakeholder.id,
           });
         }
 
@@ -830,7 +905,12 @@ export async function saveSubmission(
             normalizedUrl: normalized.normalizedUrl,
             normalizedUrlHash: normalized.normalizedUrlHash,
             platform: input.platform,
-            themeId: input.themeId,
+            themeId: theme.id,
+            contentType: taxonomy.contentType,
+            mainTheme: taxonomy.mainTheme,
+            subTheme: taxonomy.subTheme,
+            edufastPolicyId: edufast.policyId,
+            edufastPolicyVersion: edufast.policyVersion,
             dateCreated: input.dateCreated,
             publishedAt,
             locationId,
@@ -839,7 +919,7 @@ export async function saveSubmission(
             idempotencyKey: input.idempotencyKey,
             submittedAt: input.action === "SUBMIT" ? now : null,
             archived: false,
-            isDemo: true,
+            isDemo: false,
             createdAt: now,
             updatedAt: now,
           })
@@ -856,7 +936,10 @@ export async function saveSubmission(
               narrative,
               publishedUrl: input.publishedUrl,
               platform: input.platform,
-              themeId: input.themeId,
+              themeId: theme.id,
+              contentType: taxonomy.contentType,
+              mainTheme: taxonomy.mainTheme,
+              subTheme: taxonomy.subTheme,
               dateCreated: input.dateCreated,
               publishedAt,
               location: input.location ?? null,
@@ -871,6 +954,8 @@ export async function saveSubmission(
             stakeholderName: stakeholder.name,
             title,
             version: 1,
+            branchOfficeId: stakeholder.branchOfficeId ?? null,
+            organizationId: stakeholder.id,
           });
         }
 

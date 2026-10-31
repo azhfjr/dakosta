@@ -1,19 +1,21 @@
 import { z } from "zod";
 
 import { getRequestId, jsonError, jsonOk, readJson } from "@/lib/api";
+import { assertSameOrigin, requireApiRole } from "@/lib/authz/guards";
+import { toSessionUser } from "@/lib/session";
+import { consumeRateLimit, getClientIp } from "@/lib/rate-limit";
 import {
   listReviewQueue,
   reviewDecisionSchema,
   reviewSubmission,
   type ReviewQueueFilters,
 } from "@/lib/review";
-import { getApiUserWithRole } from "@/lib/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const queueQuerySchema = z.object({
-  status: z.enum(["ALL", "SUBMITTED", "IN_REVIEW"]).default("ALL"),
+  status: z.enum(["ALL", "SUBMITTED", "RESUBMITTED", "IN_REVIEW"]).default("ALL"),
   stakeholderId: z.string().uuid().optional(),
   themeId: z.string().uuid().optional(),
   search: z.string().trim().max(120).optional(),
@@ -24,7 +26,9 @@ const queueQuerySchema = z.object({
 export async function GET(request: Request) {
   const requestId = getRequestId(request);
   try {
-    const admin = await getApiUserWithRole("ADMIN");
+    const reviewer = toSessionUser(
+      await requireApiRole("MASTER_ADMIN", "BRANCH_ADMIN"),
+    );
     const params = new URL(request.url).searchParams;
 
     const parsed = queueQuerySchema.parse({
@@ -37,7 +41,7 @@ export async function GET(request: Request) {
     });
 
     const filters: ReviewQueueFilters = parsed;
-    const queue = await listReviewQueue(admin, filters);
+    const queue = await listReviewQueue(reviewer, filters);
 
     return jsonOk(queue, {
       requestId,
@@ -51,9 +55,28 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const requestId = getRequestId(request);
   try {
-    const admin = await getApiUserWithRole("ADMIN");
+    assertSameOrigin(request);
+    const reviewer = toSessionUser(
+      await requireApiRole("MASTER_ADMIN", "BRANCH_ADMIN"),
+    );
+
+    const limit = await consumeRateLimit({
+      key: `review:${reviewer.id}:${getClientIp(request)}`,
+      limit: 60,
+      windowSeconds: 60,
+    });
+    if (!limit.allowed) {
+      return jsonError(
+        Object.assign(new Error("Terlalu banyak keputusan dalam waktu singkat."), {
+          code: "RATE_LIMITED",
+          status: 429,
+        }),
+        requestId,
+      );
+    }
+
     const input = reviewDecisionSchema.parse(await readJson(request));
-    const decision = await reviewSubmission(admin, input, requestId);
+    const decision = await reviewSubmission(reviewer, input, requestId);
 
     return jsonOk(decision, { requestId });
   } catch (error) {

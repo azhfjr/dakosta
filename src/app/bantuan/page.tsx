@@ -3,43 +3,44 @@ import Link from "next/link";
 import { ArrowLeft, ClipboardCheck, KeyRound, MapPin } from "lucide-react";
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { SiteFooter } from "@/components/site-footer";
+import { isDemoMode } from "@/lib/env";
 
 export const metadata: Metadata = {
   title: "Bantuan",
-  description: "Panduan singkat penggunaan ruang demo DAKOSTA.",
+  description: "Panduan singkat penggunaan ruang kerja DAKOSTA.",
 };
 
 const guides = [
   {
-    title: "Untuk Client",
+    title: "Stakeholder",
     icon: MapPin,
     steps: [
-      "Masuk dengan akun penguji dari Admin demo.",
-      "Buka Laporkan Konten dan isi narasi, URL publikasi, serta tema.",
-      "Tandai lokasi dengan GPS (opsional) atau pin manual.",
+      "Masuk dengan akun yang diberikan Master Admin.",
+      "Buka Lapor Konten dan isi jenis konten, tema, narasi, serta URL publikasi.",
+      "Tandai lokasi dengan GPS, pin manual, atau lokasi organisasi.",
       "Simpan draf, lalu kirim. Catat nomor referensi yang muncul.",
       "Pantau status dan alasan revisi pada halaman Konten Saya.",
     ],
   },
   {
-    title: "Untuk Admin",
+    title: "Reviewer cabang",
     icon: ClipboardCheck,
     steps: [
-      "Masuk dengan akun Admin demo.",
-      "Buka Validation Center untuk melihat antrean terbaru.",
+      "Masuk dengan akun Branch Admin untuk cabang Anda.",
+      "Buka antrean review cabang, lalu mulai tinjau konten yang masuk.",
       "Periksa detail, checklist, lokasi, dan riwayat sebelum memutuskan.",
-      "Approve, minta revisi, atau tolak dengan alasan yang jelas.",
+      "Setujui, minta revisi, atau tolak dengan alasan yang jelas.",
       "Capaian dan notifikasi diperbarui setelah keputusan tersimpan.",
     ],
   },
   {
-    title: "Keamanan akun",
+    title: "Master & wilayah",
     icon: KeyRound,
     steps: [
-      "Registrasi publik ditutup; akun dibuat oleh Admin demo.",
-      "Kata sandi sementara wajib diganti saat pertama masuk.",
-      "Jangan bagikan sesi atau kata sandi demo di luar pengujian.",
-      "Semua akses API diverifikasi di server, termasuk kepemilikan data.",
+      "Master Admin mengelola wilayah, cabang, organisasi, akun, dan kebijakan EDUFAST.",
+      "Regional Admin memiliki akses baca untuk wilayah yang ditugaskan.",
+      "Perubahan peran atau cakupan langsung berlaku pada permintaan berikutnya.",
+      "Semua akses API diverifikasi di server, termasuk cakupan data.",
     ],
   },
 ];
@@ -68,11 +69,12 @@ export default function BantuanPage() {
             Bantuan
           </p>
           <h1 className="text-3xl font-semibold tracking-tight text-brand-blue-900">
-            Panduan singkat ruang demo
+            Panduan singkat ruang kerja
           </h1>
           <p className="max-w-2xl text-base leading-relaxed text-ink-muted">
-            DAKOSTA mendemonstrasikan dua peran: Client yang melaporkan konten
-            dan Admin yang memvalidasi. Semua data adalah sintetis.
+            DAKOSTA memisahkan peran Master Admin, Regional Admin, Branch Admin,
+            dan Stakeholder. Setiap peran hanya melihat data sesuai cakupannya.
+            {isDemoMode ? " Semua data adalah sintetis." : null}
           </p>
         </div>
 
@@ -109,7 +111,7 @@ export default function BantuanPage() {
             Notifikasi realtime memiliki fallback polling; jika koneksi realtime
             terputus, kotak notifikasi tetap memuat data tersimpan. Untuk masalah
             peta, gunakan daftar lokasi di bawah peta. Untuk masalah akses,
-            keluar lalu masuk kembali dengan akun penguji Anda.
+            keluar lalu masuk kembali dengan akun Anda.
           </p>
           <p className="mt-3 text-sm text-ink-muted">
             Catatan: proyek ini tidak menyediakan dukungan operasional

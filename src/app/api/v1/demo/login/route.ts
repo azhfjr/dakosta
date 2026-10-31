@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getDb, schema } from "@/db";
 import { getAuth } from "@/lib/auth";
-import { DEMO_ACCOUNTS, isDemoRole } from "@/lib/demo";
+import { DEMO_ACCOUNTS, DEMO_ROLE_APP_ROLE, isDemoRole } from "@/lib/demo";
 import { isDemoMode } from "@/lib/env";
 import {
   consumeRateLimit,
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
     .insert(schema.auditLogs)
     .values({
       actorId: userId ?? null,
-      actorRole: body.role === "admin" ? "ADMIN" : "CLIENT",
+      actorRole: DEMO_ROLE_APP_ROLE[body.role],
       action: "DEMO_LOGIN",
       recordType: "AUTH",
       recordId: userId ?? account.email,

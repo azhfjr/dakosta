@@ -29,6 +29,7 @@ import type {
 const STATUS_COLOR: Record<ContentStatus, string> = {
   APPROVED: "#218353",
   SUBMITTED: "#0a78ca",
+  RESUBMITTED: "#0a78ca",
   IN_REVIEW: "#b46d15",
   REVISION_REQUIRED: "#9a5b12",
   REJECTED: "#b43f42",

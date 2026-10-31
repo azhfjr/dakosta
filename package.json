@@ -10,12 +10,23 @@
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "db:migrate:staging": "tsx scripts/migrate-db.ts --target=staging",
+    "db:migrate:production": "tsx scripts/migrate-db.ts --target=production",
+    "db:purge:production": "tsx scripts/purge-demo-production.ts --target=production",
+    "db:bootstrap:master": "tsx scripts/bootstrap-master.ts --target=production",
+    "db:backfill:v4": "tsx scripts/backfill-v4.ts",
+    "db:backup": "tsx scripts/backup-db.ts",
+    "db:restore": "tsx scripts/restore-db.ts",
     "db:seed": "tsx scripts/seed.ts",
+    "db:seed:staging": "tsx scripts/seed.ts --target=staging",
     "db:reset": "tsx scripts/reset-demo.ts",
+    "db:reset:staging": "tsx scripts/reset-demo.ts --target=staging",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test:e2e": "playwright test",
-    "verify": "npm run lint && npm run typecheck && npm run build && npm run test:e2e"
+    "verify": "npm run lint && npm run typecheck && npm run build && npm run test:e2e",
+    "test": "vitest run",
+    "dev:e2e": "node scripts/dev-e2e.mjs"
   },
   "dependencies": {
     "@date-fns/tz": "^1.5.0",
@@ -48,7 +59,7 @@
     "@better-auth/cli": "^1.4.22",
     "@electric-sql/pglite": "^0.5.13",
     "@playwright/test": "^1.64.1",
-    "@tailwindcss/turbopack": "^4",
+    "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
@@ -67,6 +78,7 @@
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5",
+    "vite": "^8.3.5",
     "vitest": "^5.0.5"
   }
 }

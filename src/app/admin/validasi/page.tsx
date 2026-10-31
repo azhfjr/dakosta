@@ -32,6 +32,7 @@ const UUID_PATTERN =
 const TABS = [
   { key: "ALL", label: "Semua" },
   { key: "SUBMITTED", label: "Terkirim" },
+  { key: "RESUBMITTED", label: "Dikirim ulang" },
   { key: "IN_REVIEW", label: "Ditinjau" },
 ] as const;
 
@@ -45,7 +46,11 @@ function firstParam(
 }
 
 function parseStatus(value: string | undefined): TabKey {
-  return value === "SUBMITTED" || value === "IN_REVIEW" ? value : "ALL";
+  return value === "SUBMITTED" ||
+    value === "RESUBMITTED" ||
+    value === "IN_REVIEW"
+    ? value
+    : "ALL";
 }
 
 function parseUuid(value: string | undefined): string | undefined {
@@ -103,7 +108,7 @@ export default async function ReviewQueuePage({
       page,
       pageSize: 15,
     }),
-    listReviewQueueOptions(),
+    listReviewQueueOptions(admin),
   ]);
 
   const oldestDays = queue.oldestSubmittedAt

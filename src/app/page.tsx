@@ -11,6 +11,7 @@ import {
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
+import { isDemoMode } from "@/lib/env";
 
 const workflow = [
   {
@@ -20,9 +21,9 @@ const workflow = [
     icon: MapPin,
   },
   {
-    title: "Admin memvalidasi",
+    title: "Reviewer cabang memvalidasi",
     description:
-      "Antrean review dengan checklist, riwayat revisi, dan keputusan yang tercatat di audit log.",
+      "Antrean review per cabang dengan checklist, riwayat revisi, dan keputusan yang tercatat di audit log.",
     icon: ClipboardCheck,
   },
   {
@@ -71,9 +72,11 @@ export default function HomePage() {
                   <ShieldCheck className="size-3.5" aria-hidden />
                   Proyek demonstrasi pribadi
                 </span>
-                <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-muted px-3 py-1 text-xs font-medium text-ink-muted">
-                  Data sintetis · label DEMO
-                </span>
+                {isDemoMode ? (
+                  <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-muted px-3 py-1 text-xs font-medium text-ink-muted">
+                    Data sintetis · label DEMO
+                  </span>
+                ) : null}
               </div>
 
               <div className="space-y-5">
@@ -81,16 +84,17 @@ export default function HomePage() {
                   Dashboard Konten Kolaborasi Stakeholder yang dapat diaudit.
                 </h1>
                 <p className="max-w-xl text-base leading-relaxed text-ink-muted sm:text-lg">
-                  DAKOSTA memodelkan alur pelaporan konten, validasi admin, dan
-                  pengukuran capaian dalam satu ruang kerja. Setiap angka berasal
-                  dari data yang tersimpan, bukan grafik dekoratif.
+                  DAKOSTA menyatukan pelaporan stakeholder, validasi reviewer
+                  cabang, dan pengukuran capaian dalam satu ruang kerja
+                  berjenjang. Setiap angka berasal dari data yang tersimpan,
+                  bukan grafik dekoratif.
                 </p>
               </div>
 
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Button asChild size="lg" className="h-11 px-5">
                   <Link href="/masuk">
-                    Masuk ke ruang demo
+                    {isDemoMode ? "Masuk ke ruang demo" : "Masuk ke ruang kerja"}
                     <ArrowRight className="size-4" aria-hidden />
                   </Link>
                 </Button>
@@ -106,7 +110,7 @@ export default function HomePage() {
                     Persisten
                   </dt>
                   <dd className="mt-1 text-sm leading-relaxed text-ink-muted">
-                    Data demo tersimpan di PostgreSQL, bukan di memori browser.
+                    Data tersimpan di PostgreSQL, bukan di memori browser.
                   </dd>
                 </div>
                 <div className="rounded-xl border border-border bg-surface p-4">
@@ -217,7 +221,7 @@ export default function HomePage() {
               </h2>
               <p className="text-sm leading-relaxed text-ink-muted">
                 DAKOSTA adalah proyek personal nonkomersial untuk belajar,
-                portofolio, dan demonstrasi alur kerja. Tidak ada data peserta,
+                portofolio, dan alur kerja kolaborasi. Tidak ada data peserta,
                 NIK, nomor JKN, atau rekam medis. Tidak ada klaim afiliasi
                 institusional.
               </p>

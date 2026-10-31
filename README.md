@@ -1,266 +1,287 @@
 # DAKOSTA — Dashboard Konten Kolaborasi Stakeholder
 
-Demo publik: **https://dakosta-dakosta.vercel.app**
+Demo publik (rilis v3): **https://dakosta-dakosta.vercel.app**
 
 > **Proyek pribadi nonkomersial.** DAKOSTA adalah demonstrasi independen dan
 > **tidak berafiliasi dengan, tidak mewakili, dan tidak disponsori oleh BPJS
 > Kesehatan** atau institusi mana pun. Seluruh akun, stakeholder, konten, lokasi,
-> dan angka pada demo bersifat **sintetis dan berlabel DEMO**. Aplikasi ini tidak
-> memuat data pribadi pasien, NIK, nomor JKN, rekam medis, maupun data internal
-> institusi. Jangan memasukkan data nyata.
+> dan angka pada data demo bersifat **sintetis dan berlabel DEMO**. Aplikasi ini
+> tidak memuat data pribadi pasien, NIK, nomor JKN, rekam medis, maupun data
+> internal institusi. Jangan memasukkan data nyata.
 
-## Akses demo
+## Status rilis v4
 
-Buka `/masuk`, lalu gunakan tombol **Admin demo** atau **Client demo**. Tombol ini
-hanya tampil saat `DEMO_MODE=true`.
-
-| Peran | Akun seed | Tujuan |
+| Lingkungan | Status | Keterangan |
 | --- | --- | --- |
-| Admin | `admin@demo.dakosta.local` | Validasi, KPI, peta, analitik, pengguna, audit |
-| Client | `mitra.nusantara@demo.dakosta.local` | Pelaporan konten, status, notifikasi |
+| Staging (database Neon `dakosta_staging` + Vercel Preview) | **TERVERIFIKASI** | 3 migrasi, fixture deterministik, unit 34/34, E2E 40/40, subset build produksi 23/23, axe + mobile, smoke preview |
+| Produksi | **v3 demo** | Rilis v4 terkunci sampai gate G0–G11 PASS dan konfirmasi eksplisit untuk langkah destruktif (purge data demo + perubahan env produksi) |
 
-Kata sandi akun seed berasal dari `DEMO_SEED_PASSWORD` dan **tidak pernah
-ditulis di repo, README, atau log**. Registrasi publik ditutup
-(`disableSignUp`); akun hanya dibuat Admin demo.
+Bukti per gate, traceability R01–R18, dan daftar item PARTIAL/BLOCKED ada di
+[`docs/v4-handoff.md`](docs/v4-handoff.md).
 
-## Fitur utama
+## Peran dan cakupan (v4)
 
-- Wizard pelaporan 4 langkah: tautan & tema → narasi → **lokasi wajib** → tinjau.
-- Simpan draf, kirim untuk validasi, revisi lalu kirim ulang (versi bertambah).
-- Antrean validasi Admin dengan checklist, setujui / minta revisi / tolak.
-- KPI **hanya menghitung konten berstatus Disetujui**, dengan filter periode,
-  stakeholder, tema, dan dasar tanggal.
-- Peta sebaran (MapLibre + OpenFreeMap), analitik tren, ekspor CSV.
-- Notifikasi persisten + streaming SSE dengan fallback polling 20 detik.
-- Audit log untuk aksi sensitif dan percobaan akses ditolak.
+| Kemampuan | MASTER_ADMIN | REGIONAL_ADMIN | BRANCH_ADMIN | STAKEHOLDER |
+| --- | --- | --- | --- | --- |
+| Cakupan | Global | Satu wilayah | Satu cabang | Satu organisasi |
+| Dashboard ter-scope | Ya | Ya (baca) | Ya | Ya |
+| Kelola wilayah/cabang/organisasi | Ya | — | — | — |
+| Kelola akun, reset, nonaktifkan | Ya | — | — | — |
+| Impor CSV akun | Ya | — | — | — |
+| Kebijakan EDUFAST bulanan | Ya | — | — | — |
+| Kirim / revisi konten | — | — | — | Ya |
+| Review keputusan | Override darurat (step-up + alasan) | — | Hanya cabangnya | — |
+| Peta, analitik, ekspor | Ya | Ya | Ya | Ringkasan sendiri |
+| Audit | Ya | Ter-scope | Ter-scope | — |
 
-## Peran dan matriks izin
+Otorisasi dievaluasi di server dari sesi + membership aktif. ID peran, wilayah,
+cabang, atau organisasi dari browser tidak pernah dipercaya. Objek di luar
+cakupan menghasilkan `404` (bukan `403`) agar keberadaannya tidak bocor;
+tindakan tulis lintas cakupan menghasilkan `403`. Perubahan cakupan/status akun
+mencabut sesi dan berlaku pada permintaan berikutnya.
 
-| Kemampuan | ADMIN | CLIENT |
-| --- | --- | --- |
-| Ringkasan & KPI | Semua stakeholder | Hanya stakeholder miliknya |
-| Kirim / draf konten | — | Ya, untuk stakeholder miliknya |
-| Validasi & keputusan | Ya | — |
-| Peta & analitik | Ya | — |
-| Kelola pengguna, stakeholder, target | Ya | — |
-| Ekspor CSV | Ya | — |
-| Audit | Ya | — |
-| Notifikasi & profil sendiri | Ya | Ya |
+## Hierarki dan data inti
 
-Otorisasi selalu dievaluasi di server dari membership peran dan stakeholder;
-ID peran/stakeholder dari browser tidak dipercaya. Permintaan lintas tenant
-mengembalikan `403`, dan halaman Admin yang dibuka CLIENT dialihkan ke
-`/akses-ditolak` serta dicatat di audit.
+`regional_offices` → `branch_offices` → `stakeholders` (organisasi).
 
-## Aturan inti
+- `user_memberships`: satu membership aktif per pengguna (indeks unik parsial),
+  riwayat transfer disimpan sebagai baris `revoked_at`.
+- `stakeholders` adalah registri organisasi: `organization_type`
+  (`FASKES|PEMDA|OTHER`), `faskes_class` (`FKTP|FKRTL`), dan
+  `faskes_code_normalized` unik untuk FASKES aktif (angka nol di depan
+  dipertahankan).
+- `edufast_monthly_policies` + `edufast_policy_subthemes` +
+  `edufast_policy_events`: satu kebijakan `PUBLISHED` per `YYYY-MM`
+  (Asia/Jakarta), berversi, dengan riwayat aksi.
+- `account_imports` / `account_import_rows`: impor CSV idempoten per
+  `idempotency_key`, hasil per baris disimpan.
+- `migration_runs`: rekap migrasi/backfill/purge.
 
-- **Approved-only KPI.** Status lain (Dikirim, Ditinjau, Perlu Revisi, Ditolak,
-  Dicabut, Diarsipkan) tidak menambah capaian.
-- **Lokasi wajib** saat mengirim. Sumber `device_gps` memerlukan `consentAt`;
-  pin manual selalu tersedia.
-- **Idempotensi** pengiriman memakai `idempotencyKey` (201 pertama, 200 saat
-  pengulangan dengan ID yang sama).
-- **Kontrol versi**: keputusan atas versi lama menghasilkan `409`.
-- **URL ganda** memerlukan `duplicateAcknowledged`.
-- **Rate limit** pada login demo, ekspor, dan endpoint sensitif.
-- **Envelope API** konsisten: `{ data, meta, error }`, dengan `requestId`.
-- **Tanpa PII**: narasi wajib mengonfirmasi `privacyAttested` saat mengirim.
+## Alur konten, revisi, dan EDUFAST
 
-## Stack
+Status: `DRAFT → SUBMITTED → IN_REVIEW → APPROVED`;
+`REVISION_REQUIRED → RESUBMITTED → IN_REVIEW`; `REJECTED` (final);
+`REVOKED` (koreksi Master, teraudit). `REVISION_REQUIRED` adalah padanan
+persisten dari `REVISION_REQUESTED` pada kontrak.
 
-- Next.js 16 (App Router, Turbopack) + React 19 + TypeScript strict
-- Tailwind CSS v4 + shadcn/ui, font **Plus Jakarta Sans** di-self-host
-- Neon Postgres (pooled + unpooled) + Drizzle ORM/migrasi
-- Better Auth (cookie httpOnly, rate limit, plugin admin)
-- MapLibre GL + OpenFreeMap, Recharts, Sonner
-- Playwright E2E (12 skenario) + axe-core untuk audit aksesibilitas
+- Wizard pelaporan tidak memilih organisasi; organisasi diturunkan dari
+  membership dan ditampilkan sebagai badge baca-saja (`organisasi • FKTP/FKRTL •
+  cabang`).
+- `Jenis Konten`: `VIDEO | INFOGRAFIS`. Tema utama:
+  `EDUFAST | NON_EDUFAST`. Enam sub-tema: `MOBILE_JKN`, `TESTIMONI_PESERTA`,
+  `ALUR_BEROBAT`, `EDUKATIF_PERSUASIF`, `KORPORAT`, `INFORMASI`.
+- Periode konten diturunkan dari tanggal konten (`date_created`), bukan tanggal
+  approval. Jika `EDUFAST` dipilih dan belum ada kebijakan `PUBLISHED` untuk
+  bulan tersebut, pengiriman diblokir dengan pesan yang dapat ditindaklanjuti;
+  `NON_EDUFAST` tetap tersedia.
+- Saat kirim, `edufast_policy_id` + versi disimpan. Saat disetujui, snapshot
+  dibekukan (`approved_snapshot`, `approved_version`). Revisi yang mengubah
+  tanggal konten memvalidasi ulang kebijakan dan mencatat audit.
+- Revisi membuat versi baru + snapshot immutable; seluruh review lama tetap ada.
+  Review memakai transaksi `SELECT … FOR UPDATE`; konflik versi/status → `409`;
+  satu review per versi; self-approval diblokir.
+- Notifikasi: pengajuan → admin cabang aktif pada cabang tersebut; keputusan →
+  pengirim + pengguna organisasi. Outbox ditulis dalam transaksi yang sama dan
+  didrain setelah commit; kegagalan notifikasi tidak membatalkan konten.
+
+## KPI dan analitik
+
+- `approved_contents`, `submitted_contents`, `pending_review`,
+  `revision_requested`, `rejected_contents`, `approval_rate`
+  (approved ÷ decided, `N/A` bila 0), `active_contributing_organizations`,
+  `registered_active_faskes`, `never_submitted_faskes`,
+  `no_submission_in_period`, `approved_by_faskes` (FKTP/FKRTL terpisah),
+  `edufast_approved`, `non_edufast_approved`, `turnaround_time`.
+- Atribusi default `date_created`; atribusi `approved_at` opsional dan
+  dilabeli di UI serta ekspor.
+- `never_submitted_faskes` = FASKES aktif dengan **nol pengajuan seumur hidup**
+  (`submitted_at IS NOT NULL`; draf tidak dihitung). Inaktivitas periode adalah
+  daftar terpisah.
+- Red Notice = alert + tabel organisasi FASKES aktif tanpa pengajuan
+  seumur hidup; bukan pie chart merah.
+- Peringkat FKTP/FKRTL deterministik (tie-break nama/kode). Rekonsiliasi:
+  metrik aditif wilayah = jumlah cabang; hitungan organisasi unik tidak
+  dijumlahkan naif; total ekspor = total UI.
 
 ## Rute
 
-Halaman: `/`, `/masuk`, `/tentang`, `/bantuan`, `/ganti-password`,
-`/akses-ditolak`, `/admin` (+ `validasi`, `validasi/[id]`, `konten`, `stakeholder`,
-`peta`, `analitik`, `target`, `pengguna`, `notifikasi`, `audit`), `/client`
-(+ `lapor`, `konten`, `konten/[id]`, `notifikasi`, `profil`).
+- Master: `/admin`, `/admin/wilayah`, `/admin/cabang`, `/admin/organisasi`,
+  `/admin/akun`, `/admin/impor`, `/admin/edufast`, `/admin/konten`,
+  `/admin/analitik`, `/admin/peta`, `/admin/audit`, `/admin/target`,
+  `/admin/notifikasi`.
+- Regional (baca): `/wilayah`, `/wilayah/cabang`, `/wilayah/organisasi`,
+  `/wilayah/analitik`, `/wilayah/red-notice`, `/wilayah/peta`,
+  `/wilayah/laporan`.
+- Branch: `/cabang`, `/cabang/review`, `/cabang/organisasi`,
+  `/cabang/analitik`, `/cabang/red-notice`, `/cabang/peta`,
+  `/cabang/laporan`, `/cabang/notifikasi`.
+- Stakeholder: `/client`, `/client/lapor`, `/client/konten`, `/client/profil`,
+  `/client/notifikasi`.
+- Publik: `/masuk`, `/aktivasi`, `/tentang`, `/bantuan`, `/ganti-password`.
 
-API utama:
+### API utama
 
 | Endpoint | Keterangan |
 | --- | --- |
 | `GET /api/health` | Status app + koneksi DB |
-| `POST /api/v1/demo/login` | Login cepat demo (hanya `DEMO_MODE`) |
-| `GET /api/v1/me` | Profil, peran, cakupan stakeholder |
-| `GET /api/v1/dashboard/admin` | KPI & ringkasan Admin |
-| `GET /api/v1/dashboard/client` | KPI & ringkasan Client (ter-scope) |
-| `GET/POST /api/v1/submissions` | Daftar & simpan/kirim konten |
-| `GET /api/v1/submissions/[id]` | Detail konten (cek kepemilikan) |
-| `GET/POST /api/v1/admin/reviews` | Antrean & keputusan validasi |
-| `GET/POST /api/v1/admin/users` | Kelola penguji |
-| `PATCH /api/v1/admin/users/[id]` | Aktif/nonaktif, reset sandi |
-| `GET /api/v1/map` | Titik konten + stakeholder (ter-scope) |
-| `GET /api/v1/analytics/series` | Seri tren analitik |
-| `GET /api/v1/notifications` | Daftar notifikasi |
-| `GET /api/v1/notifications/unread-count` | Jumlah belum dibaca |
-| `GET /api/v1/realtime/notifications` | Stream SSE |
-| `GET /api/v1/exports/submissions` | Ekspor CSV (BOM, label DEMO) |
-| `POST /api/v1/admin/outbox/drain` | Drain outbox (butuh `CRON_SECRET`) |
+| `POST /api/v1/demo/login` | Login cepat demo (hanya `DEMO_MODE`, rate limit) |
+| `GET /api/v1/me` | Profil, peran, cakupan, kapabilitas |
+| `POST /api/v1/me/step-up` | Re-autentikasi untuk aksi sensitif (15 menit) |
+| `GET /api/v1/dashboard/admin\|client` | Ringkasan ter-scope |
+| `GET /api/v1/analytics/series` | Seri tren ter-scope |
+| `GET/POST /api/v1/submissions`, `GET /api/v1/submissions/[id]` | Konten |
+| `POST /api/v1/admin/reviews/start`, `GET/POST /api/v1/admin/reviews` | Review |
+| `POST /api/v1/admin/contents/[id]/revoke` | Pencabutan korektif (Master) |
+| `GET/PATCH /api/v1/admin/users`, `PATCH /api/v1/admin/users/[id]` | Akun |
+| `GET/POST /api/v1/admin/regions\|branches\|organizations` | Hierarki |
+| `GET /api/v1/admin/imports/template`, `POST …/preview`, `POST …/commit` | Impor CSV |
+| `GET/POST /api/v1/admin/edufast/policies`, `…/publish`, `…/copy`, `…/archive` | EDUFAST |
+| `GET /api/v1/map` | Titik ter-scope |
+| `GET /api/v1/notifications`, `…/unread-count`, `…/realtime` | Notifikasi + SSE |
+| `GET /api/v1/exports/submissions` | CSV ter-scope, BOM, neutralisasi formula |
+| `POST /api/v1/admin/outbox/drain` | Drain outbox (`CRON_SECRET`) |
 
-## Data dictionary
-
-| Tabel | Isi |
-| --- | --- |
-| `user`, `session`, `account`, `verification` | Tabel Better Auth |
-| `user_profiles` | Judul tampilan, status demo/aktif, wajib ganti sandi |
-| `user_role_memberships` | Peran `ADMIN` / `CLIENT` |
-| `stakeholders` | Profil stakeholder sintetis + titik pusat |
-| `user_stakeholder_memberships` | Cakupan stakeholder per pengguna |
-| `themes` | Tema konten (mis. Edukasi JKN) |
-| `locations` | Koordinat, sumber GPS/pin, consent, presisi |
-| `content_submissions` | Konten, status, versi, idempotency, keputusan |
-| `content_revisions` | Snapshot versi lama |
-| `content_reviews` | Checklist & keputusan Admin |
-| `kpi_targets` | Target periode per stakeholder/tema |
-| `notifications` | Notifikasi persisten + dedupe key |
-| `outbox_events` | Outbox untuk drain/notifikasi lanjutan |
-| `audit_logs` | Jejak aksi & akses ditolak |
-| `demo_rate_limits` | Penghitung rate limit demo |
+Envelope API: `{ data, meta, error }` dengan `requestId`. Idempotensi
+pengiriman memakai `idempotencyKey` (201 pertama, 200 pengulangan). URL ganda
+memerlukan `duplicateAcknowledged`. Keputusan atas versi lama → `409`.
 
 ## Menjalankan lokal
 
-Prasyarat: Node.js 22+ (lokal diuji pada Node 24; build produksi di Vercel
-berjalan pada Node 26.x), database Neon.
+Prasyarat: Node.js 22+ dan database Neon.
 
 Salin `.env.example` → `.env.local`, lalu isi **nama variabel** berikut:
 
 | Variabel | Wajib | Keterangan |
 | --- | --- | --- |
+| `APP_ENV` | Ya | `development` / `staging` / `production` |
 | `DATABASE_URL` | Ya | Koneksi pooled Neon |
 | `DATABASE_URL_UNPOOLED` | Ya | Migrasi/seed via Drizzle |
 | `BETTER_AUTH_SECRET` | Ya (prod) | Minimal 32 karakter acak |
 | `NEXT_PUBLIC_APP_URL` | Ya | Origin aplikasi |
-| `DEMO_MODE` | Demo | `true` mengaktifkan login demo |
+| `DEMO_MODE` | Demo | `true` mengaktifkan login demo; nonaktif di produksi |
 | `DEMO_SEED_PASSWORD` | Seed | Minimal 12 karakter; jangan commit |
 | `NEXT_PUBLIC_MAP_STYLE_URL` | Tidak | Gaya MapLibre; default OpenFreeMap Positron |
 | `CRON_SECRET` | Tidak | Proteksi drain outbox |
 
 ```bash
 npm install
-npm run db:migrate
-npm run db:reset     # hapus + seed demo (destruktif, khusus DB demo)
+npm run db:migrate                 # skema lokal
+npm run db:seed                    # data demo (tanpa menghapus)
 npm run dev
 ```
 
-Perintah lain: `npm run lint`, `npm run typecheck`, `npm run build`,
-`npm run test:e2e`, `npm run verify` (lint → typecheck → build → E2E).
-`db:seed` menambah data tanpa menghapus; `db:reset` mengembalikan kondisi awal
-(4 pengguna, 8 stakeholder, 24 konten, 12 disetujui).
+Data demo deterministik: 2 wilayah, 4 cabang, 12 pengguna (1 Master, 2 Regional,
+3 Branch, 6 Stakeholder), 12 organisasi, 2 kebijakan EDUFAST (bulan berjalan +
+sebelumnya), 24 konten (12 disetujui), 18 review.
 
-## Pengujian
+Perintah: `npm run lint`, `npm run typecheck`, `npm run build`, `npm test`
+(Vitest), `npm run test:e2e` (Playwright), `npm run verify`.
 
-Suite E2E mencakup: login demo, wizard (termasuk penolakan tanpa lokasi),
-alur emas kirim → validasi UI → KPI naik, notifikasi, revisi → kirim ulang,
-penolakan tanpa perubahan KPI, balapan dua approval (`200`/`409`), isolasi
-tenant (`403`), pengalihan halaman Admin, idempotensi, dan konsistensi CSV.
+## Pengujian dan bukti
 
-Status verifikasi:
+- **Unit (Vitest): 34/34 lulus** — predicate scope, resolusi taksonomi/kebijakan,
+  parser CSV + escape formula, rumus KPI, semantik Red Notice, batas tanggal,
+  hashing token.
+- **E2E (Playwright, staging): 40/40 lulus (≈9,3 menit)** — alur emas
+  stakeholder → cabang → setuju, revisi/kirim ulang, isolasi wilayah A/B dan
+  cabang A1/A2, regional baca-saja (`403`), step-up negatif, EDUFAST
+  (publish, bulan tanpa kebijakan, sub-tema tidak diizinkan), impor CSV
+  (template/preview/commit), rekonsiliasi wilayah, Red Notice, aksesibilitas
+  axe (12 rute), dan 360 px.
+- **Subset build produksi: 23/23 lulus (≈3,3 menit)** terhadap `next start`
+  dengan env staging.
+- **Smoke preview staging**: `/api/health` → `{"status":"ok","db":"ok"}`;
+  `/admin` → `307` ke `/masuk`; `/masuk` → `200`.
+- **Backup/restore drill staging**: 30 tabel / 186 baris diekspor, direstore ke
+  staging, jumlah baris terverifikasi sama.
+- Lint dan typecheck bersih; build produksi lulus dan CSS memuat utilitas
+  Tailwind.
 
-- Lokal: lint, typecheck, build, dan **12/12** E2E lulus.
-- Produksi: **11/12** lulus pada run pertama; satu assertion diperbaiki karena
-  teks referensi juga muncul di toast (strict-mode), lalu lulus saat dijalankan
-  ulang. Database produksi di-reset ke seed setelah pengujian.
-- Smoke produksi: `/api/health` (`db: ok`), login kedua peran, isolasi RBAC,
-  KPI periode, header + stream SSE, kanvas peta, ekspor CSV, font 200,
-  tanpa error konsol, dan tanpa overflow halaman pada lebar 390 px.
+Detail gate dan item yang belum lulus ada di `docs/v4-handoff.md`.
 
-**Belum dijalankan** (jangan diklaim lulus): uji pembaca layar manual, zoom
-peramban 200%, Firefox/Safari, serta suite unit/integrasi Vitest/PGlite.
+## Deploy dan operasi
 
-## Deploy produksi
+### Staging
 
-- Proyek Vercel: `dakosta-dakosta`, alias produksi
-  `https://dakosta-dakosta.vercel.app`.
-- Permintaan alamat `dakosta.dakosta.vercel.app` tidak dapat dibuat: nama proyek
-  Vercel tidak boleh memuat titik dan `vercel.app` hanya melayani satu level
-  `<proyek>.vercel.app`. Alias terdekat yang dipakai adalah
-  `dakosta-dakosta.vercel.app`.
-- Variabel produksi (nama saja): `DATABASE_URL`, `DATABASE_URL_UNPOOLED`,
-  `BETTER_AUTH_SECRET`, `NEXT_PUBLIC_APP_URL`, `DEMO_MODE`,
-  `DEMO_SEED_PASSWORD`. Opsional: `NEXT_PUBLIC_MAP_STYLE_URL`, `CRON_SECRET`.
-  Nilai sensitif disimpan sebagai *Sensitive* di Vercel dan tidak pernah
-  dicetak ke log.
-- Database: Neon `dakosta-db`, branch produksi, sudah dimigrasi dan di-seed.
-- Produksi publik (akses anonim `200`); deployment preview mengikuti proteksi
-  Vercel bawaan. Proyek dijalankan pada akun Hobby untuk penggunaan pribadi
-  nonkomersial.
+- Basis data: database Neon terpisah `dakosta_staging` pada proyek Neon yang sama
+  (`.env.staging.local`, gitignored). Isolasi level database, bukan server.
+- Migrasi: `npm run db:migrate:staging`.
+- Fixture: `npm run db:reset:staging` (menolak production).
+- Vercel Preview memakai env preview terpisah; preview terlindungi Vercel
+  Authentication. Untuk smoke terautentikasi gunakan
+  `npx vercel curl <path> --deployment <url>` (di Git Bash setel
+  `MSYS_NO_PATHCONV=1`).
 
-### Migrasi / seed produksi
-
-Jangan mengandalkan `.env.local` (berisi nilai pengembangan). Tarik env produksi
-ke file yang tidak di-commit:
+### Produksi (terkunci sampai gate + konfirmasi)
 
 ```bash
 npx vercel env pull .env.production.local --environment=production
-```
-
-Migrasi (tidak mencetak kredensial):
-
-```bash
-node -e 'const {config}=require("dotenv"); config({path:".env.production.local",override:true}); require("child_process").execSync("npx drizzle-kit migrate",{stdio:"inherit",env:process.env});'
-```
-
-Reset/seed produksi (destruktif; guard `SEED_CONFIRM=yes`):
-
-```bash
-node -e 'const {config}=require("dotenv"); config({path:".env.production.local",override:true}); process.env.SEED_CONFIRM="yes"; require("child_process").execSync("npx tsx scripts/reset-demo.ts",{stdio:"inherit",env:process.env});'
-```
-
-### Rilis & rollback
-
-```bash
-npx vercel link --project dakosta-dakosta --yes
+npm run db:backup -- --target=production      # wajib sebelum langkah destruktif
+npm run db:migrate:production                 # butuh MIGRATE_CONFIRM=apply-production
 npx vercel deploy --prod --yes
+npm run db:purge:production                   # butuh PURGE_CONFIRM=purge-demo-data
+npm run db:bootstrap:master                   # butuh BOOTSTRAP_CONFIRM=bootstrap-master
 ```
 
-Rollback: promosikan deployment sebelumnya dari dashboard Vercel atau
-`npx vercel rollback`. Migrasi Drizzle bersifat maju (tanpa down migration);
-periksa kompatibilitas sebelum rollback kode yang mengubah skema.
+- `purge-demo-production.ts` menolak berjalan jika menemukan baris
+  `is_demo=false`, lalu mencatat rekap ke `migration_runs`.
+- `bootstrap-master.ts` menolak jika sudah ada Master aktif, membuat satu akun
+  Master dengan `mustChangePassword=true`, dan menulis kredensial awal ke
+  `.secrets/` (gitignored) — hanya path yang dicetak, tidak pernah nilainya.
+- Variabel produksi yang berubah hanya boleh atas konfirmasi eksplisit: tambah
+  `APP_ENV=production`, nonaktifkan/hapus `DEMO_MODE` dan `DEMO_SEED_PASSWORD`.
+  Nilai env tidak pernah dicetak.
 
-### Checklist smoke setelah rilis
+### Rollback
 
-1. `/api/health` → `{"status":"ok","db":"ok"}`.
-2. `/masuk` → logo, tombol demo, disclaimer tampil.
-3. Login Admin demo → ringkasan, KPI periode, peta, analitik.
-4. Login Client demo → ringkasan ter-scope, wizard, notifikasi.
-5. `/api/v1/realtime/notifications` → `text/event-stream`, `X-Accel-Buffering: no`.
-6. Ekspor CSV → UTF-8 BOM, hanya status Disetujui, label DEMO.
-7. CLIENT membuka `/admin` → dialihkan ke `/akses-ditolak`; API Admin → `403`.
+- Kode: promosikan deployment sebelumnya di dashboard Vercel atau
+  `npx vercel rollback`.
+- Data: Neon snapshot/PITR, atau `npm run db:restore -- --dir=backups/<stamp>`
+  dengan `RESTORE_CONFIRM=restore` (butuh `ALLOW_PRODUCTION_RESTORE=yes` untuk
+  produksi) ke database staging untuk verifikasi lebih dulu.
+- Migrasi bersifat aditif dan maju (tanpa down migration); kolom lama
+  dipertahankan sampai pembersihan terpisah disetujui. Jika rollback kode
+  diperlukan, skema aditif tetap kompatibel dengan versi sebelumnya.
 
-## Deviasi dari kit awal
-
-- **Next.js monolit** di Vercel (bukan Vite + Workers) agar auth, RBAC, dan
-  server action/route berada dalam satu runtime.
-- **Neon Postgres** (bukan D1) karena kebutuhan transaksi, constraint, dan
-  koneksi dari Vercel Functions.
-- **Akun seed + sandi sementara** (bukan undangan email) karena demo tanpa
-  layanan email.
-- **Ekspor CSV saja** (belum XLSX/PDF).
-- **Outbox didrain lazy/manual** (belum cron terjadwal).
-- **Satu aplikasi** (bukan monorepo) untuk menjaga demo tetap kecil.
-- **OpenFreeMap** sebagai basemap tanpa kunci API.
-- **Font di-self-host** (`src/app/fonts/`) agar build tidak bergantung pada
-  pengambilan Google Fonts saat deploy.
-- Halaman peta memakai worker MapLibre; CSP mengizinkan `worker-src blob:` dan
-  koneksi ke `tiles.openfreemap.org`.
-
-## Keamanan & privasi
+## Keamanan dan privasi
 
 - `.env*` diabaikan Git dan `.vercelignore`; `.env.example` hanya berisi nama.
-- Tidak ada registrasi publik; peran & cakupan diambil dari database.
-- Cookie sesi `httpOnly`, `secure` di produksi, `sameSite=lax`.
-- CSP, HSTS, `X-Frame-Options: DENY`, `nosniff`, dan `Permissions-Policy`
-  ketat (geolokasi hanya untuk origin sendiri).
-- Rate limit login demo, ekspor, dan endpoint sensitif; percobaan akses
-  ditolak diaudit.
-- Data demo saja: tanpa PII, tanpa NIK/JKN, tanpa rekam medis.
+- Registrasi publik ditutup; peran & cakupan dari database, bukan browser.
+- Cookie sesi `httpOnly`, `secure` di produksi, `sameSite=lax`; cache cookie
+  dimatikan agar perubahan cakupan langsung berlaku.
+- CSP, HSTS, `X-Frame-Options: DENY`, `nosniff`, `Permissions-Policy` ketat,
+  dan pemeriksaan same-origin pada mutasi.
+- Rate limit pada login demo, step-up, impor, review, dan aktivasi.
+- Step-up 15 menit (HMAC cookie) untuk aksi Master sensitif; alasan wajib dan
+  diaudit; Master aktif terakhir tidak dapat dinonaktifkan/diturunkan.
+- Token aktivasi/reset disimpan sebagai hash, sekali pakai, dan tidak pernah
+  masuk log/CSV/audit. Kata sandi di-hash Better Auth.
+- PII guard memblokir pola NIK 16 digit / JKN 13 digit pada judul + narasi.
+- Data demo sintetis: tanpa PII, NIK/JKN, atau rekam medis. Pilot internal
+  nonkomersial; peninjauan UU PDP oleh operator tetap diperlukan sebelum data
+  pribadi nyata.
+
+## Deviasi dan batasan yang diketahui
+
+- **MFA/TOTP: PARTIAL** — plugin auth saat ini tidak menyediakan TOTP; yang
+  tersedia adalah step-up login-recent/re-autentikasi.
+- **Undangan email: BLOCKED** — tidak ada penyedia email; serah-terima
+  kredensial dilakukan di UI Master (kata sandi sementara/aktivasi).
+- **PDF server: PARTIAL** — CSV tersedia; PDF melalui cetak peramban.
+- **CI/CD: PARTIAL** — repositori lokal tanpa remote/`gh`; deploy via Vercel CLI.
+- **Neon branch programatik: BLOCKED** — tanpa `neonctl`/API key; staging
+  memakai database terpisah.
+- **Vercel plan** — penggunaan operasional multi-cabang nyata memerlukan
+  konfirmasi pemilik/plan yang sesuai.
+- **Data kantor nyata** — produksi dimulai dari Master + keadaan kosong; alur
+  lengkap diverifikasi di staging, bukan difabrikasi di produksi.
+
+## Stack
+
+Next.js 16 (App Router, Turbopack) + React 19 + TypeScript strict; Tailwind v4
+(`@tailwindcss/postcss`) + shadcn/ui; Plus Jakarta Sans self-host; Neon Postgres
++ Drizzle ORM; Better Auth; MapLibre + OpenFreeMap; Recharts; Sonner;
+Playwright + axe-core; Vitest.
 
 ## Lisensi aset
 

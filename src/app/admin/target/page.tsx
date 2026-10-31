@@ -145,7 +145,7 @@ export default async function AdminTargetPage({
               Belum ada target untuk periode ini
             </p>
             <p className="mt-1 text-sm text-ink-muted">
-              Target periode ini dapat ditetapkan melalui data seed demo;
+              Target periode ini dapat ditetapkan melalui data awal;
               pengelolaan target dari antarmuka belum tersedia.
             </p>
           </div>

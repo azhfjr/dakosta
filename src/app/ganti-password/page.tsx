@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { ChangePasswordForm } from "@/components/auth/change-password-form";
 import { SiteFooter } from "@/components/site-footer";
+import { isDemoMode } from "@/lib/env";
 import { getSessionUser } from "@/lib/session";
 
 export const metadata: Metadata = {
@@ -14,7 +15,7 @@ export default async function ChangePasswordPage() {
   const user = await getSessionUser();
   if (!user) redirect("/masuk");
 
-  const redirectTo = user.role === "ADMIN" ? "/admin" : "/client";
+  const redirectTo = user.homePath;
   if (!user.mustChangePassword) redirect(redirectTo);
 
   return (
@@ -22,9 +23,11 @@ export default async function ChangePasswordPage() {
       <header className="border-b border-border bg-surface">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
           <BrandLogo variant="compact" className="w-32" />
-          <span className="rounded-full border border-brand-teal-500/30 bg-brand-teal-100 px-2.5 py-1 text-xs font-semibold text-brand-teal-700">
-            Data sintetis · DEMO
-          </span>
+          {isDemoMode ? (
+            <span className="rounded-full border border-brand-teal-500/30 bg-brand-teal-100 px-2.5 py-1 text-xs font-semibold text-brand-teal-700">
+              Data sintetis · DEMO
+            </span>
+          ) : null}
         </div>
       </header>
 
@@ -35,8 +38,8 @@ export default async function ChangePasswordPage() {
               Ganti kata sandi
             </h1>
             <p className="text-sm leading-relaxed text-ink-muted">
-              Akun ini memakai kata sandi sementara dari admin. Buat kata sandi
-              pribadi sebelum melanjutkan.
+              Akun ini memakai kata sandi sementara dari Master Admin. Buat kata
+              sandi pribadi sebelum melanjutkan.
             </p>
           </div>
           <ChangePasswordForm email={user.email} redirectTo={redirectTo} />

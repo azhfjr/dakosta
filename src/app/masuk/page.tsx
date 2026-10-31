@@ -15,14 +15,9 @@ export const metadata: Metadata = {
 export default async function MasukPage() {
   const user = await getSessionUser();
   if (user) {
-    redirect(
-      user.mustChangePassword
-        ? "/ganti-password"
-        : user.role === "ADMIN"
-          ? "/admin"
-          : "/client",
-    );
+    redirect(user.mustChangePassword ? "/ganti-password" : user.homePath);
   }
+  const demo = isDemoMode;
 
   return (
     <>
@@ -41,15 +36,17 @@ export default async function MasukPage() {
 
             <div className="relative max-w-lg space-y-6 py-12">
               <p className="inline-flex items-center gap-2 rounded-full border border-brand-blue-100 bg-surface px-3 py-1 text-xs font-medium tracking-wide text-brand-blue-700 uppercase">
-                Ruang demonstrasi
+                {demo ? "Ruang demonstrasi" : "Ruang kerja"}
               </p>
               <h1 className="text-4xl leading-[1.1] font-semibold tracking-tight text-brand-blue-900 xl:text-5xl">
                 Satu alur kerja untuk pelaporan konten yang dapat diaudit.
               </h1>
               <p className="text-base leading-relaxed text-ink-muted">
-                DAKOSTA menghubungkan laporan stakeholder, validasi admin, dan
-                capaian yang hanya dihitung dari konten disetujui. Semua data di
-                sini sintetis dan berlabel DEMO.
+                DAKOSTA menghubungkan laporan stakeholder, validasi reviewer
+                cabang, dan capaian yang hanya dihitung dari konten disetujui.{" "}
+                {demo
+                  ? "Semua data di sini sintetis dan berlabel DEMO."
+                  : "Capaian mengikuti dasar tanggal konten dan dapat diekspor untuk pelaporan."}
               </p>
               <div className="h-1.5 w-32 rounded-full brand-rule" aria-hidden />
             </div>
@@ -73,8 +70,8 @@ export default async function MasukPage() {
                   Masuk ke DAKOSTA
                 </h2>
                 <p className="text-sm leading-relaxed text-ink-muted">
-                  Gunakan akun penguji yang diberikan Admin demo. Sesi Anda
-                  diverifikasi di server; peran tidak ditentukan oleh browser.
+                  Gunakan akun yang diberikan Master Admin. Sesi Anda diverifikasi
+                  di server; peran tidak ditentukan oleh browser.
                 </p>
               </div>
 

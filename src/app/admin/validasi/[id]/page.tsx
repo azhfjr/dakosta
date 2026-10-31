@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { ReviewPanel } from "@/components/admin/review-panel";
+import { RevokePanel } from "@/components/admin/revoke-panel";
 import { StatusBadge } from "@/components/content/status-badge";
 import { Button } from "@/components/ui/button";
 import { AppError } from "@/lib/errors";
@@ -321,19 +322,23 @@ export default async function ReviewDetailPage({
           <div className="flex items-start gap-2 rounded-xl border border-brand-blue-100 bg-brand-blue-100/40 p-4 text-xs leading-relaxed text-brand-blue-800">
             <ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden />
             <p>
-              Konten DEMO ini bersifat sintetis. Validasi tidak menggunakan data
-              pribadi, nomor identitas, atau rekam medis. Keputusan admin menulis
-              ulasan, notifikasi, dan audit dalam satu transaksi.
+              Konten ini diverifikasi tanpa data pribadi, nomor identitas, atau
+              rekam medis. Keputusan reviewer menulis ulasan, notifikasi, dan audit
+              dalam satu transaksi.
             </p>
           </div>
         </div>
 
-        <ReviewPanel
-          submissionId={detail.id}
-          expectedVersion={detail.version}
-          canReview={canReview}
-          decidedStatus={STATUS_LABEL[detail.status as ContentStatus]}
-        />
+        <div className="space-y-4">
+          <ReviewPanel
+            submissionId={detail.id}
+            expectedVersion={detail.version}
+            canReview={canReview}
+            decidedStatus={STATUS_LABEL[detail.status as ContentStatus]}
+            status={detail.status}
+          />
+          {detail.status === "APPROVED" ? <RevokePanel submissionId={detail.id} /> : null}
+        </div>
       </div>
     </div>
   );

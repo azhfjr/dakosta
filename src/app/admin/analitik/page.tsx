@@ -9,10 +9,20 @@ import {
 } from "lucide-react";
 
 import { StatusBadge } from "@/components/content/status-badge";
+import { DistributionCard } from "@/components/analytics/distribution-card";
+import { RankingsTable } from "@/components/analytics/rankings-table";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { LazyMonthlyTrendChart } from "@/components/dashboard/monthly-trend-chart-lazy";
 import { Button } from "@/components/ui/button";
+import {
+  getContentTypeDistribution,
+  getEdufastCompliance,
+  getMainThemeDistribution,
+  getSubThemeDistribution,
+} from "@/lib/analytics/distribution";
+import { getRedNotice } from "@/lib/analytics/red-notice";
 import { formatDateTimeId, formatNumberId } from "@/lib/dates";
+import { listFaskesRankings } from "@/lib/hierarchy";
 import {
   getDashboardOverview,
   getKpiFilterOptions,
@@ -50,12 +60,19 @@ export default async function AdminAnalyticsPage({
   const params = await searchParams;
   const filters = parseKpiFiltersFromParams(params);
 
-  const [overview, options, monthly, topStakeholders] = await Promise.all([
-    getDashboardOverview(admin, filters),
-    getKpiFilterOptions(admin),
-    getMonthlyTrend(admin, filters, 6),
-    getTopStakeholderTotals(admin, filters, 10),
-  ]);
+  const [overview, options, monthly, topStakeholders, contentType, mainTheme, subTheme, compliance, rankings, redNotice] =
+    await Promise.all([
+      getDashboardOverview(admin, filters),
+      getKpiFilterOptions(admin),
+      getMonthlyTrend(admin, filters, 6),
+      getTopStakeholderTotals(admin, filters, 10),
+      getContentTypeDistribution(admin),
+      getMainThemeDistribution(admin),
+      getSubThemeDistribution(admin),
+      getEdufastCompliance(admin),
+      listFaskesRankings(admin.scope, 10),
+      getRedNotice(admin),
+    ]);
 
   const { approved } = overview;
 
@@ -412,6 +429,84 @@ export default async function AdminAnalyticsPage({
             </table>
           </div>
         )}
+      </section>
+
+      <section aria-label="Distribusi konten" className="grid gap-6 xl:grid-cols-3">
+        <DistributionCard
+          title="Jenis konten"
+          description="Video dan infografis yang disetujui."
+          rows={contentType}
+        />
+        <DistributionCard
+          title="Tema utama"
+          description="EDUFAST dan Non-EDUFAST."
+          rows={mainTheme}
+        />
+        <DistributionCard
+          title="Sub-tema"
+          description="Enam sub-tema kanonik."
+          rows={subTheme}
+        />
+      </section>
+
+      <section
+        aria-labelledby="edufast-compliance"
+        className="rounded-xl border border-border bg-surface p-5 shadow-sm"
+      >
+        <h2 id="edufast-compliance" className="text-base font-semibold text-foreground">
+          Kepatuhan EDUFAST
+        </h2>
+        <p className="mt-0.5 text-xs text-ink-muted">
+          Konten EDUFAST dibandingkan dengan seluruh konten disetujui yang memiliki
+          tema pada periode aktif.
+        </p>
+        <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+          <div>
+            <dt className="text-xs text-ink-muted">Konten EDUFAST</dt>
+            <dd className="font-medium text-foreground tabular">
+              {formatNumberId(compliance.edufastApproved)}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs text-ink-muted">Konten Non-EDUFAST</dt>
+            <dd className="font-medium text-foreground tabular">
+              {formatNumberId(compliance.nonEdufastApproved)}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs text-ink-muted">Porsi EDUFAST</dt>
+            <dd className="font-medium text-foreground tabular">
+              {formatPercent(
+                compliance.edufastApproved + compliance.nonEdufastApproved === 0
+                  ? null
+                  : (compliance.edufastApproved /
+                      (compliance.edufastApproved + compliance.nonEdufastApproved)) *
+                      100,
+              )}
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <RankingsTable rows={rankings} />
+
+      <section
+        aria-labelledby="red-notice-summary"
+        className="rounded-xl border border-status-rejected/30 bg-status-rejected/5 p-5"
+      >
+        <h2 id="red-notice-summary" className="text-base font-semibold text-foreground">
+          Red Notice
+        </h2>
+        <p className="mt-1 text-sm leading-relaxed text-ink-muted">
+          {formatNumberId(redNotice.neverSubmitted.length)} dari{" "}
+          {formatNumberId(redNotice.totalFaskes)} Faskes aktif belum pernah mengirim
+          konten sepanjang masa. Daftar periode tidak aktif ({formatNumberId(
+            redNotice.inactiveInPeriod.length,
+          )}) dipisahkan agar tidak tertukar dengan nol seumur hidup.
+        </p>
+        <Button asChild variant="outline" className="mt-3 h-10">
+          <Link href="/admin/red-notice">Buka Red Notice lengkap</Link>
+        </Button>
       </section>
 
       <p className="text-xs text-ink-muted">

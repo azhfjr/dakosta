@@ -34,7 +34,7 @@ export default async function AdminHomePage({
   return (
     <KpiDashboard
       overview={overview}
-      role="ADMIN"
+      role={user.role}
       options={{ ...options, months: monthOptions(filters.month) }}
       basePath="/admin"
       title="Ringkasan"

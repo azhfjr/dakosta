@@ -11,6 +11,10 @@ const optionalSecret = z.preprocess(
 );
 
 const envSchema = z.object({
+  APP_ENV: z.preprocess(
+    (value) => (value === "" || value === null ? undefined : value),
+    z.enum(["development", "staging", "production"]).optional(),
+  ),
   DATABASE_URL: optionalString,
   BETTER_AUTH_SECRET: optionalSecret,
   BETTER_AUTH_URL: optionalString,
@@ -31,7 +35,19 @@ const parsed = envSchema.safeParse(process.env);
 
 export const env = parsed.success ? parsed.data : {};
 
-export const isDemoMode = env.DEMO_MODE === "true";
+export type AppEnv = "development" | "staging" | "production";
+
+export const appEnv: AppEnv =
+  env.APP_ENV ??
+  (process.env.VERCEL_ENV === "production"
+    ? "production"
+    : process.env.VERCEL_ENV === "preview"
+      ? "staging"
+      : "development");
+
+export const isProductionRuntime = appEnv === "production";
+
+export const isDemoMode = !isProductionRuntime && env.DEMO_MODE === "true";
 
 export function getAppUrl(): string {
   return (

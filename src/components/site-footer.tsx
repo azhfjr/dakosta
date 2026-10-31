@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand/brand-logo";
+import { isDemoMode } from "@/lib/env";
 
 export function SiteFooter({ compact = false }: { compact?: boolean }) {
   return (
@@ -25,10 +26,11 @@ export function SiteFooter({ compact = false }: { compact?: boolean }) {
               : "max-w-4xl text-sm leading-relaxed text-ink-muted"
           }
         >
-          DAKOSTA — Proyek independen oleh Ratu Sevilla Hizriyah. Proyek
-          demonstrasi pribadi. Tidak berafiliasi dengan atau mewakili BPJS
-          Kesehatan. Seluruh data pada demo bersifat sintetis dan berlabel
-          DEMO.
+          DAKOSTA — Proyek independen oleh Ratu Sevilla Hizriyah. Tidak
+          berafiliasi dengan atau mewakili BPJS Kesehatan.
+          {isDemoMode
+            ? " Seluruh data pada mode demo bersifat sintetis dan berlabel DEMO."
+            : " Tidak ada data pribadi peserta, NIK, atau nomor JKN."}
         </p>
       </div>
     </footer>

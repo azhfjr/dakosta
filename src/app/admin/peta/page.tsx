@@ -204,7 +204,7 @@ export default async function AdminMapPage({
 
       <MapExplorer
         key={mapKey}
-        role="ADMIN"
+        role={admin.role}
         points={overview.points}
         sites={overview.sites}
         styleUrl={MAP_STYLE_URL}
@@ -309,7 +309,7 @@ export default async function AdminMapPage({
         <code className="rounded bg-surface-muted px-1 py-0.5">
           NEXT_PUBLIC_MAP_STYLE_URL
         </code>
-        ). Seluruh koordinat adalah data sintetis untuk demonstrasi.
+        ). Koordinat menandai lokasi organisasi, bukan lokasi pribadi.
       </p>
     </div>
   );

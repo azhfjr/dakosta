@@ -1,42 +1,51 @@
 import { execSync } from "node:child_process";
 import { mkdirSync, rmSync } from "node:fs";
-import path from "node:path";
 import { request } from "@playwright/test";
 
-import { ADMIN_STATE, AUTH_DIR, CLIENT_STATE, baseURL, isLocalTarget } from "./support";
+import {
+  baseURL,
+  databaseTarget,
+  DEMO_ROLES,
+  shouldResetDatabase,
+  stateFor,
+} from "./support";
 
 export default async function globalSetup(): Promise<void> {
-  if (isLocalTarget(baseURL)) {
-    console.log("[e2e] Mereset basis data demo ke kondisi awal.");
-    execSync("npm run db:reset", { stdio: "inherit" });
+  if (shouldResetDatabase) {
+    if (databaseTarget !== "staging") {
+      throw new Error(
+        "E2E_ALLOW_DB_RESET hanya diizinkan dengan E2E_DB_TARGET=staging. Tidak ada perubahan yang dilakukan.",
+      );
+    }
+    console.log("[e2e] Mereset basis data staging ke kondisi demo awal.");
+    execSync("npm run db:reset:staging", { stdio: "inherit" });
   } else {
-    console.warn(`[e2e] Target bukan lokal (${baseURL}); reset basis data dilewati.`);
+    console.warn(
+      `[e2e] Reset basis data dilewati (target=${baseURL}, E2E_ALLOW_DB_RESET=${
+        process.env.E2E_ALLOW_DB_RESET === "yes" ? "yes" : "tidak diset"
+      }).`,
+    );
   }
 
-  rmSync(AUTH_DIR, { recursive: true, force: true });
-  mkdirSync(AUTH_DIR, { recursive: true });
+  rmSync("e2e/.auth", { recursive: true, force: true });
+  mkdirSync("e2e/.auth", { recursive: true });
 
-  const targets = [
-    { role: "admin" as const, state: ADMIN_STATE },
-    { role: "client" as const, state: CLIENT_STATE },
-  ];
-
-  for (const target of targets) {
+  for (const role of DEMO_ROLES) {
     const context = await request.newContext({ baseURL });
     try {
       const response = await context.post("/api/v1/demo/login", {
-        data: { role: target.role },
+        data: { role },
       });
       if (!response.ok()) {
         throw new Error(
-          `Login demo ${target.role} gagal (${response.status()}): ${await response.text()}`,
+          `Login demo ${role} gagal (${response.status()}): ${await response.text()}`,
         );
       }
-      await context.storageState({ path: path.resolve(target.state) });
+      await context.storageState({ path: stateFor(role) });
     } finally {
       await context.dispose();
     }
   }
 
-  console.log("[e2e] Sesi demo admin dan klien tersimpan.");
+  console.log(`[e2e] Sesi demo tersimpan: ${DEMO_ROLES.join(", ")}.`);
 }

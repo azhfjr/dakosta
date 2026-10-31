@@ -238,8 +238,24 @@ export function KpiDashboard({
   const zeroTarget = approved.target === 0;
   const progress =
     approved.achievement === null ? 0 : Math.min(100, approved.achievement);
-  const showStakeholderFilter =
-    role === "ADMIN" || options.stakeholders.length > 1;
+  const isMaster = role === "MASTER_ADMIN";
+  const isBranch = role === "BRANCH_ADMIN";
+  const isStakeholder = role === "STAKEHOLDER";
+  const showStakeholderFilter = !isStakeholder || options.stakeholders.length > 1;
+  const contentListHref = isMaster
+    ? "/admin/konten"
+    : isBranch
+      ? "/cabang/konten"
+      : isStakeholder
+        ? "/client/konten"
+        : "/wilayah/konten";
+  const reviewQueueHref = isMaster
+    ? "/admin/validasi"
+    : isBranch
+      ? "/cabang/review"
+      : isStakeholder
+        ? "/client/konten"
+        : "/wilayah/konten";
 
   const scopeParts = [overview.period.label];
   if (overview.scope.stakeholderName) {
@@ -315,7 +331,7 @@ export function KpiDashboard({
                   className={selectClass}
                 >
                   <option value="">
-                    {role === "ADMIN" ? "Semua stakeholder" : "Semua stakeholder saya"}
+                    {isStakeholder ? "Semua organisasi saya" : "Semua organisasi"}
                   </option>
                   {options.stakeholders.map((stakeholder) => (
                     <option key={stakeholder.id} value={stakeholder.id}>
@@ -469,14 +485,14 @@ export function KpiDashboard({
               hint={`${overview.approvedDecisions} disetujui`}
             />
             <MiniStat
-              label={role === "ADMIN" ? "Stakeholder aktif" : "Perlu revisi"}
+              label={isStakeholder ? "Perlu revisi" : "Organisasi aktif"}
               value={formatNumberId(
-                role === "ADMIN" ? overview.activeStakeholders : overview.revision,
+                isStakeholder ? overview.revision : overview.activeStakeholders,
               )}
               hint={
-                role === "ADMIN"
-                  ? "Punya kiriman di periode"
-                  : "Menunggu perbaikan Anda"
+                isStakeholder
+                  ? "Menunggu perbaikan Anda"
+                  : "Punya kiriman di periode"
               }
             />
             <MiniStat
@@ -510,9 +526,9 @@ export function KpiDashboard({
           icon={Clock3}
           tone="amber"
         />
-        {role === "ADMIN" ? (
+        {!isStakeholder ? (
           <StatCard
-            label="Stakeholder aktif"
+            label="Organisasi aktif"
             value={formatNumberId(overview.activeStakeholders)}
             hint="Mengirim konten pada periode"
             icon={Building2}
@@ -543,26 +559,30 @@ export function KpiDashboard({
         detailBase={contentDetailBase}
         title="Konten disetujui pada periode"
         subtitle={`Maksimal 100 konten terbaru berdasarkan ${overview.period.attributionLabel}.`}
-        actionHref={role === "ADMIN" ? "/admin/konten" : "/client/konten"}
+        actionHref={contentListHref}
         actionLabel="Lihat semua konten"
         emptyTitle="Belum ada konten disetujui"
         emptyBody="Konten yang disetujui pada filter ini akan muncul di sini."
         showStatus={false}
       />
 
-      {role === "ADMIN" ? (
-        <ContentTable
-          items={overview.pendingItems}
-          detailBase="/admin/validasi"
-          title="Menunggu validasi pada periode"
-          subtitle="Lima kiriman paling lama yang belum diputuskan."
-          actionHref="/admin/validasi"
-          actionLabel="Buka antrean"
-          emptyTitle="Antrean periode ini kosong"
-          emptyBody="Semua kiriman pada periode ini sudah diputuskan."
-          showStatus
-        />
-      ) : (
+      <ContentTable
+        items={overview.pendingItems}
+        detailBase={contentDetailBase}
+        title={
+          isStakeholder
+            ? "Konten Anda menunggu validasi"
+            : "Menunggu validasi pada periode"
+        }
+        subtitle="Lima kiriman paling lama yang belum diputuskan."
+        actionHref={reviewQueueHref}
+        actionLabel={isStakeholder ? "Lihat konten saya" : "Buka antrean"}
+        emptyTitle="Antrean periode ini kosong"
+        emptyBody="Semua kiriman pada periode ini sudah diputuskan."
+        showStatus
+      />
+
+      {isStakeholder ? (
         <ContentTable
           items={overview.recentItems}
           detailBase="/client/konten"
@@ -574,7 +594,7 @@ export function KpiDashboard({
           emptyBody="Konten yang Anda kirim akan muncul di sini."
           showStatus
         />
-      )}
+      ) : null}
 
       <div className="flex items-start gap-2 rounded-xl border border-brand-blue-100 bg-brand-blue-100/40 p-4 text-sm leading-relaxed text-brand-blue-800">
         <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
@@ -582,8 +602,7 @@ export function KpiDashboard({
           Angka capaian dihitung ulang dari database pada setiap permintaan dan
           hanya memakai konten berstatus <strong>Disetujui</strong>. Konten
           ditolak, perlu revisi, dicabut, atau diarsipkan tidak menambah
-          capaian. Seluruh data pada ruang ini adalah data sintetis berlabel
-          DEMO.
+          capaian.
         </p>
       </div>
     </div>

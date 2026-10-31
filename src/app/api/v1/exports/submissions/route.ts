@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, type SQL } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 import { getDb, schema } from "@/db";
@@ -13,6 +13,10 @@ import {
   getClientIp,
   getRateLimitHeaders,
 } from "@/lib/rate-limit";
+import {
+  contentScopePredicate,
+  isOrganizationInScope,
+} from "@/lib/authz/predicates";
 import { getApiUser } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -60,32 +64,34 @@ export async function GET(request: Request) {
     const stakeholderId = param(url.searchParams, "stakeholderId");
     const themeId = param(url.searchParams, "themeId");
 
-    if (
-      user.role === "CLIENT" &&
-      stakeholderId &&
-      !user.stakeholderIds.includes(stakeholderId)
-    ) {
-      await recordAudit({
-        actorId: user.id,
-        actorRole: user.role,
-        action: "ACCESS_DENIED",
-        recordType: "STAKEHOLDER",
-        recordId: stakeholderId,
-        after: { reason: "stakeholder_scope_mismatch", route: "export", requestId },
-      });
-      throw errors.forbidden("Anda tidak memiliki akses ke stakeholder tersebut.");
+    if (stakeholderId && user.scope.kind !== "GLOBAL") {
+      const [organization] = await getDb()
+        .select({
+          id: schema.stakeholders.id,
+          branchOfficeId: schema.stakeholders.branchOfficeId,
+        })
+        .from(schema.stakeholders)
+        .where(eq(schema.stakeholders.id, stakeholderId))
+        .limit(1);
+      if (!organization || !isOrganizationInScope(user.scope, organization)) {
+        await recordAudit({
+          actorId: user.id,
+          actorRole: user.role,
+          action: "ACCESS_DENIED",
+          recordType: "ORGANIZATION",
+          recordId: stakeholderId,
+          after: { reason: "organization_scope_mismatch", route: "export", requestId },
+        });
+        throw errors.forbidden("Anda tidak memiliki akses ke organisasi tersebut.");
+      }
     }
 
     const conditions: SQL[] = [];
-    if (user.role === "CLIENT") {
-      if (user.stakeholderIds.length === 0) {
-        conditions.push(sqlFalse());
-      } else {
-        conditions.push(
-          inArray(schema.contentSubmissions.stakeholderId, user.stakeholderIds),
-        );
-      }
-    }
+    const scopePredicate = contentScopePredicate(
+      user,
+      schema.contentSubmissions.stakeholderId,
+    );
+    if (scopePredicate) conditions.push(scopePredicate);
     if (status) {
       conditions.push(eq(schema.contentSubmissions.status, status));
     }
@@ -188,8 +194,4 @@ export async function GET(request: Request) {
   } catch (error) {
     return jsonError(error, requestId);
   }
-}
-
-function sqlFalse(): SQL {
-  return sql`false`;
 }

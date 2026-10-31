@@ -8,11 +8,6 @@ export async function GET(request: Request) {
   const requestId = getRequestId(request);
   try {
     const user = await getApiUser({ allowPasswordChangePending: true });
-    const redirectTo = user.mustChangePassword
-      ? "/ganti-password"
-      : user.role === "ADMIN"
-        ? "/admin"
-        : "/client";
 
     return jsonOk(
       {
@@ -20,10 +15,13 @@ export async function GET(request: Request) {
         name: user.name,
         email: user.email,
         role: user.role,
+        scope: user.scope,
+        scopeLabel: user.scopeLabel,
+        capabilities: user.capabilities,
         mustChangePassword: user.mustChangePassword,
         displayTitle: user.displayTitle,
         stakeholderIds: user.stakeholderIds,
-        redirectTo,
+        redirectTo: user.mustChangePassword ? "/ganti-password" : user.homePath,
       },
       { requestId },
     );

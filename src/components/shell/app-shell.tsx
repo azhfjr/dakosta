@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { MobileNav } from "@/components/shell/mobile-nav";
 import { SidebarNav } from "@/components/shell/sidebar-nav";
 import { UserMenu } from "@/components/shell/user-menu";
+import { isDemoMode } from "@/lib/env";
 import type { SessionUser } from "@/lib/session";
 
 export function AppShell({
@@ -63,14 +64,16 @@ export function AppShell({
             </div>
             <p className="hidden truncate text-sm text-ink-muted lg:block">
               Ruang kerja{" "}
-              <span className="font-medium text-foreground">Bandung Demo</span>
+              <span className="font-medium text-foreground">{user.scopeLabel}</span>
             </p>
           </div>
 
           <div className="flex items-center gap-1.5">
-            <span className="hidden items-center rounded-full border border-brand-teal-500/30 bg-brand-teal-100 px-2.5 py-1 text-xs font-semibold text-brand-teal-700 sm:inline-flex">
-              Data sintetis · DEMO
-            </span>
+            {isDemoMode ? (
+              <span className="hidden items-center rounded-full border border-brand-teal-500/30 bg-brand-teal-100 px-2.5 py-1 text-xs font-semibold text-brand-teal-700 sm:inline-flex">
+                Data sintetis · DEMO
+              </span>
+            ) : null}
             {notificationHref ? (
               <Link
                 href={notificationHref}

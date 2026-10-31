@@ -4,16 +4,17 @@ import { and, asc, count, desc, eq, ilike, inArray, or, type SQL } from "drizzle
 import { z } from "zod";
 
 import { getDb, schema } from "@/db";
+import { contentScopePredicate, organizationScopePredicate } from "@/lib/authz/predicates";
 import type { ContentStatus } from "@/lib/content-status";
 import { errors } from "@/lib/errors";
 import { drainOutbox } from "@/lib/notifications";
-import { assertCan } from "@/lib/rbac";
+import { assertCan, assertCapability } from "@/lib/rbac";
 import type { SessionUser } from "@/lib/session";
 
 type Database = ReturnType<typeof getDb>;
 type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 
-const PENDING_STATUSES = ["SUBMITTED", "IN_REVIEW"] as const;
+const PENDING_STATUSES = ["SUBMITTED", "RESUBMITTED", "IN_REVIEW"] as const;
 
 export const REVIEW_ACTIONS = ["APPROVE", "REQUEST_REVISION", "REJECT"] as const;
 export type ReviewAction = (typeof REVIEW_ACTIONS)[number];
@@ -94,7 +95,7 @@ export const reviewDecisionSchema = z
 export type ReviewDecisionInput = z.infer<typeof reviewDecisionSchema>;
 
 export type ReviewQueueFilters = {
-  status?: "ALL" | "SUBMITTED" | "IN_REVIEW";
+  status?: "ALL" | "SUBMITTED" | "RESUBMITTED" | "IN_REVIEW";
   stakeholderId?: string;
   themeId?: string;
   search?: string;
@@ -122,7 +123,7 @@ export type ReviewQueueResult = {
   page: number;
   pageSize: number;
   pageCount: number;
-  counts: { ALL: number; SUBMITTED: number; IN_REVIEW: number };
+  counts: { ALL: number; SUBMITTED: number; RESUBMITTED: number; IN_REVIEW: number };
   oldestSubmittedAt: Date | null;
   generatedAt: Date;
 };
@@ -145,11 +146,16 @@ export async function listReviewQueue(
   const pageSize = Math.min(Math.max(filters.pageSize ?? 15, 1), 50);
   const page = Math.max(filters.page ?? 1, 1);
 
+  const scopePredicate = contentScopePredicate(
+    user,
+    schema.contentSubmissions.stakeholderId,
+  );
   const conditions: SQL[] = [
     filters.status && filters.status !== "ALL"
       ? eq(schema.contentSubmissions.status, filters.status)
       : inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]),
   ];
+  if (scopePredicate) conditions.push(scopePredicate);
 
   if (filters.stakeholderId) {
     conditions.push(
@@ -209,20 +215,32 @@ export async function listReviewQueue(
     db
       .select({ status: schema.contentSubmissions.status, total: count() })
       .from(schema.contentSubmissions)
-      .where(inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]))
+      .where(
+        scopePredicate
+          ? and(inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]), scopePredicate)
+          : inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]),
+      )
       .groupBy(schema.contentSubmissions.status),
     db
       .select({ submittedAt: schema.contentSubmissions.submittedAt })
       .from(schema.contentSubmissions)
-      .where(inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]))
+      .where(
+        scopePredicate
+          ? and(inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]), scopePredicate)
+          : inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]),
+      )
       .orderBy(asc(schema.contentSubmissions.submittedAt))
       .limit(1),
   ]);
 
   const total = Number(totalRow[0]?.total ?? 0);
-  const counts = { ALL: 0, SUBMITTED: 0, IN_REVIEW: 0 };
+  const counts = { ALL: 0, SUBMITTED: 0, RESUBMITTED: 0, IN_REVIEW: 0 };
   for (const row of countRows) {
-    if (row.status === "SUBMITTED" || row.status === "IN_REVIEW") {
+    if (
+      row.status === "SUBMITTED" ||
+      row.status === "RESUBMITTED" ||
+      row.status === "IN_REVIEW"
+    ) {
       counts[row.status] = Number(row.total);
       counts.ALL += Number(row.total);
     }
@@ -251,13 +269,23 @@ export type ReviewQueueOptions = {
   themes: Array<{ id: string; name: string }>;
 };
 
-export async function listReviewQueueOptions(): Promise<ReviewQueueOptions> {
+export async function listReviewQueueOptions(
+  user: SessionUser,
+): Promise<ReviewQueueOptions> {
   const db = getDb();
+  const organizationPredicate = organizationScopePredicate(user.scope, {
+    id: schema.stakeholders.id,
+    branchId: schema.stakeholders.branchOfficeId,
+  });
+  const organizationWhere = organizationPredicate
+    ? and(eq(schema.stakeholders.status, "ACTIVE"), organizationPredicate)
+    : eq(schema.stakeholders.status, "ACTIVE");
+
   const [stakeholders, themes] = await Promise.all([
     db
       .select({ id: schema.stakeholders.id, name: schema.stakeholders.name })
       .from(schema.stakeholders)
-      .where(eq(schema.stakeholders.status, "ACTIVE"))
+      .where(organizationWhere)
       .orderBy(asc(schema.stakeholders.name)),
     db
       .select({ id: schema.themes.id, name: schema.themes.name })
@@ -362,14 +390,38 @@ export async function reviewSubmission(
         status: schema.contentSubmissions.status,
         version: schema.contentSubmissions.version,
         submittedBy: schema.contentSubmissions.submittedBy,
+        createdBy: schema.contentSubmissions.createdBy,
         referenceCode: schema.contentSubmissions.referenceCode,
+        organizationId: schema.contentSubmissions.stakeholderId,
+        organizationBranchId: schema.stakeholders.branchOfficeId,
       })
       .from(schema.contentSubmissions)
+      .innerJoin(
+        schema.stakeholders,
+        eq(schema.stakeholders.id, schema.contentSubmissions.stakeholderId),
+      )
       .where(eq(schema.contentSubmissions.id, input.submissionId))
       .for("update")
       .limit(1);
 
     if (!current) throw errors.notFound("Konten tidak ditemukan.");
+
+    if (admin.role === "BRANCH_ADMIN") {
+      if (
+        !current.organizationBranchId ||
+        admin.scope.kind !== "BRANCH" ||
+        current.organizationBranchId !== admin.scope.branchId
+      ) {
+        throw errors.notFound("Konten tidak ditemukan.");
+      }
+    }
+
+    if (
+      admin.role !== "MASTER_ADMIN" &&
+      (current.createdBy === admin.id || current.submittedBy === admin.id)
+    ) {
+      throw errors.forbidden("Anda tidak dapat menilai konten yang Anda kirim sendiri.");
+    }
 
     if (
       current.version !== input.expectedVersion ||
@@ -419,6 +471,11 @@ export async function reviewSubmission(
       previousStatus: current.status,
       nextStatus,
       conflictOfInterest: input.conflictOfInterest ?? false,
+      reviewerRole: admin.role,
+      reviewerBranchId:
+        admin.role === "BRANCH_ADMIN" ? current.organizationBranchId : null,
+      decisionSource:
+        admin.role === "MASTER_ADMIN" ? "MASTER_OVERRIDE" : "NORMAL",
     });
 
     const notificationId = await notifySubmitter(tx, {
@@ -437,6 +494,8 @@ export async function reviewSubmission(
       action: ACTION_AUDIT[input.action],
       recordType: "CONTENT_SUBMISSION",
       recordId: updated.id,
+      branchId: current.organizationBranchId,
+      organizationId: current.organizationId,
       before: {
         status: current.status,
         version: current.version,
@@ -470,11 +529,246 @@ export async function reviewSubmission(
   return decision;
 }
 
-export async function countReviewQueue(): Promise<number> {
+export async function startReview(
+  reviewer: SessionUser,
+  submissionId: string,
+  requestId?: string,
+): Promise<{ submissionId: string; status: ContentStatus }> {
+  assertCan(reviewer, "content:review");
+  const db = getDb();
+
+  const result = await db.transaction(async (tx) => {
+    const [current] = await tx
+      .select({
+        status: schema.contentSubmissions.status,
+        version: schema.contentSubmissions.version,
+        branchOfficeId: schema.stakeholders.branchOfficeId,
+        organizationId: schema.contentSubmissions.stakeholderId,
+      })
+      .from(schema.contentSubmissions)
+      .innerJoin(
+        schema.stakeholders,
+        eq(schema.stakeholders.id, schema.contentSubmissions.stakeholderId),
+      )
+      .where(eq(schema.contentSubmissions.id, submissionId))
+      .for("update")
+      .limit(1);
+
+    if (!current) throw errors.notFound("Konten tidak ditemukan.");
+    if (
+      reviewer.role === "BRANCH_ADMIN" &&
+      (reviewer.scope.kind !== "BRANCH" ||
+        !current.branchOfficeId ||
+        current.branchOfficeId !== reviewer.scope.branchId)
+    ) {
+      throw errors.notFound("Konten tidak ditemukan.");
+    }
+
+    if (current.status === "IN_REVIEW") {
+      return { submissionId, status: "IN_REVIEW" as ContentStatus };
+    }
+    if (current.status !== "SUBMITTED" && current.status !== "RESUBMITTED") {
+      throw errors.conflict(
+        "Konten ini tidak berada pada tahap yang dapat direview.",
+        { status: current.status },
+      );
+    }
+
+    await tx
+      .update(schema.contentSubmissions)
+      .set({ status: "IN_REVIEW", updatedAt: new Date() })
+      .where(eq(schema.contentSubmissions.id, submissionId));
+
+    await tx.insert(schema.auditLogs).values({
+      actorId: reviewer.id,
+      actorRole: reviewer.role,
+      action: "CONTENT_REVIEW_STARTED",
+      recordType: "CONTENT_SUBMISSION",
+      recordId: submissionId,
+      branchId: current.branchOfficeId,
+      organizationId: current.organizationId,
+      before: { status: current.status },
+      after: { status: "IN_REVIEW" },
+      requestId: requestId ?? null,
+    });
+
+    return { submissionId, status: "IN_REVIEW" as ContentStatus };
+  });
+
+  return result;
+}
+
+export type RevokeResult = {
+  submissionId: string;
+  referenceCode: string;
+  status: ContentStatus;
+};
+
+/**
+ * Master-only corrective action. Revoking an approved item removes it from the
+ * approved-only KPI immediately; the historical review trail is preserved.
+ */
+export async function revokeSubmission(
+  master: SessionUser,
+  input: { submissionId: string; reason: string },
+  requestId?: string,
+): Promise<RevokeResult> {
+  assertCapability(master, "content:revoke");
+  const notes = input.reason.trim();
+  if (notes.length < 10) {
+    throw errors.validation("Alasan pencabutan minimal 10 karakter.");
+  }
+  const now = new Date();
+
+  const result = await getDb().transaction(async (tx) => {
+    const [current] = await tx
+      .select({
+        status: schema.contentSubmissions.status,
+        version: schema.contentSubmissions.version,
+        submittedBy: schema.contentSubmissions.submittedBy,
+        referenceCode: schema.contentSubmissions.referenceCode,
+        title: schema.contentSubmissions.title,
+        organizationId: schema.contentSubmissions.stakeholderId,
+        branchOfficeId: schema.stakeholders.branchOfficeId,
+      })
+      .from(schema.contentSubmissions)
+      .innerJoin(
+        schema.stakeholders,
+        eq(schema.stakeholders.id, schema.contentSubmissions.stakeholderId),
+      )
+      .where(eq(schema.contentSubmissions.id, input.submissionId))
+      .for("update")
+      .limit(1);
+
+    if (!current) throw errors.notFound("Konten tidak ditemukan.");
+    if (current.status !== "APPROVED") {
+      throw errors.conflict(
+        "Hanya konten berstatus Disetujui yang dapat dicabut.",
+        { currentStatus: current.status },
+      );
+    }
+
+    const [updated] = await tx
+      .update(schema.contentSubmissions)
+      .set({
+        status: "REVOKED",
+        decisionReason: notes,
+        revokedAt: now,
+        approvedAt: null,
+        updatedAt: now,
+      })
+      .where(
+        and(
+          eq(schema.contentSubmissions.id, input.submissionId),
+          eq(schema.contentSubmissions.status, "APPROVED"),
+        ),
+      )
+      .returning({ id: schema.contentSubmissions.id });
+
+    if (!updated) {
+      throw errors.conflict("Status konten berubah. Muat ulang halaman lalu coba lagi.");
+    }
+
+    await tx.insert(schema.contentReviews).values({
+      submissionId: input.submissionId,
+      version: current.version,
+      reviewerId: master.id,
+      action: "REVOKE",
+      checklist: {},
+      notes,
+      previousStatus: current.status,
+      nextStatus: "REVOKED",
+      conflictOfInterest: false,
+      reviewerRole: master.role,
+      reviewerBranchId: null,
+      decisionSource: "MASTER_OVERRIDE",
+    });
+
+    const dedupeKey = `content.revoked:${input.submissionId}:${current.version}:${current.submittedBy}`;
+    const subject = current.title
+      ? `${current.referenceCode} — ${current.title}`
+      : current.referenceCode;
+    const body = `${subject} dicabut oleh Master Admin. Alasan: ${notes}`;
+
+    const inserted = await tx
+      .insert(schema.notifications)
+      .values({
+        recipientId: current.submittedBy,
+        eventType: "CONTENT_REVOKED",
+        title: "Konten dicabut",
+        body,
+        objectType: "CONTENT_SUBMISSION",
+        objectId: input.submissionId,
+        href: `/client/konten/${input.submissionId}`,
+        branchOfficeId: current.branchOfficeId,
+        organizationId: current.organizationId,
+        dedupeKey,
+      })
+      .onConflictDoNothing()
+      .returning({ id: schema.notifications.id });
+
+    const notificationId = inserted[0]?.id ?? null;
+
+    await tx
+      .insert(schema.outboxEvents)
+      .values({
+        eventKey: dedupeKey,
+        aggregateType: "CONTENT_SUBMISSION",
+        aggregateId: input.submissionId,
+        eventType: "notification.created",
+        payload: {
+          notificationId,
+          recipientId: current.submittedBy,
+          title: "Konten dicabut",
+          body,
+          href: `/client/konten/${input.submissionId}`,
+          referenceCode: current.referenceCode,
+        },
+        recipientId: current.submittedBy,
+        notificationId,
+      })
+      .onConflictDoNothing();
+
+    await tx.insert(schema.auditLogs).values({
+      actorId: master.id,
+      actorRole: master.role,
+      action: "CONTENT_REVOKED",
+      recordType: "CONTENT_SUBMISSION",
+      recordId: input.submissionId,
+      branchId: current.branchOfficeId,
+      organizationId: current.organizationId,
+      reason: notes,
+      before: { status: current.status, version: current.version },
+      after: { status: "REVOKED", version: current.version, notificationId },
+      requestId: requestId ?? null,
+    });
+
+    return {
+      submissionId: input.submissionId,
+      referenceCode: current.referenceCode,
+      status: "REVOKED" as ContentStatus,
+    };
+  });
+
+  await drainOutbox().catch((error) => {
+    console.error("[notifications] drain pasca-pencabutan gagal", error);
+  });
+
+  return result;
+}
+
+export async function countReviewQueue(user: SessionUser): Promise<number> {  const scopePredicate = contentScopePredicate(
+    user,
+    schema.contentSubmissions.stakeholderId,
+  );
   const [row] = await getDb()
     .select({ total: count() })
     .from(schema.contentSubmissions)
-    .where(inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]));
+    .where(
+      scopePredicate
+        ? and(inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]), scopePredicate)
+        : inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]),
+    );
   return Number(row?.total ?? 0);
 }
 

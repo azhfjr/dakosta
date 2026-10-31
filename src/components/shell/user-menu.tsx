@@ -15,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import type { AppRole } from "@/lib/authz/types";
 import { authClient } from "@/lib/auth-client";
 
 function initials(name: string): string {
@@ -25,9 +26,11 @@ function initials(name: string): string {
     .join("");
 }
 
-const roleLabel: Record<"ADMIN" | "CLIENT", string> = {
-  ADMIN: "Admin DEMO",
-  CLIENT: "Stakeholder DEMO",
+const roleLabel: Record<AppRole, string> = {
+  MASTER_ADMIN: "Master Admin",
+  REGIONAL_ADMIN: "Admin Wilayah",
+  BRANCH_ADMIN: "Admin Cabang",
+  STAKEHOLDER: "Stakeholder",
 };
 
 export function UserMenu({
@@ -39,7 +42,7 @@ export function UserMenu({
 }: {
   name: string;
   email: string;
-  role: "ADMIN" | "CLIENT";
+  role: AppRole;
   displayTitle: string | null;
   compact?: boolean;
 }) {

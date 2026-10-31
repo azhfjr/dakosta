@@ -14,6 +14,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { UserMenu } from "@/components/shell/user-menu";
+import type { AppRole } from "@/lib/authz/types";
 
 export function MobileNav({
   role,
@@ -21,7 +22,7 @@ export function MobileNav({
   email,
   displayTitle,
 }: {
-  role: "ADMIN" | "CLIENT";
+  role: AppRole;
   name: string;
   email: string;
   displayTitle: string | null;
