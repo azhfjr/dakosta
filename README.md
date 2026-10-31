@@ -14,7 +14,7 @@ Demo publik (rilis v3): **https://dakosta-dakosta.vercel.app**
 | Lingkungan | Status | Keterangan |
 | --- | --- | --- |
 | Staging (database Neon `dakosta_staging` + Vercel Preview) | **TERVERIFIKASI** | 3 migrasi, fixture deterministik, unit 34/34, E2E 40/40, subset build produksi 23/23, axe + mobile, smoke preview |
-| Produksi | **v4 live (2026-10-31)** | 3 migrasi, backup terverifikasi (18 tabel/153 baris, checksum valid), purge demo (147 baris + 4 pengguna sisa), 1 Master bootstrap, login + paksa ganti sandi terverifikasi, data demo 0 |
+| Produksi | **v4 live + dataset demo (2026-10-31)** | 3 migrasi, backup terverifikasi, 1 Master asli, containment demo aktif, 32 akun demo + 50 konten dari 20 stakeholder, verifikasi DB/HTTP lulus, seed idempoten |
 
 Bukti per gate, traceability R01–R18, dan daftar item PARTIAL/BLOCKED ada di
 [`docs/v4-handoff.md`](docs/v4-handoff.md).
@@ -240,6 +240,47 @@ npm run db:bootstrap:master                   # butuh BOOTSTRAP_CONFIRM=bootstra
 - Variabel produksi yang berubah hanya boleh atas konfirmasi eksplisit: tambah
   `APP_ENV=production`, nonaktifkan/hapus `DEMO_MODE` dan `DEMO_SEED_PASSWORD`.
   Nilai env tidak pernah dicetak.
+
+### Dataset demo produksi
+
+Produksi dapat diisi dataset demo sintetis (32 akun, 3 wilayah, 8 cabang, 20
+organisasi stakeholder, 50 konten) tanpa mengaktifkan `DEMO_MODE`. Akun demo
+masuk lewat `/masuk` seperti akun biasa; `/api/v1/demo/login` tetap 404.
+
+```bash
+# 1) backup + verifikasi manifest
+npm run db:backup -- --target=production
+
+# 2) pratinjau (tanpa menulis)
+DEMO_SEED_CONFIRM=seed-production-demo npm run db:seed:demo:production -- \
+  --dry-run --backup=backups/<stamp>-production
+
+# 3) seed idempoten (satu transaksi: purge demo → insert → assertion)
+DEMO_SEED_CONFIRM=seed-production-demo npm run db:seed:demo:production -- \
+  --backup=backups/<stamp>-production
+
+# 4) verifikasi read-only (DB + HTTP, maksimal 4 login)
+npm run db:verify:demo:production
+
+# 5) rollback data demo saja
+PURGE_DEMO_CONFIRM=purge-demo-only npm run db:purge:demo:production
+```
+
+- Seeder menolak tanpa `--target=production`, token konfirmasi, manifest backup
+  produksi, advisory lock, dan preflight yang memastikan Master asli tunggal
+  serta tidak ada tabrakan kunci dengan data non-demo.
+- Penjagaan containment: akun demo berperan `MASTER_ADMIN` hanya untuk data
+  demo. `assertDemoCannotManageAccounts`/`assertDemoCannotManageHierarchy`
+  menolak mutasi akun, impor, dan hierarki; capability terkait juga dibuang.
+  Semua akun demo memakai `user.role = "user"`.
+- Purge demo memakai daftar ID eksplisit dan email terlindungi; snapshot
+  invariant non-demo (Master, hash sandi, jumlah baris) dibandingkan sebelum
+  dan sesudah, dan selisih apa pun membatalkan transaksi.
+- Peta menampilkan 40 titik karena 7 draf dan 3 arsip memang dikecualikan.
+- `db:purge:production` (purge penuh) kini permanen diblokir karena Master asli
+  `is_demo=false`; gunakan `db:purge:demo:production` untuk menghapus demo.
+- Kredensial demo ditulis ke `.secrets/demo-accounts-<stamp>.txt` (mode 0600,
+  gitignored); hanya path yang dicetak, nilai sandi tidak pernah ditampilkan.
 
 ### Rollback
 

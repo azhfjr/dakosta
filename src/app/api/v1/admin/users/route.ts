@@ -1,6 +1,7 @@
 import { getRequestId, jsonError, jsonOk, readJson } from "@/lib/api";
 import { recordAudit } from "@/lib/audit";
 import { requireMasterApi, requireStepUp, assertSameOrigin } from "@/lib/authz/guards";
+import { assertDemoCannotManageAccounts } from "@/lib/authz/demo-guard";
 import {
   createAccount,
   createAccountInputSchema,
@@ -29,6 +30,7 @@ export async function POST(request: Request) {
   try {
     assertSameOrigin(request);
     const master = await requireMasterApi();
+    await assertDemoCannotManageAccounts();
     await requireStepUp();
     const limit = await consumeRateLimit({
       key: `account:create:${master.userId}:${getClientIp(request)}`,

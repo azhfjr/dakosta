@@ -44,7 +44,7 @@ function CopyAll({ result }: { result: CommitResult }) {
   );
 }
 
-export function ImportWizard() {
+export function ImportWizard({ readOnly = false }: { readOnly?: boolean }) {
   const router = useRouter();
   const { prompt: promptStepUp, dialog: stepUpDialog } = useStepUp();
   const [file, setFile] = useState<File | null>(null);
@@ -119,6 +119,17 @@ export function ImportWizard() {
     }
 
     await attempt();
+  }
+
+  if (readOnly) {
+    return (
+      <p
+        role="status"
+        className="rounded-xl border border-brand-blue-500/25 bg-brand-blue-100/40 px-4 py-3 text-sm text-brand-blue-900"
+      >
+        Mode demo: impor akun dinonaktifkan. Riwayat impor tetap dapat dilihat.
+      </p>
+    );
   }
 
   return (

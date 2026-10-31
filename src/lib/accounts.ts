@@ -8,6 +8,7 @@ import { z } from "zod";
 
 import { getDb, schema } from "@/db";
 import { getAuth } from "@/lib/auth";
+import { assertDemoCannotManageAccounts } from "@/lib/authz/demo-guard";
 import type { AppRole } from "@/lib/authz/types";
 import { ROLE_LABELS } from "@/lib/authz/types";
 import { AppError, errors } from "@/lib/errors";
@@ -287,6 +288,7 @@ export async function createAccount(input: CreateAccountInput): Promise<{
   tempPassword: string;
   mustChangePassword: boolean;
 }> {
+  await assertDemoCannotManageAccounts();
   const parsed = accountInputSchema.parse(input);
   await assertScopeCombination(parsed);
 
@@ -383,6 +385,7 @@ export async function updateAccount(
   userId: string,
   input: UpdateAccountInput,
 ): Promise<void> {
+  await assertDemoCannotManageAccounts();
   const patch = patchSchema.parse(input);
   const db = getDb();
 
@@ -527,6 +530,7 @@ export async function updateAccount(
 }
 
 export async function revokeUserSessions(userId: string): Promise<number> {
+  await assertDemoCannotManageAccounts();
   const result = await getDb()
     .delete(schema.session)
     .where(eq(schema.session.userId, userId))
@@ -538,6 +542,7 @@ export async function resetAccountPassword(userId: string): Promise<{
   tempPassword: string;
   mustChangePassword: boolean;
 }> {
+  await assertDemoCannotManageAccounts();
   const tempPassword = generateTempPassword();
   await getAuth()
     .api.setUserPassword({

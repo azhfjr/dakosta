@@ -4,6 +4,7 @@ import { and, asc, eq, ne } from "drizzle-orm";
 import { z } from "zod";
 
 import { getDb, schema } from "@/db";
+import { assertDemoCannotManageHierarchy } from "@/lib/authz/demo-guard";
 import { AppError, errors } from "@/lib/errors";
 
 const codeSchema = z
@@ -159,6 +160,7 @@ async function assertFaskesCodeAvailable(
 }
 
 export async function createRegion(input: RegionInput): Promise<{ id: string }> {
+  await assertDemoCannotManageHierarchy();
   const parsed = createRegionInputSchema.parse(input);
   try {
     const [row] = await getDb()
@@ -182,6 +184,7 @@ export async function updateRegion(
   id: string,
   input: RegionInput,
 ): Promise<void> {
+  await assertDemoCannotManageHierarchy();
   const parsed = updateRegionInputSchema.parse(input);
   try {
     const updated = await getDb()
@@ -205,6 +208,7 @@ export async function updateRegion(
 }
 
 export async function createBranch(input: BranchInput): Promise<{ id: string }> {
+  await assertDemoCannotManageHierarchy();
   const parsed = createBranchInputSchema.parse(input);
   await assertRegionExists(parsed.regionalOfficeId);
   try {
@@ -230,6 +234,7 @@ export async function updateBranch(
   id: string,
   input: BranchInput,
 ): Promise<void> {
+  await assertDemoCannotManageHierarchy();
   const parsed = updateBranchInputSchema.parse(input);
   await assertRegionExists(parsed.regionalOfficeId);
   try {
@@ -278,6 +283,7 @@ function organizationValues(parsed: OrganizationInput) {
 export async function createOrganization(
   input: OrganizationInput,
 ): Promise<{ id: string; branchOfficeId: string }> {
+  await assertDemoCannotManageHierarchy();
   const parsed = createOrganizationInputSchema.parse(input);
   await assertBranchExists(parsed.branchOfficeId);
   if (parsed.organizationType === "FASKES") {
@@ -307,6 +313,7 @@ export async function updateOrganization(
   id: string,
   input: OrganizationInput,
 ): Promise<void> {
+  await assertDemoCannotManageHierarchy();
   const parsed = updateOrganizationInputSchema.parse(input);
   await assertBranchExists(parsed.branchOfficeId);
   if (parsed.organizationType === "FASKES") {

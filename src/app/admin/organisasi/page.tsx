@@ -41,13 +41,20 @@ export default async function AdminOrganizationsPage({
             Kode Faskes ternormalisasi dan unik untuk organisasi aktif.
           </p>
         </div>
-        <OrganizationEditor branches={hierarchy.branches} />
+        <OrganizationEditor branches={hierarchy.branches} readOnly={admin.isDemo} />
       </header>
+
+      {admin.isDemo ? (
+        <p className="rounded-xl border border-brand-blue-500/25 bg-brand-blue-100/40 px-4 py-3 text-sm text-brand-blue-900">
+          Mode demo: perubahan wilayah, cabang, dan organisasi dinonaktifkan.
+        </p>
+      ) : null}
 
       <OrganizationTable
         organizations={organizations}
         contentBase="/admin/konten"
         editorBranches={hierarchy.branches}
+        readOnly={admin.isDemo}
       />
     </div>
   );

@@ -18,6 +18,7 @@ export async function GET(request: Request) {
         scope: user.scope,
         scopeLabel: user.scopeLabel,
         capabilities: user.capabilities,
+        isDemo: user.isDemo,
         mustChangePassword: user.mustChangePassword,
         displayTitle: user.displayTitle,
         stakeholderIds: user.stakeholderIds,

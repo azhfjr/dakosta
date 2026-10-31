@@ -16,6 +16,7 @@ export type SessionUser = {
   scope: Scope;
   capabilities: readonly Capability[];
   membershipId: string;
+  isDemo: boolean;
   mustChangePassword: boolean;
   active: boolean;
   displayTitle: string | null;
@@ -33,6 +34,7 @@ export function toSessionUser(ctx: NonNullable<Awaited<ReturnType<typeof getAuth
     scope: ctx.scope,
     capabilities: ctx.capabilities,
     membershipId: ctx.membershipId,
+    isDemo: ctx.isDemo,
     mustChangePassword: ctx.mustChangePassword,
     active: true,
     displayTitle: ctx.displayTitle,

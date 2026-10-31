@@ -206,3 +206,65 @@ Catatan:
 - Route JS `/admin` 360 KB (allowance 375 KB karena Recharts di atas fold);
   rute lain 238–245 KB. Chart dimuat saat terlihat sehingga mobile tidak
   mengunduh chunk Recharts di awal.
+
+## 10. Dataset demo produksi (dieksekusi 2026-10-31)
+
+Dataset demo sintetis untuk seluruh peran, dibuat oleh 20 stakeholder di 8
+kantor cabang. Fixture deterministik (`scripts/demo-fixtures.ts`), seeder
+transaksional (`scripts/seed-demo-production.ts`), purge demo-only
+(`scripts/purge-demo-only.ts`), dan verifikasi read-only
+(`scripts/verify-demo-production.ts`).
+
+| Komponen | Jumlah |
+| --- | --- |
+| Wilayah / cabang / organisasi | 3 / 8 / 20 |
+| Akun demo (`@demo.dakosta.local`) | 32 (1 master, 3 wilayah, 8 cabang, 20 stakeholder) |
+| Konten (2–3 per stakeholder) | 50; APPROVED 14, SUBMITTED 8, RESUBMITTED 3, IN_REVIEW 4, REVISION_REQUIRED 5, REJECTED 4, REVOKED 2, ARCHIVED 3, DRAFT 7 |
+| Lokasi / revisi / ulasan | 50 / 46 / 33 |
+| Target KPI | 28 (global 12 + 6 sub-tema + 20 stakeholder bulan berjalan; global 10 bulan sebelumnya) |
+| Notifikasi / outbox / audit | 53 / 53 / 36 |
+| Kebijakan EDUFAST | 2 PUBLISHED (6 sub-tema per bulan, 4 event) |
+| Titik peta | 40 (50 konten − 7 draf − 3 arsip) |
+| Approved / target bulan berjalan | 8 / 12 |
+| Approved / target bulan sebelumnya | 6 / 10 |
+
+Containment yang wajib aktif sebelum seed:
+
+- Akun demo memakai `user.role = "user"` (menutup endpoint admin Better Auth)
+  dan profil `is_demo = true`, `must_change_password = false`.
+- `assertDemoCannotManageAccounts` dan `assertDemoCannotManageHierarchy`
+  menolak mutasi akun/impor/hierarki; capability `account:manage`,
+  `account:reset`, `hierarchy:manage`, `organization:manage`, `import:manage`
+  dibuang untuk aktor demo.
+- UI akun/hierarki/impor menampilkan mode demo dan menonaktifkan aksi tulis.
+
+Prosedur (setiap langkah destruktif memerlukan konfirmasi pengguna):
+
+1. `npm run db:backup -- --target=production`; pastikan
+   `backups/<stamp>-production/manifest.json` ada.
+2. Deploy containment (`npx vercel deploy --prod --yes`) lalu smoke `/masuk`
+   200, `/api/v1/me` 401, `/api/v1/demo/login` 404.
+3. `DEMO_SEED_CONFIRM=seed-production-demo npm run db:seed:demo:production --
+   --dry-run --backup=backups/<stamp>-production`.
+4. Jalankan seed tanpa `--dry-run`, lalu `npm run db:verify:demo:production`.
+5. Ulangi langkah 4 untuk membuktikan idempotensi (jumlah dan ID sama).
+6. Rollback data demo: `PURGE_DEMO_CONFIRM=purge-demo-only npm run
+   db:purge:demo:production`.
+
+Bukti eksekusi produksi:
+
+| Pemeriksaan | Hasil |
+| --- | --- |
+| Backup | `backups/2026-10-31T09-52-20-571Z-production` (30 tabel, 12 baris, manifest target `production`) |
+| Deploy containment | `dakosta-dakosta-lbmc9um5e` → alias `https://dakosta-dakosta.vercel.app` (Ready) |
+| Smoke | `/masuk` 200; `/api/v1/me` 401; `/api/v1/demo/login` 404; health `{"status":"ok","db":"ok"}` |
+| Preflight | `db_fingerprint=sha256:4b917861e5b5`, `matches_staging=no`, `master_fingerprint_unchanged=yes` |
+| Seed | 32 akun, 50 konten, 20 stakeholder; kredensial hanya path `.secrets/` (nilai tidak dicetak) |
+| Verifikasi DB | akun 32/32, sandi 32/32 cocok, approved 8/6, target 12/10, profil non-demo 1 |
+| Verifikasi HTTP | 4 login; konten master 50, peta 40, wilayah A 27, antrean cabang A1 1, mitra 01 = 3; `/client` dan `/client/konten` 200 |
+| Isolasi & containment | detail lintas wilayah/cabang 403/404; POST akun oleh demo master 403 dengan pesan penjagaan |
+| Idempotensi | seed dijalankan 2×; `seed_runs=2`, ID sampel `20000000-0000-4000-8000-000000000021` tetap dan unik (1 baris) |
+
+Catatan: `DEMO_MODE` dan `/api/v1/demo/login` tetap nonaktif di produksi; akun
+demo masuk melalui `/masuk`. Tidak ada variabel environment produksi yang
+diubah selama prosedur ini.

@@ -48,8 +48,10 @@ function FormError({ message }: { message: string | null }) {
 
 export function RegionEditor({
   region,
+  readOnly = false,
 }: {
   region?: { id: string; code: string; name: string; status: string };
+  readOnly?: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -90,6 +92,8 @@ export function RegionEditor({
       setPending(false);
     }
   }
+
+  if (readOnly) return null;
 
   return (
     <>
@@ -181,6 +185,7 @@ export function RegionEditor({
 export function BranchEditor({
   branch,
   regions,
+  readOnly = false,
 }: {
   branch?: {
     id: string;
@@ -190,6 +195,7 @@ export function BranchEditor({
     regionId: string;
   };
   regions: Array<{ id: string; name: string }>;
+  readOnly?: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -236,6 +242,8 @@ export function BranchEditor({
       setPending(false);
     }
   }
+
+  if (readOnly) return null;
 
   return (
     <>
@@ -344,6 +352,7 @@ export function OrganizationEditor({
   organization,
   branches,
   impact,
+  readOnly = false,
 }: {
   organization?: {
     id: string;
@@ -360,6 +369,7 @@ export function OrganizationEditor({
   };
   branches: Array<{ id: string; name: string; regionName: string }>;
   impact?: { contents: number; accounts: number };
+  readOnly?: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -431,6 +441,8 @@ export function OrganizationEditor({
       setPending(false);
     }
   }
+
+  if (readOnly) return null;
 
   return (
     <>

@@ -43,14 +43,21 @@ export default async function AdminBranchesPage({
             konten organisasi pada cabangnya.
           </p>
         </div>
-        <BranchEditor regions={hierarchy.regions} />
+        <BranchEditor regions={hierarchy.regions} readOnly={admin.isDemo} />
       </header>
+
+      {admin.isDemo ? (
+        <p className="rounded-xl border border-brand-blue-500/25 bg-brand-blue-100/40 px-4 py-3 text-sm text-brand-blue-900">
+          Mode demo: perubahan wilayah, cabang, dan organisasi dinonaktifkan.
+        </p>
+      ) : null}
 
       <BranchTable
         branches={branches}
         organizationBase="/admin/organisasi"
         showRegion
         editorRegions={hierarchy.regions}
+        readOnly={admin.isDemo}
       />
     </div>
   );

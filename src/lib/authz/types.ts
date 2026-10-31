@@ -77,6 +77,7 @@ export type AuthContext = {
   role: AppRole;
   scope: Scope;
   capabilities: readonly Capability[];
+  isDemo: boolean;
   mustChangePassword: boolean;
   displayTitle: string | null;
   membershipId: string;

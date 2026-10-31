@@ -9,11 +9,13 @@ export function BranchTable({
   organizationBase,
   showRegion = true,
   editorRegions,
+  readOnly = false,
 }: {
   branches: BranchSummary[];
   organizationBase?: string;
   showRegion?: boolean;
   editorRegions?: Array<{ id: string; name: string }>;
+  readOnly?: boolean;
 }) {
   if (branches.length === 0) {
     return (
@@ -61,7 +63,7 @@ export function BranchTable({
             <th scope="col" className="px-4 py-3 text-right">
               Reviewer
             </th>
-            {editorRegions ? (
+            {editorRegions && !readOnly ? (
               <th scope="col" className="px-4 py-3 text-right">
                 Tindakan
               </th>
@@ -105,7 +107,7 @@ export function BranchTable({
               <td className="px-4 py-3 text-right tabular-nums">
                 {formatNumberId(branch.reviewerCount)}
               </td>
-              {editorRegions ? (
+              {editorRegions && !readOnly ? (
                 <td className="px-4 py-3 text-right">
                   <BranchEditor
                     branch={{

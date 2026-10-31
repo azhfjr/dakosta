@@ -30,11 +30,13 @@ export function OrganizationTable({
   contentBase,
   emptyMessage = "Belum ada organisasi pada lingkup ini.",
   editorBranches,
+  readOnly = false,
 }: {
   organizations: OrganizationSummary[];
   contentBase?: string;
   emptyMessage?: string;
   editorBranches?: Array<{ id: string; name: string; regionName: string }>;
+  readOnly?: boolean;
 }) {
   if (organizations.length === 0) {
     return (
@@ -81,7 +83,7 @@ export function OrganizationTable({
             <th scope="col" className="px-4 py-3">
               Status
             </th>
-            {editorBranches ? (
+            {editorBranches && !readOnly ? (
               <th scope="col" className="px-4 py-3 text-right">
                 Tindakan
               </th>
@@ -140,7 +142,7 @@ export function OrganizationTable({
                   {organization.status === "ACTIVE" ? "Aktif" : organization.status}
                 </Badge>
               </td>
-              {editorBranches ? (
+              {editorBranches && !readOnly ? (
                 <td className="px-4 py-3 text-right">
                   <OrganizationEditor
                     organization={{

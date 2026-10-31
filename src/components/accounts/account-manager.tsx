@@ -41,10 +41,12 @@ export function AccountManager({
   accounts,
   options,
   currentUserId,
+  readOnly = false,
 }: {
   accounts: AccountRow[];
   options: ScopeOptions;
   currentUserId: string;
+  readOnly?: boolean;
 }) {
   const router = useRouter();
   const { prompt: promptStepUp, dialog: stepUpDialog } = useStepUp();
@@ -348,7 +350,20 @@ export function AccountManager({
         </section>
       ) : null}
 
-      <section className="rounded-xl border border-border bg-surface p-5 shadow-sm">
+      {readOnly ? (
+        <p className="rounded-xl border border-brand-blue-500/25 bg-brand-blue-100/40 px-4 py-3 text-sm text-brand-blue-900">
+          Mode demo: pembuatan dan perubahan akun dinonaktifkan. Direktori akun tetap
+          dapat dilihat untuk keperluan presentasi.
+        </p>
+      ) : null}
+
+      <section
+        className={
+          readOnly
+            ? "hidden"
+            : "rounded-xl border border-border bg-surface p-5 shadow-sm"
+        }
+      >
         <div className="flex items-center gap-2">
           <Plus className="size-4 text-brand-blue-700" aria-hidden />
           <h2 className="text-base font-semibold text-foreground">Buat akun</h2>
@@ -600,7 +615,13 @@ export function AccountManager({
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex flex-wrap justify-end gap-1.5">
+                      <div
+                        className={
+                          readOnly
+                            ? "hidden"
+                            : "flex flex-wrap justify-end gap-1.5"
+                        }
+                      >
                         <Button
                           type="button"
                           size="sm"

@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminImportPage() {
-  await requireRole("ADMIN");
+  const admin = await requireRole("ADMIN");
   const history = await listImports(10);
 
   return (
@@ -28,7 +28,7 @@ export default async function AdminImportPage() {
         </p>
       </header>
 
-      <ImportWizard />
+      <ImportWizard readOnly={admin.isDemo} />
 
       <section className="rounded-xl border border-border bg-surface shadow-sm">
         <div className="flex items-center gap-2 border-b border-border px-4 py-3">

@@ -33,6 +33,7 @@ export default async function AdminAccountsPage() {
         accounts={accounts}
         options={options}
         currentUserId={admin.id}
+        readOnly={admin.isDemo}
       />
     </div>
   );

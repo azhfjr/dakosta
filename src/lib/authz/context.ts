@@ -7,7 +7,7 @@ import { cache } from "react";
 import { getDb, schema } from "@/db";
 import { getAuth } from "@/lib/auth";
 
-import { capabilitiesForRole } from "./capabilities";
+import { capabilitiesForActor } from "./capabilities";
 import {
   homePathForRole,
   isAppRole,
@@ -154,7 +154,8 @@ async function loadAuthContext(): Promise<AuthContext | null> {
     role,
     scope: resolved.scope,
     scopeLabel: resolved.scopeLabel,
-    capabilities: capabilitiesForRole(role),
+    capabilities: capabilitiesForActor(role, row.profile.isDemo),
+    isDemo: row.profile.isDemo,
     mustChangePassword: row.profile.mustChangePassword,
     displayTitle: row.profile.displayTitle,
     membershipId: row.membership.id,

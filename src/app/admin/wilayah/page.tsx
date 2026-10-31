@@ -28,8 +28,14 @@ export default async function AdminRegionsPage() {
             kontennya. Data mengikuti hierarki region → branch → organization.
           </p>
         </div>
-        <RegionEditor />
+        <RegionEditor readOnly={admin.isDemo} />
       </header>
+
+      {admin.isDemo ? (
+        <p className="rounded-xl border border-brand-blue-500/25 bg-brand-blue-100/40 px-4 py-3 text-sm text-brand-blue-900">
+          Mode demo: perubahan wilayah, cabang, dan organisasi dinonaktifkan.
+        </p>
+      ) : null}
 
       {regions.length === 0 ? (
         <div className="rounded-xl border border-border bg-surface px-5 py-12 text-center">
@@ -116,6 +122,7 @@ export default async function AdminRegionsPage() {
                           name: region.name,
                           status: region.status,
                         }}
+                        readOnly={admin.isDemo}
                       />
                     </div>
                   </td>

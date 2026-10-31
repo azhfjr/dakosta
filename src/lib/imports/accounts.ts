@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import { getDb, schema } from "@/db";
 import { createAccount } from "@/lib/accounts";
+import { assertDemoCannotManageAccounts } from "@/lib/authz/demo-guard";
 import { toCsv } from "@/lib/csv";
 import { AppError, errors } from "@/lib/errors";
 
@@ -394,6 +395,7 @@ export async function commitImport(input: {
   importId: string;
   actorId: string;
 }): Promise<ImportCommitResult> {
+  await assertDemoCannotManageAccounts();
   const db = getDb();
   const [record] = await db
     .select()

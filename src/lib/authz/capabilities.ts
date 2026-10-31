@@ -49,8 +49,26 @@ const MATRIX: Record<AppRole, readonly Capability[]> = {
   ],
 };
 
+/** Capabilities withheld from demo actors even when their role allows them. */
+const DEMO_BLOCKED: readonly Capability[] = [
+  "hierarchy:manage",
+  "organization:manage",
+  "account:manage",
+  "account:reset",
+  "import:manage",
+];
+
 export function capabilitiesForRole(role: AppRole): readonly Capability[] {
   return MATRIX[role];
+}
+
+export function capabilitiesForActor(
+  role: AppRole,
+  isDemo: boolean,
+): readonly Capability[] {
+  const base = MATRIX[role];
+  if (!isDemo) return base;
+  return base.filter((capability) => !DEMO_BLOCKED.includes(capability));
 }
 
 export function canRole(role: AppRole, capability: Capability): boolean {
