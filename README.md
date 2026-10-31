@@ -14,7 +14,7 @@ Demo publik (rilis v3): **https://dakosta-dakosta.vercel.app**
 | Lingkungan | Status | Keterangan |
 | --- | --- | --- |
 | Staging (database Neon `dakosta_staging` + Vercel Preview) | **TERVERIFIKASI** | 3 migrasi, fixture deterministik, unit 34/34, E2E 40/40, subset build produksi 23/23, axe + mobile, smoke preview |
-| Produksi | **v3 demo** | Rilis v4 terkunci sampai gate G0–G11 PASS dan konfirmasi eksplisit untuk langkah destruktif (purge data demo + perubahan env produksi) |
+| Produksi | **v4 live (2026-10-31)** | 3 migrasi, backup terverifikasi (18 tabel/153 baris, checksum valid), purge demo (147 baris + 4 pengguna sisa), 1 Master bootstrap, login + paksa ganti sandi terverifikasi, data demo 0 |
 
 Bukti per gate, traceability R01–R18, dan daftar item PARTIAL/BLOCKED ada di
 [`docs/v4-handoff.md`](docs/v4-handoff.md).
@@ -117,7 +117,7 @@ persisten dari `REVISION_REQUESTED` pada kontrak.
   `/cabang/laporan`, `/cabang/notifikasi`.
 - Stakeholder: `/client`, `/client/lapor`, `/client/konten`, `/client/profil`,
   `/client/notifikasi`.
-- Publik: `/masuk`, `/aktivasi`, `/tentang`, `/bantuan`, `/ganti-password`.
+- Publik: `/masuk`, `/tentang`, `/bantuan`, `/ganti-password`.
 
 ### API utama
 
@@ -194,6 +194,9 @@ Perintah: `npm run lint`, `npm run typecheck`, `npm run build`, `npm test`
   `/admin` → `307` ke `/masuk`; `/masuk` → `200`.
 - **Backup/restore drill staging**: 30 tabel / 186 baris diekspor, direstore ke
   staging, jumlah baris terverifikasi sama.
+- **Rilis produksi 2026-10-31**: backup 18 tabel/153 baris (checksum valid),
+  3 migrasi, purge 147 baris demo + 4 pengguna sisa, bootstrap 1 Master,
+  smoke health/header/guard/login lulus, inventaris akhir 0 data demo.
 - Lint dan typecheck bersih; build produksi lulus dan CSS memuat utilitas
   Tailwind.
 
@@ -212,7 +215,12 @@ Detail gate dan item yang belum lulus ada di `docs/v4-handoff.md`.
   `npx vercel curl <path> --deployment <url>` (di Git Bash setel
   `MSYS_NO_PATHCONV=1`).
 
-### Produksi (terkunci sampai gate + konfirmasi)
+### Produksi (v4 live, operasi terjaga)
+
+Rilis v4 sudah dijalankan (2026-10-31) dengan urutan backup → migrasi → env →
+deploy → smoke pra-purge → purge → bootstrap Master → smoke pasca-rilis.
+Perintah di bawah tetap memerlukan token konfirmasi dan hanya untuk prosedur
+berulang/DR.
 
 ```bash
 npx vercel env pull .env.production.local --environment=production
@@ -220,6 +228,7 @@ npm run db:backup -- --target=production      # wajib sebelum langkah destruktif
 npm run db:migrate:production                 # butuh MIGRATE_CONFIRM=apply-production
 npx vercel deploy --prod --yes
 npm run db:purge:production                   # butuh PURGE_CONFIRM=purge-demo-data
+PURGE_SCOPE=residual-demo-users npm run db:purge:production  # opsional: pengguna demo yatim
 npm run db:bootstrap:master                   # butuh BOOTSTRAP_CONFIRM=bootstrap-master
 ```
 
@@ -251,11 +260,13 @@ npm run db:bootstrap:master                   # butuh BOOTSTRAP_CONFIRM=bootstra
   dimatikan agar perubahan cakupan langsung berlaku.
 - CSP, HSTS, `X-Frame-Options: DENY`, `nosniff`, `Permissions-Policy` ketat,
   dan pemeriksaan same-origin pada mutasi.
-- Rate limit pada login demo, step-up, impor, review, dan aktivasi.
+- Rate limit pada login demo, step-up, impor, dan review.
 - Step-up 15 menit (HMAC cookie) untuk aksi Master sensitif; alasan wajib dan
   diaudit; Master aktif terakhir tidak dapat dinonaktifkan/diturunkan.
-- Token aktivasi/reset disimpan sebagai hash, sekali pakai, dan tidak pernah
-  masuk log/CSV/audit. Kata sandi di-hash Better Auth.
+- Akun dibuat Master dengan kata sandi sementara dan wajib diganti saat login
+  pertama; kredensial hanya tampil sekali di UI akun Master dan tidak masuk
+  log/audit/CSV. Tabel token aktivasi/reset sudah ada di skema tetapi belum
+  dipakai karena tidak ada penyedia email. Kata sandi di-hash Better Auth.
 - PII guard memblokir pola NIK 16 digit / JKN 13 digit pada judul + narasi.
 - Data demo sintetis: tanpa PII, NIK/JKN, atau rekam medis. Pilot internal
   nonkomersial; peninjauan UU PDP oleh operator tetap diperlukan sebelum data
@@ -266,7 +277,8 @@ npm run db:bootstrap:master                   # butuh BOOTSTRAP_CONFIRM=bootstra
 - **MFA/TOTP: PARTIAL** — plugin auth saat ini tidak menyediakan TOTP; yang
   tersedia adalah step-up login-recent/re-autentikasi.
 - **Undangan email: BLOCKED** — tidak ada penyedia email; serah-terima
-  kredensial dilakukan di UI Master (kata sandi sementara/aktivasi).
+  kredensial dilakukan di UI Master melalui kata sandi sementara. Halaman
+  aktivasi mandiri belum diimplementasikan (tabel token disiapkan).
 - **PDF server: PARTIAL** — CSV tersedia; PDF melalui cetak peramban.
 - **CI/CD: PARTIAL** — repositori lokal tanpa remote/`gh`; deploy via Vercel CLI.
 - **Neon branch programatik: BLOCKED** — tanpa `neonctl`/API key; staging

@@ -11,8 +11,9 @@ Commit baseline: `76654ab` (demo dua peran sebelum migrasi v4)
 | Lokal | Node 24, Next.js 16.4.3 (Turbopack), `.env.staging.local` untuk E2E |
 | Staging DB | Database `dakosta_staging` pada proyek Neon yang sama (isolasi level database) |
 | Staging app | Vercel Preview `https://dakosta-dakosta-gdsfy1a53-jarjirjor777-5316.vercel.app` (Deployment Protection aktif) |
-| Produksi | `https://dakosta-dakosta.vercel.app` — **masih v3 demo**; rilis v4 belum dijalankan |
-| Migrasi | 3 migrasi Drizzle (`0000`, `0001`, `0002`) di staging; produksi masih `0000` |
+| Produksi | `https://dakosta-dakosta.vercel.app` — **v4 live (2026-10-31)**, deployment `dakosta-dakosta-qvtw902jm-jarjirjor777-5316.vercel.app` |
+| Migrasi | 3 migrasi Drizzle (`0000`, `0001`, `0002`) di staging dan produksi |
+| Produksi data | 1 Master (`mustChangePassword=true`), 0 data demo; 0 wilayah/cabang/organisasi/konten |
 
 Catatan operasional: di Git Bash, `vercel curl /api/...` harus dijalankan dengan
 `MSYS_NO_PATHCONV=1`, jika tidak argumen path diubah menjadi path Windows dan
@@ -33,8 +34,8 @@ permintaan menghasilkan halaman 404 aplikasi.
 | G8 — Keamanan | **PASS** | CSP/HSTS/X-Frame-Options/Permissions-Policy terverifikasi di build produksi lokal dan preview; step-up negatif `403 STEP_UP_REQUIRED`; rate limit; PII guard; token/kredensial tidak pernah dicetak. |
 | G9 — Aksesibilitas/mobile/UX | **PASS (otomatis)** | axe wcag2a/2aa/21a/21aa (serious/critical) pada 12 rute, lebar 360 px, navigasi mobile. Uji pembaca layar manual dan Firefox/Safari **NOT RUN**. |
 | G10 — Smoke staging | **PASS** | Preview: `/api/health` → `{"status":"ok","db":"ok"}`; `/admin` → `307` ke `/masuk`; `/masuk` → `200` judul “Masuk · DAKOSTA”. |
-| G11 — Backup produksi + asersi purge + rencana bootstrap | **PENDING** | Tooling siap (`db:backup`, `db:purge:production`, `db:bootstrap:master`). Backup produksi belum diambil dan purge belum dijalankan karena menunggu konfirmasi eksplisit. |
-| G12 — Deploy produksi + smoke + rollback | **NOT RUN** | Menunggu G11 dan konfirmasi. |
+| G11 — Backup produksi + asersi purge + bootstrap | **PASS** | Backup `backups/2026-10-31T04-56-41-757Z-production`: 18 tabel/153 baris, seluruh checksum valid. Purge menolak jika ada `is_demo=false`; menghapus 147 baris demo + 4 pengguna sisa `@demo.dakosta.local` (lihat §4.1). Bootstrap 1 Master dengan `mustChangePassword=true`; inventaris akhir: 1 user/1 account/1 profil, 0 data demo. |
+| G12 — Deploy produksi + smoke + rollback | **PASS** | Deploy `dakosta-dakosta-qvtw902jm-jarjirjor777-5316.vercel.app` di-alias ke `https://dakosta-dakosta.vercel.app` (`✓ Ready`). Smoke: health 200 `{"status":"ok","db":"ok"}`; CSP `frame-ancestors 'none'`, HSTS, `X-Frame-Options: DENY`; `/admin` tanpa sesi → `307 /masuk`; `/masuk` → 200; login demo → `404 DEMO_DISABLED`; `/api/v1/me` tanpa sesi → 401; login Master → `/api/v1/me` 200 `role=MASTER_ADMIN must_change=true`, `/admin` → `307 /ganti-password`, `/ganti-password` 200. Rollback di §6. |
 
 ## 3. Traceability requirement
 
@@ -57,7 +58,7 @@ permintaan menghasilkan halaman 404 aplikasi.
 | R15 | Branding + UX | Selesai | Aset `public/brand/*` dan vector logo dipertahankan; axe/mobile |
 | R16 | Keamanan + privasi | Selesai | Header, origin check, rate limit, step-up, token hash, PII guard |
 | R17 | Migrasi aman | Selesai (dengan catatan G2) | Migrasi aditif 0001/0002; backup/restore drill; `migration_runs` |
-| R18 | Deployment/ops | Sebagian | Staging PASS; produksi PENDING konfirmasi |
+| R18 | Deployment/ops | Selesai | Staging PASS; produksi v4 live dengan backup, migrasi, purge, bootstrap Master, dan smoke terverifikasi |
 
 ## 4. Bukti eksekusi
 
@@ -71,8 +72,26 @@ permintaan menghasilkan halaman 404 aplikasi.
 | `npm run build` | Sukses; CSS hasil build memuat utilitas Tailwind |
 | Smoke preview staging | Health OK; guard `/admin` redirect; `/masuk` 200 |
 | Backup/restore drill | 30 tabel / 186 baris → restore → jumlah sama |
-| Inventaris produksi (baca-saja) | 1 migrasi, 4 user, 8 organisasi, 24 konten, semua demo |
+| Inventaris produksi (baca-saja, pra-rilis) | 1 migrasi, 4 user, 8 organisasi, 24 konten, semua demo |
 | Backfill staging | 24 konten terklasifikasi, 0 legacy, 0 unresolved, 0 promosi |
+| Backup produksi (2026-10-31T04-56-41-757Z) | 18 tabel / 153 baris; manifest SHA-256 valid untuk seluruh tabel |
+| Migrasi produksi | 3 migrasi tercatat di `drizzle.__drizzle_migrations` |
+| Purge produksi | 147 baris demo dihapus (semua `is_demo=true`); 4 pengguna demo yatim dihapus terpisah |
+| Bootstrap Master | 1 akun `MASTER_ADMIN`, `mustChangePassword=true`; kredensial hanya di `.secrets/` (path dicetak, nilai tidak) |
+| Inventaris produksi (pasca-rilis) | `migration_runs=2`, `user=1`, `account=1`, `user_profiles=1` (`is_demo=0`), `user_memberships=1`, `audit_logs=1`, `session=1`, `demo_rate_limits=2`, `peran_aktif=MASTER_ADMIN:1`; wilayah/cabang/organisasi/konten/kebijakan/impor/notifikasi = 0 |
+| Smoke produksi pasca-rilis | Health OK; header keamanan aktif; guard `/admin`; `/masuk` 200; demo login `404 DEMO_DISABLED`; Master login + paksa ganti sandi |
+
+### 4.1 Catatan bug purge dan pembersihan sisa
+
+Percobaan purge pertama menyisakan tabel `user` karena `DELETE_ORDER` memuat
+`'"user"'` sementara pemeriksaan keberadaan tabel memakai nama tanpa kutip;
+akibatnya 4 pengguna demo tidak terhapus. Perbaikan: nama tabel dikutip secara
+konsisten melalui helper `quoted()`. Sisa 4 pengguna `@demo.dakosta.local`
+dihapus dengan mode `PURGE_SCOPE=residual-demo-users`, yang hanya menyasar
+pengguna demo tanpa profil/akun/membership/role, dan mencatat
+`migration_runs` terpisah. Asersi `is_demo=false` tetap berlaku pada kedua
+mode. `demo_rate_limits` (2 baris counter, bukan konten/pengguna) sengaja
+dibiarkan; tidak memengaruhi autentikasi atau data bisnis.
 
 Perintah penting:
 
@@ -84,25 +103,35 @@ npx tsx scripts/backfill-v4.ts --target=staging
 MSYS_NO_PATHCONV=1 npx vercel curl /api/health --deployment <preview-url>
 ```
 
-## 5. Runbook rilis produksi (menunggu konfirmasi)
+## 5. Runbook rilis produksi (sudah dieksekusi 2026-10-31)
 
-Prasyarat: G0–G10 PASS, konfirmasi eksplisit untuk langkah destruktif, dan
-persetujuan perubahan env produksi (nama variabel saja).
+Prasyarat terpenuhi: G0–G10 PASS, konfirmasi eksplisit untuk langkah
+destruktif, dan persetujuan perubahan env produksi (nama variabel saja).
 
 1. Tarik env produksi ke file gitignored: `npx vercel env pull .env.production.local --environment=production`.
-2. Backup wajib: `npm run db:backup -- --target=production`; verifikasi manifest 30 tabel dan jumlah baris.
-3. Migrasi aditif: `MIGRATE_CONFIRM=apply-production npm run db:migrate:production`.
-4. Deploy kode: `npx vercel deploy --prod --yes`.
-5. Verifikasi pra-purge: `/api/health` → `{"status":"ok","db":"ok"}`; login demo nonaktif di runtime produksi.
-6. Purge demo (destruktif): `PURGE_CONFIRM=purge-demo-data npm run db:purge:production`.
-   Script menolak jika ada baris `is_demo=false`; rekap disimpan di `migration_runs`.
-7. Bootstrap satu Master: `BOOTSTRAP_CONFIRM=bootstrap-master BOOTSTRAP_MASTER_EMAIL=<email> npm run db:bootstrap:master`.
-   Kredensial awal ditulis ke `.secrets/` (hanya path yang dicetak).
-8. Perubahan env produksi (nama saja, nilai tidak dicetak):
+   Catatan: `vercel env pull` menulis `[SENSITIVE]` untuk variabel Sensitive;
+   file placeholder tersebut diabaikan oleh `scripts/_env.ts` agar koneksi DB
+   tidak rusak.
+2. Backup wajib: `npm run db:backup -- --target=production`; manifest
+   diverifikasi (18 tabel/153 baris, semua checksum valid).
+3. Migrasi aditif: `MIGRATE_CONFIRM=apply-production npm run db:migrate:production`;
+   3 migrasi tercatat.
+4. Perubahan env produksi (atas konfirmasi eksplisit; hanya nama yang dicetak):
    tambah `APP_ENV=production`; hapus `DEMO_MODE` dan `DEMO_SEED_PASSWORD`.
-9. Smoke pasca-rilis: health, header keamanan, `/masuk`, `/aktivasi`,
-   `/admin` tanpa sesi → `307`, dashboard kosong, login Master + paksa ganti sandi.
-10. Catat bukti di dokumen ini dan perbarui status gate.
+5. Deploy kode: `npx vercel deploy --prod --yes`; deployment baru di-alias ke
+   domain produksi.
+6. Verifikasi pra-purge: `/api/health` → `{"status":"ok","db":"ok"}`; header
+   keamanan aktif; login demo nonaktif (`404 DEMO_DISABLED`) di runtime produksi.
+7. Purge demo (destruktif): `PURGE_CONFIRM=purge-demo-data npm run db:purge:production`.
+   Script menolak jika ada baris `is_demo=false`; 147 baris dihapus dan rekap
+   disimpan di `migration_runs`. Sisa 4 pengguna demo dibersihkan dengan
+   `PURGE_SCOPE=residual-demo-users` (lihat §4.1).
+8. Bootstrap satu Master: `BOOTSTRAP_CONFIRM=bootstrap-master BOOTSTRAP_MASTER_EMAIL=<email> npm run db:bootstrap:master`.
+   Kredensial awal ditulis ke `.secrets/` (hanya path yang dicetak).
+9. Smoke pasca-rilis: health, header keamanan, `/masuk`, `/admin` tanpa sesi →
+   `307 /masuk`, login Master + paksa ganti sandi (`/ganti-password` 200),
+   inventaris produksi kosong kecuali akun Master.
+10. Bukti dicatat di dokumen ini dan status gate diperbarui (G11/G12 PASS).
 
 Catatan: `DEMO_MODE` sudah tidak aktif di runtime produksi karena
 `VERCEL_ENV=production`; penghapusan variabel adalah pembersihan, bukan
@@ -125,7 +154,7 @@ perbaikan keamanan yang mendesak.
 | Item | Status | Alasan / tindakan berikutnya |
 | --- | --- | --- |
 | MFA/TOTP | PARTIAL | Plugin auth saat ini tidak menyediakan TOTP. Step-up login-recent/re-auth sudah ada. Perlu plugin MFA untuk MFA penuh. |
-| Undangan email | BLOCKED | Tidak ada penyedia email. Kredensial diserahkan lewat UI Master (kata sandi sementara/aktivasi). |
+| Undangan email | BLOCKED | Tidak ada penyedia email. Kredensial diserahkan lewat UI Master sebagai kata sandi sementara; halaman aktivasi mandiri belum ada (tabel token disiapkan). |
 | PDF server | PARTIAL | CSV tersedia; PDF memakai cetak peramban. |
 | CI/CD | PARTIAL | Repo lokal tanpa remote/`gh`; deploy via Vercel CLI. |
 | Neon branch programatik | BLOCKED | Tanpa `neonctl`/API key; staging memakai database terpisah. |

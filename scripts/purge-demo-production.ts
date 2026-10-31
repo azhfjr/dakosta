@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/neon-serverless";
+import { drizzle, type NeonDatabase } from "drizzle-orm/neon-serverless";
 import { Pool } from "@neondatabase/serverless";
 
 import * as schema from "../src/db/schema";
@@ -47,16 +47,62 @@ const DELETE_ORDER = [
   "session",
   "account",
   "verification",
-  '"user"',
+  "user",
 ] as const;
 
 const DEMO_FLAG_TABLES = ["user_profiles", "stakeholders", "content_submissions"] as const;
+
+function quoted(table: string): string {
+  return `"${table.replaceAll('"', '""')}"`;
+}
+
+async function purgeResidualDemoUsers(
+  pool: Pool,
+  db: NeonDatabase<typeof schema>,
+): Promise<void> {
+  const residual = await pool.query<{ id: string; email: string }>(
+    `select u.id, u.email
+       from "user" u
+      where u.email like '%@demo.dakosta.local'
+        and not exists (select 1 from user_profiles p where p.user_id = u.id)
+        and not exists (select 1 from account a where a.user_id = u.id)
+        and not exists (select 1 from user_memberships m where m.user_id = u.id)
+        and not exists (select 1 from user_role_memberships r where r.user_id = u.id)`,
+  );
+
+  if (residual.rows.length === 0) {
+    console.log("Tidak ada pengguna demo yatim. Tidak ada perubahan.");
+    return;
+  }
+
+  const startedAt = new Date();
+  for (const row of residual.rows) {
+    await pool.query(`delete from "user" where id = $1`, [row.id]);
+  }
+
+  await db.insert(schema.migrationRuns).values({
+    name: "purge-demo-production-residual-users",
+    targetEnv: "production",
+    startedAt,
+    finishedAt: new Date(),
+    counts: { users: residual.rows.length },
+    notes:
+      "Perbaikan sisa pengguna demo tanpa profil/akun/membership setelah purge awal.",
+  });
+
+  console.log(`Pengguna demo yatim dihapus: ${residual.rows.length}.`);
+}
 
 async function main(): Promise<void> {
   const pool = new Pool({ connectionString: requireDatabaseUrlForScript(), max: 1 });
   const db = drizzle(pool, { schema });
 
   try {
+    if (process.env.PURGE_SCOPE === "residual-demo-users") {
+      await purgeResidualDemoUsers(pool, db);
+      return;
+    }
+
     const tablesResult = await pool.query<{ table_name: string }>(
       `select table_name from information_schema.tables
         where table_schema = 'public' and table_type = 'BASE TABLE'`,
@@ -82,17 +128,16 @@ async function main(): Promise<void> {
     const counts: Record<string, number> = {};
     for (const table of DELETE_ORDER) {
       if (!existing.has(table)) continue;
-      const name = table.replaceAll('"', "");
       const result = await pool.query<{ total: string }>(
-        `select count(*)::text as total from ${table}`,
+        `select count(*)::text as total from ${quoted(table)}`,
       );
-      counts[name] = Number(result.rows[0]?.total ?? "0");
+      counts[table] = Number(result.rows[0]?.total ?? "0");
     }
 
     const startedAt = new Date();
     for (const table of DELETE_ORDER) {
       if (!existing.has(table)) continue;
-      await db.execute(sql.raw(`delete from ${table}`));
+      await db.execute(sql.raw(`delete from ${quoted(table)}`));
     }
 
     const totalRows = Object.values(counts).reduce((sum, value) => sum + value, 0);
