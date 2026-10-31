@@ -38,8 +38,13 @@ export function OrganizationTable({
 }) {
   if (organizations.length === 0) {
     return (
-      <div className="rounded-xl border border-border bg-surface px-5 py-12 text-center text-sm text-ink-muted">
-        {emptyMessage}
+      <div className="rounded-xl border border-border bg-surface px-5 py-12 text-center">
+        <p className="text-sm font-medium text-foreground">{emptyMessage}</p>
+        <p className="mx-auto mt-1 max-w-md text-sm text-ink-muted">
+          Organisasi adalah pelapor konten. Tambahkan lewat tombol “Tambah
+          organisasi” di kanan atas, lalu tautkan akun stakeholder ke organisasi
+          tersebut pada halaman Akun.
+        </p>
       </div>
     );
   }

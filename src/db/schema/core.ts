@@ -407,9 +407,9 @@ export const contentSubmissions = pgTable(
     approvedVersion: integer("approved_version"),
     resubmissionCount: integer("resubmission_count").notNull().default(0),
     sourceSubmissionId: uuid("source_submission_id"),
-    themeId: uuid("theme_id")
-      .notNull()
-      .references(() => themes.id, { onDelete: "restrict" }),
+    themeId: uuid("theme_id").references(() => themes.id, {
+      onDelete: "restrict",
+    }),
     dateCreated: date("date_created", { mode: "string" }).notNull(),
     publishedAt: date("published_at", { mode: "string" }),
     locationId: uuid("location_id")
@@ -454,6 +454,14 @@ export const contentSubmissions = pgTable(
     index("content_submissions_content_type_idx").on(table.contentType),
     index("content_submissions_main_theme_idx").on(table.mainTheme),
     index("content_submissions_sub_theme_idx").on(table.subTheme),
+    index("content_submissions_stakeholder_subtheme_approved_idx").on(
+      table.stakeholderId,
+      table.subTheme,
+      table.approvedAt,
+    ),
+    index("content_submissions_approved_partial_idx")
+      .on(table.approvedAt)
+      .where(sql`${table.status} = 'APPROVED'`),
     check(
       "content_submissions_status_check",
       sql`${table.status} in ('DRAFT', 'SUBMITTED', 'RESUBMITTED', 'IN_REVIEW', 'APPROVED', 'REVISION_REQUIRED', 'REJECTED', 'REVOKED', 'ARCHIVED')`,
@@ -529,9 +537,10 @@ export const contentReviews = pgTable(
     createdAt: instant("created_at").defaultNow().notNull(),
   },
   (table) => [
-    unique("content_reviews_submission_version_unique").on(
+    unique("content_reviews_submission_version_action_unique").on(
       table.submissionId,
       table.version,
+      table.action,
     ),
     index("content_reviews_reviewer_idx").on(table.reviewerId),
     index("content_reviews_branch_idx").on(table.reviewerBranchId),
@@ -565,6 +574,7 @@ export const kpiTargets = pgTable(
     themeId: uuid("theme_id").references(() => themes.id, {
       onDelete: "cascade",
     }),
+    subTheme: text("sub_theme"),
     periodStart: date("period_start", { mode: "string" }).notNull(),
     periodEnd: date("period_end", { mode: "string" }).notNull(),
     targetCount: integer("target_count").notNull(),
@@ -572,12 +582,32 @@ export const kpiTargets = pgTable(
     createdBy: text("created_by")
       .notNull()
       .references(() => user.id, { onDelete: "restrict" }),
+    updatedBy: text("updated_by").references(() => user.id, {
+      onDelete: "set null",
+    }),
     createdAt: instant("created_at").defaultNow().notNull(),
     updatedAt: instant("updated_at").defaultNow().notNull(),
   },
   (table) => [
     index("kpi_targets_period_idx").on(table.periodStart, table.periodEnd),
+    index("kpi_targets_stakeholder_subtheme_idx").on(
+      table.stakeholderId,
+      table.subTheme,
+    ),
+    uniqueIndex("kpi_targets_scope_unique").on(
+      table.periodStart,
+      table.periodEnd,
+      sql`coalesce(${table.regionalOfficeId}, '00000000-0000-0000-0000-000000000000'::uuid)`,
+      sql`coalesce(${table.branchOfficeId}, '00000000-0000-0000-0000-000000000000'::uuid)`,
+      sql`coalesce(${table.stakeholderId}, '00000000-0000-0000-0000-000000000000'::uuid)`,
+      sql`coalesce(${table.themeId}, '00000000-0000-0000-0000-000000000000'::uuid)`,
+      sql`coalesce(${table.subTheme}, '')`,
+    ),
     check("kpi_targets_count_check", sql`${table.targetCount} >= 0`),
+    check(
+      "kpi_targets_sub_theme_check",
+      sql`${table.subTheme} is null or ${table.subTheme} in ('MOBILE_JKN', 'TESTIMONI_PESERTA', 'ALUR_BEROBAT', 'EDUKATIF_PERSUASIF', 'KORPORAT', 'INFORMASI')`,
+    ),
   ],
 );
 
@@ -611,6 +641,10 @@ export const notifications = pgTable(
     index("notifications_recipient_read_idx").on(
       table.recipientId,
       table.readAt,
+    ),
+    index("notifications_recipient_created_idx").on(
+      table.recipientId,
+      table.createdAt,
     ),
     index("notifications_branch_idx").on(table.branchOfficeId),
     index("notifications_organization_idx").on(table.organizationId),

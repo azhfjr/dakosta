@@ -21,6 +21,7 @@ import type { ContentStatus } from "@/lib/content-status";
 import { errors } from "@/lib/errors";
 import { isValidCoordinate } from "@/lib/geo";
 import type { SessionUser } from "@/lib/session";
+import { isSubTheme, SUB_THEME_LABELS, type SubTheme } from "@/lib/taxonomy";
 
 export const MAP_STATUSES = [
   "ALL",
@@ -33,7 +34,7 @@ export type MapStatus = (typeof MAP_STATUSES)[number];
 
 export type MapFilters = {
   stakeholderId: string | null;
-  themeId: string | null;
+  subTheme: SubTheme | null;
   status: MapStatus;
 };
 
@@ -45,7 +46,7 @@ export type MapPoint = {
   platform: string;
   stakeholderId: string;
   stakeholderName: string;
-  themeId: string;
+  subTheme: SubTheme | null;
   themeName: string;
   latitude: number;
   longitude: number;
@@ -104,12 +105,12 @@ export function parseMapFilters(
   };
   const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   const stakeholderId = read("stakeholderId");
-  const themeId = read("themeId");
+  const subTheme = read("subTheme");
   const status = read("status");
 
   return {
     stakeholderId: stakeholderId && uuid.test(stakeholderId) ? stakeholderId : null,
-    themeId: themeId && uuid.test(themeId) ? themeId : null,
+    subTheme: isSubTheme(subTheme) ? subTheme : null,
     status: isMapStatus(status) ? status : "ALL",
   };
 }
@@ -139,8 +140,8 @@ function scopeConditions(user: SessionUser, filters: MapFilters): SQL[] {
       eq(schema.contentSubmissions.stakeholderId, filters.stakeholderId),
     );
   }
-  if (filters.themeId) {
-    conditions.push(eq(schema.contentSubmissions.themeId, filters.themeId));
+  if (filters.subTheme) {
+    conditions.push(eq(schema.contentSubmissions.subTheme, filters.subTheme));
   }
   if (filters.status !== "ALL") {
     conditions.push(eq(schema.contentSubmissions.status, filters.status));
@@ -209,7 +210,7 @@ export async function getMapOverview(
         platform: schema.contentSubmissions.platform,
         stakeholderId: schema.contentSubmissions.stakeholderId,
         stakeholderName: schema.stakeholders.name,
-        themeId: schema.contentSubmissions.themeId,
+        subTheme: schema.contentSubmissions.subTheme,
         themeName: schema.themes.name,
         latitude: schema.locations.latitude,
         longitude: schema.locations.longitude,
@@ -230,7 +231,7 @@ export async function getMapOverview(
         schema.stakeholders,
         eq(schema.stakeholders.id, schema.contentSubmissions.stakeholderId),
       )
-      .innerJoin(
+      .leftJoin(
         schema.themes,
         eq(schema.themes.id, schema.contentSubmissions.themeId),
       )
@@ -277,6 +278,7 @@ export async function getMapOverview(
     )
     .map<MapPoint>((row) => {
       const status = row.status as ContentStatus;
+      const subTheme = isSubTheme(row.subTheme) ? row.subTheme : null;
       return {
         id: row.id,
         referenceCode: row.referenceCode,
@@ -285,8 +287,9 @@ export async function getMapOverview(
         platform: row.platform,
         stakeholderId: row.stakeholderId,
         stakeholderName: row.stakeholderName,
-        themeId: row.themeId,
-        themeName: row.themeName,
+        subTheme,
+        themeName:
+          row.themeName ?? (subTheme ? SUB_THEME_LABELS[subTheme] : "Tanpa tema"),
         latitude: Number(row.latitude),
         longitude: Number(row.longitude),
         locationLabel: row.locationLabel,

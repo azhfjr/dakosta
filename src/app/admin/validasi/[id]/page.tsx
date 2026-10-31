@@ -16,6 +16,7 @@ import { StatusBadge } from "@/components/content/status-badge";
 import { Button } from "@/components/ui/button";
 import { AppError } from "@/lib/errors";
 import {
+  isPendingStatus,
   PLATFORM_LABEL,
   STATUS_LABEL,
   type ContentStatus,
@@ -72,8 +73,7 @@ export default async function ReviewDetailPage({
     throw error;
   }
 
-  const canReview =
-    detail.status === "SUBMITTED" || detail.status === "IN_REVIEW";
+  const canReview = isPendingStatus(detail.status);
   const mapLink = detail.location
     ? `https://www.openstreetmap.org/?mlat=${detail.location.latitude}&mlon=${detail.location.longitude}#map=16/${detail.location.latitude}/${detail.location.longitude}`
     : null;

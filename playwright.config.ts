@@ -1,5 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const E2E_PORT = process.env.E2E_PORT ?? "3300";
+const e2eOrigin = `http://localhost:${E2E_PORT}`;
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
@@ -11,7 +14,7 @@ export default defineConfig({
   globalSetup: "./e2e/global-setup.ts",
   globalTeardown: "./e2e/global-teardown.ts",
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000",
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? e2eOrigin,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     viewport: { width: 1440, height: 1000 },
@@ -21,8 +24,9 @@ export default defineConfig({
     ? undefined
     : {
         command: "npm run dev:e2e",
-        url: "http://localhost:3000/api/health",
+        url: `${e2eOrigin}/api/health`,
         reuseExistingServer: false,
         timeout: 180_000,
+        env: { PORT: E2E_PORT },
       },
 });

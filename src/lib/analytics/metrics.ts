@@ -4,10 +4,11 @@ import { and, count, countDistinct, eq, gte, inArray, isNotNull, lte, sql, type 
 
 import { getDb, schema } from "@/db";
 import { contentScopePredicate } from "@/lib/authz/predicates";
+import { PENDING_STATUSES } from "@/lib/content-status";
 import type { SessionUser } from "@/lib/session";
 import { monthKeyFor, monthRange, type AttributionMode } from "@/lib/kpi/formulas";
 
-export const PENDING_STATUSES = ["SUBMITTED", "IN_REVIEW", "RESUBMITTED"] as const;
+export { PENDING_STATUSES } from "@/lib/content-status";
 
 export type MetricFilters = {
   month?: string;

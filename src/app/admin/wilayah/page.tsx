@@ -32,9 +32,15 @@ export default async function AdminRegionsPage() {
       </header>
 
       {regions.length === 0 ? (
-        <p className="rounded-xl border border-border bg-surface px-5 py-12 text-center text-sm text-ink-muted">
-          Belum ada wilayah terdaftar.
-        </p>
+        <div className="rounded-xl border border-border bg-surface px-5 py-12 text-center">
+          <p className="text-sm font-medium text-foreground">
+            Belum ada wilayah terdaftar
+          </p>
+          <p className="mx-auto mt-1 max-w-md text-sm text-ink-muted">
+            Mulai dari wilayah, lalu tambahkan cabang dan organisasi. Gunakan tombol
+            “Tambah wilayah” di kanan atas untuk membuat wilayah pertama.
+          </p>
+        </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-border bg-surface shadow-sm">
           <table className="w-full min-w-[52rem] border-collapse text-sm">

@@ -2,6 +2,11 @@
 !.env.example
 .vercel
 .agents
+.next
+.next-*
+node_modules
+backups
+.secrets
 e2e/.auth
 test-results
 playwright-report

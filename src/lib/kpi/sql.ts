@@ -4,7 +4,6 @@ import {
   and,
   asc,
   count,
-  countDistinct,
   desc,
   eq,
   gte,
@@ -25,7 +24,11 @@ import {
   organizationScopePredicate,
 } from "@/lib/authz/predicates";
 import { getAccessibleStakeholderIds } from "@/lib/rbac";
-import type { ContentStatus } from "@/lib/content-status";
+import {
+  isPendingStatus,
+  PENDING_STATUSES,
+  type ContentStatus,
+} from "@/lib/content-status";
 import { errors } from "@/lib/errors";
 import {
   achievementPercent,
@@ -52,6 +55,13 @@ import {
   type TargetSource,
 } from "@/lib/kpi/formulas";
 import type { SessionUser } from "@/lib/session";
+import { resolveAggregateTarget, resolveTargetAmount } from "@/lib/targets";
+import {
+  isSubTheme,
+  SUB_THEMES,
+  SUB_THEME_LABELS,
+  type SubTheme,
+} from "@/lib/taxonomy";
 
 export const kpiQuerySchema = z.object({
   month: z
@@ -60,7 +70,7 @@ export const kpiQuerySchema = z.object({
     .optional(),
   attribution: z.enum(["approved_at", "date_created"]).optional(),
   stakeholderId: z.string().uuid().optional(),
-  themeId: z.string().uuid().optional(),
+  subTheme: z.enum(SUB_THEMES).optional(),
 });
 
 function firstValue(value: string | string[] | undefined): string | undefined {
@@ -78,11 +88,12 @@ export function parseKpiFiltersFromParams(
 ): KpiFilters {
   const month = firstValue(params.month);
   const attribution = firstValue(params.attribution);
+  const subTheme = firstValue(params.subTheme);
   return {
     month: isMonthKey(month) ? month : monthKeyFor(),
     attribution: attribution === "approved_at" ? "approved_at" : "date_created",
     stakeholderId: optionalUuid(firstValue(params.stakeholderId)),
-    themeId: optionalUuid(firstValue(params.themeId)),
+    subTheme: isSubTheme(subTheme) ? subTheme : null,
   };
 }
 
@@ -92,7 +103,7 @@ export function parseKpiFiltersFromQuery(searchParams: URLSearchParams): KpiFilt
     month: parsed.month ?? monthKeyFor(),
     attribution: parsed.attribution ?? "date_created",
     stakeholderId: parsed.stakeholderId ?? null,
-    themeId: parsed.themeId ?? null,
+    subTheme: (parsed.subTheme as SubTheme | undefined) ?? null,
   };
 }
 
@@ -142,8 +153,8 @@ function scopeConditions(user: SessionUser, filters: KpiFilters): SQL[] {
     );
   }
 
-  if (filters.themeId) {
-    conditions.push(eq(schema.contentSubmissions.themeId, filters.themeId));
+  if (filters.subTheme) {
+    conditions.push(eq(schema.contentSubmissions.subTheme, filters.subTheme));
   }
 
   return conditions;
@@ -151,6 +162,7 @@ function scopeConditions(user: SessionUser, filters: KpiFilters): SQL[] {
 
 type TargetRow = {
   stakeholderId: string | null;
+  subTheme: string | null;
   themeId: string | null;
   targetCount: number;
 };
@@ -161,51 +173,18 @@ function resolveTarget(
   filters: KpiFilters,
   targetRows: TargetRow[],
 ): { target: number | null; source: TargetSource | null } {
-  const find = (stakeholderId: string | null, themeId: string | null) =>
-    targetRows.find(
-      (row) => row.stakeholderId === stakeholderId && row.themeId === themeId,
-    );
-
   if (role === "MASTER_ADMIN") {
-    if (filters.stakeholderId && filters.themeId) {
-      const row = find(filters.stakeholderId, filters.themeId);
-      return { target: row?.targetCount ?? null, source: row ? "STAKEHOLDER_THEME" : null };
-    }
-    if (filters.stakeholderId) {
-      const row = find(filters.stakeholderId, null);
-      return { target: row?.targetCount ?? null, source: row ? "STAKEHOLDER" : null };
-    }
-    if (filters.themeId) {
-      const row = find(null, filters.themeId);
-      return { target: row?.targetCount ?? null, source: row ? "THEME" : null };
-    }
-    const row = find(null, null);
-    return { target: row?.targetCount ?? null, source: row ? "GLOBAL" : null };
+    return resolveTargetAmount(targetRows, {
+      stakeholderId: filters.stakeholderId,
+      subTheme: filters.subTheme,
+    });
   }
 
   const owned = filters.stakeholderId
     ? userStakeholderIds.filter((id) => id === filters.stakeholderId)
     : userStakeholderIds;
 
-  if (owned.length === 0) return { target: null, source: null };
-
-  const scoped = owned.map((stakeholderId) =>
-    find(stakeholderId, filters.themeId ?? null),
-  );
-
-  if (scoped.some((row) => !row)) {
-    return { target: null, source: null };
-  }
-
-  const target = scoped.reduce((sum, row) => sum + (row?.targetCount ?? 0), 0);
-  const source: TargetSource =
-    owned.length > 1
-      ? "AGGREGATE"
-      : filters.themeId
-        ? "STAKEHOLDER_THEME"
-        : "STAKEHOLDER";
-
-  return { target, source };
+  return resolveAggregateTarget(targetRows, owned, filters.subTheme);
 }
 
 function toMetric(value: number, target: number | null, source: TargetSource | null): KpiMetric {
@@ -218,9 +197,24 @@ function toMetric(value: number, target: number | null, source: TargetSource | n
 }
 
 function mapItems(
-  rows: Array<Omit<DrilldownItem, "status"> & { status: string }>,
+  rows: Array<
+    Omit<DrilldownItem, "status" | "subTheme" | "themeName"> & {
+      status: string;
+      subTheme: string | null;
+      themeName: string | null;
+    }
+  >,
 ): DrilldownItem[] {
-  return rows.map((row) => ({ ...row, status: row.status as ContentStatus }));
+  return rows.map((row) => {
+    const subTheme = isSubTheme(row.subTheme) ? row.subTheme : null;
+    return {
+      ...row,
+      status: row.status as ContentStatus,
+      subTheme,
+      themeName:
+        row.themeName ?? (subTheme ? SUB_THEME_LABELS[subTheme] : "Tanpa tema"),
+    };
+  });
 }
 
 async function assertClientScope(
@@ -285,7 +279,7 @@ export async function getDashboardOverview(
     status: schema.contentSubmissions.status,
     stakeholderId: schema.contentSubmissions.stakeholderId,
     stakeholderName: schema.stakeholders.name,
-    themeId: schema.contentSubmissions.themeId,
+    subTheme: schema.contentSubmissions.subTheme,
     themeName: schema.themes.name,
     platform: schema.contentSubmissions.platform,
     dateCreated: schema.contentSubmissions.dateCreated,
@@ -295,13 +289,10 @@ export async function getDashboardOverview(
   };
 
   const [
-    approvedRows,
-    previousApprovedRows,
+    countRows,
     statusRows,
-    activeRows,
     trendRows,
     themeRows,
-    themeCatalog,
     topStakeholderRows,
     approvedItems,
     pendingItems,
@@ -310,27 +301,21 @@ export async function getDashboardOverview(
     leadRows,
     targetRows,
     stakeholderRow,
-    themeRow,
+    ownedStakeholderIds,
   ] = await Promise.all([
     db
-      .select({ total: count() })
+      .select({
+        approvedCurrent: sql<number>`count(*) filter (where ${approvedCurrent})`,
+        approvedPrevious: sql<number>`count(*) filter (where ${approvedPrevious})`,
+        activeStakeholders: sql<number>`count(distinct ${schema.contentSubmissions.stakeholderId}) filter (where ${submittedInPeriod})`,
+      })
       .from(schema.contentSubmissions)
-      .where(approvedCurrent),
-    db
-      .select({ total: count() })
-      .from(schema.contentSubmissions)
-      .where(approvedPrevious),
+      .where(scope),
     db
       .select({ status: schema.contentSubmissions.status, total: count() })
       .from(schema.contentSubmissions)
       .where(submittedInPeriod)
       .groupBy(schema.contentSubmissions.status),
-    db
-      .select({
-        total: countDistinct(schema.contentSubmissions.stakeholderId),
-      })
-      .from(schema.contentSubmissions)
-      .where(submittedInPeriod),
     db
       .select({ day: trendDay, total: count() })
       .from(schema.contentSubmissions)
@@ -338,17 +323,12 @@ export async function getDashboardOverview(
       .groupBy(trendDay),
     db
       .select({
-        themeId: schema.contentSubmissions.themeId,
+        subTheme: schema.contentSubmissions.subTheme,
         total: count(),
       })
       .from(schema.contentSubmissions)
       .where(approvedCurrent)
-      .groupBy(schema.contentSubmissions.themeId),
-    db
-      .select({ id: schema.themes.id, name: schema.themes.name })
-      .from(schema.themes)
-      .where(eq(schema.themes.active, true))
-      .orderBy(asc(schema.themes.sortOrder)),
+      .groupBy(schema.contentSubmissions.subTheme),
     db
       .select({
         id: schema.stakeholders.id,
@@ -371,7 +351,7 @@ export async function getDashboardOverview(
         schema.stakeholders,
         eq(schema.stakeholders.id, schema.contentSubmissions.stakeholderId),
       )
-      .innerJoin(
+      .leftJoin(
         schema.themes,
         eq(schema.themes.id, schema.contentSubmissions.themeId),
       )
@@ -390,14 +370,14 @@ export async function getDashboardOverview(
         schema.stakeholders,
         eq(schema.stakeholders.id, schema.contentSubmissions.stakeholderId),
       )
-      .innerJoin(
+      .leftJoin(
         schema.themes,
         eq(schema.themes.id, schema.contentSubmissions.themeId),
       )
       .where(
         whereAll(
           scope,
-          inArray(schema.contentSubmissions.status, ["SUBMITTED", "IN_REVIEW"]),
+          inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]),
           submittedCondition(range),
         ),
       )
@@ -410,7 +390,7 @@ export async function getDashboardOverview(
         schema.stakeholders,
         eq(schema.stakeholders.id, schema.contentSubmissions.stakeholderId),
       )
-      .innerJoin(
+      .leftJoin(
         schema.themes,
         eq(schema.themes.id, schema.contentSubmissions.themeId),
       )
@@ -457,10 +437,13 @@ export async function getDashboardOverview(
     db
       .select({
         stakeholderId: schema.kpiTargets.stakeholderId,
+        subTheme: schema.kpiTargets.subTheme,
         themeId: schema.kpiTargets.themeId,
+        themeSlug: schema.themes.slug,
         targetCount: schema.kpiTargets.targetCount,
       })
       .from(schema.kpiTargets)
+      .leftJoin(schema.themes, eq(schema.themes.id, schema.kpiTargets.themeId))
       .where(
         and(
           eq(schema.kpiTargets.periodStart, range.startLocal),
@@ -475,17 +458,14 @@ export async function getDashboardOverview(
           .where(eq(schema.stakeholders.id, filters.stakeholderId))
           .limit(1)
       : Promise.resolve([] as Array<{ name: string }>),
-    filters.themeId
-      ? db
-          .select({ name: schema.themes.name })
-          .from(schema.themes)
-          .where(eq(schema.themes.id, filters.themeId))
-          .limit(1)
-      : Promise.resolve([] as Array<{ name: string }>),
+    user.scope.kind === "GLOBAL"
+      ? Promise.resolve([] as string[])
+      : getAccessibleStakeholderIds(user),
   ]);
 
-  const approvedValue = Number(approvedRows[0]?.total ?? 0);
-  const previousApproved = Number(previousApprovedRows[0]?.total ?? 0);
+  const approvedValue = Number(countRows[0]?.approvedCurrent ?? 0);
+  const previousApproved = Number(countRows[0]?.approvedPrevious ?? 0);
+  const activeStakeholderCount = Number(countRows[0]?.activeStakeholders ?? 0);
   const reviewed = reviewRows.reduce((sum, row) => sum + Number(row.total), 0);
   const approveDecisions = reviewRows
     .filter((row) => row.action === "APPROVE")
@@ -495,17 +475,15 @@ export async function getDashboardOverview(
     .map((row) => leadTimeDays(row.submittedAt, row.decidedAt))
     .filter((value): value is number => value !== null);
 
-  const ownedStakeholderIds =
-    user.scope.kind === "GLOBAL"
-      ? []
-      : (await getAccessibleStakeholderIds(user));
   const resolvedTarget = resolveTarget(
     user.role,
     ownedStakeholderIds,
     filters,
     targetRows.map((row) => ({
       stakeholderId: row.stakeholderId,
+      subTheme: row.subTheme,
       themeId: row.themeId,
+      themeSlug: row.themeSlug,
       targetCount: Number(row.targetCount),
     })),
   );
@@ -517,7 +495,7 @@ export async function getDashboardOverview(
 
   const submitted = statusCounts.reduce((sum, row) => sum + row.total, 0);
   const pending = statusCounts
-    .filter((row) => row.status === "SUBMITTED" || row.status === "IN_REVIEW")
+    .filter((row) => isPendingStatus(row.status))
     .reduce((sum, row) => sum + row.total, 0);
   const revision = statusCounts
     .filter((row) => row.status === "REVISION_REQUIRED")
@@ -531,12 +509,12 @@ export async function getDashboardOverview(
   }));
 
   const themeMap = new Map(
-    themeRows.map((row) => [row.themeId, Number(row.total)]),
+    themeRows.map((row) => [row.subTheme, Number(row.total)]),
   );
-  const themes: NamedTotal[] = themeCatalog.map((theme) => ({
-    id: theme.id,
-    name: theme.name,
-    total: themeMap.get(theme.id) ?? 0,
+  const themes: NamedTotal[] = SUB_THEMES.map((subTheme) => ({
+    id: subTheme,
+    name: SUB_THEME_LABELS[subTheme],
+    total: themeMap.get(subTheme) ?? 0,
   }));
 
   const stakeholders: NamedTotal[] = topStakeholderRows.map((row) => ({
@@ -559,7 +537,7 @@ export async function getDashboardOverview(
       restricted: user.scope.kind !== "GLOBAL",
       stakeholderIds: ownedStakeholderIds,
       stakeholderName: stakeholderRow[0]?.name ?? null,
-      themeName: themeRow[0]?.name ?? null,
+      themeName: filters.subTheme ? SUB_THEME_LABELS[filters.subTheme] : null,
     },
     approved: toMetric(approvedValue, resolvedTarget.target, resolvedTarget.source),
     previousApproved,
@@ -573,7 +551,7 @@ export async function getDashboardOverview(
     leadTimeMedianDays: median(leadValues),
     leadTimeAverageDays: average(leadValues),
     approvalSamples: leadValues.length,
-    activeStakeholders: Number(activeRows[0]?.total ?? 0),
+    activeStakeholders: activeStakeholderCount,
     statusCounts,
     trend,
     themes,
@@ -607,7 +585,7 @@ export async function getMonthlyTrend(
   const approvedMonth =
     filters.attribution === "approved_at"
       ? sql<string>`to_char(${schema.contentSubmissions.approvedAt} at time zone 'Asia/Jakarta', 'YYYY-MM')`
-      : sql<string>`substring(${schema.contentSubmissions.dateCreated} from 1 for 7)`;
+      : sql<string>`to_char(${schema.contentSubmissions.dateCreated}, 'YYYY-MM')`;
 
   const approvedWhere = whereAll(
     scope,
@@ -704,20 +682,16 @@ export async function getKpiFilterOptions(user: SessionUser) {
     branchId: schema.stakeholders.branchOfficeId,
   });
 
-  const [stakeholders, themes] = await Promise.all([
-    db
-      .select({ id: schema.stakeholders.id, name: schema.stakeholders.name })
-      .from(schema.stakeholders)
-      .where(
-        whereAll(eq(schema.stakeholders.status, "ACTIVE"), stakeholderScope),
-      )
-      .orderBy(asc(schema.stakeholders.name)),
-    db
-      .select({ id: schema.themes.id, name: schema.themes.name })
-      .from(schema.themes)
-      .where(eq(schema.themes.active, true))
-      .orderBy(asc(schema.themes.sortOrder)),
-  ]);
+  const stakeholders = await db
+    .select({ id: schema.stakeholders.id, name: schema.stakeholders.name })
+    .from(schema.stakeholders)
+    .where(whereAll(eq(schema.stakeholders.status, "ACTIVE"), stakeholderScope))
+    .orderBy(asc(schema.stakeholders.name));
+
+  const themes = SUB_THEMES.map((subTheme) => ({
+    id: subTheme,
+    name: SUB_THEME_LABELS[subTheme],
+  }));
 
   return { stakeholders, themes };
 }

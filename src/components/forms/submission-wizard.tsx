@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   Check,
@@ -92,10 +92,11 @@ type FieldErrors = Partial<
 export type EdufastPolicySnapshot = Record<string, SubTheme[]>;
 
 type DuplicateInfo = {
-  submissionId: string;
-  referenceCode: string;
-  status: string;
-  stakeholderName: string;
+  inScope?: boolean;
+  submissionId?: string;
+  referenceCode?: string;
+  status?: string;
+  stakeholderName?: string;
 };
 
 type SavedResponse = {
@@ -119,7 +120,25 @@ const STEPS: Array<{ number: StepNumber; title: string; hint: string }> = [
   { number: 4, title: "Tinjau", hint: "Kirim" },
 ];
 
-const DRAFT_KEY = "dakosta:lapor:draft:v1";
+const DRAFT_KEY_BASE = "dakosta:lapor:draft:v1";
+
+export type SubmissionWizardInitial = {
+  submissionId: string;
+  referenceCode: string;
+  stakeholderId: string;
+  publishedUrl: string;
+  platform: string;
+  contentType: string | null;
+  mainTheme: string | null;
+  subTheme: string | null;
+  title: string | null;
+  narrative: string;
+  dateCreated: string;
+  publishedAt: string | null;
+  location: PickedLocation | null;
+  locationLabel: string | null;
+  decisionReason: string | null;
+};
 
 type DraftState = {
   submissionId: string | null;
@@ -171,33 +190,56 @@ export function SubmissionWizard({
   stakeholders,
   edufastPolicies,
   today,
+  initial,
 }: {
   stakeholders: WizardStakeholder[];
   edufastPolicies: EdufastPolicySnapshot;
   today: string;
+  initial?: SubmissionWizardInitial;
 }) {
   const router = useRouter();
+  const draftKey = initial
+    ? `${DRAFT_KEY_BASE}:${initial.submissionId}`
+    : DRAFT_KEY_BASE;
 
-  const [step, setStep] = useState<StepNumber>(1);
+  const [step, setStep] = useState<StepNumber>(initial ? 2 : 1);
   const [draftLoaded, setDraftLoaded] = useState(false);
 
-  const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const [submissionId, setSubmissionId] = useState<string | null>(
+    initial?.submissionId ?? null,
+  );
   const [idempotencyKey, setIdempotencyKey] = useState(createIdempotencyKey);
   const [stakeholderId, setStakeholderId] = useState(
-    stakeholders.length === 1 ? stakeholders[0]!.id : "",
+    initial?.stakeholderId ??
+      (stakeholders.length === 1 ? stakeholders[0]!.id : ""),
   );
-  const [publishedUrl, setPublishedUrl] = useState("");
-  const [platform, setPlatform] = useState<string>("INSTAGRAM");
-  const [contentType, setContentType] = useState<ContentType | "">("");
-  const [mainTheme, setMainTheme] = useState<MainTheme>("NON_EDUFAST");
-  const [subTheme, setSubTheme] = useState<SubTheme | "">("");
-  const [title, setTitle] = useState("");
-  const [narrative, setNarrative] = useState("");
-  const [dateCreated, setDateCreated] = useState(today);
-  const [publishedAt, setPublishedAt] = useState(today);
-  const [location, setLocation] = useState<PickedLocation | null>(null);
-  const [locationLabel, setLocationLabel] = useState("");
+  const [publishedUrl, setPublishedUrl] = useState(initial?.publishedUrl ?? "");
+  const [platform, setPlatform] = useState<string>(
+    initial?.platform ?? "INSTAGRAM",
+  );
+  const [contentType, setContentType] = useState<ContentType | "">(
+    (initial?.contentType as ContentType | null) ?? "",
+  );
+  const [mainTheme, setMainTheme] = useState<MainTheme>(
+    initial?.mainTheme === "EDUFAST" ? "EDUFAST" : "NON_EDUFAST",
+  );
+  const [subTheme, setSubTheme] = useState<SubTheme | "">(
+    (initial?.subTheme as SubTheme | null) ?? "",
+  );
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [narrative, setNarrative] = useState(initial?.narrative ?? "");
+  const [dateCreated, setDateCreated] = useState(initial?.dateCreated ?? today);
+  const [publishedAt, setPublishedAt] = useState(
+    initial?.publishedAt ?? today,
+  );
+  const [location, setLocation] = useState<PickedLocation | null>(
+    initial?.location ?? null,
+  );
+  const [locationLabel, setLocationLabel] = useState(
+    initial?.locationLabel ?? "",
+  );
   const [privacyAttested, setPrivacyAttested] = useState(false);
+  const draftRef = useRef<{ key: string; draft: DraftState } | null>(null);
 
   const [errors, setErrors] = useState<FieldErrors>({});
   const [pending, setPending] = useState<"DRAFT" | "SUBMIT" | null>(null);
@@ -223,8 +265,12 @@ export function SubmissionWizard({
   useEffect(() => {
     // Hidrasi draf sekali setelah mount: localStorage tidak tersedia saat SSR.
     /* eslint-disable react-hooks/set-state-in-effect */
+    if (initial) {
+      setDraftLoaded(true);
+      return;
+    }
     try {
-      const raw = window.localStorage.getItem(DRAFT_KEY);
+      const raw = window.localStorage.getItem(draftKey);
       if (raw) {
         const draft = JSON.parse(raw) as Partial<DraftState>;
         if (typeof draft.submissionId === "string") setSubmissionId(draft.submissionId);
@@ -266,7 +312,7 @@ export function SubmissionWizard({
       setDraftLoaded(true);
     }
     /* eslint-enable react-hooks/set-state-in-effect */
-  }, []);
+  }, [initial, draftKey]);
 
   useEffect(() => {
     if (!draftLoaded || result) return;
@@ -287,14 +333,20 @@ export function SubmissionWizard({
       locationLabel,
       privacyAttested,
     };
-    try {
-      window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-    } catch {
-      // Penyimpanan lokal penuh atau diblokir; server tetap sumber kebenaran.
-    }
+    draftRef.current = { key: draftKey, draft };
+    // Ketikan cepat dibundel supaya localStorage tidak ditulis setiap karakter.
+    const timer = window.setTimeout(() => {
+      try {
+        window.localStorage.setItem(draftKey, JSON.stringify(draft));
+      } catch {
+        // Penyimpanan lokal penuh atau diblokir; server tetap sumber kebenaran.
+      }
+    }, 400);
+    return () => window.clearTimeout(timer);
   }, [
     draftLoaded,
     result,
+    draftKey,
     submissionId,
     idempotencyKey,
     stakeholderId,
@@ -311,6 +363,24 @@ export function SubmissionWizard({
     locationLabel,
     privacyAttested,
   ]);
+
+  useEffect(() => {
+    if (result) draftRef.current = null;
+  }, [result]);
+
+  useEffect(() => {
+    function flush() {
+      const current = draftRef.current;
+      if (!current) return;
+      try {
+        window.localStorage.setItem(current.key, JSON.stringify(current.draft));
+      } catch {
+        // Tidak ada yang dapat dilakukan saat halaman ditinggalkan.
+      }
+    }
+    window.addEventListener("pagehide", flush);
+    return () => window.removeEventListener("pagehide", flush);
+  }, []);
 
   function validateStep(target: StepNumber): boolean {
     const next: FieldErrors = {};
@@ -410,7 +480,7 @@ export function SubmissionWizard({
     setErrors({});
     setLastSavedAt(null);
     try {
-      window.localStorage.removeItem(DRAFT_KEY);
+      window.localStorage.removeItem(draftKey);
     } catch {
       // abaikan
     }
@@ -498,11 +568,15 @@ export function SubmissionWizard({
       setSubmissionId(saved.id);
       setDuplicateInfo(null);
       try {
-        window.localStorage.removeItem(DRAFT_KEY);
+        window.localStorage.removeItem(draftKey);
       } catch {
         // abaikan
       }
-      toast.success("Konten terkirim untuk validasi admin.");
+      toast.success(
+        initial
+          ? "Perbaikan terkirim ulang untuk validasi admin."
+          : "Konten terkirim untuk validasi admin.",
+      );
     } catch {
       setErrors({ form: "Tidak dapat menghubungi server. Periksa koneksi Anda." });
     } finally {
@@ -587,6 +661,23 @@ export function SubmissionWizard({
           Empat langkah singkat. Simpan draf kapan saja; draf tidak dihitung sebagai
           capaian.
         </p>
+
+        {initial ? (
+          <div className="mt-3 rounded-lg border border-status-revision/30 bg-status-revision/5 px-3 py-2 text-sm">
+            <p className="font-medium text-foreground">
+              Memperbaiki konten {initial.referenceCode}
+            </p>
+            {initial.decisionReason ? (
+              <p className="mt-1 text-ink-muted">
+                Catatan reviewer: {initial.decisionReason}
+              </p>
+            ) : null}
+            <p className="mt-1 text-xs text-ink-muted">
+              Perubahan akan dikirim ulang sebagai revisi. Capaian tetap belum
+              dihitung sampai disetujui.
+            </p>
+          </div>
+        ) : null}
 
         <ol className="mt-4 grid gap-2 sm:grid-cols-4" aria-label="Langkah pelaporan">
           {STEPS.map((item) => {
@@ -1128,9 +1219,9 @@ export function SubmissionWizard({
               Tautan sudah pernah dilaporkan
             </DialogTitle>
             <DialogDescription>
-              Tautan ini cocok dengan konten {duplicateInfo?.referenceCode} milik{" "}
-              {duplicateInfo?.stakeholderName}. Periksa daftar konten terlebih dahulu bila
-              Anda tidak yakin.
+              {duplicateInfo?.referenceCode && duplicateInfo?.stakeholderName
+                ? `Tautan ini cocok dengan konten ${duplicateInfo.referenceCode} milik ${duplicateInfo.stakeholderName}. Periksa daftar konten terlebih dahulu bila Anda tidak yakin.`
+                : "Tautan ini sudah pernah dilaporkan pada organisasi lain. Periksa daftar konten Anda terlebih dahulu bila tidak yakin."}
             </DialogDescription>
           </DialogHeader>
           <div className="rounded-lg border border-status-review/30 bg-status-review/10 px-3 py-2 text-sm text-status-revision">

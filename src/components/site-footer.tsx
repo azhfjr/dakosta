@@ -26,8 +26,7 @@ export function SiteFooter({ compact = false }: { compact?: boolean }) {
               : "max-w-4xl text-sm leading-relaxed text-ink-muted"
           }
         >
-          DAKOSTA — Proyek independen oleh Ratu Sevilla Hizriyah. Tidak
-          berafiliasi dengan atau mewakili BPJS Kesehatan.
+          DAKOSTA — Proyek independen oleh Ratu Sevilla Hizriyah.
           {isDemoMode
             ? " Seluruh data pada mode demo bersifat sintetis dan berlabel DEMO."
             : " Tidak ada data pribadi peserta, NIK, atau nomor JKN."}

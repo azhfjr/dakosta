@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 import { StatusBadge } from "@/components/content/status-badge";
-import { LazyKpiCharts } from "@/components/dashboard/kpi-charts-lazy";
+import { DeferredKpiCharts } from "@/components/dashboard/kpi-charts-lazy";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Button } from "@/components/ui/button";
 import { PLATFORM_LABEL } from "@/lib/content-status";
@@ -348,8 +348,8 @@ export function KpiDashboard({
               </label>
               <select
                 id="kpi-theme"
-                name="themeId"
-                defaultValue={overview.filters.themeId ?? ""}
+                name="subTheme"
+                defaultValue={overview.filters.subTheme ?? ""}
                 className={selectClass}
               >
                 <option value="">Semua tema</option>
@@ -545,7 +545,7 @@ export function KpiDashboard({
         )}
       </section>
 
-      <LazyKpiCharts
+      <DeferredKpiCharts
         trend={overview.trend}
         statusCounts={overview.statusCounts}
         themes={overview.themes}

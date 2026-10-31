@@ -19,7 +19,8 @@ export function toCsv(headers: string[], rows: Array<Array<unknown>>): string {
   return `\uFEFF${lines.join("\r\n")}\r\n`;
 }
 
-export function csvFileName(prefix: string, date = new Date()): string {
+export function csvFileName(prefix: string, date = new Date(), period?: string): string {
+  if (period) return `${prefix}-${period}.csv`;
   const stamp = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Jakarta",
     year: "numeric",

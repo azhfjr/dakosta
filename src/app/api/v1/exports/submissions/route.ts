@@ -18,6 +18,13 @@ import {
   isOrganizationInScope,
 } from "@/lib/authz/predicates";
 import { getApiUser } from "@/lib/session";
+import {
+  currentPeriod,
+  isSubTheme,
+  MAIN_THEME_LABELS,
+  SUB_THEME_LABELS,
+  type MainTheme,
+} from "@/lib/taxonomy";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -62,7 +69,8 @@ export async function GET(request: Request) {
         ? rawStatus
         : null;
     const stakeholderId = param(url.searchParams, "stakeholderId");
-    const themeId = param(url.searchParams, "themeId");
+    const rawSubTheme = url.searchParams.get("subTheme");
+    const subTheme = isSubTheme(rawSubTheme) ? rawSubTheme : null;
 
     if (stakeholderId && user.scope.kind !== "GLOBAL") {
       const [organization] = await getDb()
@@ -98,8 +106,8 @@ export async function GET(request: Request) {
     if (stakeholderId) {
       conditions.push(eq(schema.contentSubmissions.stakeholderId, stakeholderId));
     }
-    if (themeId) {
-      conditions.push(eq(schema.contentSubmissions.themeId, themeId));
+    if (subTheme) {
+      conditions.push(eq(schema.contentSubmissions.subTheme, subTheme));
     }
 
     const rows = await getDb()
@@ -107,7 +115,8 @@ export async function GET(request: Request) {
         referenceCode: schema.contentSubmissions.referenceCode,
         title: schema.contentSubmissions.title,
         stakeholderName: schema.stakeholders.name,
-        themeName: schema.themes.name,
+        mainTheme: schema.contentSubmissions.mainTheme,
+        subTheme: schema.contentSubmissions.subTheme,
         platform: schema.contentSubmissions.platform,
         status: schema.contentSubmissions.status,
         dateCreated: schema.contentSubmissions.dateCreated,
@@ -125,10 +134,6 @@ export async function GET(request: Request) {
         eq(schema.stakeholders.id, schema.contentSubmissions.stakeholderId),
       )
       .innerJoin(
-        schema.themes,
-        eq(schema.themes.id, schema.contentSubmissions.themeId),
-      )
-      .innerJoin(
         schema.locations,
         eq(schema.locations.id, schema.contentSubmissions.locationId),
       )
@@ -141,7 +146,8 @@ export async function GET(request: Request) {
         "Referensi",
         "Judul",
         "Stakeholder",
-        "Tema",
+        "Tema utama",
+        "Sub-tema",
         "Platform",
         "Status",
         "Tanggal konten",
@@ -158,7 +164,10 @@ export async function GET(request: Request) {
         row.referenceCode,
         row.title ?? "",
         row.stakeholderName,
-        row.themeName,
+        row.mainTheme
+          ? (MAIN_THEME_LABELS[row.mainTheme as MainTheme] ?? row.mainTheme)
+          : "",
+        isSubTheme(row.subTheme) ? SUB_THEME_LABELS[row.subTheme] : "",
         PLATFORM_LABEL[row.platform] ?? row.platform,
         STATUS_LABEL[row.status as keyof typeof STATUS_LABEL] ?? row.status,
         formatDateId(row.dateCreated),
@@ -179,14 +188,14 @@ export async function GET(request: Request) {
       action: "EXPORT_GENERATED",
       recordType: "EXPORT",
       recordId: "submissions",
-      after: { format: "csv", rows: rows.length, status, stakeholderId, themeId, requestId },
+      after: { format: "csv", rows: rows.length, status, stakeholderId, subTheme, requestId },
     });
 
     return new NextResponse(csv, {
       status: 200,
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": `attachment; filename="${csvFileName("dakosta-konten")}"`,
+        "Content-Disposition": `attachment; filename="${csvFileName("dakosta-konten", new Date(), currentPeriod())}"`,
         "Cache-Control": "no-store",
         ...rateHeaders,
       },

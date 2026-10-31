@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2, FileUp, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 
+import { isStepUpRequired, useStepUp } from "@/components/auth/step-up-dialog";
 import { Button } from "@/components/ui/button";
 import { formatNumberId } from "@/lib/dates";
 import type { ImportPreview } from "@/lib/imports/accounts";
@@ -45,6 +46,7 @@ function CopyAll({ result }: { result: CommitResult }) {
 
 export function ImportWizard() {
   const router = useRouter();
+  const { prompt: promptStepUp, dialog: stepUpDialog } = useStepUp();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [result, setResult] = useState<CommitResult | null>(null);
@@ -83,30 +85,40 @@ export function ImportWizard() {
 
   async function runCommit() {
     if (!preview) return;
-    setBusy("commit");
-    try {
-      const response = await fetch("/api/v1/admin/imports/commit", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ importId: preview.importId }),
-      });
-      const body = (await response.json()) as {
-        data?: CommitResult;
-        error?: { message?: string };
-      };
-      if (!response.ok || !body.data) {
-        toast.error(body.error?.message ?? "Eksekusi impor gagal.");
-        return;
+    const current = preview;
+
+    async function attempt() {
+      setBusy("commit");
+      try {
+        const response = await fetch("/api/v1/admin/imports/commit", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ importId: current.importId }),
+        });
+        const body = (await response.json()) as {
+          data?: CommitResult;
+          error?: { code?: string; message?: string };
+        };
+        if (isStepUpRequired(response, body)) {
+          promptStepUp(attempt);
+          return;
+        }
+        if (!response.ok || !body.data) {
+          toast.error(body.error?.message ?? "Eksekusi impor gagal.");
+          return;
+        }
+        setResult(body.data);
+        setPreview(null);
+        toast.success(`${body.data.created} akun dibuat.`);
+        router.refresh();
+      } catch {
+        toast.error("Tidak dapat menghubungi server.");
+      } finally {
+        setBusy(null);
       }
-      setResult(body.data);
-      setPreview(null);
-      toast.success(`${body.data.created} akun dibuat.`);
-      router.refresh();
-    } catch {
-      toast.error("Tidak dapat menghubungi server.");
-    } finally {
-      setBusy(null);
     }
+
+    await attempt();
   }
 
   return (
@@ -300,6 +312,7 @@ export function ImportWizard() {
           </p>
         </section>
       ) : null}
+      {stepUpDialog}
     </div>
   );
 }

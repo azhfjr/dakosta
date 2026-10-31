@@ -1,6 +1,8 @@
 import path from "node:path";
 
-export const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
+export const baseURL =
+  process.env.PLAYWRIGHT_BASE_URL ??
+  `http://localhost:${process.env.E2E_PORT ?? "3300"}`;
 export const AUTH_DIR = path.join("e2e", ".auth");
 
 export type DemoRole =

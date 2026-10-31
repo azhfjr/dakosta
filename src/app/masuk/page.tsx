@@ -52,8 +52,7 @@ export default async function MasukPage() {
             </div>
 
             <p className="relative max-w-md text-sm leading-relaxed text-ink-muted">
-              Proyek demonstrasi pribadi. Tidak berafiliasi dengan atau
-              mewakili BPJS Kesehatan.
+              Proyek demonstrasi pribadi.
             </p>
           </section>
 

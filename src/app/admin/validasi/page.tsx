@@ -19,6 +19,7 @@ import {
   listReviewQueueOptions,
 } from "@/lib/review";
 import { requireRole } from "@/lib/session";
+import { isSubTheme, type SubTheme } from "@/lib/taxonomy";
 
 export const metadata: Metadata = {
   title: "Validasi konten",
@@ -55,6 +56,10 @@ function parseStatus(value: string | undefined): TabKey {
 
 function parseUuid(value: string | undefined): string | undefined {
   return value && UUID_PATTERN.test(value) ? value : undefined;
+}
+
+function parseSubTheme(value: string | undefined): SubTheme | undefined {
+  return isSubTheme(value) ? value : undefined;
 }
 
 function buildQuery(params: Record<string, string | undefined>): string {
@@ -95,7 +100,7 @@ export default async function ReviewQueuePage({
 
   const status = parseStatus(firstParam(params.status));
   const stakeholderId = parseUuid(firstParam(params.stakeholderId));
-  const themeId = parseUuid(firstParam(params.themeId));
+  const subTheme = parseSubTheme(firstParam(params.subTheme));
   const search = firstParam(params.q)?.trim().slice(0, 120) || undefined;
   const page = Math.max(Number(firstParam(params.page) ?? 1) || 1, 1);
 
@@ -103,7 +108,7 @@ export default async function ReviewQueuePage({
     listReviewQueue(admin, {
       status,
       stakeholderId,
-      themeId,
+      subTheme,
       search,
       page,
       pageSize: 15,
@@ -124,7 +129,7 @@ export default async function ReviewQueuePage({
   const preserved = {
     q: search,
     stakeholderId,
-    themeId,
+    subTheme,
   };
 
   return (
@@ -258,8 +263,8 @@ export default async function ReviewQueuePage({
             <label>
               <span className="sr-only">Filter tema</span>
               <select
-                name="themeId"
-                defaultValue={themeId ?? ""}
+                name="subTheme"
+                defaultValue={subTheme ?? ""}
                 className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
               >
                 <option value="">Semua tema</option>

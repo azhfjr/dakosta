@@ -164,7 +164,7 @@ export default async function ClientProfilePage() {
 
       <p className="text-xs leading-relaxed text-ink-muted">
         Akun ini tidak menyimpan data pasien, NIK, atau nomor JKN. DAKOSTA adalah
-        proyek independen dan tidak berafiliasi dengan BPJS Kesehatan.
+        proyek independen.
       </p>
     </div>
   );

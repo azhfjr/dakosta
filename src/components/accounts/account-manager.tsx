@@ -2,17 +2,37 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Copy, KeyRound, Loader2, LogOut, Plus, Search } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Copy,
+  KeyRound,
+  Loader2,
+  LogOut,
+  Pencil,
+  Plus,
+  Search,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { isStepUpRequired, useStepUp } from "@/components/auth/step-up-dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { AccountRow, ScopeOptions } from "@/lib/accounts";
 import { APP_ROLES, ROLE_LABELS, type AppRole } from "@/lib/authz/types";
 
 type Credential = { name: string; email: string; tempPassword: string };
+
+const PAGE_SIZE = 25;
 
 const selectClass =
   "h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
@@ -40,70 +60,169 @@ export function AccountManager({
   const [credential, setCredential] = useState<Credential | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
+  const [filterRole, setFilterRole] = useState<"ALL" | AppRole>("ALL");
+  const [filterStatus, setFilterStatus] = useState<"ALL" | "ACTIVE" | "SUSPENDED" | "DISABLED">(
+    "ALL",
+  );
+  const [page, setPage] = useState(1);
+
+  const [editing, setEditing] = useState<AccountRow | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editTitle, setEditTitle] = useState("");
+  const [editRole, setEditRole] = useState<AppRole>("STAKEHOLDER");
+  const [editRegion, setEditRegion] = useState("");
+  const [editBranch, setEditBranch] = useState("");
+  const [editOrg, setEditOrg] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    if (!needle) return accounts;
-    return accounts.filter(
-      (account) =>
+    return accounts.filter((account) => {
+      if (filterRole !== "ALL" && account.role !== filterRole) return false;
+      if (filterStatus !== "ALL" && account.status !== filterStatus) return false;
+      if (!needle) return true;
+      return (
         account.name.toLowerCase().includes(needle) ||
         account.email.toLowerCase().includes(needle) ||
-        account.scopeLabel.toLowerCase().includes(needle),
-    );
-  }, [accounts, query]);
+        account.scopeLabel.toLowerCase().includes(needle)
+      );
+    });
+  }, [accounts, query, filterRole, filterStatus]);
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, pageCount);
+  const visible = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  const rangeStart = filtered.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(safePage * PAGE_SIZE, filtered.length);
 
   const filteredBranches = regionalOfficeId
     ? options.branches.filter(
         (branch) => branch.regionalOfficeId === regionalOfficeId,
       )
     : options.branches;
+  const editBranches = editRegion
+    ? options.branches.filter((branch) => branch.regionalOfficeId === editRegion)
+    : options.branches;
+
+  function resetFilters() {
+    setQuery("");
+    setFilterRole("ALL");
+    setFilterStatus("ALL");
+    setPage(1);
+  }
 
   async function createAccount(event: React.FormEvent) {
     event.preventDefault();
-    setCreating(true);
-    try {
-      const response = await fetch("/api/v1/admin/users", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
+
+    async function attempt() {
+      setCreating(true);
+      try {
+        const response = await fetch("/api/v1/admin/users", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            name,
+            email,
+            displayTitle: displayTitle || undefined,
+            role,
+            regionalOfficeId:
+              role === "REGIONAL_ADMIN" || role === "BRANCH_ADMIN"
+                ? regionalOfficeId || undefined
+                : undefined,
+            branchOfficeId:
+              role === "BRANCH_ADMIN" ? branchOfficeId || undefined : undefined,
+            organizationId:
+              role === "STAKEHOLDER" ? organizationId || undefined : undefined,
+          }),
+        });
+        const body = (await response.json()) as {
+          data?: Credential & { userId: string };
+          error?: { code?: string; message?: string };
+        };
+        if (isStepUpRequired(response, body)) {
+          promptStepUp(attempt);
+          return;
+        }
+        if (!response.ok || !body.data) {
+          toast.error(body.error?.message ?? "Akun tidak dapat dibuat.");
+          return;
+        }
+        setCredential({
           name,
-          email,
-          displayTitle: displayTitle || undefined,
-          role,
-          regionalOfficeId:
-            role === "REGIONAL_ADMIN" || role === "BRANCH_ADMIN"
-              ? regionalOfficeId || undefined
-              : undefined,
-          branchOfficeId:
-            role === "BRANCH_ADMIN" ? branchOfficeId || undefined : undefined,
-          organizationId:
-            role === "STAKEHOLDER" ? organizationId || undefined : undefined,
-        }),
-      });
-      const body = (await response.json()) as {
-        data?: Credential & { userId: string };
-        error?: { message?: string };
-      };
-      if (!response.ok || !body.data) {
-        toast.error(body.error?.message ?? "Akun tidak dapat dibuat.");
-        return;
+          email: body.data.email,
+          tempPassword: body.data.tempPassword,
+        });
+        toast.success("Akun dibuat. Serahkan kata sandi sementara secara langsung.");
+        setName("");
+        setEmail("");
+        setDisplayTitle("");
+        setBranchOfficeId("");
+        setOrganizationId("");
+        router.refresh();
+      } catch {
+        toast.error("Tidak dapat menghubungi server.");
+      } finally {
+        setCreating(false);
       }
-      setCredential({
-        name,
-        email: body.data.email,
-        tempPassword: body.data.tempPassword,
-      });
-      toast.success("Akun dibuat. Serahkan kata sandi sementara secara langsung.");
-      setName("");
-      setEmail("");
-      setDisplayTitle("");
-      setBranchOfficeId("");
-      setOrganizationId("");
-      router.refresh();
-    } catch {
-      toast.error("Tidak dapat menghubungi server.");
-    } finally {
-      setCreating(false);
     }
+
+    await attempt();
+  }
+
+  function openEdit(account: AccountRow) {
+    setEditing(account);
+    setEditName(account.name);
+    setEditTitle(account.displayTitle ?? "");
+    setEditRole(account.role);
+    setEditRegion(account.regionalOfficeId ?? "");
+    setEditBranch(account.branchOfficeId ?? "");
+    setEditOrg(account.organizationId ?? "");
+  }
+
+  async function saveEdit(event: React.FormEvent) {
+    event.preventDefault();
+    if (!editing) return;
+    const target = editing;
+
+    async function attempt() {
+      setSavingEdit(true);
+      try {
+        const response = await fetch(`/api/v1/admin/users/${target.id}`, {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            name: editName,
+            displayTitle: editTitle || null,
+            role: editRole,
+            regionalOfficeId: editRole === "MASTER_ADMIN" ? null : editRegion || null,
+            branchOfficeId:
+              editRole === "BRANCH_ADMIN" ? editBranch || null : null,
+            organizationId:
+              editRole === "STAKEHOLDER" ? editOrg || null : null,
+          }),
+        });
+        const body = (await response.json()) as {
+          error?: { code?: string; message?: string };
+        };
+        if (isStepUpRequired(response, body)) {
+          promptStepUp(attempt);
+          return;
+        }
+        if (!response.ok) {
+          toast.error(body.error?.message ?? "Akun tidak dapat diperbarui.");
+          return;
+        }
+        toast.success("Akun diperbarui. Sesi lama dicabut.");
+        setEditing(null);
+        router.refresh();
+      } catch {
+        toast.error("Tidak dapat menghubungi server.");
+      } finally {
+        setSavingEdit(false);
+      }
+    }
+
+    await attempt();
   }
 
   async function action(account: AccountRow, kind: "reset" | "revoke") {
@@ -363,32 +482,80 @@ export function AccountManager({
       </section>
 
       <section className="rounded-xl border border-border bg-surface shadow-sm">
-        <div className="flex flex-col gap-3 border-b border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 border-b border-border px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
           <h2 className="text-base font-semibold text-foreground">
             Direktori akun ({filtered.length})
           </h2>
-          <label className="relative">
-            <span className="sr-only">Cari akun</span>
-            <Search
-              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-muted"
-              aria-hidden
-            />
-            <Input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Cari nama, email, lingkup"
-              className="h-10 w-full pl-9 sm:w-72"
-            />
-          </label>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <label className="relative">
+              <span className="sr-only">Cari akun</span>
+              <Search
+                className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-muted"
+                aria-hidden
+              />
+              <Input
+                value={query}
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                  setPage(1);
+                }}
+                placeholder="Cari nama, email, lingkup"
+                className="h-10 w-full pl-9 sm:w-64"
+              />
+            </label>
+            <select
+              aria-label="Filter peran"
+              value={filterRole}
+              onChange={(event) => {
+                setFilterRole(event.target.value as "ALL" | AppRole);
+                setPage(1);
+              }}
+              className="h-10 rounded-lg border border-input bg-background px-3 text-sm"
+            >
+              <option value="ALL">Semua peran</option>
+              {APP_ROLES.map((item) => (
+                <option key={item} value={item}>
+                  {ROLE_LABELS[item]}
+                </option>
+              ))}
+            </select>
+            <select
+              aria-label="Filter status"
+              value={filterStatus}
+              onChange={(event) => {
+                setFilterStatus(
+                  event.target.value as "ALL" | "ACTIVE" | "SUSPENDED" | "DISABLED",
+                );
+                setPage(1);
+              }}
+              className="h-10 rounded-lg border border-input bg-background px-3 text-sm"
+            >
+              <option value="ALL">Semua status</option>
+              <option value="ACTIVE">Aktif</option>
+              <option value="SUSPENDED">Ditangguhkan</option>
+              <option value="DISABLED">Dinonaktifkan</option>
+            </select>
+          </div>
         </div>
 
         {filtered.length === 0 ? (
-          <p className="px-4 py-12 text-center text-sm text-ink-muted">
-            Tidak ada akun yang cocok.
-          </p>
+          <div className="px-4 py-12 text-center">
+            <p className="text-sm text-ink-muted">
+              Tidak ada akun yang cocok dengan filter ini.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-3"
+              onClick={resetFilters}
+            >
+              Atur ulang filter
+            </Button>
+          </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[56rem] border-collapse text-sm">
+            <table className="w-full min-w-[60rem] border-collapse text-sm">
               <caption className="sr-only">Direktori akun DAKOSTA</caption>
               <thead>
                 <tr className="border-b border-border text-left text-xs font-medium tracking-wide text-ink-muted uppercase">
@@ -410,7 +577,7 @@ export function AccountManager({
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((account) => (
+                {visible.map((account) => (
                   <tr
                     key={account.id}
                     className="border-b border-border/70 align-top last:border-0"
@@ -434,6 +601,17 @@ export function AccountManager({
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap justify-end gap-1.5">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="h-8"
+                          disabled={busyId === account.id}
+                          onClick={() => openEdit(account)}
+                        >
+                          <Pencil className="mr-1 size-3.5" aria-hidden />
+                          Ubah
+                        </Button>
                         <Button
                           type="button"
                           size="sm"
@@ -481,7 +659,179 @@ export function AccountManager({
             </table>
           </div>
         )}
+
+        {filtered.length > PAGE_SIZE ? (
+          <div className="flex flex-col items-center justify-between gap-2 border-t border-border px-4 py-3 text-xs text-ink-muted sm:flex-row">
+            <p>
+              Menampilkan {rangeStart}–{rangeEnd} dari {filtered.length} akun
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-8"
+                disabled={safePage <= 1}
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
+              >
+                <ChevronLeft className="mr-1 size-3.5" aria-hidden />
+                Sebelumnya
+              </Button>
+              <span>
+                Halaman {safePage} dari {pageCount}
+              </span>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-8"
+                disabled={safePage >= pageCount}
+                onClick={() => setPage((current) => Math.min(pageCount, current + 1))}
+              >
+                Berikutnya
+                <ChevronRight className="ml-1 size-3.5" aria-hidden />
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </section>
+
+      <Dialog
+        open={editing !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditing(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Ubah akun</DialogTitle>
+            <DialogDescription>
+              Perubahan peran atau lingkup mencabut seluruh sesi aktif akun ini dan
+              tercatat pada audit.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={saveEdit} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-name">Nama</Label>
+              <Input
+                id="edit-name"
+                value={editName}
+                onChange={(event) => setEditName(event.target.value)}
+                required
+                minLength={2}
+                maxLength={80}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-title">Jabatan (opsional)</Label>
+              <Input
+                id="edit-title"
+                value={editTitle}
+                onChange={(event) => setEditTitle(event.target.value)}
+                maxLength={80}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-role">Peran</Label>
+              <select
+                id="edit-role"
+                value={editRole}
+                onChange={(event) => setEditRole(event.target.value as AppRole)}
+                className={selectClass}
+              >
+                {APP_ROLES.map((item) => (
+                  <option key={item} value={item}>
+                    {ROLE_LABELS[item]}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {editRole === "REGIONAL_ADMIN" || editRole === "BRANCH_ADMIN" ? (
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-region">Wilayah</Label>
+                <select
+                  id="edit-region"
+                  value={editRegion}
+                  onChange={(event) => {
+                    setEditRegion(event.target.value);
+                    setEditBranch("");
+                  }}
+                  className={selectClass}
+                  required
+                >
+                  <option value="">Pilih wilayah</option>
+                  {options.regions.map((region) => (
+                    <option key={region.id} value={region.id}>
+                      {region.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
+
+            {editRole === "BRANCH_ADMIN" ? (
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-branch">Cabang</Label>
+                <select
+                  id="edit-branch"
+                  value={editBranch}
+                  onChange={(event) => setEditBranch(event.target.value)}
+                  className={selectClass}
+                  required
+                >
+                  <option value="">Pilih cabang</option>
+                  {editBranches.map((branch) => (
+                    <option key={branch.id} value={branch.id}>
+                      {branch.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
+
+            {editRole === "STAKEHOLDER" ? (
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-org">Organisasi</Label>
+                <select
+                  id="edit-org"
+                  value={editOrg}
+                  onChange={(event) => setEditOrg(event.target.value)}
+                  className={selectClass}
+                  required
+                >
+                  <option value="">Pilih organisasi</option>
+                  {options.organizations.map((organization) => (
+                    <option key={organization.id} value={organization.id}>
+                      {organization.name}
+                      {organization.branchName ? ` · ${organization.branchName}` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10"
+                onClick={() => setEditing(null)}
+                disabled={savingEdit}
+              >
+                Batal
+              </Button>
+              <Button type="submit" className="h-10" disabled={savingEdit}>
+                {savingEdit ? (
+                  <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />
+                ) : null}
+                Simpan perubahan
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {stepUpDialog}
     </div>
   );

@@ -1,5 +1,6 @@
 import type { AppRole } from "@/lib/authz/types";
 import type { ContentStatus } from "@/lib/content-status";
+import type { SubTheme } from "@/lib/taxonomy";
 
 export const MONTH_KEY_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
 
@@ -9,7 +10,7 @@ export type KpiFilters = {
   month: string;
   attribution: AttributionMode;
   stakeholderId: string | null;
-  themeId: string | null;
+  subTheme: SubTheme | null;
 };
 
 export type MonthRange = {
@@ -27,8 +28,8 @@ export type MonthRange = {
 export type TargetSource =
   | "GLOBAL"
   | "STAKEHOLDER"
-  | "THEME"
-  | "STAKEHOLDER_THEME"
+  | "SUB_THEME"
+  | "STAKEHOLDER_SUB_THEME"
   | "AGGREGATE";
 
 export type KpiMetric = {
@@ -51,7 +52,7 @@ export type DrilldownItem = {
   status: ContentStatus;
   stakeholderId: string;
   stakeholderName: string;
-  themeId: string;
+  subTheme: SubTheme | null;
   themeName: string;
   platform: string;
   dateCreated: string;
@@ -238,9 +239,9 @@ export function targetSourceLabel(source: TargetSource | null): string {
       return "Target workspace";
     case "STAKEHOLDER":
       return "Target stakeholder";
-    case "THEME":
+    case "SUB_THEME":
       return "Target tema";
-    case "STAKEHOLDER_THEME":
+    case "STAKEHOLDER_SUB_THEME":
       return "Target stakeholder + tema";
     case "AGGREGATE":
       return "Akumulasi target stakeholder";

@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     template: "%s · DAKOSTA",
   },
   description:
-    "Dasbor kolaborasi konten stakeholder: pelaporan, validasi berjenjang, capaian, peta, dan analitik. Proyek pribadi nonkomersial; tidak berafiliasi dengan BPJS Kesehatan.",
+    "Dasbor kolaborasi konten stakeholder: pelaporan, validasi berjenjang, capaian, peta, dan analitik. Proyek pribadi nonkomersial.",
   applicationName: "DAKOSTA",
   authors: [{ name: "Ratu Sevilla Hizriyah" }],
   keywords: [

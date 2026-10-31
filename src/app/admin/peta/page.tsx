@@ -52,10 +52,10 @@ export default async function AdminMapPage({
     getKpiFilterOptions(admin),
   ]);
 
-  const mapKey = `${filters.stakeholderId ?? "all"}-${filters.themeId ?? "all"}-${filters.status}`;
+  const mapKey = `${filters.stakeholderId ?? "all"}-${filters.subTheme ?? "all"}-${filters.status}`;
   const preserved = {
     stakeholderId: filters.stakeholderId ?? undefined,
-    themeId: filters.themeId ?? undefined,
+    subTheme: filters.subTheme ?? undefined,
   };
 
   return (
@@ -168,8 +168,8 @@ export default async function AdminMapPage({
             <label>
               <span className="sr-only">Filter tema</span>
               <select
-                name="themeId"
-                defaultValue={filters.themeId ?? ""}
+                name="subTheme"
+                defaultValue={filters.subTheme ?? ""}
                 className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
               >
                 <option value="">Semua tema</option>

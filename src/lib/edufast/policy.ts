@@ -123,15 +123,18 @@ export async function getPolicyForDate(dateOnly: string): Promise<EdufastPolicy 
   return getPolicyForPeriod(periodOfDate(dateOnly));
 }
 
+export type EdufastPolicyLoader = (period: string) => Promise<EdufastPolicy | null>;
+
 export type EdufastResolution =
   | { allowed: true; policy: EdufastPolicy; subThemes: SubTheme[] }
   | { allowed: false; reason: string; period: string };
 
 export async function resolveEdufastForDate(
   dateOnly: string,
+  loadPolicy: EdufastPolicyLoader = getPolicyForPeriod,
 ): Promise<EdufastResolution> {
   const period = periodOfDate(dateOnly);
-  const policy = await getPolicyForPeriod(period);
+  const policy = await loadPolicy(period);
   if (!policy) {
     return {
       allowed: false,
@@ -142,18 +145,21 @@ export async function resolveEdufastForDate(
   return { allowed: true, policy, subThemes: policy.subThemes };
 }
 
-export async function assertEdufastSelection(input: {
-  dateCreated: string;
-  mainTheme: string;
-  subTheme: string;
-}): Promise<{ policyId: string | null; policyVersion: number | null }> {
+export async function assertEdufastSelection(
+  input: {
+    dateCreated: string;
+    mainTheme: string;
+    subTheme: string;
+  },
+  loadPolicy: EdufastPolicyLoader = getPolicyForPeriod,
+): Promise<{ policyId: string | null; policyVersion: number | null }> {
   if (input.mainTheme !== "EDUFAST") {
     return { policyId: null, policyVersion: null };
   }
   if (!isSubTheme(input.subTheme)) {
     throw errors.validation("Sub-tema EDUFAST tidak dikenal.");
   }
-  const resolution = await resolveEdufastForDate(input.dateCreated);
+  const resolution = await resolveEdufastForDate(input.dateCreated, loadPolicy);
   if (!resolution.allowed) {
     throw errors.validation(resolution.reason);
   }

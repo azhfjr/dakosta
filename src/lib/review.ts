@@ -6,15 +6,19 @@ import { z } from "zod";
 import { getDb, schema } from "@/db";
 import { contentScopePredicate, organizationScopePredicate } from "@/lib/authz/predicates";
 import type { ContentStatus } from "@/lib/content-status";
+import { PENDING_STATUSES } from "@/lib/content-status";
 import { errors } from "@/lib/errors";
 import { drainOutbox } from "@/lib/notifications";
 import { assertCan, assertCapability } from "@/lib/rbac";
 import type { SessionUser } from "@/lib/session";
+import {
+  isSubTheme,
+  SUB_THEMES,
+  SUB_THEME_LABELS,
+} from "@/lib/taxonomy";
 
 type Database = ReturnType<typeof getDb>;
 type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
-
-const PENDING_STATUSES = ["SUBMITTED", "RESUBMITTED", "IN_REVIEW"] as const;
 
 export const REVIEW_ACTIONS = ["APPROVE", "REQUEST_REVISION", "REJECT"] as const;
 export type ReviewAction = (typeof REVIEW_ACTIONS)[number];
@@ -97,7 +101,7 @@ export type ReviewDecisionInput = z.infer<typeof reviewDecisionSchema>;
 export type ReviewQueueFilters = {
   status?: "ALL" | "SUBMITTED" | "RESUBMITTED" | "IN_REVIEW";
   stakeholderId?: string;
-  themeId?: string;
+  subTheme?: string;
   search?: string;
   page?: number;
   pageSize?: number;
@@ -162,8 +166,8 @@ export async function listReviewQueue(
       eq(schema.contentSubmissions.stakeholderId, filters.stakeholderId),
     );
   }
-  if (filters.themeId) {
-    conditions.push(eq(schema.contentSubmissions.themeId, filters.themeId));
+  if (filters.subTheme) {
+    conditions.push(eq(schema.contentSubmissions.subTheme, filters.subTheme));
   }
   if (filters.search) {
     const needle = `%${filters.search}%`;
@@ -189,6 +193,7 @@ export async function listReviewQueue(
         submittedAt: schema.contentSubmissions.submittedAt,
         updatedAt: schema.contentSubmissions.updatedAt,
         stakeholderName: schema.stakeholders.name,
+        subTheme: schema.contentSubmissions.subTheme,
         themeName: schema.themes.name,
       })
       .from(schema.contentSubmissions)
@@ -196,7 +201,7 @@ export async function listReviewQueue(
         schema.stakeholders,
         eq(schema.stakeholders.id, schema.contentSubmissions.stakeholderId),
       )
-      .innerJoin(
+      .leftJoin(
         schema.themes,
         eq(schema.themes.id, schema.contentSubmissions.themeId),
       )
@@ -249,11 +254,16 @@ export async function listReviewQueue(
   const now = new Date();
 
   return {
-    items: rows.map((row) => ({
-      ...row,
-      status: row.status as ContentStatus,
-      agingDays: agingDays(row.submittedAt, now),
-    })),
+    items: rows.map((row) => {
+      const subTheme = isSubTheme(row.subTheme) ? row.subTheme : null;
+      return {
+        ...row,
+        status: row.status as ContentStatus,
+        themeName:
+          row.themeName ?? (subTheme ? SUB_THEME_LABELS[subTheme] : "Tanpa tema"),
+        agingDays: agingDays(row.submittedAt, now),
+      };
+    }),
     total,
     page,
     pageSize,
@@ -287,11 +297,12 @@ export async function listReviewQueueOptions(
       .from(schema.stakeholders)
       .where(organizationWhere)
       .orderBy(asc(schema.stakeholders.name)),
-    db
-      .select({ id: schema.themes.id, name: schema.themes.name })
-      .from(schema.themes)
-      .where(eq(schema.themes.active, true))
-      .orderBy(asc(schema.themes.sortOrder)),
+    Promise.resolve(
+      SUB_THEMES.map((subTheme) => ({
+        id: subTheme,
+        name: SUB_THEME_LABELS[subTheme],
+      })),
+    ),
   ]);
   return { stakeholders, themes };
 }

@@ -17,8 +17,14 @@ export function BranchTable({
 }) {
   if (branches.length === 0) {
     return (
-      <div className="rounded-xl border border-border bg-surface px-5 py-12 text-center text-sm text-ink-muted">
-        Belum ada cabang pada lingkup ini.
+      <div className="rounded-xl border border-border bg-surface px-5 py-12 text-center">
+        <p className="text-sm font-medium text-foreground">
+          Belum ada cabang pada lingkup ini
+        </p>
+        <p className="mx-auto mt-1 max-w-md text-sm text-ink-muted">
+          Tambahkan cabang lewat tombol “Tambah cabang” di kanan atas. Cabang
+          menentukan reviewer yang memutuskan konten organisasi di bawahnya.
+        </p>
       </div>
     );
   }

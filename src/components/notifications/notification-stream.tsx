@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
-const POLL_INTERVAL_MS = 20_000;
+const FALLBACK_POLL_MS = 20_000;
+const RECONNECT_BASE_MS = 2_000;
+const RECONNECT_MAX_MS = 30_000;
 
 type StreamPayload = {
   id: string;
@@ -33,9 +35,10 @@ export function NotificationStream() {
 
   useEffect(() => {
     let disposed = false;
+    let source: EventSource | null = null;
+    let reconnectTimer: number | null = null;
+    let attempts = 0;
     const seen = new Set<string>();
-    const since = encodeURIComponent(new Date().toISOString());
-    const source = new EventSource(`/api/v1/realtime/notifications?since=${since}`);
 
     const refresh = () => {
       if (disposed) return;
@@ -66,7 +69,28 @@ export function NotificationStream() {
       refresh();
     };
 
-    source.addEventListener("notification", onNotification as EventListener);
+    const connect = () => {
+      if (disposed || document.visibilityState !== "visible") return;
+      source?.close();
+      const since = encodeURIComponent(new Date().toISOString());
+      const current = new EventSource(`/api/v1/realtime/notifications?since=${since}`);
+      source = current;
+
+      current.addEventListener("notification", onNotification as EventListener);
+      current.addEventListener("open", () => {
+        attempts = 0;
+      });
+      current.addEventListener("error", () => {
+        if (disposed || source !== current) return;
+        current.close();
+        source = null;
+        const delay = Math.min(RECONNECT_MAX_MS, RECONNECT_BASE_MS * 2 ** attempts);
+        attempts += 1;
+        reconnectTimer = window.setTimeout(connect, delay);
+      });
+    };
+
+    connect();
 
     let baseline: number | null = null;
     void fetchUnreadCount().then((value) => {
@@ -80,26 +104,45 @@ export function NotificationStream() {
       const previous = baseline;
       baseline = count;
       if (previous !== null && count > previous) {
-        if (source.readyState !== EventSource.OPEN) {
+        if (!source || source.readyState !== EventSource.OPEN) {
           toast.info("Notifikasi baru", {
             description: "Kotak masuk Anda memiliki pembaruan.",
           });
         }
         refresh();
       }
-    }, POLL_INTERVAL_MS);
+    }, FALLBACK_POLL_MS);
 
     const onFocus = () => {
-      if (source.readyState !== EventSource.OPEN) refresh();
+      if (!source || source.readyState !== EventSource.OPEN) refresh();
     };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        refresh();
+        if (!source) {
+          attempts = 0;
+          connect();
+        }
+      } else if (reconnectTimer !== null) {
+        window.clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+      }
+    };
+
     window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       disposed = true;
       window.clearInterval(interval);
+      if (reconnectTimer !== null) window.clearTimeout(reconnectTimer);
       window.removeEventListener("focus", onFocus);
-      source.removeEventListener("notification", onNotification as EventListener);
-      source.close();
+      document.removeEventListener("visibilitychange", onVisibility);
+      source?.removeEventListener(
+        "notification",
+        onNotification as EventListener,
+      );
+      source?.close();
     };
   }, [router, queryClient]);
 

@@ -22,6 +22,13 @@
       "when": 1793411593162,
       "tag": "0002_v4_revoke_action",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793427291449,
+      "tag": "0003_content_taxonomy_and_review",
+      "breakpoints": true
     }
   ]
 }

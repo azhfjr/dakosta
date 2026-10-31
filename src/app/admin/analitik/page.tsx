@@ -151,8 +151,8 @@ export default async function AdminAnalyticsPage({
               </label>
               <select
                 id="analitik-theme"
-                name="themeId"
-                defaultValue={filters.themeId ?? ""}
+                name="subTheme"
+                defaultValue={filters.subTheme ?? ""}
                 className={selectClass}
               >
                 <option value="">Semua tema</option>

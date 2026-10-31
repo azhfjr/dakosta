@@ -1,6 +1,17 @@
 import "server-only";
 
-import { and, asc, count, desc, eq, inArray, isNull, ne, type SQL } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  inArray,
+  isNull,
+  ne,
+  sql,
+  type SQL,
+} from "drizzle-orm";
 
 import { getDb, schema } from "@/db";
 import { contentScopePredicate, isOrganizationInScope } from "@/lib/authz/predicates";
@@ -11,7 +22,9 @@ import { drainOutbox } from "@/lib/notifications";
 import { assertStakeholderAccess, assertCan } from "@/lib/rbac";
 import { generateReferenceCode } from "@/lib/reference";
 import { assertEdufastSelection } from "@/lib/edufast/policy";
+import { duplicateDetails, duplicateMessage } from "@/lib/privacy/duplicate";
 import type { SessionUser } from "@/lib/session";
+import { isSubTheme, SUB_THEME_LABELS } from "@/lib/taxonomy";
 import { normalizePublishedUrl } from "@/lib/url";
 import {
   type SubmissionInput,
@@ -35,7 +48,7 @@ export type SubmissionListFilters = {
   status?: ContentStatus;
   limit?: number;
   stakeholderId?: string;
-  themeId?: string;
+  subTheme?: string;
 };
 
 export type SubmissionListItem = {
@@ -76,7 +89,7 @@ export type SubmissionDetail = {
   approvedAt: Date | null;
   updatedAt: Date;
   decisionReason: string | null;
-  theme: { id: string; name: string };
+  theme: { id: string | null; name: string };
   contentType: string | null;
   mainTheme: string | null;
   subTheme: string | null;
@@ -165,8 +178,8 @@ export async function listSubmissions(
       eq(schema.contentSubmissions.stakeholderId, filters.stakeholderId),
     );
   }
-  if (filters.themeId) {
-    conditions.push(eq(schema.contentSubmissions.themeId, filters.themeId));
+  if (filters.subTheme) {
+    conditions.push(eq(schema.contentSubmissions.subTheme, filters.subTheme));
   }
 
   const limit = Math.min(Math.max(filters.limit ?? 30, 1), 100);
@@ -180,6 +193,7 @@ export async function listSubmissions(
       version: schema.contentSubmissions.version,
       platform: schema.contentSubmissions.platform,
       themeName: schema.themes.name,
+      subTheme: schema.contentSubmissions.subTheme,
       stakeholderName: schema.stakeholders.name,
       dateCreated: schema.contentSubmissions.dateCreated,
       publishedAt: schema.contentSubmissions.publishedAt,
@@ -188,7 +202,7 @@ export async function listSubmissions(
       updatedAt: schema.contentSubmissions.updatedAt,
     })
     .from(schema.contentSubmissions)
-    .innerJoin(schema.themes, eq(schema.themes.id, schema.contentSubmissions.themeId))
+    .leftJoin(schema.themes, eq(schema.themes.id, schema.contentSubmissions.themeId))
     .innerJoin(
       schema.stakeholders,
       eq(schema.stakeholders.id, schema.contentSubmissions.stakeholderId),
@@ -199,6 +213,9 @@ export async function listSubmissions(
 
   return rows.map((row) => ({
     ...row,
+    themeName:
+      row.themeName ??
+      (isSubTheme(row.subTheme) ? SUB_THEME_LABELS[row.subTheme] : "Tanpa tema"),
     status: isContentStatus(row.status) ? row.status : "DRAFT",
   }));
 }
@@ -304,7 +321,7 @@ export async function getSubmissionDetail(
       location: schema.locations,
     })
     .from(schema.contentSubmissions)
-    .innerJoin(schema.themes, eq(schema.themes.id, schema.contentSubmissions.themeId))
+    .leftJoin(schema.themes, eq(schema.themes.id, schema.contentSubmissions.themeId))
     .innerJoin(
       schema.stakeholders,
       eq(schema.stakeholders.id, schema.contentSubmissions.stakeholderId),
@@ -379,7 +396,14 @@ export async function getSubmissionDetail(
     approvedAt: submission.approvedAt,
     updatedAt: submission.updatedAt,
     decisionReason: submission.decisionReason,
-    theme: { id: submission.themeId, name: row.themeName },
+    theme: {
+      id: submission.themeId,
+      name:
+        row.themeName ??
+        (isSubTheme(submission.subTheme)
+          ? SUB_THEME_LABELS[submission.subTheme]
+          : "Tanpa tema"),
+    },
     contentType: submission.contentType,
     mainTheme: submission.mainTheme,
     subTheme: submission.subTheme,
@@ -556,7 +580,7 @@ function snapshotFor(input: {
   narrative: string;
   publishedUrl: string;
   platform: string;
-  themeId: string;
+  themeId: string | null;
   contentType?: string | null;
   mainTheme?: string | null;
   subTheme?: string | null;
@@ -635,21 +659,6 @@ export async function saveSubmission(
     throw errors.validation("Stakeholder tidak ditemukan atau tidak aktif.");
   }
 
-  const [theme] = await db
-    .select({ id: schema.themes.id })
-    .from(schema.themes)
-    .where(
-      input.themeId
-        ? and(eq(schema.themes.id, input.themeId), eq(schema.themes.active, true))
-        : eq(schema.themes.active, true),
-    )
-    .orderBy(asc(schema.themes.sortOrder))
-    .limit(1);
-
-  if (!theme) {
-    throw errors.validation("Tema tidak ditemukan atau tidak aktif.");
-  }
-
   const taxonomy = {
     contentType: input.contentType ?? null,
     mainTheme: input.mainTheme ?? null,
@@ -704,12 +713,19 @@ export async function saveSubmission(
     duplicateConditions.push(ne(schema.contentSubmissions.id, existing.id));
   }
 
+  const duplicateScope = contentScopePredicate(
+    user,
+    schema.contentSubmissions.stakeholderId,
+  );
   const [duplicate] = await db
     .select({
       id: schema.contentSubmissions.id,
       referenceCode: schema.contentSubmissions.referenceCode,
       status: schema.contentSubmissions.status,
       stakeholderName: schema.stakeholders.name,
+      inScope: duplicateScope
+        ? sql<boolean>`case when ${duplicateScope} then true else false end`
+        : sql<boolean>`true`,
     })
     .from(schema.contentSubmissions)
     .innerJoin(
@@ -722,14 +738,9 @@ export async function saveSubmission(
   if (duplicate && input.action === "SUBMIT" && !input.duplicateAcknowledged) {
     throw new AppError(
       "DUPLICATE_URL",
-      "Tautan ini sudah pernah dilaporkan. Periksa daftar konten atau tetap kirim jika ini konten berbeda.",
+      duplicateMessage(duplicate),
       409,
-      {
-        submissionId: duplicate.id,
-        referenceCode: duplicate.referenceCode,
-        status: duplicate.status,
-        stakeholderName: duplicate.stakeholderName,
-      },
+      duplicateDetails(duplicate),
     );
   }
 
@@ -763,7 +774,7 @@ export async function saveSubmission(
             normalizedUrl: normalized.normalizedUrl,
             normalizedUrlHash: normalized.normalizedUrlHash,
             platform: input.platform,
-            themeId: theme.id,
+            themeId: input.themeId ?? null,
             contentType: taxonomy.contentType,
             mainTheme: taxonomy.mainTheme,
             subTheme: taxonomy.subTheme,
@@ -807,7 +818,7 @@ export async function saveSubmission(
                 narrative,
                 publishedUrl: input.publishedUrl,
                 platform: input.platform,
-                themeId: theme.id,
+                themeId: input.themeId ?? null,
                 contentType: taxonomy.contentType,
                 mainTheme: taxonomy.mainTheme,
                 subTheme: taxonomy.subTheme,
@@ -905,7 +916,7 @@ export async function saveSubmission(
             normalizedUrl: normalized.normalizedUrl,
             normalizedUrlHash: normalized.normalizedUrlHash,
             platform: input.platform,
-            themeId: theme.id,
+            themeId: input.themeId ?? null,
             contentType: taxonomy.contentType,
             mainTheme: taxonomy.mainTheme,
             subTheme: taxonomy.subTheme,
@@ -936,7 +947,7 @@ export async function saveSubmission(
               narrative,
               publishedUrl: input.publishedUrl,
               platform: input.platform,
-              themeId: theme.id,
+              themeId: input.themeId ?? null,
               contentType: taxonomy.contentType,
               mainTheme: taxonomy.mainTheme,
               subTheme: taxonomy.subTheme,

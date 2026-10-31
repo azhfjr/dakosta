@@ -33,4 +33,10 @@ describe("CSV export", () => {
     const name = csvFileName("konten", new Date("2026-10-31T17:30:00.000Z"));
     expect(name).toBe("konten-2026-11-01.csv");
   });
+
+  it("uses the reporting period in the export file name when provided", () => {
+    expect(csvFileName("dakosta-konten", new Date(), "2026-10")).toBe(
+      "dakosta-konten-2026-10.csv",
+    );
+  });
 });

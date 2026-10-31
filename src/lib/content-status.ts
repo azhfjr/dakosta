@@ -12,6 +12,17 @@ export const CONTENT_STATUSES = [
 
 export type ContentStatus = (typeof CONTENT_STATUSES)[number];
 
+export const PENDING_STATUSES = [
+  "SUBMITTED",
+  "RESUBMITTED",
+  "IN_REVIEW",
+] as const;
+export type PendingStatus = (typeof PENDING_STATUSES)[number];
+
+export function isPendingStatus(status: string): status is PendingStatus {
+  return (PENDING_STATUSES as readonly string[]).includes(status);
+}
+
 export const STATUS_LABEL: Record<ContentStatus, string> = {
   DRAFT: "Draf",
   SUBMITTED: "Terkirim",

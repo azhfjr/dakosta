@@ -24,6 +24,11 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test:e2e": "playwright test",
+    "test:e2e:empty": "playwright test --config playwright.empty.config.ts",
+    "perf": "node scripts/perf-check.mjs",
+    "audit:routes": "node scripts/audit-routes.mjs",
+    "build:verify": "node scripts/build-verify.mjs",
+    "start:verify": "node scripts/start-prod-e2e.mjs",
     "verify": "npm run lint && npm run typecheck && npm run build && npm run test:e2e",
     "test": "vitest run",
     "dev:e2e": "node scripts/dev-e2e.mjs"

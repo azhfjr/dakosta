@@ -12,6 +12,7 @@ import {
   listSubmissions,
 } from "@/lib/submissions";
 import { requireRole } from "@/lib/session";
+import { isSubTheme, type SubTheme } from "@/lib/taxonomy";
 
 export const metadata: Metadata = {
   title: "Semua konten",
@@ -45,6 +46,11 @@ function parseUuid(value: string | string[] | undefined): string | undefined {
   return raw && UUID_PATTERN.test(raw) ? raw : undefined;
 }
 
+function parseSubTheme(value: string | string[] | undefined): SubTheme | undefined {
+  const raw = Array.isArray(value) ? value[0] : value;
+  return isSubTheme(raw) ? raw : undefined;
+}
+
 function buildQuery(params: Record<string, string | undefined>): string {
   const search = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
@@ -63,14 +69,14 @@ export default async function AdminContentPage({
   const params = await searchParams;
   const status = parseStatus(params.status);
   const stakeholderId = parseUuid(params.stakeholderId);
-  const themeId = parseUuid(params.themeId);
+  const subTheme = parseSubTheme(params.subTheme);
 
   const [counts, items, options] = await Promise.all([
     getSubmissionStatusCounts(admin),
     listSubmissions(admin, {
       status: status === "ALL" ? undefined : status,
       stakeholderId,
-      themeId,
+      subTheme,
       limit: 100,
     }),
     getKpiFilterOptions(admin),
@@ -78,7 +84,7 @@ export default async function AdminContentPage({
 
   const preserved = {
     stakeholderId,
-    themeId,
+    subTheme,
   };
   const exportHref = `/api/v1/exports/submissions${buildQuery({
     ...preserved,
@@ -159,8 +165,8 @@ export default async function AdminContentPage({
         <label>
           <span className="sr-only">Filter tema</span>
           <select
-            name="themeId"
-            defaultValue={themeId ?? ""}
+            name="subTheme"
+            defaultValue={subTheme ?? ""}
             className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             <option value="">Semua tema</option>

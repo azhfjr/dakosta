@@ -13,11 +13,15 @@
 # testing
 /coverage
 /e2e/.auth
+/e2e/.auth-empty
+/e2e-empty/.auth
 /test-results
 /playwright-report
 
 # next.js
 /.next/
+/.next-e2e/
+/.next-verify/
 /out/
 
 # production

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { StatusBadge } from "@/components/content/status-badge";
+import { Button } from "@/components/ui/button";
 import { PLATFORM_LABEL } from "@/lib/content-status";
 import { formatDateId, formatDateTimeId } from "@/lib/dates";
 import { AppError } from "@/lib/errors";
@@ -73,15 +74,26 @@ export default async function ClientContentDetailPage({
             {detail.stakeholder.name} · {detail.stakeholder.serviceArea}
           </p>
         </div>
-        <a
-          href={detail.publishedUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex h-11 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium text-brand-blue-800 hover:bg-surface-muted"
-        >
-          Buka konten
-          <ExternalLink className="size-4" aria-hidden />
-        </a>
+        <div className="flex flex-col gap-2 sm:items-end">
+          {detail.status === "REVISION_REQUIRED" || detail.status === "DRAFT" ? (
+            <Button asChild className="h-11">
+              <Link href={`/client/lapor?submissionId=${detail.id}`}>
+                {detail.status === "DRAFT"
+                  ? "Lanjutkan draf"
+                  : "Perbaiki & kirim ulang"}
+              </Link>
+            </Button>
+          ) : null}
+          <a
+            href={detail.publishedUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-11 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium text-brand-blue-800 hover:bg-surface-muted"
+          >
+            Buka konten
+            <ExternalLink className="size-4" aria-hidden />
+          </a>
+        </div>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
@@ -242,7 +254,9 @@ export default async function ClientContentDetailPage({
                         ? "Disetujui"
                         : review.action === "REQUEST_REVISION"
                           ? "Perlu revisi"
-                          : "Ditolak"}{" "}
+                          : review.action === "REVOKE"
+                            ? "Dicabut"
+                            : "Ditolak"}{" "}
                       <span className="text-xs font-normal text-ink-muted">
                         · versi {review.version}
                       </span>

@@ -30,8 +30,7 @@ export default function NotFound() {
         </Button>
       </div>
       <p className="text-xs text-ink-muted">
-        DAKOSTA — proyek demonstrasi pribadi, tidak berafiliasi dengan BPJS
-        Kesehatan.
+        DAKOSTA — proyek demonstrasi pribadi.
       </p>
     </main>
   );

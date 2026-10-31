@@ -10,6 +10,7 @@ import {
   reviewSubmission,
   type ReviewQueueFilters,
 } from "@/lib/review";
+import { SUB_THEMES } from "@/lib/taxonomy";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,7 +18,7 @@ export const dynamic = "force-dynamic";
 const queueQuerySchema = z.object({
   status: z.enum(["ALL", "SUBMITTED", "RESUBMITTED", "IN_REVIEW"]).default("ALL"),
   stakeholderId: z.string().uuid().optional(),
-  themeId: z.string().uuid().optional(),
+  subTheme: z.enum(SUB_THEMES).optional(),
   search: z.string().trim().max(120).optional(),
   page: z.coerce.number().int().min(1).max(10_000).default(1),
   pageSize: z.coerce.number().int().min(1).max(50).default(15),
@@ -34,7 +35,7 @@ export async function GET(request: Request) {
     const parsed = queueQuerySchema.parse({
       status: params.get("status") ?? undefined,
       stakeholderId: params.get("stakeholderId") ?? undefined,
-      themeId: params.get("themeId") ?? undefined,
+      subTheme: params.get("subTheme") ?? undefined,
       search: params.get("search")?.trim() || undefined,
       page: params.get("page") ?? undefined,
       pageSize: params.get("pageSize") ?? undefined,

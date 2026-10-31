@@ -59,8 +59,7 @@ export default function TentangPage() {
               Disclaimer
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-ink-muted">
-              Proyek demonstrasi pribadi. Tidak berafiliasi dengan atau
-              mewakili BPJS Kesehatan. Konteks BPJS Kesehatan Cabang Bandung dan
+              Proyek demonstrasi pribadi. Konteks BPJS Kesehatan Cabang Bandung dan
               Program JKN hanya digunakan sebagai inspirasi studi kasus untuk
               kategori pengguna, skema konten, dan visualisasi. Tidak ada
               kemitraan, pengesahan, penugasan, atau akses ke sistem dan data
