@@ -1,0 +1,49 @@
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+
+import { BrandLogo } from "@/components/brand/brand-logo";
+import { ChangePasswordForm } from "@/components/auth/change-password-form";
+import { SiteFooter } from "@/components/site-footer";
+import { getSessionUser } from "@/lib/session";
+
+export const metadata: Metadata = {
+  title: "Ganti kata sandi",
+};
+
+export default async function ChangePasswordPage() {
+  const user = await getSessionUser();
+  if (!user) redirect("/masuk");
+
+  const redirectTo = user.role === "ADMIN" ? "/admin" : "/client";
+  if (!user.mustChangePassword) redirect(redirectTo);
+
+  return (
+    <div className="flex min-h-dvh flex-col bg-surface-muted/60">
+      <header className="border-b border-border bg-surface">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
+          <BrandLogo variant="compact" className="w-32" />
+          <span className="rounded-full border border-brand-teal-500/30 bg-brand-teal-100 px-2.5 py-1 text-xs font-semibold text-brand-teal-700">
+            Data sintetis · DEMO
+          </span>
+        </div>
+      </header>
+
+      <main id="konten" className="flex flex-1 items-center justify-center px-4 py-10">
+        <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-sm sm:p-8">
+          <div className="mb-6 space-y-2">
+            <h1 className="text-xl font-semibold text-foreground">
+              Ganti kata sandi
+            </h1>
+            <p className="text-sm leading-relaxed text-ink-muted">
+              Akun ini memakai kata sandi sementara dari admin. Buat kata sandi
+              pribadi sebelum melanjutkan.
+            </p>
+          </div>
+          <ChangePasswordForm email={user.email} redirectTo={redirectTo} />
+        </div>
+      </main>
+
+      <SiteFooter compact />
+    </div>
+  );
+}

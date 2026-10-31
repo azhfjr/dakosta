@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 1024 1024" role="img" aria-label="DAKOSTA app icon"><defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0A488D"/><stop offset="0.58" stop-color="#087EB5"/><stop offset="1" stop-color="#12B97B"/></linearGradient></defs>
+<rect width="1024" height="1024" rx="230" fill="url(#bg)"/>
+<g transform="translate(165.000,890.000) scale(0.4532967,-0.4532967)"><path transform="translate(0,0)" d="M662 0C1121 0 1416 292 1416 744C1416 1197 1116 1490 656 1490H80V0ZM496 344V1146H630C881 1146 996 1017 996 744C996 473 885 344 642 344Z" fill="#FFFFFF"/></g>
+<circle cx="830" cy="795" r="80" fill="#28E8AA"/>
+</svg>

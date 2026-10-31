@@ -1,0 +1,12 @@
+.env*
+!.env.example
+.vercel
+.agents
+e2e/.auth
+test-results
+playwright-report
+.tmp-*
+.dev-server.log
+.dev-demo-off.log
+next-env.d.ts
+tsconfig.tsbuildinfo
