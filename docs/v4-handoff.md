@@ -295,3 +295,36 @@ Gate akhir (build produksi lokal, 2026-10-31):
 Catatan: deploy rilis ini ke produksi belum dilakukan dan menunggu konfirmasi
 eksplisit; tidak ada environment variable, migrasi, seed, atau sinkronisasi
 target produksi yang dijalankan pada sesi hardening ini.
+
+## 12. Rilis produksi (2026-11-01)
+
+Rilis `7c97757` (branch `fix/all-features-hardening`) dipublikasikan ke produksi.
+
+| Pemeriksaan | Hasil |
+| --- | --- |
+| Lint / typecheck | Bersih |
+| Unit (Vitest) | 15 file, **89/89 lulus** |
+| E2E penuh (Playwright) | **54/54 lulus** (termasuk `e2e/reports.spec.ts`) |
+| Build produksi lokal | `npm run build` sukses |
+| Deployment Vercel | `dpl_ywPaDgPyV6upfddusrSxU57uW9sU` **READY**, alias `https://dakosta-dakosta.vercel.app` |
+
+Penyebab deployment `BLOCKED` sebelumnya: proyek masih disetel Node `26.x`
+(sudah discontinued) dan penulis commit tidak dikenali sebagai anggota tim
+(`TEAM_ACCESS_REQUIRED`). Perbaikan: Node proyek disetel ke `24.x`, lalu rilis
+dideploy dari arsip tree commit tanpa metadata git sehingga identitas CLI resmi
+yang dipakai.
+
+Smoke produksi setelah deploy:
+
+| Pemeriksaan | Hasil |
+| --- | --- |
+| `/api/health` | `{"status":"ok","db":"ok"}` |
+| Header keamanan | CSP, HSTS, `X-Frame-Options: DENY`, Permissions-Policy aktif |
+| `/masuk`, `/admin` (tanpa sesi) | `200`, `307 → /masuk` |
+| `/api/v1/me`, `/api/v1/reports/achievement`, `/api/v1/admin/imports`, `/api/v1/admin/targets` (tanpa sesi) | `401` |
+| `POST /api/v1/demo/login` di produksi | `404` (containment aktif) |
+| Laporan PDF (`/api/v1/reports/achievement`) | `200 application/pdf` untuk MASTER, REGIONAL, BRANCH, STAKEHOLDER; ukuran menyusut sesuai cakupan |
+| Halaman per peran | `/admin*`, `/wilayah*`, `/cabang*`, `/client*` semua `200` |
+
+Tidak ada environment variable, migrasi, seed, atau sinkronisasi target yang
+diubah selama publikasi ini.
