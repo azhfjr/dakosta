@@ -1,3 +1,5 @@
+import { existsSync, readFileSync } from "node:fs";
+
 import { config } from "dotenv";
 
 export type DbTarget = "local" | "staging" | "production";
@@ -19,9 +21,16 @@ export function loadScriptEnv(target: DbTarget = resolveDbTarget()): DbTarget {
   if (target === "staging") {
     config({ path: ".env.staging.local", override: true, quiet: true });
   } else if (target === "production") {
-    // The pulled production file must win over the developer's .env.local.
     config({ path: ".env.local", override: true, quiet: true });
-    config({ path: ".env.production.local", override: true, quiet: true });
+    // Vercel marks these values Sensitive and `vercel env pull` writes
+    // [SENSITIVE] placeholders; only use the pulled file when it is usable.
+    const pulled = ".env.production.local";
+    if (
+      existsSync(pulled) &&
+      !readFileSync(pulled, "utf8").includes("[SENSITIVE]")
+    ) {
+      config({ path: pulled, override: true, quiet: true });
+    }
     config({ override: true, quiet: true });
   } else {
     config({ path: ".env.local", override: true, quiet: true });
