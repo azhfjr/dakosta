@@ -172,5 +172,37 @@ perbaikan keamanan yang mendesak.
   Jangan arahkan ke produksi.
 - Preview Vercel terlindungi Deployment Protection; smoke otomatis memerlukan
   `vercel curl` atau bypass resmi.
-- Semua nilai env sensitif tidak pernah dicetak; hanya nama, lingkungan, dan
-  metadata yang ditampilkan.
+- Semua nilai env sensitif tidak pernah dicetak; hanya nama, lingkungan, dan  metadata yang ditampilkan.
+
+## 9. Rilis hardening workflow (2026-10-31)
+
+Commit `e0a0d0b` (`fix/all-features-hardening`) dipromosikan ke produksi
+setelah gate staging lulus.
+
+| Pemeriksaan | Hasil |
+| --- | --- |
+| Unit (Vitest) | 9 file, **51/51 lulus** |
+| E2E populated (build produksi lokal) | **46/46 lulus**; subset ulang dakosta+a11y **24/24** |
+| E2E empty-state (`--empty`, staging) | **3/3 lulus**: 16 halaman admin tanpa 5xx, onboarding wilayah→cabang→organisasi→akun, target global pertama |
+| Lint / typecheck | Bersih |
+| Route sweep (`scripts/audit-routes.mjs`) | Semua rute peran & API tanpa 5xx |
+| Preview staging | `/api/health` `db: ok`; login demo + `/admin`, `/wilayah`, `/cabang`, `/client` = 200; TTFB 0,57–0,90 s |
+| Backup produksi | `backups/2026-10-31T08-46-58-956Z-production` (manifest + checksum) |
+| Migrasi produksi | 4 migrasi; `content_reviews_submission_version_action_unique` terpasang |
+| Deploy produksi | `dakosta-dakosta-6uov4aj9k` → alias `https://dakosta-dakosta.vercel.app` (Ready) |
+| Smoke produksi | health `{"status":"ok","db":"ok"}`; CSP/HSTS/X-Frame-Options/Permissions-Policy aktif; `/admin` tanpa sesi `307 /masuk`; `/masuk` 200; `/api/v1/me` 401; demo login `404 DEMO_DISABLED` |
+
+Catatan:
+- Smoke login Master memakai kredensial sementara di `.secrets/` mengembalikan
+  `401`, kemungkinan kata sandi sudah diganti pemilik. Tidak ada reset atau
+  perubahan kredensial yang dilakukan; login Master terverifikasi pada rilis
+  sebelumnya.
+- Uji tulis penuh (kirim → setujui → capaian → cabut) dijalankan di staging dan
+  preview, tidak diulang di produksi agar tidak meninggalkan data sintetis.
+- LCP/CLS browser di preview tidak terukur otomatis karena Deployment
+  Protection; LCP build produksi lokal 1,6–2,6 s dengan CLS ≤0,099.
+- Dashboard memakai 13 query paralel (target rencana ≤8); latensi tetap satu
+  batch paralel dan tidak diubah agar angka KPI tidak berisiko regresi.
+- Route JS `/admin` 360 KB (allowance 375 KB karena Recharts di atas fold);
+  rute lain 238–245 KB. Chart dimuat saat terlihat sehingga mobile tidak
+  mengunduh chunk Recharts di awal.
