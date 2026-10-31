@@ -19,8 +19,9 @@ export function loadScriptEnv(target: DbTarget = resolveDbTarget()): DbTarget {
   if (target === "staging") {
     config({ path: ".env.staging.local", override: true, quiet: true });
   } else if (target === "production") {
-    config({ path: ".env.production.local", override: true, quiet: true });
+    // The pulled production file must win over the developer's .env.local.
     config({ path: ".env.local", override: true, quiet: true });
+    config({ path: ".env.production.local", override: true, quiet: true });
     config({ override: true, quiet: true });
   } else {
     config({ path: ".env.local", override: true, quiet: true });
