@@ -22,7 +22,9 @@ const TABLES_IN_DELETE_ORDER = [
   "content_reviews",
   "content_revisions",
   "content_submissions",
+  "kpi_target_history",
   "kpi_targets",
+  "sla_policies",
   "locations",
   "account_import_rows",
   "account_imports",
@@ -38,6 +40,7 @@ const TABLES_IN_DELETE_ORDER = [
   "themes",
   "branch_offices",
   "regional_offices",
+  "user_activation_locations",
   "user_profiles",
   "audit_logs",
   "demo_rate_limits",
@@ -88,6 +91,7 @@ async function createEmptyMaster(db: SeedDb): Promise<void> {
       isDemo: true,
       active: true,
       status: "ACTIVE",
+      locationStatus: "EXEMPT",
       displayTitle: "Master Admin DAKOSTA",
     });
     await tx.insert(schema.userRoleMemberships).values({
@@ -115,7 +119,9 @@ async function resetEmpty(db: SeedDb): Promise<void> {
     await db.execute(sql.raw(`delete from ${table}`));
   }
   await createEmptyMaster(db);
-  console.log("Basis data dikosongkan; satu Master Admin demo dibuat (kredensial tidak dicetak).");
+  console.log(
+    "Basis data dikosongkan; satu Master Admin demo dibuat (kredensial tidak dicetak).",
+  );
 }
 
 async function main(): Promise<void> {

@@ -28,11 +28,13 @@ export default function GlobalError({
           Permintaan tidak dapat diselesaikan
         </h1>
         <p className="text-sm leading-relaxed text-ink-muted">
-          Data Anda tidak diubah. Coba muat ulang halaman. Jika masalah berlanjut,
-          kembali ke beranda dan masuk kembali.
+          Data Anda tidak diubah. Coba muat ulang halaman. Jika masalah
+          berlanjut, kembali ke beranda dan masuk kembali.
         </p>
         {error.digest && (
-          <p className="text-xs text-ink-muted">Kode kejadian: {error.digest}</p>
+          <p className="text-xs text-ink-muted">
+            Kode kejadian: {error.digest}
+          </p>
         )}
       </div>
       <div className="flex flex-col gap-3 sm:flex-row">

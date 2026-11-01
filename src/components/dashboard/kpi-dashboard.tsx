@@ -5,6 +5,7 @@ import {
   Building2,
   CheckCircle2,
   Clock3,
+  Download,
   FileText,
   Gauge,
   Info,
@@ -16,17 +17,41 @@ import {
 
 import { ContentTypeBadge } from "@/components/content/content-type-badge";
 import { StatusBadge } from "@/components/content/status-badge";
+import { DashboardMapSection } from "@/components/dashboard/dashboard-map";
 import { DeferredKpiCharts } from "@/components/dashboard/kpi-charts-lazy";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Button } from "@/components/ui/button";
+import { StakeholderSelect } from "@/components/ui/stakeholder-select";
 import { PLATFORM_LABEL } from "@/lib/content-status";
+import type { DashboardMap } from "@/lib/dashboard-map";
 import { formatDateId, formatDateTimeId, formatNumberId } from "@/lib/dates";
+import { MAP_STYLE_URL } from "@/lib/geo";
 import {
+  achievementPercent,
   targetSourceLabel,
   type DashboardOverview,
   type DrilldownItem,
 } from "@/lib/kpi/formulas";
+import { periodOptions } from "@/lib/periods";
 import type { AppRole } from "@/lib/session";
+
+type Alignment = {
+  approved: number;
+  target: number | null;
+  institutions: number;
+  withTarget: number;
+  periodKey: string;
+  periodLabel: string;
+};
+
+function periodSelectOptions(selected: string) {
+  const options = periodOptions();
+  const known =
+    options.months.some((option) => option.value === selected) ||
+    options.quarters.some((option) => option.value === selected) ||
+    options.years.some((option) => option.value === selected);
+  return { options, known };
+}
 
 const selectClass =
   "h-10 w-full rounded-lg border border-border bg-surface px-3 text-sm text-foreground shadow-xs focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/30 focus-visible:outline-none";
@@ -41,14 +66,22 @@ function formatDays(value: number | null): string {
   return `${new Intl.NumberFormat("id-ID", { maximumFractionDigits: 1 }).format(value)} hari`;
 }
 
+function comparisonLabel(periodKey: string): string {
+  if (/^\d{4}$/.test(periodKey)) return "tahun lalu";
+  if (/Q[1-4]$/.test(periodKey)) return "triwulan sebelumnya";
+  return "bulan lalu";
+}
+
 function GrowthNote({
   current,
   previous,
   growth,
+  comparison,
 }: {
   current: number;
   previous: number;
   growth: number | null;
+  comparison: string;
 }) {
   if (growth === null) {
     return (
@@ -70,7 +103,7 @@ function GrowthNote({
     >
       <Icon className="size-3.5" aria-hidden />
       {positive ? "+" : ""}
-      {formatPercent(growth)} vs bulan lalu
+      {formatPercent(growth)} vs {comparison}
       <span className="font-normal text-ink-muted">
         ({formatNumberId(previous)} → {formatNumberId(current)})
       </span>
@@ -140,7 +173,9 @@ function ContentTable({
       {items.length === 0 ? (
         <div className="px-5 py-12 text-center">
           <FileText className="mx-auto size-8 text-ink-muted" aria-hidden />
-          <p className="mt-3 text-sm font-medium text-foreground">{emptyTitle}</p>
+          <p className="mt-3 text-sm font-medium text-foreground">
+            {emptyTitle}
+          </p>
           <p className="mt-1 text-sm text-ink-muted">{emptyBody}</p>
         </div>
       ) : (
@@ -225,6 +260,8 @@ export function KpiDashboard({
   contentDetailBase,
   stakeholderChartTitle,
   hideHeader,
+  alignment,
+  map,
 }: {
   overview: DashboardOverview;
   role: AppRole;
@@ -242,16 +279,26 @@ export function KpiDashboard({
   stakeholderChartTitle: string;
   /** Header dirender oleh page agar bisa streaming sebelum data siap. */
   hideHeader?: boolean;
+  /** Ringkasan target per instansi dari menu Kinerja agar angka dasbor identik. */
+  alignment?: Alignment | null;
+  /** Agregasi peta server-side; tidak memuat seluruh konten ke browser. */
+  map?: DashboardMap | null;
 }) {
   const { approved } = overview;
-  const targetMissing = approved.target === null;
-  const zeroTarget = approved.target === 0;
+  const headlineApproved = alignment ? alignment.approved : approved.value;
+  const headlineTarget = alignment ? alignment.target : approved.target;
+  const headlineAchievement = alignment
+    ? achievementPercent(alignment.approved, alignment.target)
+    : approved.achievement;
+  const targetMissing = headlineTarget === null;
+  const zeroTarget = headlineTarget === 0;
   const progress =
-    approved.achievement === null ? 0 : Math.min(100, approved.achievement);
+    headlineAchievement === null ? 0 : Math.min(100, headlineAchievement);
   const isMaster = role === "MASTER_ADMIN";
   const isBranch = role === "BRANCH_ADMIN";
   const isStakeholder = role === "STAKEHOLDER";
-  const showStakeholderFilter = !isStakeholder || options.stakeholders.length > 1;
+  const showStakeholderFilter =
+    !isStakeholder || options.stakeholders.length > 1;
   const contentListHref = isMaster
     ? "/admin/konten"
     : isBranch
@@ -266,6 +313,18 @@ export function KpiDashboard({
       : isStakeholder
         ? "/client/konten"
         : "/wilayah/konten";
+
+  const csvParams = new URLSearchParams();
+  csvParams.set("period", overview.period.key);
+  csvParams.set("status", "APPROVED");
+  if (overview.filters.stakeholderId) {
+    csvParams.set("stakeholderId", overview.filters.stakeholderId);
+  }
+  if (overview.filters.subTheme) {
+    csvParams.set("subTheme", overview.filters.subTheme);
+  }
+  const csvHref = `/api/v1/exports/submissions?${csvParams.toString()}`;
+  const periodChoice = periodSelectOptions(overview.period.key);
 
   const scopeParts = [overview.period.label];
   if (overview.scope.stakeholderName) {
@@ -287,7 +346,9 @@ export function KpiDashboard({
             <h1 className="text-2xl font-semibold tracking-tight text-foreground">
               {title}
             </h1>
-            <p className="mt-1 max-w-2xl text-sm text-ink-muted">{description}</p>
+            <p className="mt-1 max-w-2xl text-sm text-ink-muted">
+              {description}
+            </p>
           </div>
           <div className="flex flex-col items-start gap-2 sm:items-end">
             {headerActions}
@@ -311,20 +372,44 @@ export function KpiDashboard({
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-1.5">
-              <label htmlFor="kpi-month" className="text-xs font-medium text-ink-muted">
-                Periode bulan
+              <label
+                htmlFor="kpi-period"
+                className="text-xs font-medium text-ink-muted"
+              >
+                Periode capaian
               </label>
               <select
-                id="kpi-month"
-                name="month"
-                defaultValue={overview.filters.month}
+                id="kpi-period"
+                name="period"
+                defaultValue={overview.period.key}
                 className={selectClass}
               >
-                {options.months.map((month) => (
-                  <option key={month.key} value={month.key}>
-                    {month.label}
+                {periodChoice.known ? null : (
+                  <option value={overview.period.key}>
+                    {overview.period.label}
                   </option>
-                ))}
+                )}
+                <optgroup label="Bulanan">
+                  {periodChoice.options.months.map((period) => (
+                    <option key={period.value} value={period.value}>
+                      {period.label}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="Triwulanan">
+                  {periodChoice.options.quarters.map((period) => (
+                    <option key={period.value} value={period.value}>
+                      {period.label}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="Tahunan">
+                  {periodChoice.options.years.map((period) => (
+                    <option key={period.value} value={period.value}>
+                      {period.label}
+                    </option>
+                  ))}
+                </optgroup>
               </select>
             </div>
 
@@ -336,26 +421,23 @@ export function KpiDashboard({
                 >
                   Stakeholder
                 </label>
-                <select
+                <StakeholderSelect
                   id="kpi-stakeholder"
-                  name="stakeholderId"
+                  options={options.stakeholders}
                   defaultValue={overview.filters.stakeholderId ?? ""}
+                  allLabel={
+                    isStakeholder ? "Semua organisasi saya" : "Semua organisasi"
+                  }
                   className={selectClass}
-                >
-                  <option value="">
-                    {isStakeholder ? "Semua organisasi saya" : "Semua organisasi"}
-                  </option>
-                  {options.stakeholders.map((stakeholder) => (
-                    <option key={stakeholder.id} value={stakeholder.id}>
-                      {stakeholder.name}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
             ) : null}
 
             <div className="space-y-1.5">
-              <label htmlFor="kpi-theme" className="text-xs font-medium text-ink-muted">
+              <label
+                htmlFor="kpi-theme"
+                className="text-xs font-medium text-ink-muted"
+              >
                 Tema
               </label>
               <select
@@ -372,24 +454,6 @@ export function KpiDashboard({
                 ))}
               </select>
             </div>
-
-            <div className="space-y-1.5">
-              <label
-                htmlFor="kpi-attribution"
-                className="text-xs font-medium text-ink-muted"
-              >
-                Dasar tanggal capaian
-              </label>
-              <select
-                id="kpi-attribution"
-                name="attribution"
-                defaultValue={overview.filters.attribution}
-                className={selectClass}
-              >
-                <option value="approved_at">Tanggal disetujui</option>
-                <option value="date_created">Tanggal konten dibuat</option>
-              </select>
-            </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button type="submit" size="sm" className="h-9">
@@ -398,8 +462,15 @@ export function KpiDashboard({
             <Button asChild variant="ghost" size="sm" className="h-9">
               <Link href={basePath}>Atur ulang</Link>
             </Button>
+            <Button asChild variant="outline" size="sm" className="h-9">
+              <a href={csvHref}>
+                <Download className="size-3.5" aria-hidden />
+                Unduh CSV
+              </a>
+            </Button>
             <p className="text-xs text-ink-muted">
-              Filter tersimpan di URL sehingga dapat dibagikan dan dimuat ulang.
+              Capaian selalu memakai tanggal approval final. Filter tersimpan di
+              URL sehingga dapat dibagikan dan dimuat ulang.
             </p>
           </div>
         </form>
@@ -421,7 +492,7 @@ export function KpiDashboard({
             </div>
             <div className="mt-2 flex flex-wrap items-end gap-x-3 gap-y-1">
               <p className="text-4xl font-semibold tracking-tight text-foreground tabular">
-                {formatNumberId(approved.value)}
+                {formatNumberId(headlineApproved)}
               </p>
               <p className="pb-1 text-sm text-ink-muted">
                 konten disetujui berdasarkan {overview.period.attributionLabel}
@@ -435,10 +506,12 @@ export function KpiDashboard({
                     ? "Target belum ditetapkan"
                     : zeroTarget
                       ? "Target bernilai 0"
-                      : `${formatPercent(approved.achievement)} dari target`}
+                      : `${formatPercent(headlineAchievement)} dari target`}
                 </span>
                 <span className="font-medium text-foreground tabular">
-                  {targetMissing ? "N/A" : `${formatNumberId(approved.target ?? 0)} konten`}
+                  {targetMissing
+                    ? "N/A"
+                    : `${formatNumberId(headlineTarget ?? 0)} konten`}
                 </span>
               </div>
               <div
@@ -446,7 +519,9 @@ export function KpiDashboard({
                 role={targetMissing || zeroTarget ? undefined : "progressbar"}
                 aria-valuemin={targetMissing || zeroTarget ? undefined : 0}
                 aria-valuemax={targetMissing || zeroTarget ? undefined : 100}
-                aria-valuenow={targetMissing || zeroTarget ? undefined : Math.round(progress)}
+                aria-valuenow={
+                  targetMissing || zeroTarget ? undefined : Math.round(progress)
+                }
                 aria-label={
                   targetMissing || zeroTarget
                     ? undefined
@@ -455,7 +530,7 @@ export function KpiDashboard({
               >
                 <div
                   className={`h-full rounded-full ${
-                    approved.achievement !== null && approved.achievement >= 100
+                    headlineAchievement !== null && headlineAchievement >= 100
                       ? "bg-status-approved"
                       : "bg-brand-blue-500"
                   }`}
@@ -468,15 +543,18 @@ export function KpiDashboard({
                   ? "Kombinasi filter ini belum memiliki target. Capaian ditampilkan N/A agar tidak memakai target dari lingkup lain."
                   : zeroTarget
                     ? "Target 0 tidak dapat dipakai sebagai pembagi, sehingga capaian ditampilkan N/A."
-                    : `${targetSourceLabel(approved.targetSource)} untuk ${overview.period.label}.`}
+                    : alignment
+                      ? `Target dijumlahkan dari target bulanan ${formatNumberId(alignment.institutions)} instansi aktif (${formatNumberId(alignment.withTarget)} memiliki target). Angka ini sama dengan menu Kinerja.`
+                      : `${targetSourceLabel(approved.targetSource)} untuk ${overview.period.label}.`}
               </p>
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <GrowthNote
-                current={approved.value}
+                current={headlineApproved}
                 previous={overview.previousApproved}
                 growth={overview.growth}
+                comparison={comparisonLabel(overview.period.key)}
               />
               <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-teal-100 px-2.5 py-1 text-xs font-medium text-brand-teal-700">
                 <CheckCircle2 className="size-3.5" aria-hidden />
@@ -508,7 +586,7 @@ export function KpiDashboard({
               }
             />
             <MiniStat
-              label="Bulan sebelumnya"
+              label="Periode sebelumnya"
               value={formatNumberId(overview.previousApproved)}
               hint="Konten disetujui"
             />
@@ -516,7 +594,10 @@ export function KpiDashboard({
         </div>
       </section>
 
-      <section aria-label="Indikator pendukung" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section
+        aria-label="Indikator pendukung"
+        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+      >
         <StatCard
           label="Tingkat persetujuan"
           value={formatPercent(overview.approvalRate)}
@@ -565,6 +646,8 @@ export function KpiDashboard({
         attributionLabel={overview.period.attributionLabel}
         stakeholderTitle={stakeholderChartTitle}
       />
+
+      {map ? <DashboardMapSection map={map} styleUrl={MAP_STYLE_URL} /> : null}
 
       <ContentTable
         items={overview.approvedItems}

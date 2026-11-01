@@ -44,7 +44,10 @@ export default async function ClientHomePage({
   const params = await searchParams;
   const filters = parseKpiFiltersFromParams(params);
 
-  if (filters.stakeholderId && !user.stakeholderIds.includes(filters.stakeholderId)) {
+  if (
+    filters.stakeholderId &&
+    !user.stakeholderIds.includes(filters.stakeholderId)
+  ) {
     await recordAudit({
       actorId: user.id,
       actorRole: user.role,
@@ -93,7 +96,10 @@ async function ClientHomeBody({
       getMainThemeDistribution(user),
       getEdufastCompliance(user),
       (async () => {
-        const scope = contentScopePredicate(user, schema.contentSubmissions.stakeholderId);
+        const scope = contentScopePredicate(
+          user,
+          schema.contentSubmissions.stakeholderId,
+        );
         const [row] = await getDb()
           .select({ total: count() })
           .from(schema.contentSubmissions)
@@ -110,7 +116,10 @@ async function ClientHomeBody({
   const notice =
     user.stakeholderIds.length === 0 ? (
       <div className="flex items-start gap-3 rounded-xl border border-status-review/30 bg-status-review/5 p-4">
-        <Info className="mt-0.5 size-5 shrink-0 text-status-review" aria-hidden />
+        <Info
+          className="mt-0.5 size-5 shrink-0 text-status-review"
+          aria-hidden
+        />
         <div>
           <h2 className="text-sm font-semibold text-foreground">
             Akun belum terhubung ke stakeholder
@@ -129,7 +138,10 @@ async function ClientHomeBody({
       {revisionCount > 0 ? (
         <div className="flex flex-col gap-3 rounded-xl border border-status-revision/30 bg-status-revision/5 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <RotateCcw className="mt-0.5 size-5 shrink-0 text-status-revision" aria-hidden />
+            <RotateCcw
+              className="mt-0.5 size-5 shrink-0 text-status-revision"
+              aria-hidden
+            />
             <div>
               <h2 className="text-sm font-semibold text-foreground">
                 {formatNumberId(revisionCount)} konten perlu revisi
@@ -140,7 +152,9 @@ async function ClientHomeBody({
             </div>
           </div>
           <Button asChild variant="outline" className="h-10">
-            <Link href="/client/konten?status=REVISION_REQUIRED">Buka daftar revisi</Link>
+            <Link href="/client/konten?status=REVISION_REQUIRED">
+              Buka daftar revisi
+            </Link>
           </Button>
         </div>
       ) : null}
@@ -158,7 +172,10 @@ async function ClientHomeBody({
         hideHeader
       />
 
-      <section aria-label="Komposisi konten" className="grid gap-6 xl:grid-cols-3">
+      <section
+        aria-label="Komposisi konten"
+        className="grid gap-6 xl:grid-cols-3"
+      >
         <DistributionCard
           title="Jenis konten"
           description="Video dan infografis yang disetujui."

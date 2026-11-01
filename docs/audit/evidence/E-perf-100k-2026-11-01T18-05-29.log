@@ -1,0 +1,21 @@
+
+> b8cd74b6@0.1.0 perf
+> node scripts/perf-check.mjs
+
+Rute                     TTFB p95   LCP p95    CLS     JS KB  Status
+/admin                        445ms      740ms   0.000    348  OK
+/admin/analitik              1041ms     1148ms   0.000    353  OK
+/admin/target                 510ms      744ms   0.000    230  OK
+/admin/konten                1148ms     2452ms   0.099    231  OK
+/admin/konten/impor           417ms      592ms   0.000    227  OK
+/wilayah                      399ms      596ms   0.000    222  OK
+/wilayah/dashboard            440ms      660ms   0.000    348  OK
+/wilayah/kinerja             1279ms     1456ms   0.043    231  TTFB 1279ms > 1200ms
+/cabang                       763ms      888ms   0.000    222  OK
+/cabang/dashboard             411ms      596ms   0.000    348  OK
+/cabang/kinerja               375ms      792ms   0.043    231  OK
+/cabang/review                383ms      548ms   0.000    222  OK
+/client                       351ms      500ms   0.000    356  OK
+/client/analitik              418ms      544ms   0.000    353  OK
+
+Anggaran performa terlampaui.

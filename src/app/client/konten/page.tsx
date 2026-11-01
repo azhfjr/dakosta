@@ -21,7 +21,9 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-function parseStatus(value: string | string[] | undefined): ContentStatus | undefined {
+function parseStatus(
+  value: string | string[] | undefined,
+): ContentStatus | undefined {
   const raw = Array.isArray(value) ? value[0] : value;
   if (!raw) return undefined;
   return (CONTENT_STATUSES as readonly string[]).includes(raw)
@@ -48,7 +50,8 @@ export default async function ClientContentListPage({
             Konten saya
           </h1>
           <p className="mt-1 text-sm text-ink-muted">
-            Seluruh konten stakeholder Anda, termasuk draf dan riwayat keputusan.
+            Seluruh konten stakeholder Anda, termasuk draf dan riwayat
+            keputusan.
           </p>
         </div>
         <div className="flex flex-col items-start gap-2 sm:items-end">
@@ -89,7 +92,9 @@ export default async function ClientContentListPage({
             variant={status === item ? "secondary" : "outline"}
             className="h-9"
           >
-            <Link href={`/client/konten?status=${item}`}>{STATUS_LABEL[item]}</Link>
+            <Link href={`/client/konten?status=${item}`}>
+              {STATUS_LABEL[item]}
+            </Link>
           </Button>
         ))}
       </nav>
@@ -118,7 +123,9 @@ export default async function ClientContentListPage({
         ) : (
           <div className="relative overflow-x-auto">
             <table className="w-full min-w-[46rem] border-collapse text-sm">
-              <caption className="sr-only">Daftar konten Anda beserta statusnya</caption>
+              <caption className="sr-only">
+                Daftar konten Anda beserta statusnya
+              </caption>
               <thead>
                 <tr className="border-b border-border text-left text-xs font-medium tracking-wide text-ink-muted uppercase">
                   <th scope="col" className="px-5 py-3">
@@ -143,7 +150,10 @@ export default async function ClientContentListPage({
               </thead>
               <tbody>
                 {submissions.map((item) => (
-                  <tr key={item.id} className="border-b border-border/70 last:border-0">
+                  <tr
+                    key={item.id}
+                    className="border-b border-border/70 last:border-0"
+                  >
                     <td className="px-5 py-3">
                       <Link
                         href={`/client/konten/${item.id}`}
@@ -158,7 +168,9 @@ export default async function ClientContentListPage({
                     <td className="px-5 py-3">
                       <ContentTypeBadge contentType={item.contentType} />
                     </td>
-                    <td className="px-5 py-3 text-ink-muted">{item.themeName}</td>
+                    <td className="px-5 py-3 text-ink-muted">
+                      {item.themeName}
+                    </td>
                     <td className="px-5 py-3 text-ink-muted">
                       {PLATFORM_LABEL[item.platform] ?? item.platform}
                     </td>
@@ -177,8 +189,9 @@ export default async function ClientContentListPage({
       </section>
 
       <p className="text-xs leading-relaxed text-ink-muted">
-        Hanya konten berstatus disetujui yang dihitung dalam capaian. Draf, konten yang
-        ditolak, perlu revisi, dicabut, atau diarsipkan tidak menambah angka.
+        Hanya konten berstatus disetujui yang dihitung dalam capaian. Draf,
+        konten yang ditolak, perlu revisi, dicabut, atau diarsipkan tidak
+        menambah angka.
       </p>
     </div>
   );

@@ -6,13 +6,10 @@ import { MapExplorer } from "@/components/map/map-explorer";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { StatusBadge } from "@/components/content/status-badge";
 import { Button } from "@/components/ui/button";
+import { StakeholderSelect } from "@/components/ui/stakeholder-select";
 import { formatDateTimeId, formatNumberId } from "@/lib/dates";
 import { MAP_STYLE_URL } from "@/lib/geo";
-import {
-  getMapOverview,
-  parseMapFilters,
-  type MapStatus,
-} from "@/lib/map";
+import { getMapOverview, parseMapFilters, type MapStatus } from "@/lib/map";
 import { getKpiFilterOptions } from "@/lib/kpi/sql";
 import { requireRole } from "@/lib/session";
 
@@ -120,7 +117,10 @@ export default async function AdminMapPage({
               Angka pada kartu, peta, dan tabel selalu memakai filter yang sama.
             </p>
           </div>
-          <nav aria-label="Filter status peta" className="flex flex-wrap gap-1.5">
+          <nav
+            aria-label="Filter status peta"
+            className="flex flex-wrap gap-1.5"
+          >
             {STATUS_TABS.map((tab) => {
               const active = filters.status === tab.key;
               return (
@@ -152,18 +152,11 @@ export default async function AdminMapPage({
             ) : null}
             <label>
               <span className="sr-only">Filter stakeholder</span>
-              <select
-                name="stakeholderId"
+              <StakeholderSelect
+                options={options.stakeholders}
                 defaultValue={filters.stakeholderId ?? ""}
                 className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-              >
-                <option value="">Semua stakeholder</option>
-                {options.stakeholders.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
+              />
             </label>
             <label>
               <span className="sr-only">Filter tema</span>
@@ -216,7 +209,10 @@ export default async function AdminMapPage({
         className="rounded-xl border border-border bg-surface shadow-sm"
       >
         <div className="border-b border-border px-4 py-3 sm:px-5">
-          <h2 id="tabel-peta-judul" className="text-base font-semibold text-foreground">
+          <h2
+            id="tabel-peta-judul"
+            className="text-base font-semibold text-foreground"
+          >
             Tabel sebaran konten
           </h2>
           <p className="text-xs text-ink-muted">
@@ -235,12 +231,24 @@ export default async function AdminMapPage({
               </caption>
               <thead>
                 <tr className="border-b border-border text-left text-xs font-medium tracking-wide text-ink-muted uppercase">
-                  <th scope="col" className="px-5 py-3">Konten</th>
-                  <th scope="col" className="px-5 py-3">Stakeholder</th>
-                  <th scope="col" className="px-5 py-3">Lokasi</th>
-                  <th scope="col" className="px-5 py-3">Presisi</th>
-                  <th scope="col" className="px-5 py-3">Status</th>
-                  <th scope="col" className="px-5 py-3">Diperbarui</th>
+                  <th scope="col" className="px-5 py-3">
+                    Konten
+                  </th>
+                  <th scope="col" className="px-5 py-3">
+                    Stakeholder
+                  </th>
+                  <th scope="col" className="px-5 py-3">
+                    Lokasi
+                  </th>
+                  <th scope="col" className="px-5 py-3">
+                    Presisi
+                  </th>
+                  <th scope="col" className="px-5 py-3">
+                    Status
+                  </th>
+                  <th scope="col" className="px-5 py-3">
+                    Diperbarui
+                  </th>
                   <th scope="col" className="px-5 py-3">
                     <span className="sr-only">Tindakan</span>
                   </th>
@@ -271,7 +279,8 @@ export default async function AdminMapPage({
                         {point.locationLabel}
                       </span>
                       <span className="text-xs">
-                        {point.latitude.toFixed(5)}, {point.longitude.toFixed(5)}
+                        {point.latitude.toFixed(5)},{" "}
+                        {point.longitude.toFixed(5)}
                       </span>
                     </td>
                     <td className="px-5 py-3">
@@ -292,7 +301,12 @@ export default async function AdminMapPage({
                       {formatDateTimeId(point.updatedAt)}
                     </td>
                     <td className="px-5 py-3 text-right">
-                      <Button asChild size="sm" variant="outline" className="h-9">
+                      <Button
+                        asChild
+                        size="sm"
+                        variant="outline"
+                        className="h-9"
+                      >
                         <Link href={point.href}>Buka</Link>
                       </Button>
                     </td>

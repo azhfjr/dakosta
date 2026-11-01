@@ -13,12 +13,10 @@ import { ContentTypeBadge } from "@/components/content/content-type-badge";
 import { StatusBadge } from "@/components/content/status-badge";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Button } from "@/components/ui/button";
+import { StakeholderSelect } from "@/components/ui/stakeholder-select";
 import { formatDateTimeId, formatNumberId } from "@/lib/dates";
 import { PLATFORM_LABEL } from "@/lib/content-status";
-import {
-  listReviewQueue,
-  listReviewQueueOptions,
-} from "@/lib/review";
+import { listReviewQueue, listReviewQueueOptions } from "@/lib/review";
 import { requireRole } from "@/lib/session";
 import { isSubTheme, type SubTheme } from "@/lib/taxonomy";
 
@@ -40,9 +38,7 @@ const TABS = [
 
 type TabKey = (typeof TABS)[number]["key"];
 
-function firstParam(
-  value: string | string[] | undefined,
-): string | undefined {
+function firstParam(value: string | string[] | undefined): string | undefined {
   if (Array.isArray(value)) return value[0];
   return value;
 }
@@ -75,13 +71,15 @@ function buildQuery(params: Record<string, string | undefined>): string {
 function agingBadge(days: number) {
   if (days >= 7) {
     return {
-      className: "border-status-rejected/30 bg-status-rejected/10 text-status-rejected",
+      className:
+        "border-status-rejected/30 bg-status-rejected/10 text-status-rejected",
       label: `${days} hari · prioritas`,
     };
   }
   if (days >= 3) {
     return {
-      className: "border-status-revision/30 bg-status-revision/10 text-status-revision",
+      className:
+        "border-status-revision/30 bg-status-revision/10 text-status-revision",
       label: `${days} hari`,
     };
   }
@@ -196,14 +194,20 @@ export default async function ReviewQueuePage({
         <div className="flex flex-col gap-3 border-b border-border px-4 py-3 sm:px-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 id="queue-list-title" className="text-base font-semibold text-foreground">
+              <h2
+                id="queue-list-title"
+                className="text-base font-semibold text-foreground"
+              >
                 Daftar antrean
               </h2>
               <p className="text-xs text-ink-muted">
                 {formatNumberId(queue.total)} konten sesuai filter aktif.
               </p>
             </div>
-            <nav aria-label="Filter status antrean" className="flex flex-wrap gap-1.5">
+            <nav
+              aria-label="Filter status antrean"
+              className="flex flex-wrap gap-1.5"
+            >
               {TABS.map((tab) => {
                 const active = status === tab.key;
                 return (
@@ -248,18 +252,11 @@ export default async function ReviewQueuePage({
             </label>
             <label>
               <span className="sr-only">Filter stakeholder</span>
-              <select
-                name="stakeholderId"
+              <StakeholderSelect
+                options={options.stakeholders}
                 defaultValue={stakeholderId ?? ""}
                 className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-              >
-                <option value="">Semua stakeholder</option>
-                {options.stakeholders.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
+              />
             </label>
             <label>
               <span className="sr-only">Filter tema</span>
@@ -298,7 +295,8 @@ export default async function ReviewQueuePage({
               Tidak ada konten pada filter ini
             </p>
             <p className="mt-1 text-sm text-ink-muted">
-              Antrean akan muncul saat stakeholder mengirim konten untuk validasi.
+              Antrean akan muncul saat stakeholder mengirim konten untuk
+              validasi.
             </p>
           </div>
         ) : (
@@ -362,7 +360,9 @@ export default async function ReviewQueuePage({
                         {item.stakeholderName}
                       </td>
                       <td className="px-5 py-4 text-ink-muted">
-                        <span className="block text-foreground">{item.themeName}</span>
+                        <span className="block text-foreground">
+                          {item.themeName}
+                        </span>
                         <span className="text-xs">
                           {PLATFORM_LABEL[item.platform] ?? item.platform}
                         </span>
@@ -381,8 +381,15 @@ export default async function ReviewQueuePage({
                         <StatusBadge status={item.status} />
                       </td>
                       <td className="px-5 py-4 text-right">
-                        <Button asChild size="sm" variant="outline" className="h-9">
-                          <Link href={`/admin/validasi/${item.id}`}>Tinjau</Link>
+                        <Button
+                          asChild
+                          size="sm"
+                          variant="outline"
+                          className="h-9"
+                        >
+                          <Link href={`/admin/validasi/${item.id}`}>
+                            Tinjau
+                          </Link>
                         </Button>
                       </td>
                     </tr>

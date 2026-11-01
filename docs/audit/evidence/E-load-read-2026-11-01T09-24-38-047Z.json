@@ -1,0 +1,32 @@
+{
+  "profile": "read",
+  "vus": 20,
+  "durationSeconds": 60,
+  "rampSeconds": 10,
+  "period": "2026-11",
+  "baseUrl": "http://localhost:3400",
+  "totalRequests": 1298,
+  "throughputRps": 20.8,
+  "p50Ms": 777.3,
+  "p95Ms": 1720.8,
+  "p99Ms": 3028.4,
+  "maxMs": 5100.7,
+  "errors": 0,
+  "errorRate": 0,
+  "clientErrors": 0,
+  "expectedClientResponses": 0,
+  "fiveXx": 0,
+  "networkErrors": 0,
+  "pdfFailures": 0,
+  "statusCounts": {
+    "200": 1298
+  },
+  "thresholds": {
+    "maxP95": 2000,
+    "maxP99": 4000,
+    "maxErrorRate": 0.01,
+    "max5xx": null
+  },
+  "passed": true,
+  "failures": []
+}

@@ -4,73 +4,124 @@ import { and, count, eq, sql } from "drizzle-orm";
 
 import { getDb, schema } from "@/db";
 import { contentScopePredicate } from "@/lib/authz/predicates";
-import { CONTENT_TYPE_LABELS, MAIN_THEME_LABELS, SUB_THEME_LABELS } from "@/lib/edufast/policy";
+import {
+  CONTENT_TYPE_LABELS,
+  MAIN_THEME_LABELS,
+  SUB_THEME_LABELS,
+} from "@/lib/edufast/policy";
+import { cachedRead, readCacheKey } from "@/lib/read-cache";
 import type { SessionUser } from "@/lib/session";
 
 export type DistributionRow = { key: string; label: string; total: number };
 
 async function distribution(
   user: SessionUser,
-  column: typeof schema.contentSubmissions.contentType | typeof schema.contentSubmissions.mainTheme | typeof schema.contentSubmissions.subTheme | typeof schema.contentSubmissions.platform | typeof schema.contentSubmissions.status,
+  column:
+    | typeof schema.contentSubmissions.contentType
+    | typeof schema.contentSubmissions.mainTheme
+    | typeof schema.contentSubmissions.subTheme
+    | typeof schema.contentSubmissions.platform
+    | typeof schema.contentSubmissions.status,
   labels: Record<string, string>,
+  name: string,
 ): Promise<DistributionRow[]> {
-  const scope = contentScopePredicate(user, schema.contentSubmissions.stakeholderId);
-  const conditions = [eq(schema.contentSubmissions.archived, false)];
-  if (scope) conditions.push(scope);
+  return cachedRead(readCacheKey(user, ["distribution", name]), async () => {
+    const scope = contentScopePredicate(
+      user,
+      schema.contentSubmissions.stakeholderId,
+    );
+    const conditions = [eq(schema.contentSubmissions.archived, false)];
+    if (scope) conditions.push(scope);
 
-  const rows = await getDb()
-    .select({ key: column, total: count() })
-    .from(schema.contentSubmissions)
-    .where(and(...conditions))
-    .groupBy(column)
-    .orderBy(sql`count(*) desc`);
+    const rows = await getDb()
+      .select({ key: column, total: count() })
+      .from(schema.contentSubmissions)
+      .where(and(...conditions))
+      .groupBy(column)
+      .orderBy(sql`count(*) desc`);
 
-  return rows.map((row) => ({
-    key: row.key ?? "UNKNOWN",
-    label: labels[row.key ?? "UNKNOWN"] ?? row.key ?? "Tidak diketahui",
-    total: Number(row.total),
-  }));
+    return rows.map((row) => ({
+      key: row.key ?? "UNKNOWN",
+      label: labels[row.key ?? "UNKNOWN"] ?? row.key ?? "Tidak diketahui",
+      total: Number(row.total),
+    }));
+  });
 }
 
 export function getContentTypeDistribution(user: SessionUser) {
-  return distribution(user, schema.contentSubmissions.contentType, CONTENT_TYPE_LABELS);
+  return distribution(
+    user,
+    schema.contentSubmissions.contentType,
+    CONTENT_TYPE_LABELS,
+    "content-type",
+  );
 }
 
 export function getMainThemeDistribution(user: SessionUser) {
-  return distribution(user, schema.contentSubmissions.mainTheme, MAIN_THEME_LABELS);
+  return distribution(
+    user,
+    schema.contentSubmissions.mainTheme,
+    MAIN_THEME_LABELS,
+    "main-theme",
+  );
 }
 
 export function getSubThemeDistribution(user: SessionUser) {
-  return distribution(user, schema.contentSubmissions.subTheme, SUB_THEME_LABELS);
+  return distribution(
+    user,
+    schema.contentSubmissions.subTheme,
+    SUB_THEME_LABELS,
+    "sub-theme",
+  );
 }
 
 export function getPlatformDistribution(user: SessionUser) {
-  return distribution(user, schema.contentSubmissions.platform, {
-    INSTAGRAM: "Instagram",
-    FACEBOOK: "Facebook",
-    X: "X",
-    TIKTOK: "TikTok",
-    YOUTUBE: "YouTube",
-    WEBSITE: "Website",
-    LAINNYA: "Lainnya",
-  });
+  return distribution(
+    user,
+    schema.contentSubmissions.platform,
+    {
+      INSTAGRAM: "Instagram",
+      FACEBOOK: "Facebook",
+      X: "X",
+      TIKTOK: "TikTok",
+      YOUTUBE: "YouTube",
+      WEBSITE: "Website",
+      LAINNYA: "Lainnya",
+    },
+    "platform",
+  );
 }
 
 export function getStatusDistribution(user: SessionUser) {
-  return distribution(user, schema.contentSubmissions.status, {
-    DRAFT: "Draf",
-    SUBMITTED: "Terkirim",
-    RESUBMITTED: "Dikirim ulang",
-    IN_REVIEW: "Ditinjau",
-    APPROVED: "Disetujui",
-    REVISION_REQUIRED: "Perlu revisi",
-    REJECTED: "Ditolak",
-    REVOKED: "Dicabut",
-    ARCHIVED: "Diarsipkan",
-  });
+  return distribution(
+    user,
+    schema.contentSubmissions.status,
+    {
+      DRAFT: "Draf",
+      SUBMITTED: "Terkirim",
+      RESUBMITTED: "Dikirim ulang",
+      IN_REVIEW: "Ditinjau",
+      APPROVED: "Disetujui",
+      REVISION_REQUIRED: "Perlu revisi",
+      REJECTED: "Ditolak",
+      REVOKED: "Dicabut",
+      ARCHIVED: "Diarsipkan",
+    },
+    "status",
+  );
 }
 
 export async function getEdufastCompliance(user: SessionUser): Promise<{
+  edufastApproved: number;
+  nonEdufastApproved: number;
+  subThemes: DistributionRow[];
+}> {
+  return cachedRead(readCacheKey(user, ["edufast-compliance"]), () =>
+    loadEdufastCompliance(user),
+  );
+}
+
+async function loadEdufastCompliance(user: SessionUser): Promise<{
   edufastApproved: number;
   nonEdufastApproved: number;
   subThemes: DistributionRow[];
@@ -93,7 +144,10 @@ export async function getEdufastCompliance(user: SessionUser): Promise<{
     })
     .from(schema.contentSubmissions)
     .where(and(...conditions))
-    .groupBy(schema.contentSubmissions.mainTheme, schema.contentSubmissions.subTheme);
+    .groupBy(
+      schema.contentSubmissions.mainTheme,
+      schema.contentSubmissions.subTheme,
+    );
 
   let edufastApproved = 0;
   let nonEdufastApproved = 0;
@@ -113,8 +167,7 @@ export async function getEdufastCompliance(user: SessionUser): Promise<{
     subThemes: [...subTotals.entries()]
       .map(([key, total]) => ({
         key,
-        label:
-          SUB_THEME_LABELS[key as keyof typeof SUB_THEME_LABELS] ?? key,
+        label: SUB_THEME_LABELS[key as keyof typeof SUB_THEME_LABELS] ?? key,
         total,
       }))
       .sort((a, b) => b.total - a.total),

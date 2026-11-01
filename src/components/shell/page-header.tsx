@@ -37,8 +37,12 @@ export function PageHeader({
           <p className="mt-1 max-w-2xl text-sm text-ink-muted">{description}</p>
         ) : null}
       </div>
-      {actions ? <div className="flex shrink-0 flex-wrap gap-2">{actions}</div> : null}
-      {meta ? <div className="text-xs text-ink-muted sm:text-right">{meta}</div> : null}
+      {actions ? (
+        <div className="flex shrink-0 flex-wrap gap-2">{actions}</div>
+      ) : null}
+      {meta ? (
+        <div className="text-xs text-ink-muted sm:text-right">{meta}</div>
+      ) : null}
     </header>
   );
 }

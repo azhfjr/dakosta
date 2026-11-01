@@ -25,10 +25,14 @@ export function DistributionCard({
         >
           {title}
         </h2>
-        {description ? <p className="mt-0.5 text-xs text-ink-muted">{description}</p> : null}
+        {description ? (
+          <p className="mt-0.5 text-xs text-ink-muted">{description}</p>
+        ) : null}
       </div>
       {rows.length === 0 ? (
-        <p className="px-4 py-8 text-center text-sm text-ink-muted">{emptyMessage}</p>
+        <p className="px-4 py-8 text-center text-sm text-ink-muted">
+          {emptyMessage}
+        </p>
       ) : (
         <ul className="divide-y divide-border/70">
           {rows.map((row) => (
@@ -45,7 +49,12 @@ export function DistributionCard({
               >
                 <div
                   className="h-full rounded-full bg-brand-blue-500"
-                  style={{ width: max > 0 ? `${Math.max(4, (row.total / max) * 100)}%` : "0%" }}
+                  style={{
+                    width:
+                      max > 0
+                        ? `${Math.max(4, (row.total / max) * 100)}%`
+                        : "0%",
+                  }}
                 />
               </div>
             </li>

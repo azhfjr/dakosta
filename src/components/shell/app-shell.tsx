@@ -22,9 +22,9 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-dvh bg-surface-muted/60 lg:grid lg:grid-cols-[17rem_minmax(0,1fr)]">
+    <div className="min-h-dvh bg-surface-muted/60 print:block print:bg-white lg:grid lg:grid-cols-[17rem_minmax(0,1fr)]">
       <NotificationStream />
-      <aside className="sticky top-0 hidden h-dvh flex-col border-r border-border bg-surface lg:flex">
+      <aside className="sticky top-0 hidden h-dvh flex-col border-r border-border bg-surface print:hidden lg:flex">
         <div className="px-5 pt-5 pb-4">
           <BrandLogo variant="compact" className="w-36" />
           <p className="mt-2 text-xs leading-relaxed text-ink-muted">
@@ -45,7 +45,7 @@ export function AppShell({
       </aside>
 
       <div className="flex min-h-dvh min-w-0 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-border bg-surface/95 px-4 backdrop-blur sm:px-6 lg:px-8">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-border bg-surface/95 px-4 backdrop-blur print:hidden sm:px-6 lg:px-8">
           <div className="flex min-w-0 items-center gap-2">
             <MobileNav
               role={user.role}
@@ -58,7 +58,9 @@ export function AppShell({
             </div>
             <p className="hidden truncate text-sm text-ink-muted lg:block">
               Ruang kerja{" "}
-              <span className="font-medium text-foreground">{user.scopeLabel}</span>
+              <span className="font-medium text-foreground">
+                {user.scopeLabel}
+              </span>
             </p>
           </div>
 
@@ -101,11 +103,36 @@ export function AppShell({
           </div>
         </header>
 
-        <main id="konten" className="flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <main
+          id="konten"
+          className="flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8 print:p-0"
+        >
+          {user.role !== "MASTER_ADMIN" &&
+          user.locationStatus !== "VERIFIED" &&
+          user.locationStatus !== "EXEMPT" ? (
+            <div className="mb-5 flex flex-col gap-2 rounded-xl border border-status-review/30 bg-status-review/5 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-ink-muted">
+                <span className="font-semibold text-foreground">
+                  Lokasi belum diaktifkan.
+                </span>{" "}
+                {user.locationGraceDeadline
+                  ? `Selesaikan sebelum ${new Intl.DateTimeFormat("id-ID", { dateStyle: "long", timeZone: "Asia/Jakarta" }).format(user.locationGraceDeadline)} WIB agar akses tidak terhenti.`
+                  : "Aktifkan lokasi perangkat satu kali untuk memakai semua fitur."}
+              </p>
+              <Link
+                href="/aktivasi-lokasi"
+                className="font-semibold whitespace-nowrap text-brand-blue-800 underline-offset-4 hover:underline"
+              >
+                Aktivasi sekarang
+              </Link>
+            </div>
+          ) : null}
           {children}
         </main>
 
-        <SiteFooter compact />
+        <div className="print:hidden">
+          <SiteFooter compact />
+        </div>
       </div>
     </div>
   );

@@ -4,7 +4,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
-  FileText,
   Filter,
   Search,
 } from "lucide-react";
@@ -98,10 +97,6 @@ export function AnalyticsContentTable({
   }
   if (filters.period !== "ALL") exportParams.set("month", filters.period);
   const exportHref = `/api/v1/exports/submissions?${exportParams.toString()}`;
-  const reportParams = new URLSearchParams();
-  if (filters.period !== "ALL") reportParams.set("month", filters.period);
-  if (filters.sources.length > 0) reportParams.set("source", filters.sources.join(","));
-  const reportHref = `/api/v1/reports/achievement?${reportParams.toString()}`;
 
   return (
     <section
@@ -110,7 +105,10 @@ export function AnalyticsContentTable({
     >
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
         <div>
-          <h2 id="analitik-tabel" className="text-base font-semibold text-foreground">
+          <h2
+            id="analitik-tabel"
+            className="text-base font-semibold text-foreground"
+          >
             Semua konten
           </h2>
           <p className="mt-0.5 text-xs text-ink-muted">
@@ -124,12 +122,6 @@ export function AnalyticsContentTable({
             <a href={exportHref} download>
               <Download className="size-4" aria-hidden />
               CSV
-            </a>
-          </Button>
-          <Button asChild size="sm" className="h-9">
-            <a href={reportHref} download>
-              <FileText className="size-4" aria-hidden />
-              Laporan PDF
             </a>
           </Button>
         </div>
@@ -161,20 +153,28 @@ export function AnalyticsContentTable({
           </label>
           <label>
             <span className="sr-only">Periode</span>
-            <select name="period" defaultValue={filters.period} className={inputClass}>
+            <select
+              name="period"
+              defaultValue={filters.period}
+              className={inputClass}
+            >
               <option value="ALL">{ANALYTICS_PERIOD_LABEL}</option>
-              {monthOptions(filters.period === "ALL" ? monthKeyFor() : filters.period).map(
-                (option) => (
-                  <option key={option.key} value={option.key}>
-                    {option.label}
-                  </option>
-                ),
-              )}
+              {monthOptions(
+                filters.period === "ALL" ? monthKeyFor() : filters.period,
+              ).map((option) => (
+                <option key={option.key} value={option.key}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </label>
           <label>
             <span className="sr-only">Status</span>
-            <select name="status" defaultValue={filters.status} className={inputClass}>
+            <select
+              name="status"
+              defaultValue={filters.status}
+              className={inputClass}
+            >
               <option value="ALL">Semua status</option>
               {CONTENT_STATUSES.map((status) => (
                 <option key={status} value={status}>
@@ -197,7 +197,11 @@ export function AnalyticsContentTable({
           </label>
           <label>
             <span className="sr-only">Sortir</span>
-            <select name="sort" defaultValue={filters.sort} className={inputClass}>
+            <select
+              name="sort"
+              defaultValue={filters.sort}
+              className={inputClass}
+            >
               {Object.entries(ANALYTICS_SORT_LABELS).map(([value, label]) => (
                 <option key={value} value={value}>
                   {label}
@@ -255,16 +259,32 @@ export function AnalyticsContentTable({
             </caption>
             <thead>
               <tr className="border-b border-border text-left text-xs font-medium tracking-wide text-ink-muted uppercase">
-                <th scope="col" className="px-4 py-3 sm:px-5">Konten</th>
-                <th scope="col" className="px-4 py-3 sm:px-5">Jenis</th>
+                <th scope="col" className="px-4 py-3 sm:px-5">
+                  Konten
+                </th>
+                <th scope="col" className="px-4 py-3 sm:px-5">
+                  Jenis
+                </th>
                 {showOrganization ? (
-                  <th scope="col" className="px-4 py-3 sm:px-5">Organisasi</th>
+                  <th scope="col" className="px-4 py-3 sm:px-5">
+                    Organisasi
+                  </th>
                 ) : null}
-                <th scope="col" className="px-4 py-3 sm:px-5">Sumber</th>
-                <th scope="col" className="px-4 py-3 sm:px-5">Tema</th>
-                <th scope="col" className="px-4 py-3 sm:px-5">Status</th>
-                <th scope="col" className="px-4 py-3 sm:px-5">Keputusan</th>
-                <th scope="col" className="px-4 py-3 sm:px-5">Dibuat</th>
+                <th scope="col" className="px-4 py-3 sm:px-5">
+                  Sumber
+                </th>
+                <th scope="col" className="px-4 py-3 sm:px-5">
+                  Tema
+                </th>
+                <th scope="col" className="px-4 py-3 sm:px-5">
+                  Status
+                </th>
+                <th scope="col" className="px-4 py-3 sm:px-5">
+                  Keputusan
+                </th>
+                <th scope="col" className="px-4 py-3 sm:px-5">
+                  Dibuat
+                </th>
                 <th scope="col" className="px-4 py-3 sm:px-5">
                   <span className="sr-only">Tindakan</span>
                 </th>
@@ -296,8 +316,12 @@ export function AnalyticsContentTable({
                   </td>
                   {showOrganization ? (
                     <td className="px-4 py-3 text-ink-muted sm:px-5">
-                      <p className="font-medium text-foreground">{row.organization}</p>
-                      <p className="text-xs">{row.branchName ?? "Tanpa cabang"}</p>
+                      <p className="font-medium text-foreground">
+                        {row.organization}
+                      </p>
+                      <p className="text-xs">
+                        {row.branchName ?? "Tanpa cabang"}
+                      </p>
                     </td>
                   ) : null}
                   <td className="px-4 py-3 sm:px-5">
@@ -310,7 +334,8 @@ export function AnalyticsContentTable({
                   <td className="px-4 py-3 text-ink-muted sm:px-5">
                     <p>
                       {row.subTheme
-                        ? SUB_THEME_LABELS[row.subTheme as SubTheme] ?? row.subTheme
+                        ? (SUB_THEME_LABELS[row.subTheme as SubTheme] ??
+                          row.subTheme)
                         : "Tanpa sub-tema"}
                     </p>
                     <p className="text-xs">

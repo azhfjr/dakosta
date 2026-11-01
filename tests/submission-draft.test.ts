@@ -52,7 +52,7 @@ describe("hydrateDraft", () => {
     expect(fallbackStakeholderId([orgA, orgB])).toBe("");
   });
 
-  it("drops unknown taxonomy values, invalid dates, and malformed locations", () => {
+  it("drops unknown taxonomy values, invalid dates, and per-content locations", () => {
     const hydrated = hydrateDraft(
       {
         platform: "FRIENDSTER",
@@ -72,7 +72,7 @@ describe("hydrateDraft", () => {
     expect(hydrated.subTheme).toBeUndefined();
     expect(hydrated.dateCreated).toBeUndefined();
     expect(hydrated.publishedAt).toBe("2026-10-30");
-    expect(hydrated.location).toBeUndefined();
+    expect("location" in hydrated).toBe(false);
   });
 
   it("restores its own submission id and idempotency key", () => {
@@ -107,14 +107,6 @@ describe("hydrateDraft", () => {
       narrative: "Narasi yang cukup panjang untuk disimpan sebagai draf.",
       dateCreated: "2026-10-30",
       publishedAt: "2026-10-30",
-      location: {
-        latitude: -6.2,
-        longitude: 106.8,
-        source: "manual_pin",
-        accuracyMeters: null,
-        consentAt: null,
-      },
-      locationLabel: "Jakarta",
       privacyAttested: false,
     };
     const hydrated = hydrateDraft(JSON.parse(serializeDraft(draft)), [orgA]);
@@ -125,7 +117,6 @@ describe("hydrateDraft", () => {
       contentType: "VIDEO",
       subTheme: "INFORMASI",
       dateCreated: "2026-10-30",
-      locationLabel: "Jakarta",
     });
   });
 });

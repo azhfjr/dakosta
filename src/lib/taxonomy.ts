@@ -49,15 +49,24 @@ export const LEGACY_THEME_TO_SUBTHEME: Record<string, SubTheme> = {
 };
 
 export function isMainTheme(value: unknown): value is MainTheme {
-  return typeof value === "string" && (MAIN_THEMES as readonly string[]).includes(value);
+  return (
+    typeof value === "string" &&
+    (MAIN_THEMES as readonly string[]).includes(value)
+  );
 }
 
 export function isSubTheme(value: unknown): value is SubTheme {
-  return typeof value === "string" && (SUB_THEMES as readonly string[]).includes(value);
+  return (
+    typeof value === "string" &&
+    (SUB_THEMES as readonly string[]).includes(value)
+  );
 }
 
 export function isContentType(value: unknown): value is ContentType {
-  return typeof value === "string" && (CONTENT_TYPES as readonly string[]).includes(value);
+  return (
+    typeof value === "string" &&
+    (CONTENT_TYPES as readonly string[]).includes(value)
+  );
 }
 
 const PERIOD_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;

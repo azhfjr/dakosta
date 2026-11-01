@@ -7,8 +7,12 @@ import {
 } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 
-function isContentTypeValue(value: string | null | undefined): value is ContentType {
-  return Boolean(value) && (CONTENT_TYPES as readonly string[]).includes(value!);
+function isContentTypeValue(
+  value: string | null | undefined,
+): value is ContentType {
+  return (
+    Boolean(value) && (CONTENT_TYPES as readonly string[]).includes(value!)
+  );
 }
 
 export function ContentTypeBadge({

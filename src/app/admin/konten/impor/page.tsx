@@ -144,11 +144,17 @@ export default async function AdminContentImportPage() {
         </ol>
         <div className="mt-4 flex flex-wrap gap-3 text-xs text-ink-muted">
           <span className="inline-flex items-center gap-1.5">
-            <ShieldCheck className="size-3.5 text-status-approved" aria-hidden />
+            <ShieldCheck
+              className="size-3.5 text-status-approved"
+              aria-hidden
+            />
             Konten terdeteksi memuat NIK/JKN otomatis ditolak.
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <ShieldCheck className="size-3.5 text-status-approved" aria-hidden />
+            <ShieldCheck
+              className="size-3.5 text-status-approved"
+              aria-hidden
+            />
             Impor tidak pernah berstatus disetujui; validasi tetap di cabang.
           </span>
         </div>
@@ -174,10 +180,18 @@ export default async function AdminContentImportPage() {
             <caption className="sr-only">Kolom template impor konten</caption>
             <thead>
               <tr className="border-b border-border text-left text-xs font-medium tracking-wide text-ink-muted uppercase">
-                <th scope="col" className="px-5 py-2.5">Kolom</th>
-                <th scope="col" className="px-5 py-2.5">Wajib</th>
-                <th scope="col" className="px-5 py-2.5">Contoh</th>
-                <th scope="col" className="px-5 py-2.5">Keterangan</th>
+                <th scope="col" className="px-5 py-2.5">
+                  Kolom
+                </th>
+                <th scope="col" className="px-5 py-2.5">
+                  Wajib
+                </th>
+                <th scope="col" className="px-5 py-2.5">
+                  Contoh
+                </th>
+                <th scope="col" className="px-5 py-2.5">
+                  Keterangan
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -192,7 +206,9 @@ export default async function AdminContentImportPage() {
                   <td className="px-5 py-2.5 text-ink-muted">
                     {column.required ? "Wajib" : "Opsional"}
                   </td>
-                  <td className="px-5 py-2.5 text-ink-muted">{column.example}</td>
+                  <td className="px-5 py-2.5 text-ink-muted">
+                    {column.example}
+                  </td>
                   <td className="px-5 py-2.5 text-ink-muted">{column.note}</td>
                 </tr>
               ))}

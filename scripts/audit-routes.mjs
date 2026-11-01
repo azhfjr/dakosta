@@ -85,7 +85,12 @@ const ROLE_APIS = {
     "/api/v1/notifications/unread-count",
     "/api/v1/submissions",
   ],
-  regional: ["/api/v1/me", "/api/v1/dashboard/admin", "/api/v1/map", "/api/v1/notifications"],
+  regional: [
+    "/api/v1/me",
+    "/api/v1/dashboard/admin",
+    "/api/v1/map",
+    "/api/v1/notifications",
+  ],
   branch: ["/api/v1/me", "/api/v1/admin/reviews", "/api/v1/dashboard/admin"],
   client: [
     "/api/v1/me",
@@ -136,7 +141,9 @@ async function check(context, label, url, role) {
   if (status === 401 || status === 403) {
     warnings.push({ role, url, reason: `HTTP ${status} (izin ditolak)` });
   }
-  console.log(`${status} ${role.padEnd(8)} ${url}${location ? ` -> ${location}` : ""}`);
+  console.log(
+    `${status} ${role.padEnd(8)} ${url}${location ? ` -> ${location}` : ""}`,
+  );
 }
 
 async function main() {
@@ -152,14 +159,19 @@ async function main() {
   for (const [role, pages] of Object.entries(ROLE_PAGES)) {
     const file = stateFor(role);
     if (!file) {
-      warnings.push({ role, url: "-", reason: "state login tidak ditemukan, dilewati" });
+      warnings.push({
+        role,
+        url: "-",
+        reason: "state login tidak ditemukan, dilewati",
+      });
       continue;
     }
     const storageState = JSON.parse(readFileSync(file, "utf8"));
     const context = await request.newContext({ baseURL, storageState });
     try {
       for (const page of pages) await check(context, page, page, role);
-      for (const api of ROLE_APIS[role] ?? []) await check(context, api, api, role);
+      for (const api of ROLE_APIS[role] ?? [])
+        await check(context, api, api, role);
     } finally {
       await context.dispose();
     }

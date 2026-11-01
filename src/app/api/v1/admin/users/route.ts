@@ -1,6 +1,10 @@
 import { getRequestId, jsonError, jsonOk, readJson } from "@/lib/api";
 import { recordAudit } from "@/lib/audit";
-import { requireMasterApi, requireStepUp, assertSameOrigin } from "@/lib/authz/guards";
+import {
+  requireMasterApi,
+  requireStepUp,
+  assertSameOrigin,
+} from "@/lib/authz/guards";
 import { assertDemoCannotManageAccounts } from "@/lib/authz/demo-guard";
 import {
   createAccount,
@@ -8,7 +12,11 @@ import {
   listAccounts,
   listScopeOptions,
 } from "@/lib/accounts";
-import { consumeRateLimit, getClientIp, getRateLimitHeaders } from "@/lib/rate-limit";
+import {
+  consumeRateLimit,
+  getClientIp,
+  getRateLimitHeaders,
+} from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -18,7 +26,10 @@ export async function GET(request: Request) {
   const requestId = getRequestId(request);
   try {
     await requireMasterApi();
-    const [users, options] = await Promise.all([listAccounts(), listScopeOptions()]);
+    const [users, options] = await Promise.all([
+      listAccounts(),
+      listScopeOptions(),
+    ]);
     return jsonOk({ users, options }, { requestId });
   } catch (error) {
     return jsonError(error, requestId);

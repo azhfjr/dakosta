@@ -56,7 +56,7 @@ export function ChangePasswordForm({
         setError(
           payload.error?.code === "UNAUTHORIZED"
             ? "Kata sandi saat ini tidak sesuai."
-            : payload.error?.message ?? "Kata sandi tidak dapat diubah.",
+            : (payload.error?.message ?? "Kata sandi tidak dapat diubah."),
         );
         return;
       }
@@ -172,7 +172,10 @@ export function ChangePasswordForm({
       </Button>
 
       <p className="flex items-start gap-2 text-xs leading-relaxed text-ink-muted">
-        <ShieldCheck className="mt-0.5 size-4 shrink-0 text-brand-blue-700" aria-hidden />
+        <ShieldCheck
+          className="mt-0.5 size-4 shrink-0 text-brand-blue-700"
+          aria-hidden
+        />
         Setelah tersimpan, sesi lain akan diakhiri dan Anda dapat melanjutkan ke
         ruang kerja.
       </p>

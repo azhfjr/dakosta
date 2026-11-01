@@ -21,9 +21,10 @@ export default async function RegionalRedNoticePage() {
           Red Notice wilayah
         </h1>
         <p className="mt-1 max-w-3xl text-sm text-ink-muted">
-          Red Notice menandai Faskes aktif di {user.scopeLabel} yang belum pernah
-          mengirim konten sama sekali. Faskes yang aktif sebelumnya tetapi tidak
-          mengirim pada bulan berjalan ditampilkan terpisah agar tidak tertukar.
+          Red Notice menandai Faskes aktif di {user.scopeLabel} yang belum
+          pernah mengirim konten sama sekali. Faskes yang aktif sebelumnya
+          tetapi tidak mengirim pada bulan berjalan ditampilkan terpisah agar
+          tidak tertukar.
         </p>
       </header>
 

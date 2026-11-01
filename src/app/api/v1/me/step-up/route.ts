@@ -8,7 +8,11 @@ import { getAuth } from "@/lib/auth";
 import { assertSameOrigin, getApiAuth } from "@/lib/authz/guards";
 import { markStepUp } from "@/lib/authz/step-up";
 import { errors } from "@/lib/errors";
-import { consumeRateLimit, getClientIp, getRateLimitHeaders } from "@/lib/rate-limit";
+import {
+  consumeRateLimit,
+  getClientIp,
+  getRateLimitHeaders,
+} from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

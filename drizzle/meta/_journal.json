@@ -29,6 +29,20 @@
       "when": 1793427291449,
       "tag": "0003_content_taxonomy_and_review",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793518821903,
+      "tag": "0004_v1_1_foundations",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793523728833,
+      "tag": "0005_v1_1_perf_indexes",
+      "breakpoints": true
     }
   ]
 }

@@ -4,7 +4,8 @@ const isDev = process.env.NODE_ENV !== "production";
 const DEFAULT_MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/positron";
 
 function mapOrigins(): string[] {
-  const raw = process.env.NEXT_PUBLIC_MAP_STYLE_URL?.trim() || DEFAULT_MAP_STYLE_URL;
+  const raw =
+    process.env.NEXT_PUBLIC_MAP_STYLE_URL?.trim() || DEFAULT_MAP_STYLE_URL;
   if (raw.startsWith("/")) return [];
   try {
     return [...new Set([new URL(raw).origin])];
@@ -14,7 +15,11 @@ function mapOrigins(): string[] {
 }
 
 const mapSources = mapOrigins();
-const connectSources = ["'self'", ...mapSources, ...(isDev ? ["ws:", "wss:"] : [])];
+const connectSources = [
+  "'self'",
+  ...mapSources,
+  ...(isDev ? ["ws:", "wss:"] : []),
+];
 const imageSources = ["'self'", "data:", "blob:", ...mapSources];
 
 const contentSecurityPolicy = [

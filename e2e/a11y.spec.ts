@@ -13,7 +13,8 @@ async function seriousViolations(page: Page) {
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     .analyze();
   return results.violations.filter(
-    (violation) => violation.impact === "serious" || violation.impact === "critical",
+    (violation) =>
+      violation.impact === "serious" || violation.impact === "critical",
   );
 }
 
@@ -51,7 +52,9 @@ test.describe("Aksesibilitas ruang kerja", () => {
     }
   });
 
-  test("dashboard wilayah bersifat baca-saja dan aksesibel", async ({ browser }) => {
+  test("dashboard wilayah bersifat baca-saja dan aksesibel", async ({
+    browser,
+  }) => {
     const context = await browser.newContext({ storageState: REGIONAL_STATE });
     try {
       const page = await context.newPage();
@@ -114,7 +117,9 @@ test.describe("Tata letak seluler", () => {
     try {
       const page = await context.newPage();
       await page.goto("/cabang");
-      const toggle = page.getByRole("button", { name: /menu|navigasi/i }).first();
+      const toggle = page
+        .getByRole("button", { name: /menu|navigasi/i })
+        .first();
       await expect(toggle).toBeVisible();
       await toggle.click();
       await expect(page.getByRole("navigation").first()).toBeVisible();

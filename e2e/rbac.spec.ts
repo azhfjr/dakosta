@@ -67,15 +67,23 @@ test.describe("Isolasi API antar peran", () => {
       });
       expect(regionWrite.status).toBe(403);
 
-      const organizationWrite = await call(regional, "/api/v1/admin/organizations", {
-        method: "POST",
-        data: {},
-      });
+      const organizationWrite = await call(
+        regional,
+        "/api/v1/admin/organizations",
+        {
+          method: "POST",
+          data: {},
+        },
+      );
       expect(organizationWrite.status).toBe(403);
 
-      const policyWrite = await call(regional, "/api/v1/admin/edufast/policies", {
-        method: "GET",
-      });
+      const policyWrite = await call(
+        regional,
+        "/api/v1/admin/edufast/policies",
+        {
+          method: "GET",
+        },
+      );
       expect(policyWrite.status).toBe(403);
 
       const submissionWrite = await call(regional, "/api/v1/submissions", {
@@ -94,17 +102,27 @@ test.describe("Isolasi API antar peran", () => {
       apiContext(REGIONAL_B_STATE),
     ]);
     try {
-      const listA = await call<ListItem[]>(regionalA, "/api/v1/submissions?limit=100");
+      const listA = await call<ListItem[]>(
+        regionalA,
+        "/api/v1/submissions?limit=100",
+      );
       expect(listA.status, listA.text).toBe(200);
       expect((listA.body.data ?? []).length).toBeGreaterThan(0);
       expect(
-        (listA.body.data ?? []).some((item) => item.stakeholderName === JAKARTA_ORGANIZATION),
+        (listA.body.data ?? []).some(
+          (item) => item.stakeholderName === JAKARTA_ORGANIZATION,
+        ),
       ).toBe(false);
 
-      const listB = await call<ListItem[]>(regionalB, "/api/v1/submissions?limit=100");
+      const listB = await call<ListItem[]>(
+        regionalB,
+        "/api/v1/submissions?limit=100",
+      );
       expect(listB.status, listB.text).toBe(200);
       expect(
-        (listB.body.data ?? []).some((item) => item.stakeholderName === JAKARTA_ORGANIZATION),
+        (listB.body.data ?? []).some(
+          (item) => item.stakeholderName === JAKARTA_ORGANIZATION,
+        ),
       ).toBe(true);
     } finally {
       await regionalA.dispose();
@@ -151,10 +169,16 @@ test.describe("Isolasi API antar peran", () => {
       apiContext(CLIENT_STATE),
     ]);
     try {
-      const masterQueue = await call(master, "/api/v1/admin/reviews?status=ALL");
+      const masterQueue = await call(
+        master,
+        "/api/v1/admin/reviews?status=ALL",
+      );
       expect(masterQueue.status).toBe(200);
 
-      const clientQueue = await call(client, "/api/v1/admin/reviews?status=ALL");
+      const clientQueue = await call(
+        client,
+        "/api/v1/admin/reviews?status=ALL",
+      );
       expect(clientQueue.status).toBe(403);
 
       const clientAccounts = await call(client, "/api/v1/admin/users");
@@ -167,7 +191,9 @@ test.describe("Isolasi API antar peran", () => {
 });
 
 test.describe("Guard rute UI per peran", () => {
-  test("regional dialihkan dari area master dan cabang", async ({ browser }) => {
+  test("regional dialihkan dari area master dan cabang", async ({
+    browser,
+  }) => {
     const context = await browser.newContext({ storageState: REGIONAL_STATE });
     try {
       const page = await context.newPage();
@@ -177,16 +203,18 @@ test.describe("Guard rute UI per peran", () => {
       await expect(page).toHaveURL(/\/akses-ditolak$/, { timeout: 20_000 });
 
       await page.goto("/wilayah");
-      await expect(page.getByRole("heading", { name: "Ringkasan wilayah" })).toBeVisible();
       await expect(
-        page.getByText("Regional Jawa Barat", { exact: true }),
+        page.getByRole("heading", { name: "SLA Check wilayah" }),
       ).toBeVisible();
+      await expect(page.getByText(/Regional Jawa Barat/).first()).toBeVisible();
     } finally {
       await context.close();
     }
   });
 
-  test("reviewer cabang dialihkan dari area master dan wilayah", async ({ browser }) => {
+  test("reviewer cabang dialihkan dari area master dan wilayah", async ({
+    browser,
+  }) => {
     const context = await browser.newContext({ storageState: BRANCH_STATE });
     try {
       const page = await context.newPage();
@@ -196,10 +224,10 @@ test.describe("Guard rute UI per peran", () => {
       await expect(page).toHaveURL(/\/akses-ditolak$/, { timeout: 20_000 });
 
       await page.goto("/cabang");
-      await expect(page.getByRole("heading", { name: "Ringkasan cabang" })).toBeVisible();
       await expect(
-        page.getByText("Cabang Bandung Kota", { exact: true }),
+        page.getByRole("heading", { name: "SLA Check cabang" }),
       ).toBeVisible();
+      await expect(page.getByText(/Cabang Bandung Kota/).first()).toBeVisible();
     } finally {
       await context.close();
     }
@@ -230,7 +258,10 @@ test.describe("Step-up Master dan pencabutan", () => {
       const revoke = await call(
         master,
         `/api/v1/admin/contents/${sample!.id}/revoke`,
-        { method: "POST", data: { reason: "Uji keamanan: konfirmasi kata sandi wajib." } },
+        {
+          method: "POST",
+          data: { reason: "Uji keamanan: konfirmasi kata sandi wajib." },
+        },
       );
       expect(revoke.status).toBe(403);
       expect(revoke.body.error?.code).toBe("STEP_UP_REQUIRED");

@@ -1,26 +1,44 @@
 import "server-only";
 
-import { and, asc, count, desc, eq, ilike, inArray, or, type SQL } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  or,
+  type SQL,
+} from "drizzle-orm";
 import { z } from "zod";
 
 import { getDb, schema } from "@/db";
-import { contentScopePredicate, organizationScopePredicate } from "@/lib/authz/predicates";
+import {
+  contentScopePredicate,
+  organizationScopePredicate,
+} from "@/lib/authz/predicates";
 import type { ContentStatus } from "@/lib/content-status";
 import { PENDING_STATUSES } from "@/lib/content-status";
 import { errors } from "@/lib/errors";
 import { drainOutbox } from "@/lib/notifications";
+import {
+  cachedRead,
+  invalidateReadCache,
+  readCacheKey,
+} from "@/lib/read-cache";
 import { assertCan, assertCapability } from "@/lib/rbac";
 import type { SessionUser } from "@/lib/session";
-import {
-  isSubTheme,
-  SUB_THEMES,
-  SUB_THEME_LABELS,
-} from "@/lib/taxonomy";
+import { isSubTheme, SUB_THEMES, SUB_THEME_LABELS } from "@/lib/taxonomy";
 
 type Database = ReturnType<typeof getDb>;
 type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 
-export const REVIEW_ACTIONS = ["APPROVE", "REQUEST_REVISION", "REJECT"] as const;
+export const REVIEW_ACTIONS = [
+  "APPROVE",
+  "REQUEST_REVISION",
+  "REJECT",
+] as const;
 export type ReviewAction = (typeof REVIEW_ACTIONS)[number];
 
 const ACTION_TO_STATUS: Record<ReviewAction, ContentStatus> = {
@@ -118,6 +136,8 @@ export type ReviewQueueItem = {
   stakeholderName: string;
   themeName: string;
   submittedAt: Date | null;
+  firstSubmittedAt: Date | null;
+  resubmissionCount: number;
   updatedAt: Date;
   agingDays: number;
 };
@@ -128,7 +148,12 @@ export type ReviewQueueResult = {
   page: number;
   pageSize: number;
   pageCount: number;
-  counts: { ALL: number; SUBMITTED: number; RESUBMITTED: number; IN_REVIEW: number };
+  counts: {
+    ALL: number;
+    SUBMITTED: number;
+    RESUBMITTED: number;
+    IN_REVIEW: number;
+  };
   oldestSubmittedAt: Date | null;
   generatedAt: Date;
 };
@@ -145,8 +170,26 @@ export async function listReviewQueue(
   user: SessionUser,
   filters: ReviewQueueFilters = {},
 ): Promise<ReviewQueueResult> {
-  assertCan(user, "content:review");
+  assertCapability(user, "sla:read");
+  return cachedRead(
+    readCacheKey(user, [
+      "review-queue",
+      filters.status ?? "ALL",
+      filters.stakeholderId ?? null,
+      filters.subTheme ?? null,
+      filters.search ?? null,
+      filters.page ?? 1,
+      filters.pageSize ?? 15,
+    ]),
+    () => loadReviewQueue(user, filters),
+    { ttlMs: 5_000 },
+  );
+}
 
+async function loadReviewQueue(
+  user: SessionUser,
+  filters: ReviewQueueFilters,
+): Promise<ReviewQueueResult> {
   const db = getDb();
   const pageSize = Math.min(Math.max(filters.pageSize ?? 15, 1), 50);
   const page = Math.max(filters.page ?? 1, 1);
@@ -193,6 +236,8 @@ export async function listReviewQueue(
         platform: schema.contentSubmissions.platform,
         contentType: schema.contentSubmissions.contentType,
         submittedAt: schema.contentSubmissions.submittedAt,
+        firstSubmittedAt: schema.contentSubmissions.firstSubmittedAt,
+        resubmissionCount: schema.contentSubmissions.resubmissionCount,
         updatedAt: schema.contentSubmissions.updatedAt,
         stakeholderName: schema.stakeholders.name,
         subTheme: schema.contentSubmissions.subTheme,
@@ -224,7 +269,10 @@ export async function listReviewQueue(
       .from(schema.contentSubmissions)
       .where(
         scopePredicate
-          ? and(inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]), scopePredicate)
+          ? and(
+              inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]),
+              scopePredicate,
+            )
           : inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]),
       )
       .groupBy(schema.contentSubmissions.status),
@@ -233,7 +281,10 @@ export async function listReviewQueue(
       .from(schema.contentSubmissions)
       .where(
         scopePredicate
-          ? and(inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]), scopePredicate)
+          ? and(
+              inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]),
+              scopePredicate,
+            )
           : inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]),
       )
       .orderBy(asc(schema.contentSubmissions.submittedAt))
@@ -262,8 +313,9 @@ export async function listReviewQueue(
         ...row,
         status: row.status as ContentStatus,
         themeName:
-          row.themeName ?? (subTheme ? SUB_THEME_LABELS[subTheme] : "Tanpa tema"),
-        agingDays: agingDays(row.submittedAt, now),
+          row.themeName ??
+          (subTheme ? SUB_THEME_LABELS[subTheme] : "Tanpa tema"),
+        agingDays: agingDays(row.firstSubmittedAt ?? row.submittedAt, now),
       };
     }),
     total,
@@ -282,6 +334,16 @@ export type ReviewQueueOptions = {
 };
 
 export async function listReviewQueueOptions(
+  user: SessionUser,
+): Promise<ReviewQueueOptions> {
+  return cachedRead(
+    readCacheKey(user, ["review-queue-options"]),
+    () => loadReviewQueueOptions(user),
+    { ttlMs: 300_000, maxStaleMs: 300_000 },
+  );
+}
+
+async function loadReviewQueueOptions(
   user: SessionUser,
 ): Promise<ReviewQueueOptions> {
   const db = getDb();
@@ -332,7 +394,9 @@ async function notifySubmitter(
 ): Promise<string | null> {
   const config = ACTION_NOTIFICATION[input.action];
   const dedupeKey = `content.decision:${input.submissionId}:${input.version}:${input.recipientId}`;
-  const subject = input.title ? `${input.referenceCode} — ${input.title}` : input.referenceCode;
+  const subject = input.title
+    ? `${input.referenceCode} — ${input.title}`
+    : input.referenceCode;
   const body = `${subject} ${config.verb}.${
     input.notes ? ` Catatan admin: ${input.notes}` : ""
   }`;
@@ -433,7 +497,9 @@ export async function reviewSubmission(
       admin.role !== "MASTER_ADMIN" &&
       (current.createdBy === admin.id || current.submittedBy === admin.id)
     ) {
-      throw errors.forbidden("Anda tidak dapat menilai konten yang Anda kirim sendiri.");
+      throw errors.forbidden(
+        "Anda tidak dapat menilai konten yang Anda kirim sendiri.",
+      );
     }
 
     if (
@@ -535,6 +601,7 @@ export async function reviewSubmission(
     };
   });
 
+  invalidateReadCache();
   await drainOutbox().catch((error) => {
     console.error("[notifications] drain pasca-keputusan gagal", error);
   });
@@ -608,6 +675,7 @@ export async function startReview(
     return { submissionId, status: "IN_REVIEW" as ContentStatus };
   });
 
+  invalidateReadCache();
   return result;
 }
 
@@ -679,7 +747,9 @@ export async function revokeSubmission(
       .returning({ id: schema.contentSubmissions.id });
 
     if (!updated) {
-      throw errors.conflict("Status konten berubah. Muat ulang halaman lalu coba lagi.");
+      throw errors.conflict(
+        "Status konten berubah. Muat ulang halaman lalu coba lagi.",
+      );
     }
 
     await tx.insert(schema.contentReviews).values({
@@ -763,6 +833,7 @@ export async function revokeSubmission(
     };
   });
 
+  invalidateReadCache();
   await drainOutbox().catch((error) => {
     console.error("[notifications] drain pasca-pencabutan gagal", error);
   });
@@ -770,7 +841,16 @@ export async function revokeSubmission(
   return result;
 }
 
-export async function countReviewQueue(user: SessionUser): Promise<number> {  const scopePredicate = contentScopePredicate(
+export async function countReviewQueue(user: SessionUser): Promise<number> {
+  return cachedRead(
+    readCacheKey(user, ["review-queue-count"]),
+    () => loadReviewQueueCount(user),
+    { ttlMs: 5_000 },
+  );
+}
+
+async function loadReviewQueueCount(user: SessionUser): Promise<number> {
+  const scopePredicate = contentScopePredicate(
     user,
     schema.contentSubmissions.stakeholderId,
   );
@@ -779,7 +859,10 @@ export async function countReviewQueue(user: SessionUser): Promise<number> {  co
     .from(schema.contentSubmissions)
     .where(
       scopePredicate
-        ? and(inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]), scopePredicate)
+        ? and(
+            inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]),
+            scopePredicate,
+          )
         : inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]),
     );
   return Number(row?.total ?? 0);

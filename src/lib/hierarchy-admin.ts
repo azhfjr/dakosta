@@ -91,7 +91,8 @@ const organizationSchema = z
       ctx.addIssue({
         code: "custom",
         path: ["faskesClass"],
-        message: "PEMDA dan organisasi lain tidak memakai kelas atau kode Faskes.",
+        message:
+          "PEMDA dan organisasi lain tidak memakai kelas atau kode Faskes.",
       });
     }
   });
@@ -123,9 +124,14 @@ async function assertRegionExists(regionId: string): Promise<void> {
   if (!region) throw errors.validation("Wilayah tidak ditemukan.");
 }
 
-async function assertBranchExists(branchId: string): Promise<{ regionId: string }> {
+async function assertBranchExists(
+  branchId: string,
+): Promise<{ regionId: string }> {
   const [branch] = await getDb()
-    .select({ id: schema.branchOffices.id, regionId: schema.branchOffices.regionalOfficeId })
+    .select({
+      id: schema.branchOffices.id,
+      regionId: schema.branchOffices.regionalOfficeId,
+    })
     .from(schema.branchOffices)
     .where(
       and(
@@ -134,7 +140,8 @@ async function assertBranchExists(branchId: string): Promise<{ regionId: string 
       ),
     )
     .limit(1);
-  if (!branch) throw errors.validation("Cabang tidak ditemukan atau tidak aktif.");
+  if (!branch)
+    throw errors.validation("Cabang tidak ditemukan atau tidak aktif.");
   return { regionId: branch.regionId };
 }
 
@@ -159,7 +166,9 @@ async function assertFaskesCodeAvailable(
   }
 }
 
-export async function createRegion(input: RegionInput): Promise<{ id: string }> {
+export async function createRegion(
+  input: RegionInput,
+): Promise<{ id: string }> {
   await assertDemoCannotManageHierarchy();
   const parsed = createRegionInputSchema.parse(input);
   try {
@@ -207,7 +216,9 @@ export async function updateRegion(
   }
 }
 
-export async function createBranch(input: BranchInput): Promise<{ id: string }> {
+export async function createBranch(
+  input: BranchInput,
+): Promise<{ id: string }> {
   await assertDemoCannotManageHierarchy();
   const parsed = createBranchInputSchema.parse(input);
   await assertRegionExists(parsed.regionalOfficeId);
@@ -268,7 +279,7 @@ function organizationValues(parsed: OrganizationInput) {
     name: parsed.name,
     branchOfficeId: parsed.branchOfficeId,
     organizationType: parsed.organizationType,
-    faskesClass: isFaskes ? parsed.faskesClass ?? null : null,
+    faskesClass: isFaskes ? (parsed.faskesClass ?? null) : null,
     faskesCode: isFaskes ? parsed.faskesCode!.trim() : null,
     faskesCodeNormalized: normalizedCode,
     category: CATEGORY_BY_TYPE[parsed.organizationType],
@@ -287,7 +298,9 @@ export async function createOrganization(
   const parsed = createOrganizationInputSchema.parse(input);
   await assertBranchExists(parsed.branchOfficeId);
   if (parsed.organizationType === "FASKES") {
-    await assertFaskesCodeAvailable(normalizeFaskesCode(parsed.faskesCode ?? ""));
+    await assertFaskesCodeAvailable(
+      normalizeFaskesCode(parsed.faskesCode ?? ""),
+    );
   }
   try {
     const [row] = await getDb()
@@ -331,7 +344,8 @@ export async function updateOrganization(
       })
       .where(eq(schema.stakeholders.id, id))
       .returning({ id: schema.stakeholders.id });
-    if (updated.length === 0) throw errors.notFound("Organisasi tidak ditemukan.");
+    if (updated.length === 0)
+      throw errors.notFound("Organisasi tidak ditemukan.");
   } catch (error) {
     if (error instanceof AppError) throw error;
     if (isUniqueViolation(error)) {
@@ -380,4 +394,3 @@ export async function listHierarchyOptions(): Promise<{
   ]);
   return { regions, branches };
 }
-

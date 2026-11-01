@@ -3,9 +3,15 @@ import { drizzle, type NeonDatabase } from "drizzle-orm/neon-serverless";
 import { Pool } from "@neondatabase/serverless";
 
 import * as schema from "../src/db/schema";
-import { describeTarget, loadScriptEnv, requireDatabaseUrlForScript } from "./_env";
+import {
+  describeTarget,
+  loadScriptEnv,
+  requireDatabaseUrlForScript,
+} from "./_env";
 
-const target = process.argv.find((value) => value.startsWith("--target="))?.split("=")[1];
+const target = process.argv
+  .find((value) => value.startsWith("--target="))
+  ?.split("=")[1];
 if (target !== "production") {
   throw new Error(
     "Purge demo hanya boleh dijalankan dengan --target=production. Tidak ada perubahan yang dilakukan.",
@@ -50,7 +56,11 @@ const DELETE_ORDER = [
   "user",
 ] as const;
 
-const DEMO_FLAG_TABLES = ["user_profiles", "stakeholders", "content_submissions"] as const;
+const DEMO_FLAG_TABLES = [
+  "user_profiles",
+  "stakeholders",
+  "content_submissions",
+] as const;
 
 function quoted(table: string): string {
   return `"${table.replaceAll('"', '""')}"`;
@@ -94,7 +104,10 @@ async function purgeResidualDemoUsers(
 }
 
 async function main(): Promise<void> {
-  const pool = new Pool({ connectionString: requireDatabaseUrlForScript(), max: 1 });
+  const pool = new Pool({
+    connectionString: requireDatabaseUrlForScript(),
+    max: 1,
+  });
   const db = drizzle(pool, { schema });
 
   try {
@@ -140,7 +153,10 @@ async function main(): Promise<void> {
       await db.execute(sql.raw(`delete from ${quoted(table)}`));
     }
 
-    const totalRows = Object.values(counts).reduce((sum, value) => sum + value, 0);
+    const totalRows = Object.values(counts).reduce(
+      (sum, value) => sum + value,
+      0,
+    );
     if (existing.has("migration_runs")) {
       await db.insert(schema.migrationRuns).values({
         name: "purge-demo-production",
@@ -153,7 +169,9 @@ async function main(): Promise<void> {
     }
 
     console.log(`Purge demo selesai (${describeTarget("production")}).`);
-    console.log(`Baris dihapus: ${totalRows}. Rekap tersimpan di migration_runs.`);
+    console.log(
+      `Baris dihapus: ${totalRows}. Rekap tersimpan di migration_runs.`,
+    );
   } finally {
     await pool.end();
   }

@@ -103,12 +103,16 @@ export default async function ReviewDetailPage({
             </span>
           </div>
           <p className="mt-1 text-sm text-ink-muted">
-            {detail.referenceCode} · dikirim {formatDateTimeId(detail.submittedAt)}{" "}
-            WIB
+            {detail.referenceCode} · dikirim{" "}
+            {formatDateTimeId(detail.submittedAt)} WIB
           </p>
         </div>
         <Button asChild variant="outline" className="h-10 self-start">
-          <a href={detail.publishedUrl} target="_blank" rel="noopener noreferrer">
+          <a
+            href={detail.publishedUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Buka konten
             <ExternalLink className="ml-1.5 size-4" aria-hidden />
           </a>
@@ -131,7 +135,10 @@ export default async function ReviewDetailPage({
             aria-labelledby="konten-title"
             className="rounded-xl border border-border bg-surface p-5 shadow-sm"
           >
-            <h2 id="konten-title" className="text-base font-semibold text-foreground">
+            <h2
+              id="konten-title"
+              className="text-base font-semibold text-foreground"
+            >
               Narasi konten
             </h2>
             <p className="mt-3 text-sm leading-relaxed whitespace-pre-line text-ink">
@@ -146,13 +153,17 @@ export default async function ReviewDetailPage({
                 <dd className="mt-1 text-sm font-medium text-foreground">
                   {detail.stakeholder.name}
                 </dd>
-                <dd className="text-xs text-ink-muted">{detail.stakeholder.serviceArea}</dd>
+                <dd className="text-xs text-ink-muted">
+                  {detail.stakeholder.serviceArea}
+                </dd>
               </div>
               <div>
                 <dt className="text-xs font-medium tracking-wide text-ink-muted uppercase">
                   Tema
                 </dt>
-                <dd className="mt-1 text-sm text-foreground">{detail.theme.name}</dd>
+                <dd className="mt-1 text-sm text-foreground">
+                  {detail.theme.name}
+                </dd>
               </div>
               <div>
                 <dt className="text-xs font-medium tracking-wide text-ink-muted uppercase">
@@ -197,7 +208,10 @@ export default async function ReviewDetailPage({
           >
             <div className="flex items-center gap-2">
               <MapPin className="size-4 text-brand-teal-700" aria-hidden />
-              <h2 id="lokasi-title" className="text-base font-semibold text-foreground">
+              <h2
+                id="lokasi-title"
+                className="text-base font-semibold text-foreground"
+              >
                 Lokasi konten
               </h2>
             </div>
@@ -211,13 +225,17 @@ export default async function ReviewDetailPage({
                   <div>
                     <dt className="text-xs text-ink-muted">Koordinat</dt>
                     <dd className="mt-0.5 font-medium text-foreground tabular">
-                      {coordinates(detail.location.latitude, detail.location.longitude)}
+                      {coordinates(
+                        detail.location.latitude,
+                        detail.location.longitude,
+                      )}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-xs text-ink-muted">Sumber</dt>
                     <dd className="mt-0.5 text-foreground">
-                      {SOURCE_LABEL[detail.location.source] ?? detail.location.source}
+                      {SOURCE_LABEL[detail.location.source] ??
+                        detail.location.source}
                     </dd>
                   </div>
                   <div>
@@ -263,14 +281,20 @@ export default async function ReviewDetailPage({
           >
             <div className="flex items-center gap-2">
               <History className="size-4 text-ink-muted" aria-hidden />
-              <h2 id="riwayat-title" className="text-base font-semibold text-foreground">
+              <h2
+                id="riwayat-title"
+                className="text-base font-semibold text-foreground"
+              >
                 Riwayat & keputusan sebelumnya
               </h2>
             </div>
 
             {detail.reviews.length === 0 ? (
               <div className="mt-3 flex items-start gap-2 rounded-lg border border-dashed border-border p-3 text-sm text-ink-muted">
-                <ClipboardCheck className="mt-0.5 size-4 shrink-0" aria-hidden />
+                <ClipboardCheck
+                  className="mt-0.5 size-4 shrink-0"
+                  aria-hidden
+                />
                 <p>Belum ada keputusan admin untuk konten ini.</p>
               </div>
             ) : (
@@ -282,8 +306,8 @@ export default async function ReviewDetailPage({
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="text-sm font-medium text-foreground">
-                        {REVIEW_ACTION_LABEL[review.action] ?? review.action} · v
-                        {review.version}
+                        {REVIEW_ACTION_LABEL[review.action] ?? review.action} ·
+                        v{review.version}
                       </p>
                       <p className="text-xs text-ink-muted">
                         {formatDateTimeId(review.createdAt)} WIB
@@ -291,7 +315,9 @@ export default async function ReviewDetailPage({
                     </div>
                     <p className="mt-1 text-xs text-ink-muted">
                       Oleh {review.reviewerName}
-                      {review.conflictOfInterest ? " · ditandai konflik kepentingan" : ""}
+                      {review.conflictOfInterest
+                        ? " · ditandai konflik kepentingan"
+                        : ""}
                     </p>
                     {review.notes ? (
                       <p className="mt-2 text-sm leading-relaxed text-ink">
@@ -305,11 +331,14 @@ export default async function ReviewDetailPage({
 
             {detail.revisions.length > 0 ? (
               <div className="mt-5 border-t border-border pt-4">
-                <h3 className="text-sm font-medium text-foreground">Versi tersimpan</h3>
+                <h3 className="text-sm font-medium text-foreground">
+                  Versi tersimpan
+                </h3>
                 <ul className="mt-2 space-y-1.5 text-sm text-ink-muted">
                   {detail.revisions.map((revision) => (
                     <li key={revision.id}>
-                      v{revision.version} · {formatDateTimeId(revision.createdAt)} WIB ·{" "}
+                      v{revision.version} ·{" "}
+                      {formatDateTimeId(revision.createdAt)} WIB ·{" "}
                       {revision.actorName}
                       {revision.reason ? ` · ${revision.reason}` : ""}
                     </li>
@@ -323,8 +352,8 @@ export default async function ReviewDetailPage({
             <ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden />
             <p>
               Konten ini diverifikasi tanpa data pribadi, nomor identitas, atau
-              rekam medis. Keputusan reviewer menulis ulasan, notifikasi, dan audit
-              dalam satu transaksi.
+              rekam medis. Keputusan reviewer menulis ulasan, notifikasi, dan
+              audit dalam satu transaksi.
             </p>
           </div>
         </div>
@@ -337,7 +366,9 @@ export default async function ReviewDetailPage({
             decidedStatus={STATUS_LABEL[detail.status as ContentStatus]}
             status={detail.status}
           />
-          {detail.status === "APPROVED" ? <RevokePanel submissionId={detail.id} /> : null}
+          {detail.status === "APPROVED" ? (
+            <RevokePanel submissionId={detail.id} />
+          ) : null}
         </div>
       </div>
     </div>

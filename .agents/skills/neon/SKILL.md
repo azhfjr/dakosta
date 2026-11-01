@@ -77,18 +77,18 @@ A supplied `DATABASE_URL` with no Neon credentials is schema work: complete it w
 
 New projects are created in AWS regions. Prefer pooled `DATABASE_URL` for application traffic.
 
-| Need | Use |
-| --- | --- |
-| Login, users, sessions (no existing provider) | `neon-auth` — Managed Better Auth (`auth: true`) |
-| Existing Better Auth, Clerk, Supabase Auth, or another working IdP | Keep it. `neon-auth` only if they ask to migrate |
-| User asked to migrate from Supabase Auth | `neon-auth` (Managed Better Auth; keep `SupabaseAuthAdapter()` call shapes) |
-| Files, uploads, blobs (no existing object store) | Object Storage |
-| HTTP APIs, cron, custom WebSocket or SSE push, long-running agents | Functions querying Postgres |
+| Need                                                                      | Use                                                                                                  |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Login, users, sessions (no existing provider)                             | `neon-auth` — Managed Better Auth (`auth: true`)                                                     |
+| Existing Better Auth, Clerk, Supabase Auth, or another working IdP        | Keep it. `neon-auth` only if they ask to migrate                                                     |
+| User asked to migrate from Supabase Auth                                  | `neon-auth` (Managed Better Auth; keep `SupabaseAuthAdapter()` call shapes)                          |
+| Files, uploads, blobs (no existing object store)                          | Object Storage                                                                                       |
+| HTTP APIs, cron, custom WebSocket or SSE push, long-running agents        | Functions querying Postgres                                                                          |
 | Live queries for realtime, reactive apps and agents; optimistic mutations | `neon-realtime` (`preview.realtime` in `neon.ts`). Not available on Claimable projects until claimed |
-| LLM calls | AI Gateway |
-| SQL, schema, inspect, search | `neon-postgres` |
-| Existing PostgREST / Supabase database client | Data API (`dataApi` in `neon.ts`) |
-| Generic REST endpoints | Function or existing handler, not Data API |
+| LLM calls                                                                 | AI Gateway                                                                                           |
+| SQL, schema, inspect, search                                              | `neon-postgres`                                                                                      |
+| Existing PostgREST / Supabase database client                             | Data API (`dataApi` in `neon.ts`)                                                                    |
+| Generic REST endpoints                                                    | Function or existing handler, not Data API                                                           |
 
 Use `neon-auth` to choose identity and to implement Managed Better Auth; the [Auth guide](references/auth.md) points there. Keep existing Better Auth, Clerk, and Supabase Auth unless the user asked to migrate login. Auth cannot be enabled on a project with IP Allow or Private Networking.
 
@@ -122,12 +122,12 @@ The skills below live in the [`neondatabase/agent-skills`](https://github.com/ne
 | Skill                            | Use it for                                                                                                                                                                           |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `neon-postgres`                  | Working with databases, including connections, schemas, queries, search, and autoscaling: SQL development, schema design, performance optimization, and scaling decisions.           |
-| `neon-auth`                      | Identity routing and Managed Better Auth setup (login, users, sessions, trusted domains). Fetch: https://neon.com/docs/ai/skills/neon-auth/SKILL.md |
+| `neon-auth`                      | Identity routing and Managed Better Auth setup (login, users, sessions, trusted domains). Fetch: https://neon.com/docs/ai/skills/neon-auth/SKILL.md                                  |
 | `neon-postgres-branches`         | Choosing or creating the right branch type for dev, preview, test, or CI workflows. Use this skill as a slash command.                                                               |
 | `neon-object-storage`            | Storing and serving files (uploads, images, blobs), including branching them with the database.                                                                                      |
 | `neon-functions`                 | Deploying long-running or streaming serverless functions — APIs, agents, SSE/WebSocket servers, and Function Triggers (cron and object-storage).                                     |
 | `neon-ai-gateway`                | Calling an LLM or routing across model providers with one credential, including discovering the branch's servable models at runtime via the OpenAI-compatible `/v1/models` endpoint. |
-| `neon-realtime`                  | Realtime makes any SQL query live, for realtime, reactive apps and agents: enabling Realtime, sealing queries, React and TanStack DB bindings, SSR, and optimistic mutations.      |
+| `neon-realtime`                  | Realtime makes any SQL query live, for realtime, reactive apps and agents: enabling Realtime, sealing queries, React and TanStack DB bindings, SSR, and optimistic mutations.        |
 | `neon-postgres-egress-optimizer` | Diagnosing or fixing excessive Postgres egress (network data-transfer) costs in a codebase.                                                                                          |
 
 There is no `neon-data-api` skill. Configure `dataApi` in `neon.ts` only for PostgREST / Supabase database-client compatibility or a migration that already depends on it.

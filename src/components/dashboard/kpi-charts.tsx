@@ -24,11 +24,7 @@ import {
 } from "@/lib/chart-theme";
 import { formatNumberId } from "@/lib/dates";
 import { STATUS_LABEL } from "@/lib/content-status";
-import type {
-  NamedTotal,
-  StatusTotal,
-  TrendPoint,
-} from "@/lib/kpi/formulas";
+import type { NamedTotal, StatusTotal, TrendPoint } from "@/lib/kpi/formulas";
 
 function truncate(value: string, length: number): string {
   return value.length > length ? `${value.slice(0, length - 1)}…` : value;
@@ -62,7 +58,10 @@ function ChartTable({
           </thead>
           <tbody>
             {rows.map((row) => (
-              <tr key={String(row[0])} className="border-b border-border/60 last:border-0">
+              <tr
+                key={String(row[0])}
+                className="border-b border-border/60 last:border-0"
+              >
                 {row.map((cell, index) => (
                   <td
                     key={`${String(row[0])}-${index}`}
@@ -113,7 +112,10 @@ export function KpiCharts({
     }));
   const statusTotal = statusData.reduce((sum, row) => sum + row.total, 0);
   const themeTotal = themes.reduce((sum, row) => sum + row.total, 0);
-  const stakeholderTotal = stakeholders.reduce((sum, row) => sum + row.total, 0);
+  const stakeholderTotal = stakeholders.reduce(
+    (sum, row) => sum + row.total,
+    0,
+  );
   const interval = Math.max(0, Math.ceil(trend.length / 10) - 1);
 
   return (
@@ -134,14 +136,35 @@ export function KpiCharts({
           <>
             <div className="mt-4 h-[240px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={trend} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                <AreaChart
+                  data={trend}
+                  margin={{ top: 8, right: 8, left: -20, bottom: 0 }}
+                >
                   <defs>
-                    <linearGradient id="kpi-trend-fill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="var(--chart-3)" stopOpacity={0.26} />
-                      <stop offset="100%" stopColor="var(--chart-3)" stopOpacity={0.02} />
+                    <linearGradient
+                      id="kpi-trend-fill"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="0%"
+                        stopColor="var(--chart-3)"
+                        stopOpacity={0.26}
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor="var(--chart-3)"
+                        stopOpacity={0.02}
+                      />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid stroke={CHART_GRID} strokeDasharray="3 3" vertical={false} />
+                  <CartesianGrid
+                    stroke={CHART_GRID}
+                    strokeDasharray="3 3"
+                    vertical={false}
+                  />
                   <XAxis
                     dataKey="label"
                     interval={interval}
@@ -193,7 +216,10 @@ export function KpiCharts({
         aria-labelledby="chart-status"
         className="min-w-0 rounded-xl border border-border bg-surface p-5 shadow-sm"
       >
-        <h2 id="chart-status" className="text-base font-semibold text-foreground">
+        <h2
+          id="chart-status"
+          className="text-base font-semibold text-foreground"
+        >
           Distribusi status
         </h2>
         <p className="mt-0.5 text-xs text-ink-muted">
@@ -205,51 +231,54 @@ export function KpiCharts({
           <>
             <div className="mt-4 grid items-center gap-4 sm:grid-cols-[minmax(0,1fr)_10rem]">
               <div className="h-[220px] w-full min-w-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={statusData}
-                    dataKey="total"
-                    nameKey="label"
-                    innerRadius={54}
-                    outerRadius={84}
-                    paddingAngle={2}
-                    stroke="#ffffff"
-                    strokeWidth={2}
-                    isAnimationActive={false}
-                  >
-                    {statusData.map((entry) => (
-                      <Cell key={entry.status} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={tooltipStyle}
-                    formatter={(value) => [
-                      `${formatNumberId(Number(value))} konten`,
-                      "Jumlah",
-                    ]}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <ul className="space-y-2 text-sm">
-              {statusData.map((entry) => (
-                <li key={entry.status} className="flex items-center justify-between gap-2">
-                  <span className="flex min-w-0 items-center gap-2 text-ink-muted">
-                    <span
-                      className="size-2.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: entry.color }}
-                      aria-hidden
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={statusData}
+                      dataKey="total"
+                      nameKey="label"
+                      innerRadius={54}
+                      outerRadius={84}
+                      paddingAngle={2}
+                      stroke="#ffffff"
+                      strokeWidth={2}
+                      isAnimationActive={false}
+                    >
+                      {statusData.map((entry) => (
+                        <Cell key={entry.status} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={tooltipStyle}
+                      formatter={(value) => [
+                        `${formatNumberId(Number(value))} konten`,
+                        "Jumlah",
+                      ]}
                     />
-                    <span className="truncate">{entry.label}</span>
-                  </span>
-                  <span className="font-medium text-foreground tabular">
-                    {formatNumberId(entry.total)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <ul className="space-y-2 text-sm">
+                {statusData.map((entry) => (
+                  <li
+                    key={entry.status}
+                    className="flex items-center justify-between gap-2"
+                  >
+                    <span className="flex min-w-0 items-center gap-2 text-ink-muted">
+                      <span
+                        className="size-2.5 shrink-0 rounded-full"
+                        style={{ backgroundColor: entry.color }}
+                        aria-hidden
+                      />
+                      <span className="truncate">{entry.label}</span>
+                    </span>
+                    <span className="font-medium text-foreground tabular">
+                      {formatNumberId(entry.total)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
             <ChartTable
               caption="Tabel distribusi status konten"
               head={["Status", "Jumlah"]}
@@ -327,7 +356,10 @@ export function KpiCharts({
         aria-labelledby="chart-stakeholder"
         className="min-w-0 rounded-xl border border-border bg-surface p-5 shadow-sm"
       >
-        <h2 id="chart-stakeholder" className="text-base font-semibold text-foreground">
+        <h2
+          id="chart-stakeholder"
+          className="text-base font-semibold text-foreground"
+        >
           {stakeholderTitle}
         </h2>
         <p className="mt-0.5 text-xs text-ink-muted">
@@ -381,7 +413,10 @@ export function KpiCharts({
             <ChartTable
               caption="Tabel peringkat stakeholder berdasarkan konten disetujui"
               head={["Stakeholder", "Disetujui"]}
-              rows={stakeholders.map((stakeholder) => [stakeholder.name, stakeholder.total])}
+              rows={stakeholders.map((stakeholder) => [
+                stakeholder.name,
+                stakeholder.total,
+              ])}
             />
           </>
         )}

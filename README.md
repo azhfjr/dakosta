@@ -11,28 +11,28 @@ Demo publik (rilis v3): **https://dakosta-dakosta.vercel.app**
 
 ## Status rilis v4
 
-| Lingkungan | Status | Keterangan |
-| --- | --- | --- |
-| Staging (database Neon `dakosta_staging` + Vercel Preview) | **TERVERIFIKASI** | 3 migrasi, fixture deterministik, unit 34/34, E2E 40/40, subset build produksi 23/23, axe + mobile, smoke preview |
-| Produksi | **v4 live + dataset demo (2026-10-31)** | 3 migrasi, backup terverifikasi, 1 Master asli, containment demo aktif, 32 akun demo + 50 konten dari 20 stakeholder, verifikasi DB/HTTP lulus, seed idempoten |
+| Lingkungan                                                 | Status                                  | Keterangan                                                                                                                                                     |
+| ---------------------------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Staging (database Neon `dakosta_staging` + Vercel Preview) | **TERVERIFIKASI**                       | 3 migrasi, fixture deterministik, unit 34/34, E2E 40/40, subset build produksi 23/23, axe + mobile, smoke preview                                              |
+| Produksi                                                   | **v4 live + dataset demo (2026-10-31)** | 3 migrasi, backup terverifikasi, 1 Master asli, containment demo aktif, 32 akun demo + 50 konten dari 20 stakeholder, verifikasi DB/HTTP lulus, seed idempoten |
 
 Bukti per gate, traceability R01–R18, dan daftar item PARTIAL/BLOCKED ada di
 [`docs/v4-handoff.md`](docs/v4-handoff.md).
 
 ## Peran dan cakupan (v4)
 
-| Kemampuan | MASTER_ADMIN | REGIONAL_ADMIN | BRANCH_ADMIN | STAKEHOLDER |
-| --- | --- | --- | --- | --- |
-| Cakupan | Global | Satu wilayah | Satu cabang | Satu organisasi |
-| Dashboard ter-scope | Ya | Ya (baca) | Ya | Ya |
-| Kelola wilayah/cabang/organisasi | Ya | — | — | — |
-| Kelola akun, reset, nonaktifkan | Ya | — | — | — |
-| Impor CSV akun | Ya | — | — | — |
-| Kebijakan EDUFAST bulanan | Ya | — | — | — |
-| Kirim / revisi konten | — | — | — | Ya |
-| Review keputusan | Override darurat (step-up + alasan) | — | Hanya cabangnya | — |
-| Peta, analitik, ekspor | Ya | Ya | Ya | Ringkasan sendiri |
-| Audit | Ya | Ter-scope | Ter-scope | — |
+| Kemampuan                        | MASTER_ADMIN                        | REGIONAL_ADMIN | BRANCH_ADMIN    | STAKEHOLDER       |
+| -------------------------------- | ----------------------------------- | -------------- | --------------- | ----------------- |
+| Cakupan                          | Global                              | Satu wilayah   | Satu cabang     | Satu organisasi   |
+| Dashboard ter-scope              | Ya                                  | Ya (baca)      | Ya              | Ya                |
+| Kelola wilayah/cabang/organisasi | Ya                                  | —              | —               | —                 |
+| Kelola akun, reset, nonaktifkan  | Ya                                  | —              | —               | —                 |
+| Impor CSV akun                   | Ya                                  | —              | —               | —                 |
+| Kebijakan EDUFAST bulanan        | Ya                                  | —              | —               | —                 |
+| Kirim / revisi konten            | —                                   | —              | —               | Ya                |
+| Review keputusan                 | Override darurat (step-up + alasan) | —              | Hanya cabangnya | —                 |
+| Peta, analitik, ekspor           | Ya                                  | Ya             | Ya              | Ringkasan sendiri |
+| Audit                            | Ya                                  | Ter-scope      | Ter-scope       | —                 |
 
 Otorisasi dievaluasi di server dari sesi + membership aktif. ID peran, wilayah,
 cabang, atau organisasi dari browser tidak pernah dipercaya. Objek di luar
@@ -66,7 +66,7 @@ persisten dari `REVISION_REQUESTED` pada kontrak.
 
 - Wizard pelaporan tidak memilih organisasi; organisasi diturunkan dari
   membership dan ditampilkan sebagai badge baca-saja (`organisasi • FKTP/FKRTL •
-  cabang`).
+cabang`).
 - `Jenis Konten`: `VIDEO | INFOGRAFIS`. Tema utama:
   `EDUFAST | NON_EDUFAST`. Enam sub-tema: `MOBILE_JKN`, `TESTIMONI_PESERTA`,
   `ALUR_BEROBAT`, `EDUKATIF_PERSUASIF`, `KORPORAT`, `INFORMASI`.
@@ -121,25 +121,25 @@ persisten dari `REVISION_REQUESTED` pada kontrak.
 
 ### API utama
 
-| Endpoint | Keterangan |
-| --- | --- |
-| `GET /api/health` | Status app + koneksi DB |
-| `POST /api/v1/demo/login` | Login cepat demo (hanya `DEMO_MODE`, rate limit) |
-| `GET /api/v1/me` | Profil, peran, cakupan, kapabilitas |
-| `POST /api/v1/me/step-up` | Re-autentikasi untuk aksi sensitif (15 menit) |
-| `GET /api/v1/dashboard/admin\|client` | Ringkasan ter-scope |
-| `GET /api/v1/analytics/series` | Seri tren ter-scope |
-| `GET/POST /api/v1/submissions`, `GET /api/v1/submissions/[id]` | Konten |
-| `POST /api/v1/admin/reviews/start`, `GET/POST /api/v1/admin/reviews` | Review |
-| `POST /api/v1/admin/contents/[id]/revoke` | Pencabutan korektif (Master) |
-| `GET/PATCH /api/v1/admin/users`, `PATCH /api/v1/admin/users/[id]` | Akun |
-| `GET/POST /api/v1/admin/regions\|branches\|organizations` | Hierarki |
-| `GET /api/v1/admin/imports/template`, `POST …/preview`, `POST …/commit` | Impor CSV |
-| `GET/POST /api/v1/admin/edufast/policies`, `…/publish`, `…/copy`, `…/archive` | EDUFAST |
-| `GET /api/v1/map` | Titik ter-scope |
-| `GET /api/v1/notifications`, `…/unread-count`, `…/realtime` | Notifikasi + SSE |
-| `GET /api/v1/exports/submissions` | CSV ter-scope, BOM, neutralisasi formula |
-| `POST /api/v1/admin/outbox/drain` | Drain outbox (`CRON_SECRET`) |
+| Endpoint                                                                      | Keterangan                                       |
+| ----------------------------------------------------------------------------- | ------------------------------------------------ |
+| `GET /api/health`                                                             | Status app + koneksi DB                          |
+| `POST /api/v1/demo/login`                                                     | Login cepat demo (hanya `DEMO_MODE`, rate limit) |
+| `GET /api/v1/me`                                                              | Profil, peran, cakupan, kapabilitas              |
+| `POST /api/v1/me/step-up`                                                     | Re-autentikasi untuk aksi sensitif (15 menit)    |
+| `GET /api/v1/dashboard/admin\|client`                                         | Ringkasan ter-scope                              |
+| `GET /api/v1/analytics/series`                                                | Seri tren ter-scope                              |
+| `GET/POST /api/v1/submissions`, `GET /api/v1/submissions/[id]`                | Konten                                           |
+| `POST /api/v1/admin/reviews/start`, `GET/POST /api/v1/admin/reviews`          | Review                                           |
+| `POST /api/v1/admin/contents/[id]/revoke`                                     | Pencabutan korektif (Master)                     |
+| `GET/PATCH /api/v1/admin/users`, `PATCH /api/v1/admin/users/[id]`             | Akun                                             |
+| `GET/POST /api/v1/admin/regions\|branches\|organizations`                     | Hierarki                                         |
+| `GET /api/v1/admin/imports/template`, `POST …/preview`, `POST …/commit`       | Impor CSV                                        |
+| `GET/POST /api/v1/admin/edufast/policies`, `…/publish`, `…/copy`, `…/archive` | EDUFAST                                          |
+| `GET /api/v1/map`                                                             | Titik ter-scope                                  |
+| `GET /api/v1/notifications`, `…/unread-count`, `…/realtime`                   | Notifikasi + SSE                                 |
+| `GET /api/v1/exports/submissions`                                             | CSV ter-scope, BOM, neutralisasi formula         |
+| `POST /api/v1/admin/outbox/drain`                                             | Drain outbox (`CRON_SECRET`)                     |
 
 Envelope API: `{ data, meta, error }` dengan `requestId`. Idempotensi
 pengiriman memakai `idempotencyKey` (201 pertama, 200 pengulangan). URL ganda
@@ -151,17 +151,17 @@ Prasyarat: Node.js 22+ dan database Neon.
 
 Salin `.env.example` → `.env.local`, lalu isi **nama variabel** berikut:
 
-| Variabel | Wajib | Keterangan |
-| --- | --- | --- |
-| `APP_ENV` | Ya | `development` / `staging` / `production` |
-| `DATABASE_URL` | Ya | Koneksi pooled Neon |
-| `DATABASE_URL_UNPOOLED` | Ya | Migrasi/seed via Drizzle |
-| `BETTER_AUTH_SECRET` | Ya (prod) | Minimal 32 karakter acak |
-| `NEXT_PUBLIC_APP_URL` | Ya | Origin aplikasi |
-| `DEMO_MODE` | Demo | `true` mengaktifkan login demo; nonaktif di produksi |
-| `DEMO_SEED_PASSWORD` | Seed | Minimal 12 karakter; jangan commit |
-| `NEXT_PUBLIC_MAP_STYLE_URL` | Tidak | Gaya MapLibre; default OpenFreeMap Positron |
-| `CRON_SECRET` | Tidak | Proteksi drain outbox |
+| Variabel                    | Wajib     | Keterangan                                           |
+| --------------------------- | --------- | ---------------------------------------------------- |
+| `APP_ENV`                   | Ya        | `development` / `staging` / `production`             |
+| `DATABASE_URL`              | Ya        | Koneksi pooled Neon                                  |
+| `DATABASE_URL_UNPOOLED`     | Ya        | Migrasi/seed via Drizzle                             |
+| `BETTER_AUTH_SECRET`        | Ya (prod) | Minimal 32 karakter acak                             |
+| `NEXT_PUBLIC_APP_URL`       | Ya        | Origin aplikasi                                      |
+| `DEMO_MODE`                 | Demo      | `true` mengaktifkan login demo; nonaktif di produksi |
+| `DEMO_SEED_PASSWORD`        | Seed      | Minimal 12 karakter; jangan commit                   |
+| `NEXT_PUBLIC_MAP_STYLE_URL` | Tidak     | Gaya MapLibre; default OpenFreeMap Positron          |
+| `CRON_SECRET`               | Tidak     | Proteksi drain outbox                                |
 
 ```bash
 npm install
@@ -333,8 +333,9 @@ PURGE_DEMO_CONFIRM=purge-demo-only npm run db:purge:demo:production
 
 Next.js 16 (App Router, Turbopack) + React 19 + TypeScript strict; Tailwind v4
 (`@tailwindcss/postcss`) + shadcn/ui; Plus Jakarta Sans self-host; Neon Postgres
-+ Drizzle ORM; Better Auth; MapLibre + OpenFreeMap; Recharts; Sonner;
-Playwright + axe-core; Vitest.
+
+- Drizzle ORM; Better Auth; MapLibre + OpenFreeMap; Recharts; Sonner;
+  Playwright + axe-core; Vitest.
 
 ## Lisensi aset
 

@@ -9,5 +9,7 @@ export default function CabangError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  return <WorkspaceError error={error} reset={reset} scope="Ruang kerja cabang" />;
+  return (
+    <WorkspaceError error={error} reset={reset} scope="Ruang kerja cabang" />
+  );
 }

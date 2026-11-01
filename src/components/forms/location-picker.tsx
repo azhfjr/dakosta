@@ -10,7 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MAP_BRAND } from "@/lib/chart-theme";
-import { BANDUNG_CENTER, MAP_STYLE_URL, formatCoordinatePair, isValidCoordinate } from "@/lib/geo";
+import {
+  BANDUNG_CENTER,
+  MAP_STYLE_URL,
+  formatCoordinatePair,
+  isValidCoordinate,
+} from "@/lib/geo";
 
 export type PickedLocation = {
   latitude: number;
@@ -76,7 +81,10 @@ export function LocationPicker({
         });
         mapRef.current = map;
 
-        map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-left");
+        map.addControl(
+          new maplibregl.NavigationControl({ showCompass: false }),
+          "top-left",
+        );
 
         map.on("load", () => {
           if (!cancelled) setMapLoaded(true);
@@ -153,7 +161,9 @@ export function LocationPicker({
   function handleGeolocation() {
     setGpsError(null);
     if (typeof navigator === "undefined" || !navigator.geolocation) {
-      setGpsError("Perangkat ini tidak menyediakan layanan lokasi. Tandai titik secara manual.");
+      setGpsError(
+        "Perangkat ini tidak menyediakan layanan lokasi. Tandai titik secara manual.",
+      );
       return;
     }
 
@@ -189,7 +199,9 @@ export function LocationPicker({
     const longitude = Number(manualLng.replace(",", "."));
 
     if (!isValidCoordinate(latitude, longitude)) {
-      setManualError("Koordinat di luar rentang. Lintang -90..90, bujur -180..180.");
+      setManualError(
+        "Koordinat di luar rentang. Lintang -90..90, bujur -180..180.",
+      );
       return;
     }
 
@@ -226,8 +238,8 @@ export function LocationPicker({
         ) : null}
         {mapFailed ? (
           <div className="absolute inset-x-0 bottom-0 border-t border-status-review/30 bg-status-review/10 px-4 py-2 text-xs text-status-revision">
-            Peta tidak dapat dimuat. Gunakan tombol lokasi perangkat atau input koordinat
-            manual di bawah.
+            Peta tidak dapat dimuat. Gunakan tombol lokasi perangkat atau input
+            koordinat manual di bawah.
           </div>
         ) : null}
         <div className="absolute top-3 right-3">
@@ -255,7 +267,10 @@ export function LocationPicker({
       </p>
 
       {gpsError ? (
-        <p role="status" className="rounded-lg border border-status-revision/30 bg-status-revision/10 px-3 py-2 text-sm text-status-revision">
+        <p
+          role="status"
+          className="rounded-lg border border-status-revision/30 bg-status-revision/10 px-3 py-2 text-sm text-status-revision"
+        >
           {gpsError}
         </p>
       ) : null}
@@ -313,7 +328,12 @@ export function LocationPicker({
             />
           </div>
           <div className="flex items-end">
-            <Button type="button" variant="outline" className="h-11" onClick={applyManualCoordinates}>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11"
+              onClick={applyManualCoordinates}
+            >
               Terapkan
             </Button>
           </div>

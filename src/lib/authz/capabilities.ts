@@ -12,6 +12,9 @@ const READ_ONLY: readonly Capability[] = [
   "export:read",
   "audit:read",
   "notification:read",
+  "sla:read",
+  "performance:read",
+  "performance:export",
 ];
 
 const MATRIX: Record<AppRole, readonly Capability[]> = {
@@ -33,7 +36,7 @@ const MATRIX: Record<AppRole, readonly Capability[]> = {
     "demo:reset",
   ],
   REGIONAL_ADMIN: READ_ONLY,
-  BRANCH_ADMIN: [...READ_ONLY, "content:review"],
+  BRANCH_ADMIN: [...READ_ONLY, "content:review", "sla:review"],
   STAKEHOLDER: [
     "organization:read",
     "content:create",

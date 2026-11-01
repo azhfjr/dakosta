@@ -2,15 +2,18 @@ import { NextResponse } from "next/server";
 
 import { recordAudit } from "@/lib/audit";
 import { getRequestId, jsonError } from "@/lib/api";
-import { parseOrgSources } from "@/lib/analytics/source";
-import { parseKpiFiltersFromQuery } from "@/lib/kpi/sql";
+import { ROLE_LABELS } from "@/lib/authz/types";
+import {
+  parsePerformanceFilters,
+  listPerformanceRows,
+} from "@/lib/performance";
 import {
   consumeRateLimit,
   getClientIp,
   getRateLimitHeaders,
 } from "@/lib/rate-limit";
-import { getAchievementReport } from "@/lib/reports/achievement";
-import { renderAchievementPdf } from "@/lib/reports/achievement-pdf";
+import { renderPerformancePdf } from "@/lib/reports/performance-pdf";
+import { assertCapability } from "@/lib/rbac";
 import { getApiUser } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -22,8 +25,10 @@ export async function GET(request: Request) {
 
   try {
     const user = await getApiUser();
+    assertCapability(user, "performance:export");
+
     const limit = await consumeRateLimit({
-      key: `report:achievement:${user.id}:${getClientIp(request)}`,
+      key: `report:performance:${user.id}:${getClientIp(request)}`,
       limit: 8,
       windowSeconds: 60,
     });
@@ -41,27 +46,34 @@ export async function GET(request: Request) {
       );
     }
 
-    const filters = {
-      ...parseKpiFiltersFromQuery(url.searchParams),
-      sources: parseOrgSources(url.searchParams),
-    };
-    const report = await getAchievementReport(user, filters);
-    const pdf = await renderAchievementPdf(report);
+    const filters = parsePerformanceFilters(url.searchParams);
+    const { rows, summary } = await listPerformanceRows(user, filters);
+    const pdf = await renderPerformancePdf({
+      scopeLabel: user.scopeLabel,
+      roleLabel: ROLE_LABELS[user.role] ?? user.role,
+      filters,
+      rows,
+      summary,
+      generatedAt: new Date(),
+    });
 
     await recordAudit({
       actorId: user.id,
       actorRole: user.role,
-      action: "EXPORT_ACHIEVEMENT_REPORT",
+      action: "EXPORT_PERFORMANCE_REPORT",
       recordType: "REPORT",
-      recordId: report.month,
+      recordId: filters.period.key,
       source: "API",
       requestId,
       after: {
-        month: report.month,
-        sources: filters.sources,
-        stakeholderId: filters.stakeholderId,
-        subTheme: filters.subTheme,
-        approved: report.totals.approved,
+        period: filters.period.key,
+        branchId: filters.branchId,
+        source: filters.source,
+        status: filters.status,
+        q: filters.q,
+        rows: rows.length,
+        approved: summary.approved,
+        target: summary.target,
       },
     });
 
@@ -70,7 +82,7 @@ export async function GET(request: Request) {
       headers: {
         ...rateHeaders,
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="laporan-pencapaian-${report.month}.pdf"`,
+        "Content-Disposition": `attachment; filename="laporan-kinerja-${filters.period.key}.pdf"`,
         "Cache-Control": "no-store",
         "X-Request-Id": requestId,
       },

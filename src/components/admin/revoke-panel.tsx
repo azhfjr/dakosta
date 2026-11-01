@@ -27,14 +27,17 @@ export function RevokePanel({ submissionId }: { submissionId: string }) {
       setPending(true);
       setError(null);
       try {
-        const response = await fetch(`/api/v1/admin/contents/${submissionId}/revoke`, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ reason: reason.trim() }),
-        });
-        const body = (await response.json().catch(() => null)) as
-          | { error?: { code?: string; message?: string } }
-          | null;
+        const response = await fetch(
+          `/api/v1/admin/contents/${submissionId}/revoke`,
+          {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ reason: reason.trim() }),
+          },
+        );
+        const body = (await response.json().catch(() => null)) as {
+          error?: { code?: string; message?: string };
+        } | null;
         if (isStepUpRequired(response, body)) {
           promptStepUp(attempt);
           return;
@@ -47,7 +50,9 @@ export function RevokePanel({ submissionId }: { submissionId: string }) {
         setConfirming(false);
         router.refresh();
       } catch {
-        setError("Tidak dapat menghubungi server. Periksa koneksi lalu coba lagi.");
+        setError(
+          "Tidak dapat menghubungi server. Periksa koneksi lalu coba lagi.",
+        );
       } finally {
         setPending(false);
       }
@@ -60,13 +65,17 @@ export function RevokePanel({ submissionId }: { submissionId: string }) {
       aria-labelledby="revoke-panel-title"
       className="rounded-xl border border-status-rejected/30 bg-surface p-5 shadow-sm"
     >
-      <h2 id="revoke-panel-title" className="flex items-center gap-2 text-base font-semibold text-foreground">
+      <h2
+        id="revoke-panel-title"
+        className="flex items-center gap-2 text-base font-semibold text-foreground"
+      >
         <ShieldOff className="size-4 text-status-rejected" aria-hidden />
         Pencabutan Master Admin
       </h2>
       <p className="mt-2 text-sm leading-relaxed text-ink-muted">
-        Pencabutan hanya berlaku untuk konten berstatus Disetujui. Riwayat ulasan tetap
-        tersimpan, capaian langsung dihitung ulang, dan pelapor dinotifikasi.
+        Pencabutan hanya berlaku untuk konten berstatus Disetujui. Riwayat
+        ulasan tetap tersimpan, capaian langsung dihitung ulang, dan pelapor
+        dinotifikasi.
       </p>
 
       <div className="mt-4 space-y-2">
@@ -80,11 +89,16 @@ export function RevokePanel({ submissionId }: { submissionId: string }) {
           disabled={pending}
           placeholder="Contoh: tautan tidak lagi dapat diakses publik."
         />
-        <p className="text-xs text-ink-muted">{reason.trim().length}/2000 karakter</p>
+        <p className="text-xs text-ink-muted">
+          {reason.trim().length}/2000 karakter
+        </p>
       </div>
 
       {error ? (
-        <p role="alert" className="mt-2 flex items-start gap-2 text-sm text-destructive">
+        <p
+          role="alert"
+          className="mt-2 flex items-start gap-2 text-sm text-destructive"
+        >
           <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
           {error}
         </p>
@@ -103,7 +117,9 @@ export function RevokePanel({ submissionId }: { submissionId: string }) {
               onClick={revoke}
               disabled={pending}
             >
-              {pending ? <Loader2 className="mr-2 size-4 animate-spin" aria-hidden /> : null}
+              {pending ? (
+                <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />
+              ) : null}
               Ya, cabut konten
             </Button>
             <Button

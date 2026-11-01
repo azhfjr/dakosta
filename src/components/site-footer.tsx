@@ -10,11 +10,20 @@ export function SiteFooter({ compact = false }: { compact?: boolean }) {
           <div className="flex items-center gap-3">
             <BrandLogo variant="compact" decorative className="w-28" />
           </div>
-          <nav aria-label="Tautan footer" className="flex flex-wrap gap-4 text-sm">
-            <Link className="text-ink-muted hover:text-foreground" href="/tentang">
+          <nav
+            aria-label="Tautan footer"
+            className="flex flex-wrap gap-4 text-sm"
+          >
+            <Link
+              className="text-ink-muted hover:text-foreground"
+              href="/tentang"
+            >
               Tentang &amp; Disclaimer
             </Link>
-            <Link className="text-ink-muted hover:text-foreground" href="/bantuan">
+            <Link
+              className="text-ink-muted hover:text-foreground"
+              href="/bantuan"
+            >
               Bantuan
             </Link>
           </nav>

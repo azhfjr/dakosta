@@ -1,0 +1,102 @@
+[e2e] Reset basis data dilewati (target=http://localhost:3400, E2E_ALLOW_DB_RESET=tidak diset).
+[e2e] Sesi demo tersimpan: admin, regional, regionalB, branch, branchA2, branchB1, client.
+
+Running 54 tests using 1 worker
+
+  ok  1 [chromium] › e2e\a11y.spec.ts:36:7 › Aksesibilitas halaman publik › beranda dan masuk bebas pelanggaran serius (5.4s)
+  ok  2 [chromium] › e2e\a11y.spec.ts:43:7 › Aksesibilitas ruang kerja › dashboard Master dan Red Notice (15.0s)
+  ok  3 [chromium] › e2e\a11y.spec.ts:55:7 › Aksesibilitas ruang kerja › dashboard wilayah bersifat baca-saja dan aksesibel (31.0s)
+  ok  4 [chromium] › e2e\a11y.spec.ts:68:7 › Aksesibilitas ruang kerja › dashboard dan antrean cabang (17.5s)
+  ok  5 [chromium] › e2e\a11y.spec.ts:79:7 › Aksesibilitas ruang kerja › ruang stakeholder dan wizard (56.4s)
+  ok  6 [chromium] › e2e\a11y.spec.ts:92:7 › Tata letak seluler › tidak ada gulir horizontal pada 360px (15.2s)
+  ok  7 [chromium] › e2e\a11y.spec.ts:112:7 › Tata letak seluler › navigasi cabang dapat dibuka pada layar kecil (3.5s)
+  ok  8 [chromium] › e2e\accounts.spec.ts:11:7 › Direktori akun Master › filter peran menyaring direktori dan dapat diatur ulang (3.9s)
+  ok  9 [chromium] › e2e\accounts.spec.ts:41:7 › Direktori akun Master › direktori akun demo bersifat baca-saja (2.3s)
+  ok 10 [chromium] › e2e\accounts.spec.ts:61:7 › Pengaman Master terakhir › akun Master aktif terakhir tidak dapat diturunkan atau ditangguhkan (6.5s)
+  ok 11 [chromium] › e2e\content-draft.spec.ts:54:7 › Draf pelaporan tanpa pemilih organisasi › menyimpan draf, memulihkannya, dan mengabaikan organisasi dari klien (16.1s)
+  ok 12 [chromium] › e2e\content-import.spec.ts:8:7 › Impor konten massal (Master Admin) › menampilkan panduan, template CSV, dan penjagaan mode demo (3.3s)
+  ok 13 [chromium] › e2e\dakosta.spec.ts:345:7 › Dasbor Master › menampilkan capaian disetujui dari API (6.1s)
+  ok 14 [chromium] › e2e\dakosta.spec.ts:354:7 › Dasbor Master › halaman hierarki menampilkan wilayah dan cabang (2.7s)
+  ok 15 [chromium] › e2e\dakosta.spec.ts:365:7 › Dasbor Master › akun regional dan cabang tercatat pada direktori akun (1.6s)
+  ok 16 [chromium] › e2e\dakosta.spec.ts:381:7 › Wizard pelaporan stakeholder › lokasi konten mengikuti instansi tanpa input titik per konten (5.7s)
+  ok 17 [chromium] › e2e\dakosta.spec.ts:398:7 › Wizard pelaporan stakeholder › alur emas: lapor, setujui reviewer cabang lewat UI, KPI +1 dan notifikasi (31.1s)
+  ok 18 [chromium] › e2e\dakosta.spec.ts:447:7 › Wizard pelaporan stakeholder › tombol ekspor mengikuti filter status (2.2s)
+  ok 19 [chromium] › e2e\dakosta.spec.ts:459:7 › Notifikasi realtime cabang › pengiriman baru tampil di kotak masuk cabang via SSE (14.3s)
+  ok 20 [chromium] › e2e\dakosta.spec.ts:486:7 › Siklus keputusan reviewer cabang › revisi, kirim ulang, lalu setujui menambah capaian tepat satu (36.4s)
+  ok 21 [chromium] › e2e\dakosta.spec.ts:524:7 › Siklus keputusan reviewer cabang › konten ditolak tidak menambah capaian (15.0s)
+  ok 22 [chromium] › e2e\dakosta.spec.ts:542:7 › Siklus keputusan reviewer cabang › dua persetujuan bersamaan menghasilkan satu konflik (11.6s)
+  ok 23 [chromium] › e2e\dakosta.spec.ts:562:7 › Siklus keputusan reviewer cabang › cabang lain tidak dapat memutuskan konten cabang ini (9.0s)
+  ok 24 [chromium] › e2e\dakosta.spec.ts:578:7 › Batas dan idempotensi › stakeholder tidak dapat memalsukan organisasi lewat payload (7.1s)
+  ok 25 [chromium] › e2e\dakosta.spec.ts:592:7 › Batas dan idempotensi › stakeholder tidak dapat membaca data organisasi lain (3.5s)
+  ok 26 [chromium] › e2e\dakosta.spec.ts:611:7 › Batas dan idempotensi › peran stakeholder dialihkan dari area admin dan cabang (5.1s)
+  ok 27 [chromium] › e2e\dakosta.spec.ts:628:7 › Batas dan idempotensi › kunci idempotensi mengembalikan rekaman yang sama (9.0s)
+  ok 28 [chromium] › e2e\dakosta.spec.ts:650:7 › Batas dan idempotensi › ekspor CSV konsisten dengan daftar berstatus disetujui (2.2s)
+  ok 29 [chromium] › e2e\dakosta.spec.ts:683:5 › sesi demo mencakup empat peran dengan cakupan berbeda (2.2s)
+  ok 30 [chromium] › e2e\platform.spec.ts:122:7 › Kebijakan EDUFAST › Master menerbitkan kebijakan periode baru dan tercatat terbit (10.1s)
+  ok 31 [chromium] › e2e\platform.spec.ts:169:7 › Kebijakan EDUFAST › EDUFAST tanpa kebijakan terbit ditolak dengan pesan yang jelas (2.7s)
+  ok 32 [chromium] › e2e\platform.spec.ts:195:7 › Kebijakan EDUFAST › EDUFAST pada sub-tema yang diizinkan menyimpan versi kebijakan (10.7s)
+  ok 33 [chromium] › e2e\platform.spec.ts:223:7 › Kebijakan EDUFAST › EDUFAST pada sub-tema di luar kebijakan ditolak (2.0s)
+  ok 34 [chromium] › e2e\platform.spec.ts:241:7 › Impor akun CSV › template CSV memiliki header dan BOM (386ms)
+  ok 35 [chromium] › e2e\platform.spec.ts:258:7 › Impor akun CSV › pratinjau memisahkan baris valid dan tidak valid (3.7s)
+  ok 36 [chromium] › e2e\platform.spec.ts:291:7 › Impor akun CSV › komit impor dinonaktifkan untuk akun demo (1.4s)
+  ok 37 [chromium] › e2e\platform.spec.ts:307:7 › Rekonsiliasi analitik dan Red Notice › capaian wilayah sama dengan jumlah capaian cabangnya (4.6s)
+  ok 38 [chromium] › e2e\platform.spec.ts:336:7 › Rekonsiliasi analitik dan Red Notice › Red Notice menampilkan Faskes tanpa kiriman dan menghormati cakupan (8.5s)
+  ok 39 [chromium] › e2e\rbac.spec.ts:52:7 › Isolasi API antar peran › regional bersifat baca-saja dan tidak dapat menulis (4.3s)
+  ok 40 [chromium] › e2e\rbac.spec.ts:99:7 › Isolasi API antar peran › regional hanya membaca organisasi pada wilayahnya (3.0s)
+  ok 41 [chromium] › e2e\rbac.spec.ts:133:7 › Isolasi API antar peran › antrean cabang hanya memuat organisasi cabang tersebut (2.1s)
+  ok 42 [chromium] › e2e\rbac.spec.ts:166:7 › Isolasi API antar peran › master dan cabang memakai antrean berbeda; stakeholder ditolak (2.8s)
+  ok 43 [chromium] › e2e\rbac.spec.ts:194:7 › Guard rute UI per peran › regional dialihkan dari area master dan cabang (4.1s)
+  ok 44 [chromium] › e2e\rbac.spec.ts:215:7 › Guard rute UI per peran › reviewer cabang dialihkan dari area master dan wilayah (3.4s)
+  ok 45 [chromium] › e2e\rbac.spec.ts:238:7 › Step-up Master dan pencabutan › tindakan sensitif menuntut konfirmasi kata sandi (4.5s)
+  ok 46 [chromium] › e2e\reports.spec.ts:72:7 › Laporan Kinerja PDF › Master mengunduh laporan Kinerja (2.3s)
+  ok 47 [chromium] › e2e\reports.spec.ts:97:7 › Laporan Kinerja PDF › tautan PDF tersedia pada halaman Kinerja wilayah dan cabang (4.4s)
+  ok 48 [chromium] › e2e\reports.spec.ts:120:7 › Laporan Kinerja PDF › stakeholder tidak dapat mengunduh laporan Kinerja (814ms)
+  ok 49 [chromium] › e2e\reports.spec.ts:135:7 › Laporan Kinerja PDF › laporan tanpa sesi ditolak (58ms)
+  ok 50 [chromium] › e2e\reports.spec.ts:151:7 › Sinkronisasi target Master › panel sinkronisasi menerapkan target ke seluruh organisasi aktif (9.6s)
+  ok 51 [chromium] › e2e\reports.spec.ts:187:7 › Sinkronisasi target Master › API memerlukan step-up dan idempoten saat diulang (11.5s)
+  x  52 [chromium] › e2e\targets.spec.ts:30:7 › Target KPI Master › Master menambah, menolak duplikat, mengubah, dan menghapus target (38.0s)
+  ok 53 [chromium] › e2e\targets.spec.ts:109:7 › Akun Master › pembuatan akun dinonaktifkan pada mode demo (2.6s)
+  ok 54 [chromium] › e2e\targets.spec.ts:125:7 › Target dan stakeholder › stakeholder tidak dapat membuka pengelolaan target (3.1s)
+[e2e] Data uji tidak direset otomatis (http://localhost:3400).
+
+
+  1) [chromium] › e2e\targets.spec.ts:30:7 › Target KPI Master › Master menambah, menolak duplikat, mengubah, dan menghapus target 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('Target dihapus.', { exact: true })
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('Target dihapus.', { exact: true }) with timeout 10000ms
+      - waiting for getByText('Target dihapus.', { exact: true })
+
+
+       97 |     await expect(
+       98 |       page.getByText("Target dihapus.", { exact: true }),
+    >  99 |     ).toBeVisible();
+          |       ^
+      100 |     await expect(
+      101 |       page.getByRole("row", { name: new RegExp(TARGET_SCOPE) }),
+      102 |     ).toHaveCount(0);
+        at C:\Users\PLN\Documents\Qoder\2026-10-30\b8cd74b6\e2e\targets.spec.ts:99:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\targets-Target-KPI-Master--72478-ngubah-dan-menghapus-target-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\targets-Target-KPI-Master--72478-ngubah-dan-menghapus-target-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\targets-Target-KPI-Master--72478-ngubah-dan-menghapus-target-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\targets-Target-KPI-Master--72478-ngubah-dan-menghapus-target-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [chromium] › e2e\targets.spec.ts:30:7 › Target KPI Master › Master menambah, menolak duplikat, mengubah, dan menghapus target 
+  53 passed (8.4m)

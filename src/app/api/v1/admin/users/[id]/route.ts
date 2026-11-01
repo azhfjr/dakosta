@@ -68,7 +68,9 @@ export async function POST(
     const master = await requireMasterApi();
     await requireStepUp();
     const { id } = await context.params;
-    const body = (await readJson(request).catch(() => ({}))) as { action?: string };
+    const body = (await readJson(request).catch(() => ({}))) as {
+      action?: string;
+    };
 
     if (body.action === "reset-password") {
       const result = await resetAccountPassword(id);
@@ -99,7 +101,10 @@ export async function POST(
     }
 
     return jsonError(
-      Object.assign(new Error("Aksi tidak dikenal."), { code: "INVALID_ACTION", status: 400 }),
+      Object.assign(new Error("Aksi tidak dikenal."), {
+        code: "INVALID_ACTION",
+        status: 400,
+      }),
       requestId,
     );
   } catch (error) {

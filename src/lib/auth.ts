@@ -21,7 +21,9 @@ function collectTrustedOrigins(): string[] {
     process.env.VERCEL_PROJECT_PRODUCTION_URL,
   ]) {
     if (!candidate) continue;
-    origins.add(candidate.startsWith("http") ? candidate : `https://${candidate}`);
+    origins.add(
+      candidate.startsWith("http") ? candidate : `https://${candidate}`,
+    );
   }
 
   return [...origins];

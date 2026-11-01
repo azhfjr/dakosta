@@ -73,9 +73,7 @@ export function branchScopePredicate(
     return inArray(branchColumn, [...scope.branchIds]);
   }
   // ORG: restrict to the organization's branch when known, else its own rows.
-  return scope.branchId
-    ? eq(branchColumn, scope.branchId)
-    : sql`false`;
+  return scope.branchId ? eq(branchColumn, scope.branchId) : sql`false`;
 }
 
 export function regionScopePredicate(

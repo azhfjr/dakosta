@@ -13,7 +13,9 @@ import {
 } from "./demo-purge";
 
 const args = process.argv.slice(2);
-const target = args.find((value) => value.startsWith("--target="))?.split("=")[1];
+const target = args
+  .find((value) => value.startsWith("--target="))
+  ?.split("=")[1];
 const dryRun = args.includes("--dry-run");
 
 function refuse(message: string): never {

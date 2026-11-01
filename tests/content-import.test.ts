@@ -35,7 +35,9 @@ function csv(rows: string[][]): string {
   return [CONTENT_IMPORT_HEADERS as readonly string[], ...rows]
     .map((row) =>
       row
-        .map((cell) => (/[",\r\n]/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell))
+        .map((cell) =>
+          /[",\r\n]/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell,
+        )
         .join(","),
     )
     .join("\n");
@@ -67,7 +69,9 @@ function validRow(overrides: Partial<Record<string, string>> = {}): string[] {
 beforeAll(async () => {
   client = new PGlite();
   for (const file of MIGRATIONS) {
-    await client.exec(readFileSync(join(process.cwd(), "drizzle", file), "utf8"));
+    await client.exec(
+      readFileSync(join(process.cwd(), "drizzle", file), "utf8"),
+    );
   }
 
   await client.query(
@@ -196,7 +200,9 @@ describe("content import preview", () => {
 
     expect(preview.validCount).toBe(0);
     expect(preview.errorCount).toBe(7);
-    expect(preview.rows[0]?.errors.join(" ")).toMatch(/Organisasi tidak ditemukan/);
+    expect(preview.rows[0]?.errors.join(" ")).toMatch(
+      /Organisasi tidak ditemukan/,
+    );
     expect(preview.rows[1]?.errors.join(" ")).toMatch(/tidak aktif/);
     expect(preview.rows[2]?.errors.join(" ")).toMatch(/Platform/);
     expect(preview.rows[3]?.errors.join(" ")).toMatch(/Sub-tema/);
@@ -208,7 +214,9 @@ describe("content import preview", () => {
   it("rejects duplicate links inside the file and against existing content", async () => {
     const content = csv([
       validRow({ tautan: "https://www.instagram.com/p/sama-1" }),
-      validRow({ tautan: "https://www.instagram.com/p/sama-1?utm_source=feed" }),
+      validRow({
+        tautan: "https://www.instagram.com/p/sama-1?utm_source=feed",
+      }),
       validRow({ tautan: "https://www.instagram.com/p/lama-1" }),
     ]);
 
@@ -219,7 +227,9 @@ describe("content import preview", () => {
     });
 
     expect(preview.rows[0]?.status).toBe("VALID");
-    expect(preview.rows[1]?.errors.join(" ")).toMatch(/Tautan sama dengan baris 1/);
+    expect(preview.rows[1]?.errors.join(" ")).toMatch(
+      /Tautan sama dengan baris 1/,
+    );
     expect(preview.rows[2]?.errors.join(" ")).toMatch(/sudah terdaftar/);
     expect(preview.validCount).toBe(1);
     expect(preview.errorCount).toBe(2);

@@ -16,7 +16,10 @@ export function RankingsTable({
       className="rounded-xl border border-border bg-surface shadow-sm"
     >
       <div className="border-b border-border px-4 py-3">
-        <h2 id="rankings-title" className="text-base font-semibold text-foreground">
+        <h2
+          id="rankings-title"
+          className="text-base font-semibold text-foreground"
+        >
           {title}
         </h2>
         <p className="mt-0.5 text-xs text-ink-muted">{description}</p>
@@ -53,15 +56,24 @@ export function RankingsTable({
             </thead>
             <tbody>
               {rows.map((row, index) => (
-                <tr key={row.id} className="border-b border-border/70 last:border-0">
-                  <td className="px-4 py-3 tabular-nums text-ink-muted">{index + 1}</td>
+                <tr
+                  key={row.id}
+                  className="border-b border-border/70 last:border-0"
+                >
+                  <td className="px-4 py-3 tabular-nums text-ink-muted">
+                    {index + 1}
+                  </td>
                   <td className="px-4 py-3">
-                    <span className="font-medium text-foreground">{row.name}</span>
+                    <span className="font-medium text-foreground">
+                      {row.name}
+                    </span>
                     <p className="mt-0.5 text-xs text-ink-muted">
                       {row.branchName ?? "—"} · {row.faskesCode ?? "tanpa kode"}
                     </p>
                   </td>
-                  <td className="px-4 py-3 text-ink-muted">{row.faskesClass ?? "—"}</td>
+                  <td className="px-4 py-3 text-ink-muted">
+                    {row.faskesClass ?? "—"}
+                  </td>
                   <td className="px-4 py-3 text-right tabular-nums">
                     {formatNumberId(row.approvedCount)}
                   </td>

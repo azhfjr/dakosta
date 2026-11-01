@@ -9,7 +9,10 @@ import {
 
 import { CLIENT_STATE, baseURL } from "./support";
 
-type Envelope<T> = { data?: T; error?: { code?: string; message?: string } | null };
+type Envelope<T> = {
+  data?: T;
+  error?: { code?: string; message?: string } | null;
+};
 
 function jakartaToday(): string {
   return new Intl.DateTimeFormat("en-CA", {
@@ -61,7 +64,9 @@ test.describe("Draf pelaporan tanpa pemilih organisasi", () => {
 
     // Organisasi berasal dari profil akun; tidak ada pemilih manual.
     await expect(
-      page.locator("#konten").getByText("Klinik Sehat Nusantara", { exact: true }),
+      page
+        .locator("#konten")
+        .getByText("Klinik Sehat Nusantara", { exact: true }),
     ).toBeVisible();
     await expect(page.locator("#lapor-stakeholder")).toHaveCount(0);
 
@@ -69,7 +74,9 @@ test.describe("Draf pelaporan tanpa pemilih organisasi", () => {
     await page.locator("#lapor-title").fill(title);
     await page.getByRole("button", { name: "Simpan draf" }).click();
     await expect(
-      page.getByText("Draf tersimpan. Anda dapat melanjutkan nanti.", { exact: true }),
+      page.getByText("Draf tersimpan. Anda dapat melanjutkan nanti.", {
+        exact: true,
+      }),
     ).toBeVisible({ timeout: 20_000 });
 
     // Muat ulang: draf lokal dipulihkan tanpa meminta organisasi lagi.
@@ -82,7 +89,10 @@ test.describe("Draf pelaporan tanpa pemilih organisasi", () => {
       storageState: CLIENT_STATE,
     });
     try {
-      const me = await call<{ stakeholderIds: string[] }>(context, "/api/v1/me");
+      const me = await call<{ stakeholderIds: string[] }>(
+        context,
+        "/api/v1/me",
+      );
       expect(me.status, me.text).toBe(200);
       const organizationId = me.body.data?.stakeholderIds[0];
       expect(organizationId).toBeTruthy();
@@ -92,7 +102,9 @@ test.describe("Draf pelaporan tanpa pemilih organisasi", () => {
         `/api/v1/submissions?status=DRAFT&limit=50`,
       );
       expect(drafts.status, drafts.text).toBe(200);
-      const saved = (drafts.body.data ?? []).find((item) => item.title === title);
+      const saved = (drafts.body.data ?? []).find(
+        (item) => item.title === title,
+      );
       expect(saved, "draf tersimpan di server").toBeTruthy();
 
       const detail = await call<{
@@ -105,7 +117,9 @@ test.describe("Draf pelaporan tanpa pemilih organisasi", () => {
 
       // Tautan layanan: draf dibuka kembali dari server, bukan dari pemilih organisasi.
       await page.goto(`/client/lapor?submissionId=${saved!.id}`);
-      await expect(page.getByRole("heading", { name: "Perbaiki konten" })).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "Perbaiki konten" }),
+      ).toBeVisible();
       await expect(
         page.getByText(`Memperbaiki konten ${referenceCode}`, { exact: true }),
       ).toBeVisible();

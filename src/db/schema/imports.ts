@@ -66,7 +66,10 @@ export const accountImportRows = pgTable(
     createdAt: instant("created_at").defaultNow().notNull(),
   },
   (table) => [
-    unique("account_import_rows_row_unique").on(table.importId, table.rowNumber),
+    unique("account_import_rows_row_unique").on(
+      table.importId,
+      table.rowNumber,
+    ),
     index("account_import_rows_import_idx").on(table.importId),
     check(
       "account_import_rows_status_check",

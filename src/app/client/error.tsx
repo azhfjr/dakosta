@@ -9,5 +9,7 @@ export default function ClientError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  return <WorkspaceError error={error} reset={reset} scope="Ruang stakeholder" />;
+  return (
+    <WorkspaceError error={error} reset={reset} scope="Ruang stakeholder" />
+  );
 }

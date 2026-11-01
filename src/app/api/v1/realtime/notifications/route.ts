@@ -40,7 +40,9 @@ export async function GET(request: Request) {
     return jsonError(error, requestId);
   }
 
-  const since = resolveReplayStart(new URL(request.url).searchParams.get("since"));
+  const since = resolveReplayStart(
+    new URL(request.url).searchParams.get("since"),
+  );
   const encoder = new TextEncoder();
   const abort = new AbortController();
   const onRequestAbort = () => abort.abort();
@@ -68,15 +70,22 @@ export async function GET(request: Request) {
         send(`: stream ${requestId}\n\n`);
 
         while (!abort.signal.aborted && Date.now() < deadline) {
-          const items = await getNotificationsSince(user.id, cursor).catch((error) => {
-            console.error(`[notifications] poll SSE gagal ${requestId}`, error);
-            return [];
-          });
+          const items = await getNotificationsSince(user.id, cursor).catch(
+            (error) => {
+              console.error(
+                `[notifications] poll SSE gagal ${requestId}`,
+                error,
+              );
+              return [];
+            },
+          );
 
           for (const item of items) {
             if (sent.has(item.id)) continue;
             sent.add(item.id);
-            send(`id: ${item.id}\nevent: notification\ndata: ${JSON.stringify(item)}\n\n`);
+            send(
+              `id: ${item.id}\nevent: notification\ndata: ${JSON.stringify(item)}\n\n`,
+            );
           }
 
           if (items.length > 0) {
@@ -94,7 +103,10 @@ export async function GET(request: Request) {
         send("event: stream_end\ndata: {}\n\n");
       } catch (error) {
         if (!abort.signal.aborted) {
-          console.error(`[notifications] stream SSE berhenti ${requestId}`, error);
+          console.error(
+            `[notifications] stream SSE berhenti ${requestId}`,
+            error,
+          );
         }
       } finally {
         open = false;

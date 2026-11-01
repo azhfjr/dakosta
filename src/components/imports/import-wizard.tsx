@@ -287,7 +287,9 @@ export function ImportWizard({ readOnly = false }: { readOnly?: boolean }) {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[44rem] border-collapse text-sm">
-              <caption className="sr-only">Kredensial sementara akun baru</caption>
+              <caption className="sr-only">
+                Kredensial sementara akun baru
+              </caption>
               <thead>
                 <tr className="border-b border-border text-left text-xs font-medium tracking-wide text-ink-muted uppercase">
                   <th scope="col" className="px-4 py-3">

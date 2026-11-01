@@ -40,9 +40,12 @@ export const STATUS_TONE: Record<ContentStatus, string> = {
   SUBMITTED: "border-brand-blue-500/25 bg-brand-blue-100 text-brand-blue-800",
   RESUBMITTED: "border-brand-blue-500/40 bg-brand-blue-100 text-brand-blue-800",
   IN_REVIEW: "border-status-review/25 bg-status-review/10 text-status-review",
-  APPROVED: "border-status-approved/25 bg-status-approved/10 text-status-approved",
-  REVISION_REQUIRED: "border-status-revision/25 bg-status-revision/10 text-status-revision",
-  REJECTED: "border-status-rejected/25 bg-status-rejected/10 text-status-rejected",
+  APPROVED:
+    "border-status-approved/25 bg-status-approved/10 text-status-approved",
+  REVISION_REQUIRED:
+    "border-status-revision/25 bg-status-revision/10 text-status-revision",
+  REJECTED:
+    "border-status-rejected/25 bg-status-rejected/10 text-status-rejected",
   REVOKED: "border-border bg-surface-muted text-ink-muted",
   ARCHIVED: "border-border bg-surface-muted text-ink-muted",
 };

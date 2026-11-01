@@ -4,7 +4,10 @@ import { eq } from "drizzle-orm";
 
 import { getDb, schema } from "@/db";
 import { canRole } from "@/lib/authz/capabilities";
-import { isOrganizationInScope, organizationScopePredicate } from "@/lib/authz/predicates";
+import {
+  isOrganizationInScope,
+  organizationScopePredicate,
+} from "@/lib/authz/predicates";
 import type { Capability } from "@/lib/authz/types";
 import { errors } from "@/lib/errors";
 import type { AppRole, SessionUser } from "@/lib/session";
@@ -55,7 +58,9 @@ export function assertCapability(
   capability: Capability,
 ): void {
   if (!canCapability(user, capability)) {
-    throw errors.forbidden("Peran Anda tidak memiliki izin untuk tindakan ini.");
+    throw errors.forbidden(
+      "Peran Anda tidak memiliki izin untuk tindakan ini.",
+    );
   }
 }
 

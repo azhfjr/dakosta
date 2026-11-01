@@ -8,9 +8,15 @@ import { Pool } from "@neondatabase/serverless";
 import { hashPassword } from "better-auth/crypto";
 
 import * as schema from "../src/db/schema";
-import { describeTarget, loadScriptEnv, requireDatabaseUrlForScript } from "./_env";
+import {
+  describeTarget,
+  loadScriptEnv,
+  requireDatabaseUrlForScript,
+} from "./_env";
 
-const target = process.argv.find((value) => value.startsWith("--target="))?.split("=")[1];
+const target = process.argv
+  .find((value) => value.startsWith("--target="))
+  ?.split("=")[1];
 if (target !== "production") {
   throw new Error(
     "Bootstrap Master hanya boleh dijalankan dengan --target=production. Tidak ada perubahan yang dilakukan.",
@@ -28,7 +34,9 @@ if (process.env.BOOTSTRAP_CONFIRM !== "bootstrap-master") {
 function requireEmail(): string {
   const email = process.env.BOOTSTRAP_MASTER_EMAIL?.trim().toLowerCase();
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    throw new Error("BOOTSTRAP_MASTER_EMAIL belum diisi dengan format email yang valid.");
+    throw new Error(
+      "BOOTSTRAP_MASTER_EMAIL belum diisi dengan format email yang valid.",
+    );
   }
   return email;
 }
@@ -41,15 +49,22 @@ function resolvePassword(): { password: string; generated: boolean } {
     }
     return { password: fromEnv, generated: false };
   }
-  return { password: `${randomBytes(15).toString("base64url")}Aa1!`, generated: true };
+  return {
+    password: `${randomBytes(15).toString("base64url")}Aa1!`,
+    generated: true,
+  };
 }
 
 async function main(): Promise<void> {
   const email = requireEmail();
-  const name = process.env.BOOTSTRAP_MASTER_NAME?.trim() || "Master Admin DAKOSTA";
+  const name =
+    process.env.BOOTSTRAP_MASTER_NAME?.trim() || "Master Admin DAKOSTA";
   const { password, generated } = resolvePassword();
 
-  const pool = new Pool({ connectionString: requireDatabaseUrlForScript(), max: 1 });
+  const pool = new Pool({
+    connectionString: requireDatabaseUrlForScript(),
+    max: 1,
+  });
   const db = drizzle(pool, { schema });
 
   try {
@@ -116,6 +131,7 @@ async function main(): Promise<void> {
         isDemo: false,
         active: true,
         status: "ACTIVE",
+        locationStatus: "EXEMPT",
         displayTitle: "Master Admin DAKOSTA",
       });
 
@@ -157,7 +173,9 @@ async function main(): Promise<void> {
       { encoding: "utf8", mode: 0o600 },
     );
 
-    console.log(`Bootstrap Master Admin selesai (${describeTarget("production")}).`);
+    console.log(
+      `Bootstrap Master Admin selesai (${describeTarget("production")}).`,
+    );
     console.log(`Kredensial awal disimpan di: ${file}`);
     console.log(
       generated

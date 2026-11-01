@@ -1,12 +1,27 @@
 import "server-only";
 
-import { and, count, countDistinct, eq, gte, inArray, isNotNull, lte, sql, type SQL } from "drizzle-orm";
+import {
+  and,
+  count,
+  countDistinct,
+  eq,
+  gte,
+  inArray,
+  isNotNull,
+  lte,
+  sql,
+  type SQL,
+} from "drizzle-orm";
 
 import { getDb, schema } from "@/db";
 import { contentScopePredicate } from "@/lib/authz/predicates";
 import { PENDING_STATUSES } from "@/lib/content-status";
 import type { SessionUser } from "@/lib/session";
-import { monthKeyFor, monthRange, type AttributionMode } from "@/lib/kpi/formulas";
+import {
+  monthKeyFor,
+  monthRange,
+  type AttributionMode,
+} from "@/lib/kpi/formulas";
 
 export { PENDING_STATUSES } from "@/lib/content-status";
 
@@ -33,20 +48,17 @@ export type ScopedMetrics = {
   infografisApproved: number;
 };
 
-function scopedWhere(
-  user: SessionUser,
-  extra: SQL[] = [],
-): SQL | undefined {
-  const scope = contentScopePredicate(user, schema.contentSubmissions.stakeholderId);
+function scopedWhere(user: SessionUser, extra: SQL[] = []): SQL | undefined {
+  const scope = contentScopePredicate(
+    user,
+    schema.contentSubmissions.stakeholderId,
+  );
   const parts = [eq(schema.contentSubmissions.archived, false), ...extra];
   if (scope) parts.push(scope);
   return and(...parts);
 }
 
-function attributionWhere(
-  attribution: AttributionMode,
-  month: string,
-): SQL {
+function attributionWhere(attribution: AttributionMode, month: string): SQL {
   const range = monthRange(month);
   return attribution === "approved_at"
     ? and(
@@ -79,7 +91,9 @@ export async function getScopedMetrics(
           infografis: sql<number>`count(*) filter (where ${schema.contentSubmissions.contentType} = 'INFOGRAFIS')`,
         })
         .from(schema.contentSubmissions)
-        .where(and(monthScope, eq(schema.contentSubmissions.status, "APPROVED"))),
+        .where(
+          and(monthScope, eq(schema.contentSubmissions.status, "APPROVED")),
+        ),
       db
         .select({ status: schema.contentSubmissions.status, total: count() })
         .from(schema.contentSubmissions)
@@ -95,7 +109,9 @@ export async function getScopedMetrics(
           ),
         ),
       db
-        .select({ total: countDistinct(schema.contentSubmissions.stakeholderId) })
+        .select({
+          total: countDistinct(schema.contentSubmissions.stakeholderId),
+        })
         .from(schema.contentSubmissions)
         .where(
           and(
@@ -136,11 +152,14 @@ export async function getScopedMetrics(
     month,
     attribution,
     approved,
-    submitted: Number(statusCounts.get("SUBMITTED") ?? 0) + Number(statusCounts.get("RESUBMITTED") ?? 0),
+    submitted:
+      Number(statusCounts.get("SUBMITTED") ?? 0) +
+      Number(statusCounts.get("RESUBMITTED") ?? 0),
     pending,
     revisionRequested: Number(statusCounts.get("REVISION_REQUIRED") ?? 0),
     rejected: Number(statusCounts.get("REJECTED") ?? 0),
-    approvalRate: decided > 0 ? Math.round((approved / decided) * 1000) / 10 : null,
+    approvalRate:
+      decided > 0 ? Math.round((approved / decided) * 1000) / 10 : null,
     contributingOrganizations: Number(contributorRows[0]?.total ?? 0),
     registeredFaskes: Number(faskesRows[0]?.registered ?? 0),
     neverSubmittedFaskes: Number(faskesRows[0]?.neverSubmitted ?? 0),

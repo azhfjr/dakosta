@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { headers } from "next/headers";
 import { cache } from "react";
@@ -12,6 +12,7 @@ import { capabilitiesForActor } from "./capabilities";
 import {
   homePathForRole,
   isAppRole,
+  isLocationStatus,
   type AppRole,
   type AuthContext,
   type Scope,
@@ -31,6 +32,7 @@ const scopeOrgRegion = alias(schema.regionalOffices, "scope_org_region");
 type ScopeData = {
   regionId: string | null;
   regionName: string | null;
+  regionBranchIds: unknown;
   branchId: string | null;
   branchName: string | null;
   branchRegionId: string | null;
@@ -43,6 +45,11 @@ type ScopeData = {
   orgRegionName: string | null;
 };
 
+function stringIds(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((id): id is string => typeof id === "string");
+}
+
 async function loadScope(
   data: ScopeData,
   role: AppRole,
@@ -53,17 +60,12 @@ async function loadScope(
 
   if (role === "REGIONAL_ADMIN") {
     if (!data.regionId || !data.regionName) return null;
-    const db = getDb();
-    const branches = await db
-      .select({ id: schema.branchOffices.id })
-      .from(schema.branchOffices)
-      .where(eq(schema.branchOffices.regionalOfficeId, data.regionId));
     return {
       scope: {
         kind: "REGION",
         regionId: data.regionId,
         regionName: data.regionName,
-        branchIds: branches.map((branch) => branch.id),
+        branchIds: stringIds(data.regionBranchIds),
       },
       scopeLabel: data.regionName,
     };
@@ -99,8 +101,67 @@ async function loadScope(
   };
 }
 
+type LoadedSession = Awaited<
+  ReturnType<ReturnType<typeof getAuth>["api"]["getSession"]>
+>;
+
+/**
+ * Session lookup is cached briefly to avoid two database round-trips on every
+ * request. Role, scope, and account status are still read fresh below, so
+ * deactivation and scope changes take effect immediately; revocation of a
+ * stolen session cookie lags by at most the TTL.
+ */
+const SESSION_CACHE_TTL_MS = 30_000;
+const SESSION_CACHE_MAX = 5_000;
+const sessionCache = new Map<
+  string,
+  { expiresAt: number; value: Promise<LoadedSession> }
+>();
+
+function sessionTokenFrom(cookieHeader: string | null): string | null {
+  if (!cookieHeader) return null;
+  for (const part of cookieHeader.split(";")) {
+    const trimmed = part.trim();
+    const separator = trimmed.indexOf("=");
+    if (separator < 0) continue;
+    const name = trimmed.slice(0, separator);
+    if (name.includes("session_token")) return trimmed.slice(separator + 1);
+  }
+  return null;
+}
+
+async function getSession(requestHeaders: Headers): Promise<LoadedSession> {
+  const token = sessionTokenFrom(requestHeaders.get("cookie"));
+  if (!token) {
+    return getAuth().api.getSession({ headers: requestHeaders });
+  }
+  const now = Date.now();
+  const cached = sessionCache.get(token);
+  if (cached && cached.expiresAt > now) return cached.value;
+  const value = getAuth().api.getSession({ headers: requestHeaders });
+  sessionCache.set(token, {
+    expiresAt: now + SESSION_CACHE_TTL_MS,
+    value,
+  });
+  if (sessionCache.size > SESSION_CACHE_MAX) {
+    for (const [key, entry] of sessionCache) {
+      if (entry.expiresAt <= now) sessionCache.delete(key);
+    }
+    if (sessionCache.size > SESSION_CACHE_MAX) {
+      const oldest = sessionCache.keys().next().value;
+      if (oldest) sessionCache.delete(oldest);
+    }
+  }
+  try {
+    return await value;
+  } catch (error) {
+    sessionCache.delete(token);
+    throw error;
+  }
+}
+
 async function loadAuthContext(): Promise<AuthContext | null> {
-  const session = await getAuth().api.getSession({ headers: await headers() });
+  const session = await getSession(await headers());
   if (!session?.user) return null;
 
   const db = getDb();
@@ -111,6 +172,13 @@ async function loadAuthContext(): Promise<AuthContext | null> {
       scope: {
         regionId: scopeRegion.id,
         regionName: scopeRegion.name,
+        // Satu kueri dengan membership: menghindari round-trip serial untuk
+        // daftar cabang yang sebelumnya membuat rute wilayah lebih lambat.
+        regionBranchIds: sql<string[]>`coalesce((
+          select json_agg(region_branch.id order by region_branch.id)
+          from ${schema.branchOffices} as region_branch
+          where region_branch.regional_office_id = ${scopeRegion.id}
+        ), '[]'::json)`,
         branchId: scopeBranch.id,
         branchName: scopeBranch.name,
         branchRegionId: scopeBranchRegion.id,
@@ -173,6 +241,10 @@ async function loadAuthContext(): Promise<AuthContext | null> {
     capabilities: capabilitiesForActor(role, row.profile.isDemo),
     isDemo: row.profile.isDemo,
     mustChangePassword: row.profile.mustChangePassword,
+    locationStatus: isLocationStatus(row.profile.locationStatus)
+      ? row.profile.locationStatus
+      : "PENDING",
+    locationGraceDeadline: row.profile.locationGraceDeadline ?? null,
     displayTitle: row.profile.displayTitle,
     membershipId: row.membership.id,
     homePath: homePathForRole(role),

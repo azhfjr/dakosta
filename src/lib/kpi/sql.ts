@@ -30,15 +30,14 @@ import {
   type ContentStatus,
 } from "@/lib/content-status";
 import { errors } from "@/lib/errors";
+import { cachedRead, readCacheKey } from "@/lib/read-cache";
 import {
   achievementPercent,
   attributionLabel,
   average,
   dayKeys,
-  isMonthKey,
   leadTimeDays,
   median,
-  monthKeyFor,
   monthRange,
   percentChange,
   ratioPercent,
@@ -55,6 +54,12 @@ import {
   type TargetSource,
 } from "@/lib/kpi/formulas";
 import type { SessionUser } from "@/lib/session";
+import {
+  parsePeriod,
+  periodMonthKeys,
+  previousPeriod,
+  type Period,
+} from "@/lib/periods";
 import { resolveAggregateTarget, resolveTargetAmount } from "@/lib/targets";
 import {
   isSubTheme,
@@ -67,6 +72,13 @@ export const kpiQuerySchema = z.object({
   month: z
     .string()
     .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Bulan harus berformat YYYY-MM.")
+    .optional(),
+  period: z
+    .string()
+    .regex(
+      /^(\d{4}-(0[1-9]|1[0-2])|\d{4}-Q[1-4]|\d{4})$/,
+      "Periode tidak valid.",
+    )
     .optional(),
   attribution: z.enum(["approved_at", "date_created"]).optional(),
   stakeholderId: z.string().uuid().optional(),
@@ -86,24 +98,61 @@ function optionalUuid(value: string | undefined): string | null {
 export function parseKpiFiltersFromParams(
   params: Record<string, string | string[] | undefined>,
 ): KpiFilters {
+  const periodKey = firstValue(params.period);
   const month = firstValue(params.month);
+  const period = parsePeriod(periodKey ?? month);
   const attribution = firstValue(params.attribution);
   const subTheme = firstValue(params.subTheme);
   return {
-    month: isMonthKey(month) ? month : monthKeyFor(),
-    attribution: attribution === "approved_at" ? "approved_at" : "date_created",
+    month:
+      period.granularity === "MONTH"
+        ? period.key
+        : period.startDate.slice(0, 7),
+    periodKey: period.key,
+    attribution:
+      attribution === "date_created" ? "date_created" : "approved_at",
     stakeholderId: optionalUuid(firstValue(params.stakeholderId)),
     subTheme: isSubTheme(subTheme) ? subTheme : null,
   };
 }
 
-export function parseKpiFiltersFromQuery(searchParams: URLSearchParams): KpiFilters {
-  const parsed = kpiQuerySchema.parse(Object.fromEntries(searchParams.entries()));
+export function parseKpiFiltersFromQuery(
+  searchParams: URLSearchParams,
+): KpiFilters {
+  const parsed = kpiQuerySchema.parse(
+    Object.fromEntries(searchParams.entries()),
+  );
+  const period = parsePeriod(parsed.period ?? parsed.month);
   return {
-    month: parsed.month ?? monthKeyFor(),
-    attribution: parsed.attribution ?? "date_created",
+    month:
+      period.granularity === "MONTH"
+        ? period.key
+        : period.startDate.slice(0, 7),
+    periodKey: period.key,
+    attribution: parsed.attribution ?? "approved_at",
     stakeholderId: parsed.stakeholderId ?? null,
     subTheme: (parsed.subTheme as SubTheme | undefined) ?? null,
+  };
+}
+
+export function kpiPeriod(filters: KpiFilters): Period {
+  return parsePeriod(filters.periodKey ?? filters.month);
+}
+
+function rangeFor(period: Period): MonthRange {
+  const previous = previousPeriod(period);
+  return {
+    key: period.key,
+    previousKey: previous.key,
+    label: period.label,
+    shortLabel: period.label,
+    startInstant: period.start,
+    endInstant: period.endExclusive,
+    startLocal: period.startDate,
+    endLocal: period.endDate,
+    dayCount: Math.round(
+      (period.endExclusive.getTime() - period.start.getTime()) / 86_400_000,
+    ),
   };
 }
 
@@ -187,7 +236,11 @@ function resolveTarget(
   return resolveAggregateTarget(targetRows, owned, filters.subTheme);
 }
 
-function toMetric(value: number, target: number | null, source: TargetSource | null): KpiMetric {
+function toMetric(
+  value: number,
+  target: number | null,
+  source: TargetSource | null,
+): KpiMetric {
   return {
     value,
     target,
@@ -248,11 +301,29 @@ export async function getDashboardOverview(
   user: SessionUser,
   filters: KpiFilters,
 ): Promise<DashboardOverview> {
+  // Scope must be checked even when the cached value is served.
   await assertClientScope(user, filters, "/dashboard");
+  return cachedRead(
+    readCacheKey(user, [
+      "dashboard-overview",
+      filters.periodKey ?? filters.month,
+      filters.attribution,
+      filters.stakeholderId,
+      filters.subTheme,
+    ]),
+    () => loadDashboardOverview(user, filters),
+  );
+}
 
+async function loadDashboardOverview(
+  user: SessionUser,
+  filters: KpiFilters,
+): Promise<DashboardOverview> {
   const db = getDb();
-  const range = monthRange(filters.month);
-  const previousRange = monthRange(range.previousKey);
+  const period = kpiPeriod(filters);
+  const range = rangeFor(period);
+  const previousRange = rangeFor(previousPeriod(period));
+  const periodMonths = periodMonthKeys(period);
   const conditions = scopeConditions(user, filters);
   const scope = whereAll(...conditions);
   const approvedCurrent = whereAll(
@@ -267,10 +338,16 @@ export async function getDashboardOverview(
   );
   const submittedInPeriod = whereAll(scope, submittedCondition(range));
 
+  const trendBucket = period.granularity === "MONTH" ? "day" : "month";
+  // Format must be a literal, not a bound parameter: Postgres treats `$1` and
+  // `$5` as different expressions and rejects the GROUP BY as non-matching.
+  const trendFormat = sql.raw(
+    trendBucket === "day" ? "'YYYY-MM-DD'" : "'YYYY-MM'",
+  );
   const trendDay =
     filters.attribution === "approved_at"
-      ? sql<string>`to_char(${schema.contentSubmissions.approvedAt} at time zone 'Asia/Jakarta', 'YYYY-MM-DD')`
-      : sql<string>`${schema.contentSubmissions.dateCreated}`;
+      ? sql<string>`to_char(${schema.contentSubmissions.approvedAt} at time zone 'Asia/Jakarta', ${trendFormat})`
+      : sql<string>`to_char(${schema.contentSubmissions.dateCreated}, ${trendFormat})`;
 
   const itemColumns = {
     id: schema.contentSubmissions.id,
@@ -442,13 +519,14 @@ export async function getDashboardOverview(
         themeId: schema.kpiTargets.themeId,
         themeSlug: schema.themes.slug,
         targetCount: schema.kpiTargets.targetCount,
+        periodStart: schema.kpiTargets.periodStart,
       })
       .from(schema.kpiTargets)
       .leftJoin(schema.themes, eq(schema.themes.id, schema.kpiTargets.themeId))
       .where(
-        and(
-          eq(schema.kpiTargets.periodStart, range.startLocal),
-          eq(schema.kpiTargets.periodEnd, range.endLocal),
+        inArray(
+          schema.kpiTargets.periodStart,
+          periodMonths.map((key) => `${key}-01`),
         ),
       )
       .orderBy(desc(schema.kpiTargets.createdAt)),
@@ -476,18 +554,38 @@ export async function getDashboardOverview(
     .map((row) => leadTimeDays(row.submittedAt, row.decidedAt))
     .filter((value): value is number => value !== null);
 
-  const resolvedTarget = resolveTarget(
-    user.role,
-    ownedStakeholderIds,
-    filters,
-    targetRows.map((row) => ({
-      stakeholderId: row.stakeholderId,
-      subTheme: row.subTheme,
-      themeId: row.themeId,
-      themeSlug: row.themeSlug,
-      targetCount: Number(row.targetCount),
-    })),
-  );
+  const resolvedTarget = (() => {
+    let total = 0;
+    let found = false;
+    let source: TargetSource | null = null;
+    for (const monthKey of periodMonths) {
+      const monthStart = `${monthKey}-01`;
+      const resolved = resolveTarget(
+        user.role,
+        ownedStakeholderIds,
+        filters,
+        targetRows
+          .filter((row) => row.periodStart === monthStart)
+          .map((row) => ({
+            stakeholderId: row.stakeholderId,
+            subTheme: row.subTheme,
+            themeId: row.themeId,
+            themeSlug: row.themeSlug,
+            targetCount: Number(row.targetCount),
+          })),
+      );
+      if (resolved.target !== null) {
+        total += resolved.target;
+        found = true;
+        source = source ?? resolved.source;
+      }
+    }
+    if (!found) return { target: null, source: null };
+    return {
+      target: total,
+      source: periodMonths.length === 1 ? source : ("AGGREGATE" as const),
+    };
+  })();
 
   const statusCounts: StatusTotal[] = statusRows.map((row) => ({
     status: row.status as ContentStatus,
@@ -502,12 +600,24 @@ export async function getDashboardOverview(
     .filter((row) => row.status === "REVISION_REQUIRED")
     .reduce((sum, row) => sum + row.total, 0);
 
-  const trendMap = new Map(trendRows.map((row) => [row.day, Number(row.total)]));
-  const trend = dayKeys(range).map((date) => ({
-    date,
-    label: shortDayLabel(date),
-    total: trendMap.get(date) ?? 0,
-  }));
+  const trendMap = new Map(
+    trendRows.map((row) => [row.day, Number(row.total)]),
+  );
+  const trend =
+    trendBucket === "day"
+      ? dayKeys(range).map((date) => ({
+          date,
+          label: shortDayLabel(date),
+          total: trendMap.get(date) ?? 0,
+        }))
+      : periodMonths.map((key) => {
+          const month = monthRange(key);
+          return {
+            date: key,
+            label: month.shortLabel,
+            total: trendMap.get(key) ?? 0,
+          };
+        });
 
   const themeMap = new Map(
     themeRows.map((row) => [row.subTheme, Number(row.total)]),
@@ -540,7 +650,11 @@ export async function getDashboardOverview(
       stakeholderName: stakeholderRow[0]?.name ?? null,
       themeName: filters.subTheme ? SUB_THEME_LABELS[filters.subTheme] : null,
     },
-    approved: toMetric(approvedValue, resolvedTarget.target, resolvedTarget.source),
+    approved: toMetric(
+      approvedValue,
+      resolvedTarget.target,
+      resolvedTarget.source,
+    ),
     previousApproved,
     growth: percentChange(approvedValue, previousApproved),
     submitted,
@@ -676,7 +790,21 @@ export async function getTopStakeholderTotals(
   }));
 }
 
-export async function getKpiFilterOptions(user: SessionUser) {
+export async function getKpiFilterOptions(user: SessionUser): Promise<{
+  stakeholders: Array<{ id: string; name: string }>;
+  themes: Array<{ id: string; name: string }>;
+}> {
+  return cachedRead(
+    readCacheKey(user, ["kpi-filter-options"]),
+    () => loadKpiFilterOptions(user),
+    { ttlMs: 300_000, maxStaleMs: 300_000 },
+  );
+}
+
+async function loadKpiFilterOptions(user: SessionUser): Promise<{
+  stakeholders: Array<{ id: string; name: string }>;
+  themes: Array<{ id: string; name: string }>;
+}> {
   const db = getDb();
   const stakeholderScope = organizationScopePredicate(user.scope, {
     id: schema.stakeholders.id,

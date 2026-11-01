@@ -17,8 +17,8 @@ export default function NotFound() {
           Tautan ini tidak tersedia
         </h1>
         <p className="text-sm leading-relaxed text-ink-muted">
-          Halaman mungkin sudah dipindahkan atau tidak tersedia untuk peran
-          akun Anda. Kembali ke beranda atau masuk ke ruang kerja.
+          Halaman mungkin sudah dipindahkan atau tidak tersedia untuk peran akun
+          Anda. Kembali ke beranda atau masuk ke ruang kerja.
         </p>
       </div>
       <div className="flex flex-col gap-3 sm:flex-row">

@@ -30,19 +30,23 @@ export type NotificationView = {
 const EVENT_STYLE: Record<string, { icon: LucideIcon; className: string }> = {
   CONTENT_SUBMITTED: {
     icon: ClipboardCheck,
-    className: "border-brand-blue-500/30 bg-brand-blue-100/40 text-brand-blue-600",
+    className:
+      "border-brand-blue-500/30 bg-brand-blue-100/40 text-brand-blue-600",
   },
   CONTENT_APPROVED: {
     icon: CheckCircle2,
-    className: "border-status-approved/30 bg-status-approved/10 text-status-approved",
+    className:
+      "border-status-approved/30 bg-status-approved/10 text-status-approved",
   },
   CONTENT_REJECTED: {
     icon: XCircle,
-    className: "border-status-rejected/30 bg-status-rejected/10 text-status-rejected",
+    className:
+      "border-status-rejected/30 bg-status-rejected/10 text-status-rejected",
   },
   CONTENT_REVISION_REQUESTED: {
     icon: RotateCcw,
-    className: "border-status-revision/30 bg-status-revision/10 text-status-revision",
+    className:
+      "border-status-revision/30 bg-status-revision/10 text-status-revision",
   },
   CONTENT_REVOKED: {
     icon: Archive,
@@ -126,7 +130,9 @@ export function NotificationList({ items }: { items: NotificationView[] }) {
     >
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
         <p className="text-sm text-ink-muted" aria-live="polite">
-          {unread > 0 ? `${unread} notifikasi belum dibaca` : "Semua notifikasi sudah dibaca"}
+          {unread > 0
+            ? `${unread} notifikasi belum dibaca`
+            : "Semua notifikasi sudah dibaca"}
         </p>
         <Button
           type="button"
@@ -148,7 +154,10 @@ export function NotificationList({ items }: { items: NotificationView[] }) {
           const Icon = style.icon;
 
           return (
-            <li key={item.id} className={isUnread ? "bg-brand-teal-100/30" : undefined}>
+            <li
+              key={item.id}
+              className={isUnread ? "bg-brand-teal-100/30" : undefined}
+            >
               <div className="flex gap-3 px-4 py-4">
                 <span
                   className={`mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border ${style.className}`}
@@ -194,7 +203,9 @@ export function NotificationList({ items }: { items: NotificationView[] }) {
                         Tandai dibaca
                       </button>
                     ) : (
-                      <span className="text-xs text-ink-muted">Sudah dibaca</span>
+                      <span className="text-xs text-ink-muted">
+                        Sudah dibaca
+                      </span>
                     )}
                   </div>
                 </div>

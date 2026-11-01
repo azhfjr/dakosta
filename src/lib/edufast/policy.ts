@@ -97,7 +97,10 @@ export async function listPolicies(): Promise<EdufastPolicy[]> {
   const rows = await getDb()
     .select()
     .from(schema.edufastMonthlyPolicies)
-    .orderBy(desc(schema.edufastMonthlyPolicies.periodYyyyMm), desc(schema.edufastMonthlyPolicies.version));
+    .orderBy(
+      desc(schema.edufastMonthlyPolicies.periodYyyyMm),
+      desc(schema.edufastMonthlyPolicies.version),
+    );
   return attachSubThemes(rows);
 }
 
@@ -119,11 +122,15 @@ export async function getPolicyForPeriod(
   return policy ?? null;
 }
 
-export async function getPolicyForDate(dateOnly: string): Promise<EdufastPolicy | null> {
+export async function getPolicyForDate(
+  dateOnly: string,
+): Promise<EdufastPolicy | null> {
   return getPolicyForPeriod(periodOfDate(dateOnly));
 }
 
-export type EdufastPolicyLoader = (period: string) => Promise<EdufastPolicy | null>;
+export type EdufastPolicyLoader = (
+  period: string,
+) => Promise<EdufastPolicy | null>;
 
 export type EdufastResolution =
   | { allowed: true; policy: EdufastPolicy; subThemes: SubTheme[] }
@@ -168,7 +175,10 @@ export async function assertEdufastSelection(
       `Sub-tema ${SUB_THEME_LABELS[input.subTheme]} tidak termasuk kebijakan EDUFAST ${resolution.policy.period} (versi ${resolution.policy.version}).`,
     );
   }
-  return { policyId: resolution.policy.id, policyVersion: resolution.policy.version };
+  return {
+    policyId: resolution.policy.id,
+    policyVersion: resolution.policy.version,
+  };
 }
 
 function normalizeSubThemes(values: string[]): SubTheme[] {
@@ -281,11 +291,16 @@ export async function publishPolicy(input: {
       throw errors.conflict("Kebijakan ini sudah terbit.");
     }
     if (current.status === "ARCHIVED") {
-      throw errors.conflict("Kebijakan yang diarsipkan tidak dapat diterbitkan.");
+      throw errors.conflict(
+        "Kebijakan yang diarsipkan tidak dapat diterbitkan.",
+      );
     }
 
     const [previous] = await tx
-      .select({ id: schema.edufastMonthlyPolicies.id, version: schema.edufastMonthlyPolicies.version })
+      .select({
+        id: schema.edufastMonthlyPolicies.id,
+        version: schema.edufastMonthlyPolicies.version,
+      })
       .from(schema.edufastMonthlyPolicies)
       .where(
         and(
@@ -306,7 +321,9 @@ export async function publishPolicy(input: {
       const [maxRow] = await tx
         .select({ version: schema.edufastMonthlyPolicies.version })
         .from(schema.edufastMonthlyPolicies)
-        .where(eq(schema.edufastMonthlyPolicies.periodYyyyMm, current.periodYyyyMm))
+        .where(
+          eq(schema.edufastMonthlyPolicies.periodYyyyMm, current.periodYyyyMm),
+        )
         .orderBy(desc(schema.edufastMonthlyPolicies.version))
         .limit(1);
       nextVersion = Math.max(current.version, (maxRow?.version ?? 0) + 1);
@@ -425,14 +442,24 @@ export function ensurePolicyInput(input: unknown): {
     explanation?: unknown;
   };
   if (typeof value?.period !== "string" || !isValidPeriod(value.period)) {
-    throw new AppError("INVALID_PERIOD", "Periode harus berformat YYYY-MM.", 400);
+    throw new AppError(
+      "INVALID_PERIOD",
+      "Periode harus berformat YYYY-MM.",
+      400,
+    );
   }
   if (!Array.isArray(value.subThemes)) {
-    throw new AppError("INVALID_SUBTHEMES", "Sub-tema harus berupa daftar.", 400);
+    throw new AppError(
+      "INVALID_SUBTHEMES",
+      "Sub-tema harus berupa daftar.",
+      400,
+    );
   }
   return {
     period: value.period,
-    subThemes: value.subThemes.filter((item): item is string => typeof item === "string"),
+    subThemes: value.subThemes.filter(
+      (item): item is string => typeof item === "string",
+    ),
     explanation:
       typeof value.explanation === "string" ? value.explanation : undefined,
   };

@@ -16,7 +16,9 @@ function codeOf(run: () => void): string | null {
 describe("submission edit gate", () => {
   it("allows drafts and revision requests", () => {
     expect(codeOf(() => assertSubmissionEditable("DRAFT"))).toBeNull();
-    expect(codeOf(() => assertSubmissionEditable("REVISION_REQUIRED"))).toBeNull();
+    expect(
+      codeOf(() => assertSubmissionEditable("REVISION_REQUIRED")),
+    ).toBeNull();
   });
 
   it("rejects terminal and in-flight statuses with an actionable conflict", () => {

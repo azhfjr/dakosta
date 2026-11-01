@@ -214,20 +214,18 @@ export async function getThemeMatrix(
       ? (row.subTheme as SubTheme)
       : "NONE";
     const key = `${mainTheme}:${subTheme}`;
-    const current =
-      grouped.get(key) ??
-      {
-        mainTheme,
-        subTheme,
-        label:
-          mainTheme === "UNKNOWN"
-            ? MAIN_THEME_LABELS.EDUFAST
-            : subTheme === "NONE"
-              ? "Tanpa sub-tema"
-              : SUB_THEME_LABELS[subTheme],
-        total: 0,
-        approved: 0,
-      };
+    const current = grouped.get(key) ?? {
+      mainTheme,
+      subTheme,
+      label:
+        mainTheme === "UNKNOWN"
+          ? MAIN_THEME_LABELS.EDUFAST
+          : subTheme === "NONE"
+            ? "Tanpa sub-tema"
+            : SUB_THEME_LABELS[subTheme],
+      total: 0,
+      approved: 0,
+    };
     const total = toNumber(row.total);
     current.total += total;
     if (row.status === "APPROVED") current.approved += total;
@@ -282,14 +280,18 @@ export async function getSlaByOrgType(
     organizationType: row.organizationType,
     contentType: row.contentType ?? "UNKNOWN",
     samples: toNumber(row.samples),
-    medianDays: row.medianDays === null ? null : round(toNumber(row.medianDays)),
-    averageDays: row.averageDays === null ? null : round(toNumber(row.averageDays)),
+    medianDays:
+      row.medianDays === null ? null : round(toNumber(row.medianDays)),
+    averageDays:
+      row.averageDays === null ? null : round(toNumber(row.averageDays)),
   }));
 }
 
 export type AgingBucket = { bucket: string; label: string; total: number };
 
-export async function getReviewAging(user: SessionUser): Promise<AgingBucket[]> {
+export async function getReviewAging(
+  user: SessionUser,
+): Promise<AgingBucket[]> {
   const rows = await getDb()
     .select({ submittedAt: schema.contentSubmissions.submittedAt })
     .from(schema.contentSubmissions)
@@ -369,7 +371,11 @@ export async function getApprovalFunnel(
     { stage: "created", label: "Konten dibuat", total },
     { stage: "submitted", label: "Dikirim", total: submitted },
     { stage: "reviewed", label: "Diputuskan", total: reviewed },
-    { stage: "approved", label: "Disetujui", total: counts.get("APPROVED") ?? 0 },
+    {
+      stage: "approved",
+      label: "Disetujui",
+      total: counts.get("APPROVED") ?? 0,
+    },
     { stage: "revoked", label: "Dicabut", total: counts.get("REVOKED") ?? 0 },
   ];
 }
@@ -469,9 +475,11 @@ export async function getSourceBreakdown(
   >();
   for (const row of rows) {
     const source = sourceOfOrganization(row);
-    const current =
-      grouped.get(source) ??
-      { approved: 0, submitted: 0, organizations: new Set<string>() };
+    const current = grouped.get(source) ?? {
+      approved: 0,
+      submitted: 0,
+      organizations: new Set<string>(),
+    };
     const total = toNumber(row.total);
     if (row.status === "APPROVED") current.approved += total;
     if (row.status !== "DRAFT") current.submitted += total;
@@ -619,7 +627,8 @@ export async function getStakeholderContext(
   if (!row) return null;
   return {
     ...row,
-    organizationType: row.organizationType as StakeholderContext["organizationType"],
+    organizationType:
+      row.organizationType as StakeholderContext["organizationType"],
     source: sourceOfOrganization(row),
   };
 }
@@ -702,7 +711,10 @@ export async function getPeerBenchmarks(
     context.branchId
       ? benchmarkCohort(
           filters.month,
-          and(typeMatch, eq(schema.stakeholders.branchOfficeId, context.branchId)),
+          and(
+            typeMatch,
+            eq(schema.stakeholders.branchOfficeId, context.branchId),
+          ),
           `${cohortLabel} di cabang`,
           "branch",
         )
@@ -724,7 +736,9 @@ export async function getPeerBenchmarks(
               getDb()
                 .select({ id: schema.branchOffices.id })
                 .from(schema.branchOffices)
-                .where(eq(schema.branchOffices.regionalOfficeId, context.regionId)),
+                .where(
+                  eq(schema.branchOffices.regionalOfficeId, context.regionId),
+                ),
             ),
           ),
           `${cohortLabel} di wilayah`,
@@ -808,7 +822,11 @@ export async function getAnalyticsBundle(
     getSourceBreakdown(user, filters),
     getEdufastMonthly(user, filters),
     getPlatformMix(user, filters),
-    getTargetOverview(filters.month),
+    user.scope.kind === "ORG"
+      ? getTargetOverview(filters.month, {
+          stakeholderId: user.scope.organizationId,
+        })
+      : getTargetOverview(filters.month, { pageSize: 0 }),
     getPeerBenchmarks(user, filters),
   ]);
 
@@ -848,7 +866,10 @@ export function resolveStakeholderTarget(
     subTheme: row.subTheme,
     targetCount: row.targetCount,
   }));
-  const candidates: Array<{ stakeholderId: string | null; subTheme: string | null }> = [];
+  const candidates: Array<{
+    stakeholderId: string | null;
+    subTheme: string | null;
+  }> = [];
   if (subTheme) candidates.push({ stakeholderId: organizationId, subTheme });
   candidates.push({ stakeholderId: organizationId, subTheme: null });
   if (subTheme) candidates.push({ stakeholderId: null, subTheme });

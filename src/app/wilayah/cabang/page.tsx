@@ -17,13 +17,19 @@ export default async function RegionalBranchesPage() {
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Cabang</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          Cabang
+        </h1>
         <p className="mt-1 max-w-2xl text-sm text-ink-muted">
-          Daftar cabang pada {user.scopeLabel} beserta jumlah organisasi, Faskes,
-          konten, dan reviewer cabang.
+          Daftar cabang pada {user.scopeLabel} beserta jumlah organisasi,
+          Faskes, konten, dan reviewer cabang.
         </p>
       </header>
-      <BranchTable branches={branches} organizationBase="/wilayah/organisasi" showRegion={false} />
+      <BranchTable
+        branches={branches}
+        organizationBase="/wilayah/organisasi"
+        showRegion={false}
+      />
     </div>
   );
 }

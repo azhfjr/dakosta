@@ -46,9 +46,9 @@ export function StepUpDialog({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ password }),
       });
-      const body = (await response.json().catch(() => null)) as
-        | { error?: { message?: string } }
-        | null;
+      const body = (await response.json().catch(() => null)) as {
+        error?: { message?: string };
+      } | null;
       if (!response.ok) {
         setError(body?.error?.message ?? "Konfirmasi kata sandi gagal.");
         return;
@@ -57,7 +57,9 @@ export function StepUpDialog({
       toast.success("Konfirmasi diterima. Tindakan dilanjutkan.");
       onConfirmed();
     } catch {
-      setError("Tidak dapat menghubungi server. Periksa koneksi lalu coba lagi.");
+      setError(
+        "Tidak dapat menghubungi server. Periksa koneksi lalu coba lagi.",
+      );
     } finally {
       setPending(false);
     }
@@ -72,8 +74,8 @@ export function StepUpDialog({
             Konfirmasi kata sandi
           </DialogTitle>
           <DialogDescription>
-            Tindakan ini sensitif dan tercatat pada audit. Masukkan kata sandi akun
-            Anda. Konfirmasi berlaku 15 menit.
+            Tindakan ini sensitif dan tercatat pada audit. Masukkan kata sandi
+            akun Anda. Konfirmasi berlaku 15 menit.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-4" noValidate>
@@ -106,8 +108,14 @@ export function StepUpDialog({
             >
               Batal
             </Button>
-            <Button type="submit" className="h-11" disabled={pending || password.length === 0}>
-              {pending ? <Loader2 className="mr-2 size-4 animate-spin" aria-hidden /> : null}
+            <Button
+              type="submit"
+              className="h-11"
+              disabled={pending || password.length === 0}
+            >
+              {pending ? (
+                <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />
+              ) : null}
               Konfirmasi
             </Button>
           </DialogFooter>

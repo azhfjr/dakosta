@@ -1,0 +1,15 @@
+
+> b8cd74b6@0.1.0 db:seed:load
+> tsx scripts/seed-load.ts --target=staging --target=staging --contents=100000 --orgs=2000 --branches=200 --regions=20
+
+Membersihkan data beban sebelumnya (prefix LOAD Instansi/LOAD-).
+20 regional, 200 cabang, 2000 instansi, 2000 lokasi.
+  20000 konten disiapkan...
+  40000 konten disiapkan...
+  60000 konten disiapkan...
+  80000 konten disiapkan...
+Selesai dalam 452.2 detik.
+Konten: 100000 (approved 70138, revisi 10031, ditolak 9917, pending 9914).
+Review: 100704. Target: 24000. Pending demo branch: 2567.
+Daftar pending untuk profil mixed: .tmp-load-test\pending.json
+Semua data sintetis is_demo=true; tidak ada PII.

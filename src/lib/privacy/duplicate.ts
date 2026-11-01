@@ -17,7 +17,9 @@ export type DuplicateDetails =
     };
 
 // Identitas konten hanya boleh keluar saat duplikat berada dalam lingkup akses pelapor.
-export function duplicateDetails(match: DuplicateMatch | null): DuplicateDetails {
+export function duplicateDetails(
+  match: DuplicateMatch | null,
+): DuplicateDetails {
   if (!match || !match.inScope) return { inScope: false };
   return {
     inScope: true,

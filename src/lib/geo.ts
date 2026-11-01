@@ -13,17 +13,27 @@ export function resolvePrecision(
   source: "device_gps" | "manual_pin" | "registered_stakeholder",
   accuracyMeters?: number | null,
 ): LocationPrecision {
-  if (source === "device_gps" && typeof accuracyMeters === "number" && accuracyMeters <= 100) {
+  if (
+    source === "device_gps" &&
+    typeof accuracyMeters === "number" &&
+    accuracyMeters <= 100
+  ) {
     return "exact";
   }
   return "approximate";
 }
 
-export function formatCoordinatePair(latitude: number, longitude: number): string {
+export function formatCoordinatePair(
+  latitude: number,
+  longitude: number,
+): string {
   return `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
 }
 
-export function isValidCoordinate(latitude: number, longitude: number): boolean {
+export function isValidCoordinate(
+  latitude: number,
+  longitude: number,
+): boolean {
   return (
     Number.isFinite(latitude) &&
     Number.isFinite(longitude) &&

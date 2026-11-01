@@ -2,7 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ChevronDown, CircleHelp, Info, LogOut, ShieldCheck } from "lucide-react";
+import {
+  ChevronDown,
+  CircleHelp,
+  Info,
+  LogOut,
+  ShieldCheck,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";

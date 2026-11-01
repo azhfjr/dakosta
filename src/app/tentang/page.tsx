@@ -29,7 +29,10 @@ export default function TentangPage() {
         </div>
       </header>
 
-      <main id="konten" className="mx-auto w-full max-w-4xl flex-1 px-4 py-12 sm:px-6">
+      <main
+        id="konten"
+        className="mx-auto w-full max-w-4xl flex-1 px-4 py-12 sm:px-6"
+      >
         <article className="space-y-10">
           <header className="space-y-4">
             <p className="text-sm font-semibold tracking-wide text-brand-teal-700 uppercase">
@@ -41,9 +44,9 @@ export default function TentangPage() {
             <p className="max-w-3xl text-base leading-relaxed text-ink-muted">
               DAKOSTA adalah proyek pribadi independen yang dibuat oleh Ratu
               Sevilla Hizriyah untuk belajar full-stack, mendemonstrasikan alur
-              kerja kolaborasi, dan menjadi bagian portofolio. Aplikasi ini bukan
-              sistem resmi, bukan produk institusi, dan tidak mewakili lembaga
-              mana pun.
+              kerja kolaborasi, dan menjadi bagian portofolio. Aplikasi ini
+              bukan sistem resmi, bukan produk institusi, dan tidak mewakili
+              lembaga mana pun.
             </p>
             <div className="h-1.5 w-28 rounded-full brand-rule" aria-hidden />
           </header>
@@ -59,9 +62,9 @@ export default function TentangPage() {
               Disclaimer
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-ink-muted">
-              Proyek demonstrasi pribadi. Konteks BPJS Kesehatan Cabang Bandung dan
-              Program JKN hanya digunakan sebagai inspirasi studi kasus untuk
-              kategori pengguna, skema konten, dan visualisasi. Tidak ada
+              Proyek demonstrasi pribadi. Konteks BPJS Kesehatan Cabang Bandung
+              dan Program JKN hanya digunakan sebagai inspirasi studi kasus
+              untuk kategori pengguna, skema konten, dan visualisasi. Tidak ada
               kemitraan, pengesahan, penugasan, atau akses ke sistem dan data
               resmi.
             </p>
@@ -127,11 +130,17 @@ export default function TentangPage() {
           </section>
 
           <p className="border-t border-border pt-6 text-sm text-ink-muted">
-            <Link className="font-medium text-brand-blue-700 hover:underline" href="/masuk">
+            <Link
+              className="font-medium text-brand-blue-700 hover:underline"
+              href="/masuk"
+            >
               {isDemoMode ? "Masuk ke ruang demo" : "Masuk ke ruang kerja"}
             </Link>{" "}
             atau kembali ke{" "}
-            <Link className="font-medium text-brand-blue-700 hover:underline" href="/">
+            <Link
+              className="font-medium text-brand-blue-700 hover:underline"
+              href="/"
+            >
               beranda
             </Link>
             .

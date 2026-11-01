@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Loader2, Pencil, Plus, Target as TargetIcon, Trash2 } from "lucide-react";
+import {
+  Loader2,
+  Pencil,
+  Plus,
+  Target as TargetIcon,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { isStepUpRequired, useStepUp } from "@/components/auth/step-up-dialog";
@@ -68,11 +74,9 @@ const EMPTY_FORM: FormState = {
 export function TargetManager({
   month,
   rows,
-  stakeholders,
 }: {
   month: string;
   rows: TargetScopeRow[];
-  stakeholders: TargetStakeholderOption[];
 }) {
   const router = useRouter();
   const { prompt: promptStepUp, dialog: stepUpDialog } = useStepUp();
@@ -82,15 +86,42 @@ export function TargetManager({
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<TargetScopeRow | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [stakeholders, setStakeholders] = useState<
+    TargetStakeholderOption[] | null
+  >(null);
+  const [loadingStakeholders, setLoadingStakeholders] = useState(false);
+  const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
+
+  async function ensureStakeholders() {
+    if (stakeholders !== null || loadingStakeholders) return;
+    setLoadingStakeholders(true);
+    try {
+      const response = await fetch("/api/v1/admin/targets/stakeholders");
+      const body = (await response.json()) as {
+        data?: { stakeholders?: TargetStakeholderOption[] };
+      };
+      if (!response.ok || !body.data?.stakeholders) {
+        throw new Error("Daftar stakeholder tidak tersedia.");
+      }
+      setStakeholders(body.data.stakeholders);
+    } catch {
+      toast.error("Daftar stakeholder tidak dapat dimuat.");
+    } finally {
+      setLoadingStakeholders(false);
+    }
+  }
 
   function openCreate() {
     setEditingId(null);
+    setSelectedLabel(null);
     setForm(EMPTY_FORM);
     setDialogOpen(true);
+    void ensureStakeholders();
   }
 
   function openEdit(row: TargetScopeRow) {
     setEditingId(row.id);
+    setSelectedLabel(row.stakeholderName);
     setForm({
       stakeholderId: row.stakeholderId ?? "",
       subTheme: row.subTheme ?? "",
@@ -98,6 +129,7 @@ export function TargetManager({
       reportingUnit: "konten",
     });
     setDialogOpen(true);
+    void ensureStakeholders();
   }
 
   async function save(event: React.FormEvent) {
@@ -119,7 +151,9 @@ export function TargetManager({
       setSaving(true);
       try {
         const response = await fetch(
-          editingId ? `/api/v1/admin/targets/${editingId}` : "/api/v1/admin/targets",
+          editingId
+            ? `/api/v1/admin/targets/${editingId}`
+            : "/api/v1/admin/targets",
           {
             method: editingId ? "PATCH" : "POST",
             headers: { "content-type": "application/json" },
@@ -193,7 +227,10 @@ export function TargetManager({
     >
       <div className="flex flex-col gap-3 border-b border-border px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 id="target-daftar" className="text-base font-semibold text-foreground">
+          <h2
+            id="target-daftar"
+            className="text-base font-semibold text-foreground"
+          >
             Cakupan target
           </h2>
           <p className="text-xs text-ink-muted">
@@ -214,8 +251,8 @@ export function TargetManager({
             Belum ada target untuk periode ini
           </p>
           <p className="mx-auto mt-1 max-w-md text-sm text-ink-muted">
-            Tetapkan target global atau per cakupan agar capaian periode ini dapat
-            dipantau pada dasbor dan peta.
+            Tetapkan target global atau per cakupan agar capaian periode ini
+            dapat dipantau pada dasbor dan peta.
           </p>
           <Button type="button" className="mt-4 h-10" onClick={openCreate}>
             <Plus className="size-4" aria-hidden />
@@ -230,11 +267,21 @@ export function TargetManager({
             </caption>
             <thead>
               <tr className="border-b border-border text-left text-xs font-medium tracking-wide text-ink-muted uppercase">
-                <th scope="col" className="px-5 py-3">Cakupan</th>
-                <th scope="col" className="px-5 py-3 text-right">Target</th>
-                <th scope="col" className="px-5 py-3 text-right">Disetujui</th>
-                <th scope="col" className="px-5 py-3">Capaian</th>
-                <th scope="col" className="px-5 py-3">Periode</th>
+                <th scope="col" className="px-5 py-3">
+                  Cakupan
+                </th>
+                <th scope="col" className="px-5 py-3 text-right">
+                  Target
+                </th>
+                <th scope="col" className="px-5 py-3 text-right">
+                  Disetujui
+                </th>
+                <th scope="col" className="px-5 py-3">
+                  Capaian
+                </th>
+                <th scope="col" className="px-5 py-3">
+                  Periode
+                </th>
                 <th scope="col" className="px-5 py-3">
                   <span className="sr-only">Tindakan</span>
                 </th>
@@ -253,7 +300,9 @@ export function TargetManager({
                     key={row.id}
                     className="border-b border-border/70 align-top last:border-0"
                   >
-                    <td className="px-5 py-3 font-medium text-foreground">{label}</td>
+                    <td className="px-5 py-3 font-medium text-foreground">
+                      {label}
+                    </td>
                     <td className="px-5 py-3 text-right text-ink-muted tabular">
                       {formatNumberId(row.targetCount)}
                     </td>
@@ -285,7 +334,12 @@ export function TargetManager({
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex items-center justify-end gap-1.5">
-                        <Button asChild size="sm" variant="ghost" className="h-9">
+                        <Button
+                          asChild
+                          size="sm"
+                          variant="ghost"
+                          className="h-9"
+                        >
                           <Link href={achievementHref}>Lihat capaian</Link>
                         </Button>
                         <Button
@@ -323,8 +377,8 @@ export function TargetManager({
               {editingId ? "Ubah target" : "Tambah target"}
             </DialogTitle>
             <DialogDescription>
-              Pilih cakupan target. Cakupan yang lebih spesifik dipakai lebih dulu
-              saat menghitung capaian.
+              Pilih cakupan target. Cakupan yang lebih spesifik dipakai lebih
+              dulu saat menghitung capaian.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={save} className="space-y-4">
@@ -333,6 +387,7 @@ export function TargetManager({
               <select
                 id="target-stakeholder"
                 value={form.stakeholderId}
+                disabled={loadingStakeholders}
                 onChange={(event) =>
                   setForm((state) => ({
                     ...state,
@@ -342,7 +397,20 @@ export function TargetManager({
                 className={`mt-1.5 ${selectClass}`}
               >
                 <option value="">Semua stakeholder (global)</option>
-                {stakeholders.map((stakeholder) => (
+                {loadingStakeholders ? (
+                  <option value="__loading" disabled>
+                    Memuat daftar stakeholder…
+                  </option>
+                ) : null}
+                {form.stakeholderId &&
+                !(stakeholders ?? []).some(
+                  (stakeholder) => stakeholder.id === form.stakeholderId,
+                ) ? (
+                  <option value={form.stakeholderId}>
+                    {selectedLabel ?? "Stakeholder terpilih"}
+                  </option>
+                ) : null}
+                {(stakeholders ?? []).map((stakeholder) => (
                   <option key={stakeholder.id} value={stakeholder.id}>
                     {stakeholder.name}
                   </option>
@@ -355,7 +423,10 @@ export function TargetManager({
                 id="target-subtheme"
                 value={form.subTheme}
                 onChange={(event) =>
-                  setForm((state) => ({ ...state, subTheme: event.target.value }))
+                  setForm((state) => ({
+                    ...state,
+                    subTheme: event.target.value,
+                  }))
                 }
                 className={`mt-1.5 ${selectClass}`}
               >
@@ -378,7 +449,10 @@ export function TargetManager({
                 required
                 value={form.targetCount}
                 onChange={(event) =>
-                  setForm((state) => ({ ...state, targetCount: event.target.value }))
+                  setForm((state) => ({
+                    ...state,
+                    targetCount: event.target.value,
+                  }))
                 }
                 className="mt-1.5 h-10"
               />
@@ -409,7 +483,9 @@ export function TargetManager({
                 Batal
               </Button>
               <Button type="submit" className="h-10" disabled={saving}>
-                {saving ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
+                {saving ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                ) : null}
                 {editingId ? "Simpan perubahan" : "Tambah target"}
               </Button>
             </DialogFooter>
@@ -441,7 +517,9 @@ export function TargetManager({
                 void confirmDelete();
               }}
             >
-              {deleteBusy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
+              {deleteBusy ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden />
+              ) : null}
               Hapus target
             </AlertDialogAction>
           </AlertDialogFooter>

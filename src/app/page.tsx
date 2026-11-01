@@ -42,11 +42,20 @@ export default function HomePage() {
           <Link href="/" aria-label="DAKOSTA — beranda" className="shrink-0">
             <BrandLogo priority className="w-[9.5rem] sm:w-[11rem]" />
           </Link>
-          <nav aria-label="Navigasi utama" className="hidden items-center gap-6 text-sm sm:flex">
-            <Link className="text-ink-muted hover:text-foreground" href="/tentang">
+          <nav
+            aria-label="Navigasi utama"
+            className="hidden items-center gap-6 text-sm sm:flex"
+          >
+            <Link
+              className="text-ink-muted hover:text-foreground"
+              href="/tentang"
+            >
               Tentang
             </Link>
-            <Link className="text-ink-muted hover:text-foreground" href="/bantuan">
+            <Link
+              className="text-ink-muted hover:text-foreground"
+              href="/bantuan"
+            >
               Bantuan
             </Link>
           </nav>
@@ -94,11 +103,18 @@ export default function HomePage() {
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Button asChild size="lg" className="h-11 px-5">
                   <Link href="/masuk">
-                    {isDemoMode ? "Masuk ke ruang demo" : "Masuk ke ruang kerja"}
+                    {isDemoMode
+                      ? "Masuk ke ruang demo"
+                      : "Masuk ke ruang kerja"}
                     <ArrowRight className="size-4" aria-hidden />
                   </Link>
                 </Button>
-                <Button asChild variant="outline" size="lg" className="h-11 px-5">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="h-11 px-5"
+                >
                   <Link href="/tentang">Pelajari batas proyek</Link>
                 </Button>
               </div>
@@ -106,7 +122,10 @@ export default function HomePage() {
               <dl className="grid max-w-xl grid-cols-1 gap-4 pt-2 sm:grid-cols-3">
                 <div className="rounded-xl border border-border bg-surface p-4">
                   <dt className="flex items-center gap-2 text-sm font-medium text-foreground">
-                    <Database className="size-4 text-brand-teal-700" aria-hidden />
+                    <Database
+                      className="size-4 text-brand-teal-700"
+                      aria-hidden
+                    />
                     Persisten
                   </dt>
                   <dd className="mt-1 text-sm leading-relaxed text-ink-muted">
@@ -115,16 +134,23 @@ export default function HomePage() {
                 </div>
                 <div className="rounded-xl border border-border bg-surface p-4">
                   <dt className="flex items-center gap-2 text-sm font-medium text-foreground">
-                    <BadgeCheck className="size-4 text-brand-green-700" aria-hidden />
+                    <BadgeCheck
+                      className="size-4 text-brand-green-700"
+                      aria-hidden
+                    />
                     Approved-only
                   </dt>
                   <dd className="mt-1 text-sm leading-relaxed text-ink-muted">
-                    Status selain APPROVED tidak pernah dihitung sebagai capaian.
+                    Status selain APPROVED tidak pernah dihitung sebagai
+                    capaian.
                   </dd>
                 </div>
                 <div className="rounded-xl border border-border bg-surface p-4">
                   <dt className="flex items-center gap-2 text-sm font-medium text-foreground">
-                    <ShieldCheck className="size-4 text-brand-blue-700" aria-hidden />
+                    <ShieldCheck
+                      className="size-4 text-brand-blue-700"
+                      aria-hidden
+                    />
                     Server-side
                   </dt>
                   <dd className="mt-1 text-sm leading-relaxed text-ink-muted">

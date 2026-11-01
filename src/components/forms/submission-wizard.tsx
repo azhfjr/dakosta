@@ -18,7 +18,6 @@ import {
 import { toast } from "sonner";
 
 import { StatusBadge } from "@/components/content/status-badge";
-import { LocationPicker, type PickedLocation } from "@/components/forms/location-picker";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -72,7 +71,7 @@ export type WizardStakeholder = {
   longitude: number | null;
 };
 
-type StepNumber = 1 | 2 | 3 | 4;
+type StepNumber = 1 | 2 | 3;
 
 type FieldErrors = Partial<
   Record<
@@ -86,8 +85,6 @@ type FieldErrors = Partial<
     | "narrative"
     | "dateCreated"
     | "publishedAt"
-    | "location"
-    | "locationLabel"
     | "privacyAttested"
     | "form",
     string
@@ -122,8 +119,7 @@ type SavedResponse = {
 const STEPS: Array<{ number: StepNumber; title: string; hint: string }> = [
   { number: 1, title: "Tautan & tema", hint: "Sumber konten" },
   { number: 2, title: "Narasi", hint: "Ringkasan & tanggal" },
-  { number: 3, title: "Lokasi", hint: "Titik konten" },
-  { number: 4, title: "Tinjau", hint: "Kirim" },
+  { number: 3, title: "Tinjau", hint: "Kirim" },
 ];
 
 export type SubmissionWizardInitial = {
@@ -139,8 +135,6 @@ export type SubmissionWizardInitial = {
   narrative: string;
   dateCreated: string;
   publishedAt: string | null;
-  location: PickedLocation | null;
-  locationLabel: string | null;
   decisionReason: string | null;
 };
 
@@ -157,13 +151,14 @@ type DraftState = {
   narrative: string;
   dateCreated: string;
   publishedAt: string;
-  location: PickedLocation | null;
-  locationLabel: string;
   privacyAttested: boolean;
 };
 
 function createIdempotencyKey(): string {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
+  ) {
     return crypto.randomUUID();
   }
   return `idem-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -182,7 +177,10 @@ function detectClientPii(text: string): string | null {
   const patterns: Array<{ pattern: RegExp; label: string }> = [
     { pattern: /\b\d{16}\b/, label: "nomor 16 digit (mirip NIK)" },
     { pattern: /\b\d{13}\b/, label: "nomor 13 digit (mirip kartu JKN)" },
-    { pattern: /\b(?:NIK|JKN|KIS|BPJS)\s*[:#=]?\s*\d{6,}/i, label: "nomor identitas berlabel" },
+    {
+      pattern: /\b(?:NIK|JKN|KIS|BPJS)\s*[:#=]?\s*\d{6,}/i,
+      label: "nomor identitas berlabel",
+    },
   ];
   for (const item of patterns) {
     if (item.pattern.test(text)) return item.label;
@@ -232,15 +230,7 @@ export function SubmissionWizard({
   const [title, setTitle] = useState(initial?.title ?? "");
   const [narrative, setNarrative] = useState(initial?.narrative ?? "");
   const [dateCreated, setDateCreated] = useState(initial?.dateCreated ?? today);
-  const [publishedAt, setPublishedAt] = useState(
-    initial?.publishedAt ?? today,
-  );
-  const [location, setLocation] = useState<PickedLocation | null>(
-    initial?.location ?? null,
-  );
-  const [locationLabel, setLocationLabel] = useState(
-    initial?.locationLabel ?? "",
-  );
+  const [publishedAt, setPublishedAt] = useState(initial?.publishedAt ?? today);
   const [privacyAttested, setPrivacyAttested] = useState(false);
   const draftRef = useRef<{ key: string; draft: DraftState } | null>(null);
 
@@ -248,7 +238,9 @@ export function SubmissionWizard({
   const [conflict, setConflict] = useState<{ message: string } | null>(null);
   const [pending, setPending] = useState<"DRAFT" | "SUBMIT" | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
-  const [duplicateInfo, setDuplicateInfo] = useState<DuplicateInfo | null>(null);
+  const [duplicateInfo, setDuplicateInfo] = useState<DuplicateInfo | null>(
+    null,
+  );
   const [result, setResult] = useState<{
     id: string;
     referenceCode: string;
@@ -262,9 +254,12 @@ export function SubmissionWizard({
 
   const period = periodOfDate(dateCreated);
   const policySubThemes = edufastPolicies[period] ?? [];
-  const edufastBlocked = mainTheme === "EDUFAST" && policySubThemes.length === 0;
+  const edufastBlocked =
+    mainTheme === "EDUFAST" && policySubThemes.length === 0;
   const availableSubThemes: readonly SubTheme[] =
-    mainTheme === "EDUFAST" && policySubThemes.length > 0 ? policySubThemes : SUB_THEMES;
+    mainTheme === "EDUFAST" && policySubThemes.length > 0
+      ? policySubThemes
+      : SUB_THEMES;
 
   useEffect(() => {
     // Hidrasi draf sekali setelah mount: localStorage tidak tersedia saat SSR.
@@ -283,11 +278,16 @@ export function SubmissionWizard({
       const raw = window.localStorage.getItem(draftKey);
       if (raw) {
         const hydrated = hydrateDraft(JSON.parse(raw), stakeholders);
-        if (typeof hydrated.submissionId === "string") setSubmissionId(hydrated.submissionId);
-        if (typeof hydrated.idempotencyKey === "string") setIdempotencyKey(hydrated.idempotencyKey);
-        if (typeof hydrated.stakeholderId === "string") setStakeholderId(hydrated.stakeholderId);
-        if (typeof hydrated.publishedUrl === "string") setPublishedUrl(hydrated.publishedUrl);
-        if (typeof hydrated.platform === "string") setPlatform(hydrated.platform);
+        if (typeof hydrated.submissionId === "string")
+          setSubmissionId(hydrated.submissionId);
+        if (typeof hydrated.idempotencyKey === "string")
+          setIdempotencyKey(hydrated.idempotencyKey);
+        if (typeof hydrated.stakeholderId === "string")
+          setStakeholderId(hydrated.stakeholderId);
+        if (typeof hydrated.publishedUrl === "string")
+          setPublishedUrl(hydrated.publishedUrl);
+        if (typeof hydrated.platform === "string")
+          setPlatform(hydrated.platform);
         if (typeof hydrated.contentType === "string") {
           setContentType(hydrated.contentType as ContentType);
         }
@@ -298,14 +298,14 @@ export function SubmissionWizard({
           setSubTheme(hydrated.subTheme as SubTheme);
         }
         if (typeof hydrated.title === "string") setTitle(hydrated.title);
-        if (typeof hydrated.narrative === "string") setNarrative(hydrated.narrative);
-        if (typeof hydrated.dateCreated === "string") setDateCreated(hydrated.dateCreated);
-        if (typeof hydrated.publishedAt === "string") setPublishedAt(hydrated.publishedAt);
-        if (hydrated.location) {
-          setLocation(hydrated.location);
-        }
-        if (typeof hydrated.locationLabel === "string") setLocationLabel(hydrated.locationLabel);
-        if (typeof hydrated.privacyAttested === "boolean") setPrivacyAttested(hydrated.privacyAttested);
+        if (typeof hydrated.narrative === "string")
+          setNarrative(hydrated.narrative);
+        if (typeof hydrated.dateCreated === "string")
+          setDateCreated(hydrated.dateCreated);
+        if (typeof hydrated.publishedAt === "string")
+          setPublishedAt(hydrated.publishedAt);
+        if (typeof hydrated.privacyAttested === "boolean")
+          setPrivacyAttested(hydrated.privacyAttested);
       }
     } catch {
       // Draft lokal rusak — mulai dari formulir kosong.
@@ -339,8 +339,6 @@ export function SubmissionWizard({
       narrative,
       dateCreated,
       publishedAt,
-      location,
-      locationLabel,
       privacyAttested,
     };
     draftRef.current = { key: draftKey, draft };
@@ -369,8 +367,6 @@ export function SubmissionWizard({
     narrative,
     dateCreated,
     publishedAt,
-    location,
-    locationLabel,
     privacyAttested,
   ]);
 
@@ -399,18 +395,21 @@ export function SubmissionWizard({
       if (stakeholders.length > 1 && !stakeholderId) {
         next.stakeholderId = "Pilih organisasi pelapor.";
       }
-      if (!publishedUrl.trim()) next.publishedUrl = "Tautan konten wajib diisi.";
+      if (!publishedUrl.trim())
+        next.publishedUrl = "Tautan konten wajib diisi.";
       else if (!isValidHttpsUrl(publishedUrl.trim())) {
         next.publishedUrl = "Gunakan URL lengkap berawalan https://.";
       }
       if (!platform) next.platform = "Pilih platform konten.";
-      if (!contentType) next.contentType = "Pilih jenis konten: Video atau Infografis.";
+      if (!contentType)
+        next.contentType = "Pilih jenis konten: Video atau Infografis.";
       if (mainTheme === "EDUFAST" && policySubThemes.length === 0) {
         next.mainTheme = `Belum ada kebijakan EDUFAST terbit untuk ${periodLabel(period)}. Pilih Non-EDUFAST atau hubungi Master Admin.`;
       }
       if (!subTheme) next.subTheme = "Pilih sub-tema konten.";
       else if (!availableSubThemes.includes(subTheme)) {
-        next.subTheme = "Sub-tema tidak termasuk kebijakan EDUFAST periode ini.";
+        next.subTheme =
+          "Sub-tema tidak termasuk kebijakan EDUFAST periode ini.";
       }
     }
 
@@ -419,22 +418,17 @@ export function SubmissionWizard({
         next.narrative = "Narasi minimal 40 karakter agar dapat divalidasi.";
       }
       if (!dateCreated) next.dateCreated = "Tanggal pembuatan wajib diisi.";
-      else if (dateCreated > today) next.dateCreated = "Tanggal tidak boleh di masa depan.";
+      else if (dateCreated > today)
+        next.dateCreated = "Tanggal tidak boleh di masa depan.";
       if (publishedAt && publishedAt > today) {
         next.publishedAt = "Tanggal terbit tidak boleh di masa depan.";
       }
     }
 
     if (target >= 3) {
-      if (!location) next.location = "Tandai lokasi konten pada peta atau input koordinat.";
-      if (locationLabel.trim().length < 3) {
-        next.locationLabel = "Beri nama lokasi minimal 3 karakter.";
-      }
-    }
-
-    if (target >= 4) {
       if (!privacyAttested) {
-        next.privacyAttested = "Konfirmasi privasi wajib dicentang sebelum mengirim.";
+        next.privacyAttested =
+          "Konfirmasi privasi wajib dicentang sebelum mengirim.";
       }
     }
 
@@ -451,7 +445,8 @@ export function SubmissionWizard({
     }
     if (!platform) next.platform = "Pilih platform konten.";
     if (!dateCreated) next.dateCreated = "Tanggal pembuatan wajib diisi.";
-    else if (dateCreated > today) next.dateCreated = "Tanggal tidak boleh di masa depan.";
+    else if (dateCreated > today)
+      next.dateCreated = "Tanggal tidak boleh di masa depan.";
     if (publishedAt && publishedAt > today) {
       next.publishedAt = "Tanggal terbit tidak boleh di masa depan.";
     }
@@ -468,32 +463,6 @@ export function SubmissionWizard({
     setStep(target);
   }
 
-  function handleLocationChange(next: PickedLocation | null) {
-    setLocation(next);
-    if (next && locationLabel.trim().length === 0) {
-      setLocationLabel(
-        selectedStakeholder
-          ? `${selectedStakeholder.name} — lokasi konten`
-          : "Lokasi konten",
-      );
-    }
-  }
-
-  function useOrganizationLocation() {
-    const organization = selectedStakeholder;
-    if (!organization || organization.latitude === null || organization.longitude === null) {
-      return;
-    }
-    setLocation({
-      latitude: organization.latitude,
-      longitude: organization.longitude,
-      source: "manual_pin",
-      accuracyMeters: null,
-      consentAt: null,
-    });
-    setLocationLabel(`${organization.name} — lokasi organisasi`);
-  }
-
   function resetWizard() {
     setResult(null);
     setStep(1);
@@ -508,14 +477,15 @@ export function SubmissionWizard({
     setNarrative("");
     setDateCreated(today);
     setPublishedAt(today);
-    setLocation(null);
-    setLocationLabel("");
     setPrivacyAttested(false);
     setErrors({});
     setConflict(null);
     setLastSavedAt(null);
     try {
-      const keys = new Set([draftKey, buildDraftKey(draftOwnerId, submissionId)]);
+      const keys = new Set([
+        draftKey,
+        buildDraftKey(draftOwnerId, submissionId),
+      ]);
       keys.forEach((key) => window.localStorage.removeItem(key));
       window.localStorage.removeItem(legacyDraftKey());
     } catch {
@@ -523,11 +493,14 @@ export function SubmissionWizard({
     }
   }
 
-  async function handleSave(action: "DRAFT" | "SUBMIT", options?: { acknowledgeDuplicate?: boolean }) {
+  async function handleSave(
+    action: "DRAFT" | "SUBMIT",
+    options?: { acknowledgeDuplicate?: boolean },
+  ) {
     setErrors({});
 
     if (action === "SUBMIT") {
-      if (!validateStep(4)) return;
+      if (!validateStep(3)) return;
       const pii = detectClientPii(`${title}\n${narrative}`);
       if (pii) {
         setErrors({
@@ -559,10 +532,6 @@ export function SubmissionWizard({
       narrative: narrative.trim(),
       dateCreated,
       publishedAt: publishedAt || null,
-      location:
-        location && locationLabel.trim()
-          ? { ...location, label: locationLabel.trim() }
-          : null,
       duplicateAcknowledged: options?.acknowledgeDuplicate ?? false,
       privacyAttested: action === "SUBMIT" ? privacyAttested : undefined,
     };
@@ -574,7 +543,9 @@ export function SubmissionWizard({
         body: JSON.stringify(body),
       });
 
-      const payload = (await response.json().catch(() => null)) as SavedResponse | null;
+      const payload = (await response
+        .json()
+        .catch(() => null)) as SavedResponse | null;
 
       if (!response.ok || !payload?.data) {
         const code = payload?.error?.code;
@@ -599,7 +570,11 @@ export function SubmissionWizard({
           return;
         }
 
-        setErrors({ form: payload?.error?.message ?? "Konten tidak dapat disimpan. Coba lagi." });
+        setErrors({
+          form:
+            payload?.error?.message ??
+            "Konten tidak dapat disimpan. Coba lagi.",
+        });
         return;
       }
 
@@ -613,7 +588,11 @@ export function SubmissionWizard({
         return;
       }
 
-      setResult({ id: saved.id, referenceCode: saved.referenceCode, status: saved.status });
+      setResult({
+        id: saved.id,
+        referenceCode: saved.referenceCode,
+        status: saved.status,
+      });
       setSubmissionId(saved.id);
       setDuplicateInfo(null);
       try {
@@ -628,7 +607,9 @@ export function SubmissionWizard({
           : "Konten terkirim untuk validasi admin.",
       );
     } catch {
-      setErrors({ form: "Tidak dapat menghubungi server. Periksa koneksi Anda." });
+      setErrors({
+        form: "Tidak dapat menghubungi server. Periksa koneksi Anda.",
+      });
     } finally {
       setPending(null);
     }
@@ -651,10 +632,12 @@ export function SubmissionWizard({
             <CheckCircle2 className="size-6" aria-hidden />
           </span>
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-foreground">Konten terkirim</h2>
+            <h2 className="text-xl font-semibold text-foreground">
+              Konten terkirim
+            </h2>
             <p className="text-sm leading-relaxed text-ink-muted">
-              Konten Anda masuk antrean validasi admin. Capaian hanya akan dihitung
-              setelah konten disetujui.
+              Konten Anda masuk antrean validasi admin. Capaian hanya akan
+              dihitung setelah konten disetujui.
             </p>
             <div className="flex flex-wrap items-center gap-3 pt-1">
               <span className="font-mono text-sm tracking-wide text-brand-blue-800">
@@ -684,16 +667,26 @@ export function SubmissionWizard({
             Dikirim untuk validasi
           </li>
           <li className="flex items-center gap-3 text-ink-muted">
-            <span className="size-4 rounded-full border-2 border-status-submitted" aria-hidden />
+            <span
+              className="size-4 rounded-full border-2 border-status-submitted"
+              aria-hidden
+            />
             Menunggu keputusan admin
           </li>
         </ol>
 
         <div className="mt-6 flex flex-col gap-2 sm:flex-row">
           <Button asChild className="h-11 sm:flex-1">
-            <Link href={`/client/konten/${result.id}`}>Lihat detail konten</Link>
+            <Link href={`/client/konten/${result.id}`}>
+              Lihat detail konten
+            </Link>
           </Button>
-          <Button type="button" variant="outline" className="h-11 sm:flex-1" onClick={resetWizard}>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 sm:flex-1"
+            onClick={resetWizard}
+          >
             Kirim konten lain
           </Button>
         </div>
@@ -708,8 +701,8 @@ export function SubmissionWizard({
           Formulir pelaporan konten
         </h2>
         <p className="mt-1 text-sm text-ink-muted">
-          Empat langkah singkat. Simpan draf kapan saja; draf tidak dihitung sebagai
-          capaian.
+          Tiga langkah singkat. Simpan draf kapan saja; draf tidak dihitung
+          sebagai capaian.
         </p>
 
         {initial ? (
@@ -729,7 +722,10 @@ export function SubmissionWizard({
           </div>
         ) : null}
 
-        <ol className="mt-4 grid gap-2 sm:grid-cols-4" aria-label="Langkah pelaporan">
+        <ol
+          className="mt-4 grid gap-2 sm:grid-cols-4"
+          aria-label="Langkah pelaporan"
+        >
           {STEPS.map((item) => {
             const active = step === item.number;
             const complete = step > item.number;
@@ -768,7 +764,9 @@ export function SubmissionWizard({
                     <span className="block truncate text-sm font-medium text-foreground">
                       {item.title}
                     </span>
-                    <span className="block truncate text-xs text-ink-muted">{item.hint}</span>
+                    <span className="block truncate text-xs text-ink-muted">
+                      {item.hint}
+                    </span>
                   </span>
                 </button>
               </li>
@@ -795,7 +793,9 @@ export function SubmissionWizard({
               </p>
               {stakeholders.length === 1 ? (
                 <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-                  <span className="font-semibold text-foreground">{stakeholders[0]!.name}</span>
+                  <span className="font-semibold text-foreground">
+                    {stakeholders[0]!.name}
+                  </span>
                   <span className="text-ink-muted">•</span>
                   <span className="text-ink-muted">
                     {stakeholders[0]!.organizationType === "FASKES"
@@ -807,7 +807,9 @@ export function SubmissionWizard({
                   {stakeholders[0]!.branchName ? (
                     <>
                       <span className="text-ink-muted">•</span>
-                      <span className="text-ink-muted">{stakeholders[0]!.branchName}</span>
+                      <span className="text-ink-muted">
+                        {stakeholders[0]!.branchName}
+                      </span>
                     </>
                   ) : null}
                 </div>
@@ -830,10 +832,13 @@ export function SubmissionWizard({
                 </Select>
               )}
               <p className="mt-2 text-xs text-ink-muted">
-                Organisasi mengikuti akun Anda dan tidak dapat diubah dari formulir.
+                Organisasi mengikuti akun Anda dan tidak dapat diubah dari
+                formulir.
               </p>
               {errors.stakeholderId ? (
-                <p className="mt-1 text-sm text-destructive">{errors.stakeholderId}</p>
+                <p className="mt-1 text-sm text-destructive">
+                  {errors.stakeholderId}
+                </p>
               ) : null}
             </div>
 
@@ -861,7 +866,9 @@ export function SubmissionWizard({
                 <Label htmlFor="lapor-content-type">Jenis konten</Label>
                 <Select
                   value={contentType}
-                  onValueChange={(value) => setContentType(value as ContentType)}
+                  onValueChange={(value) =>
+                    setContentType(value as ContentType)
+                  }
                 >
                   <SelectTrigger
                     id="lapor-content-type"
@@ -879,7 +886,9 @@ export function SubmissionWizard({
                   </SelectContent>
                 </Select>
                 {errors.contentType ? (
-                  <p className="text-sm text-destructive">{errors.contentType}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.contentType}
+                  </p>
                 ) : null}
               </div>
             </div>
@@ -897,11 +906,13 @@ export function SubmissionWizard({
                 className="h-11"
               />
               <p className="text-xs text-ink-muted">
-                Harus https. Parameter pelacakan seperti utm_* akan diabaikan saat
-                pemeriksaan duplikat.
+                Harus https. Parameter pelacakan seperti utm_* akan diabaikan
+                saat pemeriksaan duplikat.
               </p>
               {errors.publishedUrl ? (
-                <p className="text-sm text-destructive">{errors.publishedUrl}</p>
+                <p className="text-sm text-destructive">
+                  {errors.publishedUrl}
+                </p>
               ) : null}
             </div>
 
@@ -943,7 +954,8 @@ export function SubmissionWizard({
                   </p>
                 ) : (
                   <p className="text-xs text-ink-muted">
-                    Non-EDUFAST tersedia untuk semua sub-tema pada bulan apa pun.
+                    Non-EDUFAST tersedia untuk semua sub-tema pada bulan apa
+                    pun.
                   </p>
                 )}
                 {errors.mainTheme ? (
@@ -992,8 +1004,8 @@ export function SubmissionWizard({
                 />
               </div>
               <p className="self-end text-xs leading-relaxed text-ink-muted">
-                Periode EDUFAST dihitung dari tanggal pembuatan konten pada langkah
-                berikutnya (Asia/Jakarta).
+                Periode EDUFAST dihitung dari tanggal pembuatan konten pada
+                langkah berikutnya (Asia/Jakarta).
               </p>
             </div>
           </div>
@@ -1004,7 +1016,9 @@ export function SubmissionWizard({
             <div className="flex flex-col gap-2">
               <div className="flex items-end justify-between gap-2">
                 <Label htmlFor="lapor-narrative">Narasi konten</Label>
-                <span className="text-xs text-ink-muted">{narrative.trim().length}/40</span>
+                <span className="text-xs text-ink-muted">
+                  {narrative.trim().length}/40
+                </span>
               </div>
               <Textarea
                 id="lapor-narrative"
@@ -1016,8 +1030,8 @@ export function SubmissionWizard({
                 placeholder="Jelaskan isi konten, pesan utama, dan konteks publikasinya."
               />
               <p className="text-xs text-ink-muted">
-                Minimal 40 karakter. Jangan memuat data pribadi, nomor identitas, atau
-                rekam medis.
+                Minimal 40 karakter. Jangan memuat data pribadi, nomor
+                identitas, atau rekam medis.
               </p>
               {errors.narrative ? (
                 <p className="text-sm text-destructive">{errors.narrative}</p>
@@ -1037,11 +1051,15 @@ export function SubmissionWizard({
                   className="h-11"
                 />
                 {errors.dateCreated ? (
-                  <p className="text-sm text-destructive">{errors.dateCreated}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.dateCreated}
+                  </p>
                 ) : null}
               </div>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="lapor-date-published">Tanggal terbit (opsional)</Label>
+                <Label htmlFor="lapor-date-published">
+                  Tanggal terbit (opsional)
+                </Label>
                 <Input
                   id="lapor-date-published"
                   type="date"
@@ -1052,7 +1070,9 @@ export function SubmissionWizard({
                   className="h-11"
                 />
                 {errors.publishedAt ? (
-                  <p className="text-sm text-destructive">{errors.publishedAt}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.publishedAt}
+                  </p>
                 ) : null}
               </div>
             </div>
@@ -1060,50 +1080,6 @@ export function SubmissionWizard({
         ) : null}
 
         {step === 3 ? (
-          <div className="space-y-4">
-            <LocationPicker
-              value={location}
-              onChange={handleLocationChange}
-              describedBy={errors.location ? "lapor-location-error" : undefined}
-            />
-            {errors.location ? (
-              <p id="lapor-location-error" role="alert" className="text-sm text-destructive">
-                {errors.location}
-              </p>
-            ) : null}
-
-            {selectedStakeholder?.latitude !== null &&
-            selectedStakeholder?.longitude !== null ? (
-              <Button type="button" variant="outline" className="h-11" onClick={useOrganizationLocation}>
-                <MapPin className="size-4" aria-hidden />
-                Gunakan lokasi organisasi
-              </Button>
-            ) : null}
-
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="lapor-location-label">Nama lokasi</Label>
-              <Input
-                id="lapor-location-label"
-                value={locationLabel}
-                onChange={(event) => setLocationLabel(event.target.value)}
-                maxLength={160}
-                aria-invalid={errors.locationLabel ? true : undefined}
-                placeholder="Contoh: Puskesmas Demo, Kota Bandung"
-                className="h-11"
-              />
-              {errors.locationLabel ? (
-                <p className="text-sm text-destructive">{errors.locationLabel}</p>
-              ) : null}
-            </div>
-
-            <p className="rounded-lg border border-brand-blue-100 bg-brand-blue-100/40 px-3 py-2 text-xs leading-relaxed text-brand-blue-800">
-              Lokasi wajib ditandai. Bila izin GPS ditolak, tandai titik manual pada peta
-              — konten tetap dapat dikirim.
-            </p>
-          </div>
-        ) : null}
-
-        {step === 4 ? (
           <div className="space-y-5">
             <dl className="grid gap-3 rounded-xl border border-border bg-surface-muted/60 p-4 text-sm sm:grid-cols-2">
               <div>
@@ -1131,7 +1107,8 @@ export function SubmissionWizard({
                 </dd>
                 {mainTheme === "EDUFAST" && policySubThemes.length > 0 ? (
                   <dd className="text-xs text-ink-muted">
-                    Kebijakan {periodLabel(period)} · {policySubThemes.length} sub-tema
+                    Kebijakan {periodLabel(period)} · {policySubThemes.length}{" "}
+                    sub-tema
                   </dd>
                 ) : null}
               </div>
@@ -1150,13 +1127,15 @@ export function SubmissionWizard({
               </div>
               <div className="sm:col-span-2">
                 <dt className="text-xs text-ink-muted">Tautan</dt>
-                <dd className="truncate font-medium text-brand-blue-800">{publishedUrl}</dd>
+                <dd className="truncate font-medium text-brand-blue-800">
+                  {publishedUrl}
+                </dd>
               </div>
               <div className="sm:col-span-2">
                 <dt className="text-xs text-ink-muted">Lokasi</dt>
                 <dd className="flex items-center gap-2 font-medium text-foreground">
                   <MapPin className="size-4 text-brand-blue-700" aria-hidden />
-                  {location ? locationLabel : "Belum ditandai"}
+                  Mengikuti lokasi {selectedStakeholder?.name ?? "instansi"}
                 </dd>
               </div>
             </dl>
@@ -1166,7 +1145,9 @@ export function SubmissionWizard({
                 <Checkbox
                   id="lapor-privacy"
                   checked={privacyAttested}
-                  onCheckedChange={(checked) => setPrivacyAttested(checked === true)}
+                  onCheckedChange={(checked) =>
+                    setPrivacyAttested(checked === true)
+                  }
                   aria-invalid={errors.privacyAttested ? true : undefined}
                   className="mt-1"
                 />
@@ -1178,14 +1159,19 @@ export function SubmissionWizard({
                     Tidak ada NIK, nomor JKN, rekam medis, atau data pasien.
                   </p>
                   {errors.privacyAttested ? (
-                    <p className="mt-1 text-sm text-destructive">{errors.privacyAttested}</p>
+                    <p className="mt-1 text-sm text-destructive">
+                      {errors.privacyAttested}
+                    </p>
                   ) : null}
                 </div>
               </div>
             </div>
 
             <p className="flex items-start gap-2 text-sm text-ink-muted">
-              <ClipboardCheck className="mt-0.5 size-4 shrink-0 text-brand-blue-700" aria-hidden />
+              <ClipboardCheck
+                className="mt-0.5 size-4 shrink-0 text-brand-blue-700"
+                aria-hidden
+              />
               Setelah dikirim, konten tidak dapat diubah sampai reviewer cabang
               meminta revisi.
             </p>
@@ -1211,7 +1197,11 @@ export function SubmissionWizard({
             type="button"
             variant="ghost"
             className="h-11"
-            onClick={() => setStep((current) => (current > 1 ? ((current - 1) as StepNumber) : current))}
+            onClick={() =>
+              setStep((current) =>
+                current > 1 ? ((current - 1) as StepNumber) : current,
+              )
+            }
             disabled={step === 1 || pending !== null}
           >
             <ChevronLeft className="size-4" aria-hidden />
@@ -1233,7 +1223,7 @@ export function SubmissionWizard({
             Simpan draf
           </Button>
 
-          {step < 4 ? (
+          {step < 3 ? (
             <Button
               type="button"
               className="h-11"
@@ -1261,11 +1251,17 @@ export function SubmissionWizard({
         </div>
       </div>
 
-      <Dialog open={duplicateInfo !== null} onOpenChange={(open) => !open && setDuplicateInfo(null)}>
+      <Dialog
+        open={duplicateInfo !== null}
+        onOpenChange={(open) => !open && setDuplicateInfo(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="size-5 text-status-review" aria-hidden />
+              <AlertTriangle
+                className="size-5 text-status-review"
+                aria-hidden
+              />
               Tautan sudah pernah dilaporkan
             </DialogTitle>
             <DialogDescription>
@@ -1275,8 +1271,8 @@ export function SubmissionWizard({
             </DialogDescription>
           </DialogHeader>
           <div className="rounded-lg border border-status-review/30 bg-status-review/10 px-3 py-2 text-sm text-status-revision">
-            Konten duplikat tetap dapat dikirim, tetapi admin dapat menolaknya saat
-            validasi.
+            Konten duplikat tetap dapat dikirim, tetapi admin dapat menolaknya
+            saat validasi.
           </div>
           <DialogFooter className="gap-2 sm:gap-2">
             <Button asChild variant="outline" className="h-11">
@@ -1288,7 +1284,8 @@ export function SubmissionWizard({
               onClick={() => {
                 const info = duplicateInfo;
                 setDuplicateInfo(null);
-                if (info) void handleSave("SUBMIT", { acknowledgeDuplicate: true });
+                if (info)
+                  void handleSave("SUBMIT", { acknowledgeDuplicate: true });
               }}
             >
               Tetap kirim
@@ -1296,11 +1293,17 @@ export function SubmissionWizard({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <Dialog open={conflict !== null} onOpenChange={(open) => !open && setConflict(null)}>
+      <Dialog
+        open={conflict !== null}
+        onOpenChange={(open) => !open && setConflict(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="size-5 text-status-revision" aria-hidden />
+              <AlertTriangle
+                className="size-5 text-status-revision"
+                aria-hidden
+              />
               Konten sudah berubah status
             </DialogTitle>
             <DialogDescription>

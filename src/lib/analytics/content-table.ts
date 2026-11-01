@@ -8,7 +8,7 @@ import {
   eq,
   gte,
   ilike,
-  lt,
+  lte,
   or,
   sql,
   type SQL,
@@ -16,10 +16,7 @@ import {
 
 import { getDb, schema } from "@/db";
 import { contentScopePredicate } from "@/lib/authz/predicates";
-import {
-  CONTENT_STATUSES,
-  type ContentStatus,
-} from "@/lib/content-status";
+import { CONTENT_STATUSES, type ContentStatus } from "@/lib/content-status";
 import { monthRange } from "@/lib/kpi/formulas";
 import {
   ORG_SOURCE_LABELS,
@@ -33,11 +30,7 @@ import type { SessionUser } from "@/lib/session";
 export const ANALYTICS_TABLE_PAGE_SIZE = 25;
 
 export type AnalyticsSort =
-  | "recent"
-  | "oldest"
-  | "title"
-  | "decision"
-  | "status";
+  "recent" | "oldest" | "title" | "decision" | "status";
 
 export type AnalyticsContentFilters = {
   period: string;
@@ -70,7 +63,9 @@ export function parseAnalyticsContentFilters(
 ): AnalyticsContentFilters {
   const rawPeriod = firstValue(params, "period");
   const period =
-    rawPeriod && rawPeriod.toUpperCase() !== "ALL" && /^\d{4}-\d{2}$/.test(rawPeriod)
+    rawPeriod &&
+    rawPeriod.toUpperCase() !== "ALL" &&
+    /^\d{4}-\d{2}$/.test(rawPeriod)
       ? rawPeriod
       : "ALL";
 
@@ -92,7 +87,8 @@ export function parseAnalyticsContentFilters(
     : "recent";
 
   const rawPage = Number(firstValue(params, "page"));
-  const page = Number.isFinite(rawPage) && rawPage >= 1 ? Math.floor(rawPage) : 1;
+  const page =
+    Number.isFinite(rawPage) && rawPage >= 1 ? Math.floor(rawPage) : 1;
 
   return {
     period,
@@ -104,24 +100,6 @@ export function parseAnalyticsContentFilters(
     page,
   };
 }
-
-const reviewerRoleSubquery = sql<string | null>`(
-  select cr.reviewer_role from content_reviews cr
-  where cr.submission_id = ${schema.contentSubmissions.id}
-  order by cr.created_at desc limit 1
-)`;
-
-const decisionSourceSubquery = sql<string | null>`(
-  select cr.decision_source from content_reviews cr
-  where cr.submission_id = ${schema.contentSubmissions.id}
-  order by cr.created_at desc limit 1
-)`;
-
-const decisionAtSubquery = sql<Date | null>`(
-  select cr.created_at from content_reviews cr
-  where cr.submission_id = ${schema.contentSubmissions.id}
-  order by cr.created_at desc limit 1
-)`;
 
 export type AnalyticsContentRow = {
   id: string;
@@ -184,7 +162,7 @@ export async function listAnalyticsContents(
     const range = monthRange(filters.period);
     conditions.push(
       gte(schema.contentSubmissions.dateCreated, range.startLocal),
-      lt(schema.contentSubmissions.dateCreated, range.endLocal),
+      lte(schema.contentSubmissions.dateCreated, range.endLocal),
     );
   }
   if (filters.search) {
@@ -197,7 +175,8 @@ export async function listAnalyticsContents(
     if (search) conditions.push(search);
   }
   if (filters.decidedBy !== "ANY") {
-    const role = filters.decidedBy === "BRANCH" ? "BRANCH_ADMIN" : "MASTER_ADMIN";
+    const role =
+      filters.decidedBy === "BRANCH" ? "BRANCH_ADMIN" : "MASTER_ADMIN";
     conditions.push(
       sql`exists (
         select 1 from content_reviews cr
@@ -208,18 +187,47 @@ export async function listAnalyticsContents(
   }
   const where = and(...conditions);
 
+  const latestReview = db
+    .selectDistinctOn([schema.contentReviews.submissionId], {
+      submissionId: schema.contentReviews.submissionId,
+      reviewerRole: schema.contentReviews.reviewerRole,
+      decisionSource: schema.contentReviews.decisionSource,
+      createdAt: schema.contentReviews.createdAt,
+    })
+    .from(schema.contentReviews)
+    .orderBy(
+      asc(schema.contentReviews.submissionId),
+      desc(schema.contentReviews.createdAt),
+    )
+    .as("latest_review");
+
   const orderBy = (() => {
     switch (filters.sort) {
       case "oldest":
-        return [asc(schema.contentSubmissions.dateCreated), asc(schema.contentSubmissions.id)];
+        return [
+          asc(schema.contentSubmissions.dateCreated),
+          asc(schema.contentSubmissions.id),
+        ];
       case "title":
-        return [asc(schema.contentSubmissions.title), asc(schema.contentSubmissions.id)];
+        return [
+          asc(schema.contentSubmissions.title),
+          asc(schema.contentSubmissions.id),
+        ];
       case "decision":
-        return [sql`${decisionAtSubquery} desc nulls last`];
+        return [
+          sql`${latestReview.createdAt} desc nulls last`,
+          asc(schema.contentSubmissions.id),
+        ];
       case "status":
-        return [asc(schema.contentSubmissions.status), desc(schema.contentSubmissions.dateCreated)];
+        return [
+          asc(schema.contentSubmissions.status),
+          desc(schema.contentSubmissions.dateCreated),
+        ];
       default:
-        return [desc(schema.contentSubmissions.dateCreated), desc(schema.contentSubmissions.id)];
+        return [
+          desc(schema.contentSubmissions.dateCreated),
+          desc(schema.contentSubmissions.id),
+        ];
     }
   })();
 
@@ -244,9 +252,9 @@ export async function listAnalyticsContents(
         version: schema.contentSubmissions.version,
         resubmissionCount: schema.contentSubmissions.resubmissionCount,
         publishedUrl: schema.contentSubmissions.publishedUrl,
-        decisionAt: decisionAtSubquery,
-        decidedBy: reviewerRoleSubquery,
-        decisionSource: decisionSourceSubquery,
+        decisionAt: latestReview.createdAt,
+        decidedBy: latestReview.reviewerRole,
+        decisionSource: latestReview.decisionSource,
       })
       .from(schema.contentSubmissions)
       .innerJoin(
@@ -256,6 +264,10 @@ export async function listAnalyticsContents(
       .leftJoin(
         schema.branchOffices,
         eq(schema.branchOffices.id, schema.stakeholders.branchOfficeId),
+      )
+      .leftJoin(
+        latestReview,
+        eq(latestReview.submissionId, schema.contentSubmissions.id),
       )
       .where(where)
       .orderBy(...orderBy)

@@ -21,7 +21,8 @@ const policy: EdufastPolicy = {
   publishedBy: "master",
 };
 
-const load = async (period: string) => (period === policy.period ? policy : null);
+const load = async (period: string) =>
+  period === policy.period ? policy : null;
 
 describe("EDUFAST policy window", () => {
   it("blocks EDUFAST when the content period has no published policy", async () => {
@@ -41,16 +42,26 @@ describe("EDUFAST policy window", () => {
   it("rejects a sub-theme outside the published window", async () => {
     await expect(
       assertEdufastSelection(
-        { dateCreated: "2026-10-15", mainTheme: "EDUFAST", subTheme: "KORPORAT" },
+        {
+          dateCreated: "2026-10-15",
+          mainTheme: "EDUFAST",
+          subTheme: "KORPORAT",
+        },
         load,
       ),
-    ).rejects.toThrow(/Korporat tidak termasuk kebijakan EDUFAST 2026-10 \(versi 2\)/);
+    ).rejects.toThrow(
+      /Korporat tidak termasuk kebijakan EDUFAST 2026-10 \(versi 2\)/,
+    );
   });
 
   it("records the policy id and version for an allowed selection", async () => {
     await expect(
       assertEdufastSelection(
-        { dateCreated: "2026-10-15", mainTheme: "EDUFAST", subTheme: "MOBILE_JKN" },
+        {
+          dateCreated: "2026-10-15",
+          mainTheme: "EDUFAST",
+          subTheme: "MOBILE_JKN",
+        },
         load,
       ),
     ).resolves.toEqual({ policyId: "policy-oct", policyVersion: 2 });
@@ -59,7 +70,11 @@ describe("EDUFAST policy window", () => {
   it("does not consult the policy for Non-EDUFAST content", async () => {
     let called = 0;
     const result = await assertEdufastSelection(
-      { dateCreated: "2026-10-15", mainTheme: "NON_EDUFAST", subTheme: "INFORMASI" },
+      {
+        dateCreated: "2026-10-15",
+        mainTheme: "NON_EDUFAST",
+        subTheme: "INFORMASI",
+      },
       async () => {
         called += 1;
         return null;

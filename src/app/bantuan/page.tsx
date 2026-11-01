@@ -63,7 +63,10 @@ export default function BantuanPage() {
         </div>
       </header>
 
-      <main id="konten" className="mx-auto w-full max-w-4xl flex-1 px-4 py-12 sm:px-6">
+      <main
+        id="konten"
+        className="mx-auto w-full max-w-4xl flex-1 px-4 py-12 sm:px-6"
+      >
         <div className="space-y-3">
           <p className="text-sm font-semibold tracking-wide text-brand-teal-700 uppercase">
             Bantuan
@@ -109,9 +112,9 @@ export default function BantuanPage() {
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-ink-muted">
             Notifikasi realtime memiliki fallback polling; jika koneksi realtime
-            terputus, kotak notifikasi tetap memuat data tersimpan. Untuk masalah
-            peta, gunakan daftar lokasi di bawah peta. Untuk masalah akses,
-            keluar lalu masuk kembali dengan akun Anda.
+            terputus, kotak notifikasi tetap memuat data tersimpan. Untuk
+            masalah peta, gunakan daftar lokasi di bawah peta. Untuk masalah
+            akses, keluar lalu masuk kembali dengan akun Anda.
           </p>
           <p className="mt-3 text-sm text-ink-muted">
             Catatan: proyek ini tidak menyediakan dukungan operasional

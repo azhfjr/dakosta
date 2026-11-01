@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { FileText, Gauge, RotateCcw } from "lucide-react";
+import { Gauge, RotateCcw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { StakeholderSelect } from "@/components/ui/stakeholder-select";
 import {
   ORG_SOURCES,
   ORG_SOURCE_LABELS,
@@ -16,20 +17,6 @@ const selectClass =
   "h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 export type AnalyticsFilterState = KpiFilters & { sources: OrgSource[] };
-
-export function reportHrefFor(
-  filters: AnalyticsFilterState,
-  extra: Record<string, string> = {},
-): string {
-  const params = new URLSearchParams();
-  params.set("month", filters.month);
-  params.set("attribution", filters.attribution);
-  if (filters.stakeholderId) params.set("stakeholderId", filters.stakeholderId);
-  if (filters.subTheme) params.set("subTheme", filters.subTheme);
-  if (filters.sources.length > 0) params.set("source", filters.sources.join(","));
-  for (const [key, value] of Object.entries(extra)) params.set(key, value);
-  return `/api/v1/reports/achievement?${params.toString()}`;
-}
 
 export function AnalyticsFilterBar({
   action,
@@ -93,19 +80,12 @@ export function AnalyticsFilterBar({
               >
                 Stakeholder
               </label>
-              <select
+              <StakeholderSelect
                 id="analitik-stakeholder"
-                name="stakeholderId"
+                options={stakeholders}
                 defaultValue={filters.stakeholderId ?? ""}
                 className={selectClass}
-              >
-                <option value="">Semua stakeholder</option>
-                {stakeholders.map((stakeholder) => (
-                  <option key={stakeholder.id} value={stakeholder.id}>
-                    {stakeholder.name}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
           ) : null}
           {showTheme ? (
@@ -155,7 +135,9 @@ export function AnalyticsFilterBar({
               Sumber input
             </legend>
             {ORG_SOURCES.map((source) => {
-              const option = sourceOptions.find((item) => item.source === source);
+              const option = sourceOptions.find(
+                (item) => item.source === source,
+              );
               return (
                 <label
                   key={source}
@@ -188,12 +170,6 @@ export function AnalyticsFilterBar({
               <RotateCcw className="size-4" aria-hidden />
               Atur ulang
             </Link>
-          </Button>
-          <Button asChild size="sm" variant="outline" className="h-9">
-            <a href={reportHrefFor(filters)} download>
-              <FileText className="size-4" aria-hidden />
-              Unduh laporan PDF
-            </a>
           </Button>
           <p className="text-xs text-ink-muted">
             {periodLabel} · dasar {attributionLabel}

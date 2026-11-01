@@ -38,7 +38,11 @@ export function MonthlyTrendChart({ data }: { data: MonthlyTrendPoint[] }) {
                 margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
                 barGap={4}
               >
-                <CartesianGrid stroke={CHART_GRID} strokeDasharray="3 3" vertical={false} />
+                <CartesianGrid
+                  stroke={CHART_GRID}
+                  strokeDasharray="3 3"
+                  vertical={false}
+                />
                 <XAxis
                   dataKey="label"
                   tickLine={false}
@@ -95,9 +99,15 @@ export function MonthlyTrendChart({ data }: { data: MonthlyTrendPoint[] }) {
                 </caption>
                 <thead>
                   <tr className="border-b border-border text-ink-muted">
-                    <th scope="col" className="px-2 py-1.5 font-medium">Bulan</th>
-                    <th scope="col" className="px-2 py-1.5 font-medium">Disetujui</th>
-                    <th scope="col" className="px-2 py-1.5 font-medium">Dikirim</th>
+                    <th scope="col" className="px-2 py-1.5 font-medium">
+                      Bulan
+                    </th>
+                    <th scope="col" className="px-2 py-1.5 font-medium">
+                      Disetujui
+                    </th>
+                    <th scope="col" className="px-2 py-1.5 font-medium">
+                      Dikirim
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -106,7 +116,9 @@ export function MonthlyTrendChart({ data }: { data: MonthlyTrendPoint[] }) {
                       key={point.month}
                       className="border-b border-border/60 last:border-0"
                     >
-                      <td className="px-2 py-1.5 text-ink-muted">{point.label}</td>
+                      <td className="px-2 py-1.5 text-ink-muted">
+                        {point.label}
+                      </td>
                       <td className="px-2 py-1.5 text-ink-muted tabular">
                         {formatNumberId(point.approved)}
                       </td>

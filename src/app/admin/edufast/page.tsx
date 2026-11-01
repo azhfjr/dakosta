@@ -26,8 +26,8 @@ export default async function AdminEdufastPage() {
         </h1>
         <p className="mt-1 max-w-2xl text-sm text-ink-muted">
           Tetapkan sub-tema EDUFAST yang diizinkan per periode. Konten EDUFAST
-          hanya dapat dikirim bila kebijakan periode tanggal konten sudah terbit.
-          Non-EDUFAST tetap tersedia dengan enam sub-tema.
+          hanya dapat dikirim bila kebijakan periode tanggal konten sudah
+          terbit. Non-EDUFAST tetap tersedia dengan enam sub-tema.
         </p>
       </header>
 

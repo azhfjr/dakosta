@@ -15,7 +15,10 @@ import { AnalyticsContentTable } from "@/components/analytics/analytics-content-
 import { DeferredAnalyticsCharts } from "@/components/charts/analytics-charts-lazy";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { PageHeader } from "@/components/shell/page-header";
-import type { AnalyticsContentPage, AnalyticsContentFilters } from "@/lib/analytics/content-table";
+import type {
+  AnalyticsContentPage,
+  AnalyticsContentFilters,
+} from "@/lib/analytics/content-table";
 import type {
   AgingBucket,
   BenchmarkRow,
@@ -31,7 +34,11 @@ import type {
 } from "@/lib/analytics/charts";
 import type { AnalyticsSourceOption } from "@/lib/analytics/source";
 import { formatDateTimeId, formatNumberId } from "@/lib/dates";
-import { targetSourceLabel, type DashboardOverview, type TargetSource } from "@/lib/kpi/formulas";
+import {
+  targetSourceLabel,
+  type DashboardOverview,
+  type TargetSource,
+} from "@/lib/kpi/formulas";
 import type { TargetOverview } from "@/lib/targets";
 
 export type AnalyticsTargetSummary = {
@@ -154,7 +161,8 @@ export function AnalyticsView({
             {context.name}
           </span>
           <span className="text-xs text-ink-muted">
-            {context.source === "FASKES_FKTP" || context.source === "FASKES_FKRTL"
+            {context.source === "FASKES_FKTP" ||
+            context.source === "FASKES_FKRTL"
               ? `Faskes ${context.faskesClass ?? ""}`
               : context.source === "PEMDA"
                 ? "Pemda"
@@ -165,7 +173,9 @@ export function AnalyticsView({
             {context.regionName ? ` · ${context.regionName}` : ""}
           </span>
           {context.serviceArea ? (
-            <span className="text-xs text-ink-muted">{context.serviceArea}</span>
+            <span className="text-xs text-ink-muted">
+              {context.serviceArea}
+            </span>
           ) : null}
         </section>
       ) : null}
@@ -204,11 +214,12 @@ export function AnalyticsView({
               ? "Tidak ada target pada cakupan filter ini"
               : resolvedTarget.target === 0
                 ? "Target 0 tidak dapat dihitung"
-                : `${formatNumberId(targets.month ? targets.rows.length : 0)} cakupan target aktif`
+                : `${formatNumberId(targets.month ? targets.totals.scopes : 0)} cakupan target aktif`
           }
           icon={Gauge}
           tone={
-            resolvedTarget.achievement !== null && resolvedTarget.achievement >= 100
+            resolvedTarget.achievement !== null &&
+            resolvedTarget.achievement >= 100
               ? "green"
               : "amber"
           }

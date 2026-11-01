@@ -38,22 +38,30 @@ test.describe("Basis data kosong", () => {
   test("seluruh halaman Master tampil tanpa galat server", async ({ page }) => {
     test.slow();
     for (const route of ADMIN_PAGES) {
-      const response = await page.goto(route, { waitUntil: "domcontentloaded" });
+      const response = await page.goto(route, {
+        waitUntil: "domcontentloaded",
+      });
       expect(response?.status(), route).toBeLessThan(500);
       await expect(page.locator("h1").first(), route).toBeVisible();
     }
 
     await page.goto("/admin");
-    await expect(page.getByRole("heading", { name: /Ringkasan|Dashboard/i }).first()).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /Ringkasan|Dashboard/i }).first(),
+    ).toBeVisible();
 
     await page.goto("/admin/target");
-    await expect(page.getByText("Belum ada target untuk periode ini")).toBeVisible();
+    await expect(
+      page.getByText("Belum ada target untuk periode ini"),
+    ).toBeVisible();
 
     await page.goto("/admin/wilayah");
     await expect(page.getByText("Belum ada wilayah terdaftar")).toBeVisible();
   });
 
-  test("Master menyiapkan hierarki pertama lalu akun stakeholder", async ({ page }) => {
+  test("Master menyiapkan hierarki pertama lalu akun stakeholder", async ({
+    page,
+  }) => {
     test.slow();
     const suffix = randomUUID().slice(0, 6).toUpperCase();
 
@@ -74,7 +82,10 @@ test.describe("Basis data kosong", () => {
     await expect(page.getByText(`Cabang Uji ${suffix}`)).toBeVisible();
 
     await page.goto("/admin/organisasi");
-    await page.getByRole("button", { name: "Tambah organisasi" }).first().click();
+    await page
+      .getByRole("button", { name: "Tambah organisasi" })
+      .first()
+      .click();
     const orgDialog = page.getByRole("dialog", { name: "Tambah organisasi" });
     await orgDialog.locator("#org-name").fill(`Klinik Uji ${suffix}`);
     await orgDialog.locator("#org-code").fill(`F${suffix}`);
@@ -98,14 +109,18 @@ test.describe("Basis data kosong", () => {
     ).toBeVisible();
   });
 
-  test("Master menetapkan target pertama pada basis data kosong", async ({ page }) => {
+  test("Master menetapkan target pertama pada basis data kosong", async ({
+    page,
+  }) => {
     await page.goto("/admin/target");
     await page.getByRole("button", { name: "Tambah target" }).first().click();
     const dialog = page.getByRole("dialog", { name: "Tambah target" });
     await dialog.locator("#target-count").fill("10");
     await dialog.getByRole("button", { name: "Tambah target" }).click();
     await confirmStepUpIfPrompted(page);
-    await expect(page.getByText("Target ditambahkan.", { exact: true })).toBeVisible();
+    await expect(
+      page.getByText("Target ditambahkan.", { exact: true }),
+    ).toBeVisible();
     const row = page.getByRole("row", { name: /Workspace \(global\)/ });
     await expect(row).toBeVisible();
     await expect(row).toContainText("10");

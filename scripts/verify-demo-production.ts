@@ -43,7 +43,9 @@ type Options = {
 };
 
 function parseOptions(argv: string[]): Options {
-  const target = argv.find((value) => value.startsWith("--target="))?.split("=")[1];
+  const target = argv
+    .find((value) => value.startsWith("--target="))
+    ?.split("=")[1];
   if (target !== "production") {
     throw new Error(
       "Verifikasi demo hanya boleh dijalankan dengan --target=production.",
@@ -55,7 +57,9 @@ function parseOptions(argv: string[]): Options {
   const skipDb = argv.includes("--skip-db");
   const skipHttp = argv.includes("--skip-http");
   if (skipDb && skipHttp) {
-    throw new Error("Tidak ada yang diverifikasi: --skip-db dan --skip-http dipakai bersamaan.");
+    throw new Error(
+      "Tidak ada yang diverifikasi: --skip-db dan --skip-http dipakai bersamaan.",
+    );
   }
   return {
     base: base.replace(/\/+$/, ""),
@@ -77,7 +81,10 @@ function textIn(values: string[]): SQL {
   );
 }
 
-function readCredentialFromSecrets(): { password: string; path: string } | null {
+function readCredentialFromSecrets(): {
+  password: string;
+  path: string;
+} | null {
   const directory = resolve(process.cwd(), ".secrets");
   if (!existsSync(directory)) return null;
   const candidate = readdirSync(directory)
@@ -122,14 +129,18 @@ function accountFor(
     return candidate.organizationN === scope.organizationN;
   });
   if (!account) {
-    throw new Error(`Akun demo ${role} untuk cakupan yang diminta tidak ditemukan.`);
+    throw new Error(
+      `Akun demo ${role} untuk cakupan yang diminta tidak ditemukan.`,
+    );
   }
   return account;
 }
 
 function expectEqual(label: string, actual: unknown, expected: unknown): void {
   if (actual !== expected) {
-    throw new Error(`${label}: aktual ${String(actual)}, harapan ${String(expected)}.`);
+    throw new Error(
+      `${label}: aktual ${String(actual)}, harapan ${String(expected)}.`,
+    );
   }
 }
 
@@ -148,13 +159,20 @@ async function verifyDatabase(
   if (scope.userIds.includes(before.masterUserId)) {
     throw new Error("ID Master asli bertabrakan dengan akun demo.");
   }
-  expectEqual("membership MASTER_ADMIN aktif", before.masterAdminMemberships, 1);
+  expectEqual(
+    "membership MASTER_ADMIN aktif",
+    before.masterAdminMemberships,
+    1,
+  );
   expectEqual("pengguna demo asing", before.foreignDemoUsers, 0);
   expectEqual("pengguna demo setengah jadi", before.halfDemoUsers, 0);
 
   await assertSeededCounts(db, dataset, scope, before, expected);
 
-  const accountRows = await db.execute<{ email: string; password: string | null }>(sql`
+  const accountRows = await db.execute<{
+    email: string;
+    password: string | null;
+  }>(sql`
     select u.email, a.password
       from "user" u
       inner join account a
@@ -163,7 +181,11 @@ async function verifyDatabase(
      order by u.email
   `);
 
-  expectEqual("akun kredensial demo", accountRows.rows.length, expected.accounts);
+  expectEqual(
+    "akun kredensial demo",
+    accountRows.rows.length,
+    expected.accounts,
+  );
 
   let verified = 0;
   for (const row of accountRows.rows) {
@@ -172,7 +194,9 @@ async function verifyDatabase(
     }
     const ok = await verifyPassword({ password, hash: row.password });
     if (!ok) {
-      throw new Error(`Kata sandi akun demo ${row.email} tidak cocok dengan kredensial.`);
+      throw new Error(
+        `Kata sandi akun demo ${row.email} tidak cocok dengan kredensial.`,
+      );
     }
     verified += 1;
   }
@@ -206,10 +230,14 @@ async function verifyDatabase(
   `);
   const seedRun = run.rows[0];
   if (!seedRun) {
-    throw new Error("Baris migration_runs seed-demo-production tidak ditemukan.");
+    throw new Error(
+      "Baris migration_runs seed-demo-production tidak ditemukan.",
+    );
   }
   if (seedRun.target_env !== "production") {
-    throw new Error(`migration_runs target_env=${seedRun.target_env}, harapan production.`);
+    throw new Error(
+      `migration_runs target_env=${seedRun.target_env}, harapan production.`,
+    );
   }
   if (!seedRun.finished_at) {
     throw new Error("Seed demo belum selesai (finished_at kosong).");
@@ -242,7 +270,11 @@ async function readCookies(response: Response): Promise<string> {
   return pairs.join("; ");
 }
 
-async function signIn(base: string, email: string, password: string): Promise<string> {
+async function signIn(
+  base: string,
+  email: string,
+  password: string,
+): Promise<string> {
   const response = await fetch(`${base}/api/auth/sign-in/email`, {
     method: "POST",
     headers: { "content-type": "application/json", origin: base },
@@ -314,7 +346,9 @@ async function verifyHttp(
   const branch = accountFor("BRANCH_ADMIN", { branchN: 1 });
   const stakeholder = accountFor("STAKEHOLDER", { organizationN: 1 });
 
-  const masuk = await fetch(`${base}/masuk`, { signal: AbortSignal.timeout(20_000) });
+  const masuk = await fetch(`${base}/masuk`, {
+    signal: AbortSignal.timeout(20_000),
+  });
   expectEqual("GET /masuk", masuk.status, 200);
 
   const unauthorized = await api<unknown>(base, "/api/v1/me", "");
@@ -329,9 +363,13 @@ async function verifyHttp(
   expectEqual("POST /api/v1/demo/login", demoLogin.status, 404);
 
   const region3Content = dataset.submissions.find((item) => item.regionN === 3);
-  const otherBranchContent = dataset.submissions.find((item) => item.branchN === 2);
+  const otherBranchContent = dataset.submissions.find(
+    (item) => item.branchN === 2,
+  );
   if (!region3Content || !otherBranchContent) {
-    throw new Error("Fixture tidak memuat konten lintas wilayah/cabang untuk uji isolasi.");
+    throw new Error(
+      "Fixture tidak memuat konten lintas wilayah/cabang untuk uji isolasi.",
+    );
   }
 
   const stakeholderContent = dataset.submissions.filter(
@@ -339,11 +377,14 @@ async function verifyHttp(
   ).length;
 
   await withSession(base, master.email, password, async (cookie) => {
-    const me = expectOk("/api/v1/me", await api<{ role: string; isDemo: boolean; capabilities: string[] }>(
-      base,
+    const me = expectOk(
       "/api/v1/me",
-      cookie,
-    ));
+      await api<{ role: string; isDemo: boolean; capabilities: string[] }>(
+        base,
+        "/api/v1/me",
+        cookie,
+      ),
+    );
     expectEqual("peran demo master", me.role, "MASTER_ADMIN");
     expectEqual("isDemo", me.isDemo, true);
     for (const capability of [
@@ -366,8 +407,16 @@ async function verifyHttp(
         cookie,
       ),
     );
-    expectEqual("approved bulan berjalan", current.approved.value, expected.approvedCurrent);
-    expectEqual("target bulan berjalan", current.approved.target ?? -1, expected.currentTarget);
+    expectEqual(
+      "approved bulan berjalan",
+      current.approved.value,
+      expected.approvedCurrent,
+    );
+    expectEqual(
+      "target bulan berjalan",
+      current.approved.target ?? -1,
+      expected.currentTarget,
+    );
 
     const previous = expectOk(
       "dashboard bulan sebelumnya",
@@ -377,8 +426,16 @@ async function verifyHttp(
         cookie,
       ),
     );
-    expectEqual("approved bulan sebelumnya", previous.approved.value, expected.approvedPrevious);
-    expectEqual("target bulan sebelumnya", previous.approved.target ?? -1, expected.previousTarget);
+    expectEqual(
+      "approved bulan sebelumnya",
+      previous.approved.value,
+      expected.approvedPrevious,
+    );
+    expectEqual(
+      "target bulan sebelumnya",
+      previous.approved.target ?? -1,
+      expected.previousTarget,
+    );
 
     const submissions = expectOk(
       "daftar konten master",
@@ -417,7 +474,11 @@ async function verifyHttp(
       "konten wilayah A",
       await api<unknown[]>(base, "/api/v1/submissions?limit=100", cookie),
     );
-    expectEqual("konten wilayah A", submissions.length, expected.regionSubmissions[0]!);
+    expectEqual(
+      "konten wilayah A",
+      submissions.length,
+      expected.regionSubmissions[0]!,
+    );
 
     const cross = await api<unknown>(
       base,
@@ -439,7 +500,11 @@ async function verifyHttp(
       ),
     );
     expectEqual("antrean cabang A1", queue.total, expected.branchPending[0]!);
-    expectEqual("item antrean cabang A1", queue.items.length, expected.branchPending[0]!);
+    expectEqual(
+      "item antrean cabang A1",
+      queue.items.length,
+      expected.branchPending[0]!,
+    );
 
     const cross = await api<unknown>(
       base,
@@ -490,7 +555,10 @@ async function main(): Promise<void> {
   );
 
   if (!options.skipDb) {
-    const pool = new Pool({ connectionString: requireDatabaseUrlForScript(), max: 1 });
+    const pool = new Pool({
+      connectionString: requireDatabaseUrlForScript(),
+      max: 1,
+    });
     const db = drizzle(pool, { schema });
     try {
       await verifyDatabase(db, password, expected, dataset);
@@ -506,7 +574,10 @@ async function main(): Promise<void> {
   console.log("Verifikasi demo produksi lulus. Tidak ada data yang ditulis.");
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(process.argv[1]).href
+) {
   main().catch((error: unknown) => {
     console.error(error instanceof Error ? error.message : error);
     process.exit(1);

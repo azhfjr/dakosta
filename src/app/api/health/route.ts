@@ -16,6 +16,9 @@ export async function GET() {
     await getDb().execute(sql`select 1`);
     return Response.json({ status: "ok", db: "ok" });
   } catch {
-    return Response.json({ status: "degraded", db: "unavailable" }, { status: 503 });
+    return Response.json(
+      { status: "degraded", db: "unavailable" },
+      { status: 503 },
+    );
   }
 }

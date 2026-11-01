@@ -7,17 +7,11 @@ import type {
   Map as MapLibreMap,
   MapLayerMouseEvent,
 } from "maplibre-gl";
-import type {
-  FeatureCollection,
-  Point as GeoPoint,
-} from "geojson";
+import type { FeatureCollection, Point as GeoPoint } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import type { AppRole } from "@/lib/authz/types";
-import {
-  MAP_BRAND,
-  MAP_STATUS_COLOR as STATUS_COLOR,
-} from "@/lib/chart-theme";
+import { MAP_BRAND, MAP_STATUS_COLOR as STATUS_COLOR } from "@/lib/chart-theme";
 import { formatNumberId } from "@/lib/dates";
 import type { MapPoint, MapSite } from "@/lib/map";
 
@@ -97,7 +91,9 @@ function element<K extends keyof HTMLElementTagNameMap>(
   return node;
 }
 
-function buildSubmissionPopup(properties: Record<string, unknown>): HTMLElement {
+function buildSubmissionPopup(
+  properties: Record<string, unknown>,
+): HTMLElement {
   const root = element("div", "space-y-1.5");
   const heading = element(
     "p",
@@ -130,7 +126,10 @@ function buildSubmissionPopup(properties: Record<string, unknown>): HTMLElement 
     ),
   );
 
-  const link = element("a", "mt-1 inline-block text-xs font-semibold text-brand-blue-700 underline underline-offset-4");
+  const link = element(
+    "a",
+    "mt-1 inline-block text-xs font-semibold text-brand-blue-700 underline underline-offset-4",
+  );
   link.href = String(properties.href);
   link.textContent = "Buka detail konten";
   root.append(link);
@@ -160,7 +159,10 @@ function buildSitePopup(properties: Record<string, unknown>): HTMLElement {
       `${formatNumberId(Number(properties.submissionCount ?? 0))} konten pada filter ini`,
     ),
   );
-  const link = element("a", "mt-1 inline-block text-xs font-semibold text-brand-blue-700 underline underline-offset-4");
+  const link = element(
+    "a",
+    "mt-1 inline-block text-xs font-semibold text-brand-blue-700 underline underline-offset-4",
+  );
   link.href = String(properties.href);
   link.textContent = "Lihat konten terkait";
   root.append(link);
@@ -407,7 +409,10 @@ export function MapExplorer({
             const feature = features[0];
             if (!feature) return;
             const layerId = feature.layer?.id ?? "";
-            const properties = (feature.properties ?? {}) as Record<string, unknown>;
+            const properties = (feature.properties ?? {}) as Record<
+              string,
+              unknown
+            >;
             const node =
               layerId === "sites-circle"
                 ? buildSitePopup(properties)
@@ -465,7 +470,10 @@ export function MapExplorer({
       <div className="flex flex-col gap-2 border-b border-border px-4 py-3 sm:px-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <div>
-            <h2 id="peta-judul" className="text-base font-semibold text-foreground">
+            <h2
+              id="peta-judul"
+              className="text-base font-semibold text-foreground"
+            >
               Sebaran konten dan lokasi stakeholder
             </h2>
             <p className="text-xs text-ink-muted">

@@ -13,14 +13,6 @@ const SUB_THEME_VALUES = [
   "INFORMASI",
 ] as const;
 
-export type DraftLocation = {
-  latitude: number;
-  longitude: number;
-  source: "device_gps" | "manual_pin";
-  accuracyMeters: number | null;
-  consentAt: string | null;
-};
-
 export type WizardDraft = {
   submissionId: string | null;
   idempotencyKey: string;
@@ -34,14 +26,15 @@ export type WizardDraft = {
   narrative: string;
   dateCreated: string;
   publishedAt: string;
-  location: DraftLocation | null;
-  locationLabel: string;
   privacyAttested: boolean;
 };
 
 export type DraftStakeholder = { id: string };
 
-export function draftKey(ownerId: string, submissionId?: string | null): string {
+export function draftKey(
+  ownerId: string,
+  submissionId?: string | null,
+): string {
   return `${DRAFT_KEY_BASE}:${ownerId}:${submissionId ?? "new"}`;
 }
 
@@ -50,7 +43,9 @@ export function legacyDraftKey(): string {
   return DRAFT_KEY_BASE;
 }
 
-export function fallbackStakeholderId(stakeholders: DraftStakeholder[]): string {
+export function fallbackStakeholderId(
+  stakeholders: DraftStakeholder[],
+): string {
   return stakeholders.length === 1 ? stakeholders[0]!.id : "";
 }
 
@@ -58,39 +53,13 @@ function isKnown<T extends string>(
   values: readonly T[],
   value: unknown,
 ): value is T {
-  return typeof value === "string" && (values as readonly string[]).includes(value);
+  return (
+    typeof value === "string" && (values as readonly string[]).includes(value)
+  );
 }
 
 function isDateOnly(value: unknown): value is string {
   return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
-}
-
-function parseLocation(value: unknown): DraftLocation | null {
-  if (!value || typeof value !== "object") return null;
-  const candidate = value as Partial<DraftLocation>;
-  if (
-    typeof candidate.latitude !== "number" ||
-    !Number.isFinite(candidate.latitude) ||
-    Math.abs(candidate.latitude) > 90 ||
-    typeof candidate.longitude !== "number" ||
-    !Number.isFinite(candidate.longitude) ||
-    Math.abs(candidate.longitude) > 180 ||
-    (candidate.source !== "device_gps" && candidate.source !== "manual_pin")
-  ) {
-    return null;
-  }
-  return {
-    latitude: candidate.latitude,
-    longitude: candidate.longitude,
-    source: candidate.source,
-    accuracyMeters:
-      typeof candidate.accuracyMeters === "number" &&
-      Number.isFinite(candidate.accuracyMeters) &&
-      candidate.accuracyMeters > 0
-        ? candidate.accuracyMeters
-        : null,
-    consentAt: typeof candidate.consentAt === "string" ? candidate.consentAt : null,
-  };
 }
 
 /**
@@ -160,15 +129,6 @@ export function hydrateDraft(
   }
   if (isDateOnly(draft.publishedAt) || draft.publishedAt === "") {
     hydrated.publishedAt = draft.publishedAt;
-  }
-  const location = parseLocation(draft.location);
-  if (location) {
-    hydrated.location = location;
-  } else if (draft.location === null) {
-    hydrated.location = null;
-  }
-  if (typeof draft.locationLabel === "string") {
-    hydrated.locationLabel = draft.locationLabel;
   }
   if (typeof draft.privacyAttested === "boolean") {
     hydrated.privacyAttested = draft.privacyAttested;

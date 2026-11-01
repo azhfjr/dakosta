@@ -29,7 +29,10 @@ export default async function AccessDeniedPage() {
         </div>
       </header>
 
-      <main id="konten" className="flex flex-1 items-center justify-center px-4 py-12">
+      <main
+        id="konten"
+        className="flex flex-1 items-center justify-center px-4 py-12"
+      >
         <div className="w-full max-w-lg rounded-2xl border border-border bg-surface p-8 text-center shadow-sm">
           <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
             <ShieldAlert className="size-6" aria-hidden />

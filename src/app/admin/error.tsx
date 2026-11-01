@@ -9,5 +9,7 @@ export default function AdminError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  return <WorkspaceError error={error} reset={reset} scope="Ruang kerja Master" />;
+  return (
+    <WorkspaceError error={error} reset={reset} scope="Ruang kerja Master" />
+  );
 }

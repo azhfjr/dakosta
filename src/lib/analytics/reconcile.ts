@@ -25,7 +25,9 @@ export type ReconcileResult = {
  * Additive metrics must reconcile region = sum(branches). Distinct organization
  * counts are intentionally excluded because summing them would double count.
  */
-export async function reconcileRegion(regionId: string): Promise<ReconcileResult> {
+export async function reconcileRegion(
+  regionId: string,
+): Promise<ReconcileResult> {
   const db = getDb();
   const branchRows = await db
     .select({ id: schema.branchOffices.id, name: schema.branchOffices.name })
@@ -91,7 +93,10 @@ export async function reconcileRegion(regionId: string): Promise<ReconcileResult
       ),
     );
 
-  const sumBranchApproved = branches.reduce((sum, row) => sum + row.approved, 0);
+  const sumBranchApproved = branches.reduce(
+    (sum, row) => sum + row.approved,
+    0,
+  );
   const sumBranchPending = branches.reduce((sum, row) => sum + row.pending, 0);
   const regionApproved = Number(regionAggregate?.approved ?? 0);
 

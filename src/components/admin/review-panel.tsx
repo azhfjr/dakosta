@@ -22,9 +22,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { ReviewAction } from "@/lib/review";
 
-type ChecklistKey = "relevansiTema" | "akurasiKonten" | "kelengkapanTautan" | "etikaDanPrivasi";
+type ChecklistKey =
+  "relevansiTema" | "akurasiKonten" | "kelengkapanTautan" | "etikaDanPrivasi";
 
-const CHECKLIST_ITEMS: Array<{ key: ChecklistKey; label: string; hint: string }> = [
+const CHECKLIST_ITEMS: Array<{
+  key: ChecklistKey;
+  label: string;
+  hint: string;
+}> = [
   {
     key: "relevansiTema",
     label: "Relevan dengan tema",
@@ -49,7 +54,13 @@ const CHECKLIST_ITEMS: Array<{ key: ChecklistKey; label: string; hint: string }>
 
 const ACTION_COPY: Record<
   ReviewAction,
-  { label: string; title: string; description: string; confirm: string; variant: "default" | "outline" | "destructive" }
+  {
+    label: string;
+    title: string;
+    description: string;
+    confirm: string;
+    variant: "default" | "outline" | "destructive";
+  }
 > = {
   APPROVE: {
     label: "Setujui",
@@ -124,9 +135,9 @@ export function ReviewPanel({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ submissionId }),
       });
-      const body = (await response.json().catch(() => null)) as
-        | { error?: { message?: string } }
-        | null;
+      const body = (await response.json().catch(() => null)) as {
+        error?: { message?: string };
+      } | null;
       if (!response.ok) {
         setError(body?.error?.message ?? "Konten tidak dapat mulai ditinjau.");
         return;
@@ -134,7 +145,9 @@ export function ReviewPanel({
       toast.success("Konten masuk tahap peninjauan.");
       router.refresh();
     } catch {
-      setError("Tidak dapat menghubungi server. Periksa koneksi lalu coba lagi.");
+      setError(
+        "Tidak dapat menghubungi server. Periksa koneksi lalu coba lagi.",
+      );
     } finally {
       setStarting(false);
     }
@@ -197,7 +210,9 @@ export function ReviewPanel({
       router.push(basePath);
       router.refresh();
     } catch {
-      setError("Tidak dapat menghubungi server. Periksa koneksi lalu coba lagi.");
+      setError(
+        "Tidak dapat menghubungi server. Periksa koneksi lalu coba lagi.",
+      );
       setConfirmAction(null);
     } finally {
       setSubmitting(null);
@@ -210,14 +225,17 @@ export function ReviewPanel({
         aria-labelledby="review-panel-title"
         className="rounded-xl border border-border bg-surface p-5 shadow-sm"
       >
-        <h2 id="review-panel-title" className="text-base font-semibold text-foreground">
+        <h2
+          id="review-panel-title"
+          className="text-base font-semibold text-foreground"
+        >
           Keputusan validasi
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-ink-muted">
           Konten ini sudah diputuskan dengan status{" "}
           <span className="font-medium text-foreground">{decidedStatus}</span>.
-          Keputusan baru hanya dapat dilakukan pada konten berstatus Terkirim atau
-          Ditinjau.
+          Keputusan baru hanya dapat dilakukan pada konten berstatus Terkirim
+          atau Ditinjau.
         </p>
         <Button asChild variant="outline" className="mt-4 h-11">
           <Link href={basePath}>Kembali ke antrean</Link>
@@ -234,12 +252,15 @@ export function ReviewPanel({
       className="rounded-xl border border-border bg-surface shadow-sm xl:sticky xl:top-6"
     >
       <div className="border-b border-border px-5 py-4">
-        <h2 id="review-panel-title" className="text-base font-semibold text-foreground">
+        <h2
+          id="review-panel-title"
+          className="text-base font-semibold text-foreground"
+        >
           Keputusan validasi
         </h2>
         <p className="mt-1 text-xs leading-relaxed text-ink-muted">
-          Versi {expectedVersion}. Keputusan menulis ulasan, notifikasi, dan audit
-          dalam satu transaksi.
+          Versi {expectedVersion}. Keputusan menulis ulasan, notifikasi, dan
+          audit dalam satu transaksi.
         </p>
       </div>
 
@@ -247,8 +268,8 @@ export function ReviewPanel({
         {awaitingStart ? (
           <div className="flex flex-col gap-2 rounded-lg border border-brand-blue-100 bg-brand-blue-100/40 p-3">
             <p className="text-xs leading-relaxed text-brand-blue-800">
-              Tandai konten ini sedang ditinjau agar antrean cabang mencerminkan beban
-              kerja sebenarnya.
+              Tandai konten ini sedang ditinjau agar antrean cabang mencerminkan
+              beban kerja sebenarnya.
             </p>
             <Button
               type="button"
@@ -266,7 +287,9 @@ export function ReviewPanel({
         ) : null}
 
         <fieldset>
-          <legend className="text-sm font-medium text-foreground">Checklist validasi</legend>
+          <legend className="text-sm font-medium text-foreground">
+            Checklist validasi
+          </legend>
           <ul className="mt-3 space-y-3">
             {CHECKLIST_ITEMS.map((item) => (
               <li key={item.key}>
@@ -279,10 +302,15 @@ export function ReviewPanel({
                     className="mt-0.5"
                   />
                   <div className="min-w-0">
-                    <Label htmlFor={`checklist-${item.key}`} className="text-sm font-medium">
+                    <Label
+                      htmlFor={`checklist-${item.key}`}
+                      className="text-sm font-medium"
+                    >
                       {item.label}
                     </Label>
-                    <p className="text-xs leading-relaxed text-ink-muted">{item.hint}</p>
+                    <p className="text-xs leading-relaxed text-ink-muted">
+                      {item.hint}
+                    </p>
                   </div>
                 </div>
               </li>
@@ -310,13 +338,18 @@ export function ReviewPanel({
           <Checkbox
             id="review-conflict"
             checked={conflictOfInterest}
-            onCheckedChange={(checked) => setConflictOfInterest(checked === true)}
+            onCheckedChange={(checked) =>
+              setConflictOfInterest(checked === true)
+            }
             disabled={submitting !== null}
             className="mt-0.5"
           />
-          <Label htmlFor="review-conflict" className="text-xs leading-relaxed text-ink-muted">
-            Saya memiliki potensi konflik kepentingan dengan konten ini dan menandainya
-            untuk transparansi audit.
+          <Label
+            htmlFor="review-conflict"
+            className="text-xs leading-relaxed text-ink-muted"
+          >
+            Saya memiliki potensi konflik kepentingan dengan konten ini dan
+            menandainya untuk transparansi audit.
           </Label>
         </div>
 
@@ -332,8 +365,8 @@ export function ReviewPanel({
             {conflict ? (
               <div className="mt-2 space-y-2 pl-6 text-xs text-ink-muted">
                 <p>
-                  Status saat ini: {conflict.currentStatus ?? "tidak diketahui"} · versi{" "}
-                  {conflict.currentVersion ?? "—"}
+                  Status saat ini: {conflict.currentStatus ?? "tidak diketahui"}{" "}
+                  · versi {conflict.currentVersion ?? "—"}
                 </p>
                 <Button
                   type="button"
@@ -397,8 +430,8 @@ export function ReviewPanel({
         </div>
 
         <p className="text-xs leading-relaxed text-ink-muted">
-          Hanya konten berstatus Disetujui yang dihitung dalam capaian. Keputusan
-          admin selalu dapat ditelusuri melalui jejak audit.
+          Hanya konten berstatus Disetujui yang dihitung dalam capaian.
+          Keputusan admin selalu dapat ditelusuri melalui jejak audit.
         </p>
       </div>
 
@@ -420,7 +453,9 @@ export function ReviewPanel({
             </p>
           ) : null}
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={submitting !== null}>Batal</AlertDialogCancel>
+            <AlertDialogCancel disabled={submitting !== null}>
+              Batal
+            </AlertDialogCancel>
             <AlertDialogAction
               variant={copy?.variant ?? "default"}
               disabled={submitting !== null}

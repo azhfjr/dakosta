@@ -3,6 +3,7 @@ import "server-only";
 import { and, asc, desc, eq, gte, inArray, isNull, sql } from "drizzle-orm";
 
 import { getDb, schema } from "@/db";
+import { cachedRead, invalidateReadCacheEntry } from "@/lib/read-cache";
 
 export type NotificationItem = {
   id: string;
@@ -70,18 +71,30 @@ export async function listNotifications(
   return rows.map(serialize);
 }
 
-export async function getUnreadNotificationCount(recipientId: string): Promise<number> {
-  const [row] = await getDb()
-    .select({ total: sql<number>`count(*)::int` })
-    .from(schema.notifications)
-    .where(
-      and(
-        eq(schema.notifications.recipientId, recipientId),
-        isNull(schema.notifications.readAt),
-      ),
-    );
+function unreadCountKey(recipientId: string): string {
+  return JSON.stringify(["unread-notifications", recipientId]);
+}
 
-  return Number(row?.total ?? 0);
+export async function getUnreadNotificationCount(
+  recipientId: string,
+): Promise<number> {
+  return cachedRead(
+    unreadCountKey(recipientId),
+    async () => {
+      const [row] = await getDb()
+        .select({ total: sql<number>`count(*)::int` })
+        .from(schema.notifications)
+        .where(
+          and(
+            eq(schema.notifications.recipientId, recipientId),
+            isNull(schema.notifications.readAt),
+          ),
+        );
+
+      return Number(row?.total ?? 0);
+    },
+    { ttlMs: 5_000 },
+  );
 }
 
 export async function markNotificationsRead(
@@ -102,10 +115,13 @@ export async function markNotificationsRead(
     )
     .returning({ id: schema.notifications.id });
 
+  invalidateReadCacheEntry(unreadCountKey(recipientId));
   return updated.length;
 }
 
-export async function markAllNotificationsRead(recipientId: string): Promise<number> {
+export async function markAllNotificationsRead(
+  recipientId: string,
+): Promise<number> {
   const updated = await getDb()
     .update(schema.notifications)
     .set({ readAt: new Date() })
@@ -117,6 +133,7 @@ export async function markAllNotificationsRead(recipientId: string): Promise<num
     )
     .returning({ id: schema.notifications.id });
 
+  invalidateReadCacheEntry(unreadCountKey(recipientId));
   return updated.length;
 }
 
@@ -150,10 +167,12 @@ export async function getNotificationsSince(
 
 // Baris outbox dianggap terkirim begitu notifikasi terkait tersimpan dan
 // terbaca relay; relai SSE membaca tabel notifications, bukan outbox.
-export async function drainOutbox(options: {
-  recipientId?: string;
-  limit?: number;
-} = {}): Promise<number> {
+export async function drainOutbox(
+  options: {
+    recipientId?: string;
+    limit?: number;
+  } = {},
+): Promise<number> {
   const limit = Math.min(Math.max(Math.trunc(options.limit ?? 100), 1), 500);
 
   const result = await getDb().execute(sql`

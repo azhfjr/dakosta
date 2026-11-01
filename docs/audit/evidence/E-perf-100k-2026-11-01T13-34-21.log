@@ -1,0 +1,15 @@
+
+> b8cd74b6@0.1.0 perf
+> node scripts/perf-check.mjs
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+page.evaluate: Execution context was destroyed, most likely because of a navigation
+    at C:\Users\PLN\Documents\Qoder\2026-10-30\b8cd74b6\scripts\perf-check.mjs:107:33 {
+  log: [],
+  name: 'Error'
+}
+
+Node.js v22.22.3

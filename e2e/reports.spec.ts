@@ -6,7 +6,13 @@ import {
 } from "@playwright/test";
 
 import { demoPassword } from "./demo-password";
-import { ADMIN_STATE, CLIENT_STATE, baseURL } from "./support";
+import {
+  ADMIN_STATE,
+  BRANCH_STATE,
+  CLIENT_STATE,
+  REGIONAL_STATE,
+  baseURL,
+} from "./support";
 
 type ApiEnvelope<T> = {
   data?: T;
@@ -62,8 +68,8 @@ async function confirmStepUp(context: APIRequestContext): Promise<void> {
   expect(response.status(), await response.text()).toBe(200);
 }
 
-test.describe("Laporan pencapaian PDF", () => {
-  test("Master mengunduh laporan PDF satu klik", async () => {
+test.describe("Laporan Kinerja PDF", () => {
+  test("Master mengunduh laporan Kinerja", async () => {
     const admin = await playwrightRequest.newContext({
       baseURL,
       storageState: ADMIN_STATE,
@@ -71,12 +77,12 @@ test.describe("Laporan pencapaian PDF", () => {
     try {
       const month = jakartaMonth();
       const response = await admin.get(
-        `/api/v1/reports/achievement?month=${month}&source=FASKES_FKTP,FASKES_FKRTL,PEMDA,OTHER`,
+        `/api/v1/reports/performance?period=${month}&pageSize=25`,
       );
       expect(response.status()).toBe(200);
       expect(response.headers()["content-type"]).toContain("application/pdf");
       expect(response.headers()["content-disposition"]).toContain(
-        `attachment; filename="laporan-pencapaian-${month}.pdf"`,
+        `attachment; filename="laporan-kinerja-${month}.pdf"`,
       );
       expect(response.headers()["cache-control"]).toContain("no-store");
 
@@ -88,43 +94,39 @@ test.describe("Laporan pencapaian PDF", () => {
     }
   });
 
-  test("tautan unduh tersedia pada analitik Master dan stakeholder", async ({
+  test("tautan PDF tersedia pada halaman Kinerja wilayah dan cabang", async ({
     browser,
   }) => {
     for (const [state, path] of [
-      [ADMIN_STATE, "/admin/analitik"],
-      [CLIENT_STATE, "/client/analitik"],
+      [REGIONAL_STATE, "/wilayah/kinerja"],
+      [BRANCH_STATE, "/cabang/kinerja"],
     ] as const) {
       const context = await browser.newContext({ storageState: state });
       try {
         const page = await context.newPage();
         await page.goto(path);
-        const link = page
-          .getByRole("link", { name: "Unduh laporan PDF" })
-          .first();
+        const link = page.getByRole("link", { name: "Unduh PDF" }).first();
         await expect(link).toBeVisible();
         const href = await link.getAttribute("href");
-        expect(href).toMatch(/^\/api\/v1\/reports\/achievement\?month=\d{4}-\d{2}/);
-        expect(await link.getAttribute("download")).not.toBeNull();
+        expect(href).toMatch(
+          /^\/api\/v1\/reports\/performance\?period=\d{4}-\d{2}/,
+        );
       } finally {
         await context.close();
       }
     }
   });
 
-  test("stakeholder menerima laporan dalam cakupannya sendiri", async () => {
+  test("stakeholder tidak dapat mengunduh laporan Kinerja", async () => {
     const client = await playwrightRequest.newContext({
       baseURL,
       storageState: CLIENT_STATE,
     });
     try {
       const response = await client.get(
-        `/api/v1/reports/achievement?month=${jakartaMonth()}`,
+        `/api/v1/reports/performance?period=${jakartaMonth()}`,
       );
-      expect(response.status()).toBe(200);
-      expect(response.headers()["content-type"]).toContain("application/pdf");
-      const buffer = Buffer.from(await response.body());
-      expect(buffer.subarray(0, 5).toString()).toBe("%PDF-");
+      expect(response.status()).toBe(403);
     } finally {
       await client.dispose();
     }
@@ -134,7 +136,7 @@ test.describe("Laporan pencapaian PDF", () => {
     const anonymous = await playwrightRequest.newContext({ baseURL });
     try {
       const response = await anonymous.get(
-        `/api/v1/reports/achievement?month=${jakartaMonth()}`,
+        `/api/v1/reports/performance?period=${jakartaMonth()}`,
       );
       expect(response.status()).toBe(401);
     } finally {
@@ -176,7 +178,9 @@ test.describe("Sinkronisasi target Master", () => {
     await expect(dialog).toBeHidden();
 
     await expect(
-      page.getByRole("status").filter({ hasText: `Hasil sinkronisasi ${month}` }),
+      page
+        .getByRole("status")
+        .filter({ hasText: `Hasil sinkronisasi ${month}` }),
     ).toBeVisible();
   });
 

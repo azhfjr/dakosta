@@ -15,11 +15,14 @@ import {
 
 import { getDb, schema } from "@/db";
 import { recordAudit } from "@/lib/audit";
-import { contentScopePredicate, isOrganizationInScope } from "@/lib/authz/predicates";
+import {
+  contentScopePredicate,
+  isOrganizationInScope,
+} from "@/lib/authz/predicates";
 import { errors, AppError } from "@/lib/errors";
 import { CONTENT_STATUSES, type ContentStatus } from "@/lib/content-status";
-import { resolvePrecision } from "@/lib/geo";
 import { drainOutbox } from "@/lib/notifications";
+import { invalidateReadCache } from "@/lib/read-cache";
 import { assertStakeholderAccess, assertCan } from "@/lib/rbac";
 import { generateReferenceCode } from "@/lib/reference";
 import { assertEdufastSelection } from "@/lib/edufast/policy";
@@ -27,10 +30,7 @@ import { duplicateDetails, duplicateMessage } from "@/lib/privacy/duplicate";
 import type { SessionUser } from "@/lib/session";
 import { isSubTheme, SUB_THEME_LABELS } from "@/lib/taxonomy";
 import { normalizePublishedUrl } from "@/lib/url";
-import {
-  type SubmissionInput,
-  type SubmissionLocationInput,
-} from "@/lib/validation/content";
+import { type SubmissionInput } from "@/lib/validation/content";
 
 type Database = ReturnType<typeof getDb>;
 type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
@@ -214,7 +214,10 @@ export async function listSubmissions(
       updatedAt: schema.contentSubmissions.updatedAt,
     })
     .from(schema.contentSubmissions)
-    .leftJoin(schema.themes, eq(schema.themes.id, schema.contentSubmissions.themeId))
+    .leftJoin(
+      schema.themes,
+      eq(schema.themes.id, schema.contentSubmissions.themeId),
+    )
     .innerJoin(
       schema.stakeholders,
       eq(schema.stakeholders.id, schema.contentSubmissions.stakeholderId),
@@ -227,7 +230,9 @@ export async function listSubmissions(
     ...row,
     themeName:
       row.themeName ??
-      (isSubTheme(row.subTheme) ? SUB_THEME_LABELS[row.subTheme] : "Tanpa tema"),
+      (isSubTheme(row.subTheme)
+        ? SUB_THEME_LABELS[row.subTheme]
+        : "Tanpa tema"),
     status: isContentStatus(row.status) ? row.status : "DRAFT",
   }));
 }
@@ -299,7 +304,8 @@ function buildTimeline(
     entries.push({
       key: `review-${review.id}`,
       label,
-      description: review.notes ?? `Keputusan admin untuk versi ${review.version}.`,
+      description:
+        review.notes ?? `Keputusan admin untuk versi ${review.version}.`,
       at: review.createdAt,
     });
   }
@@ -333,12 +339,18 @@ export async function getSubmissionDetail(
       location: schema.locations,
     })
     .from(schema.contentSubmissions)
-    .leftJoin(schema.themes, eq(schema.themes.id, schema.contentSubmissions.themeId))
+    .leftJoin(
+      schema.themes,
+      eq(schema.themes.id, schema.contentSubmissions.themeId),
+    )
     .innerJoin(
       schema.stakeholders,
       eq(schema.stakeholders.id, schema.contentSubmissions.stakeholderId),
     )
-    .innerJoin(schema.locations, eq(schema.locations.id, schema.contentSubmissions.locationId))
+    .innerJoin(
+      schema.locations,
+      eq(schema.locations.id, schema.contentSubmissions.locationId),
+    )
     .where(eq(schema.contentSubmissions.id, submissionId))
     .limit(1);
 
@@ -374,7 +386,10 @@ export async function getSubmissionDetail(
         reviewerName: schema.user.name,
       })
       .from(schema.contentReviews)
-      .innerJoin(schema.user, eq(schema.user.id, schema.contentReviews.reviewerId))
+      .innerJoin(
+        schema.user,
+        eq(schema.user.id, schema.contentReviews.reviewerId),
+      )
       .where(eq(schema.contentReviews.submissionId, submissionId))
       .orderBy(asc(schema.contentReviews.createdAt)),
     db
@@ -386,7 +401,10 @@ export async function getSubmissionDetail(
         actorName: schema.user.name,
       })
       .from(schema.contentRevisions)
-      .innerJoin(schema.user, eq(schema.user.id, schema.contentRevisions.actorId))
+      .innerJoin(
+        schema.user,
+        eq(schema.user.id, schema.contentRevisions.actorId),
+      )
       .where(eq(schema.contentRevisions.submissionId, submissionId))
       .orderBy(asc(schema.contentRevisions.createdAt)),
   ]);
@@ -443,37 +461,30 @@ export async function getSubmissionDetail(
   };
 }
 
-async function insertLocation(
+/**
+ * Content location is derived from the institution verified at onboarding.
+ * It is never supplied per content, so repeated submissions share one row.
+ */
+async function ensureStakeholderLocation(
   tx: Transaction,
-  location: SubmissionLocationInput,
-  fallbackLabel: string,
+  stakeholder: {
+    id: string;
+    name: string;
+    latitude: number;
+    longitude: number;
+  },
 ) {
-  const precision = resolvePrecision(location.source, location.accuracyMeters ?? null);
+  const [existing] = await tx
+    .select({ id: schema.locations.id })
+    .from(schema.locations)
+    .where(eq(schema.locations.stakeholderId, stakeholder.id))
+    .limit(1);
+  if (existing) return existing.id;
+
   const [row] = await tx
     .insert(schema.locations)
     .values({
-      latitude: location.latitude,
-      longitude: location.longitude,
-      label: location.label || fallbackLabel,
-      source: location.source,
-      accuracyMeters: location.accuracyMeters ?? null,
-      consentAt: location.source === "device_gps" ? new Date() : null,
-      verifiedStatus: location.source === "device_gps" ? "VERIFIED" : "MANUAL_UNVERIFIED",
-      precision,
-    })
-    .returning({ id: schema.locations.id });
-
-  if (!row) throw errors.server("Lokasi konten tidak dapat disimpan.");
-  return row.id;
-}
-
-async function insertRegisteredPlaceholderLocation(
-  tx: Transaction,
-  stakeholder: { id: string; name: string; latitude: number; longitude: number },
-) {
-  const [row] = await tx
-    .insert(schema.locations)
-    .values({
+      stakeholderId: stakeholder.id,
       latitude: stakeholder.latitude,
       longitude: stakeholder.longitude,
       label: `${stakeholder.name} (lokasi terdaftar)`,
@@ -504,7 +515,10 @@ async function notifyAdmins(
   const recipients = await tx
     .select({ id: schema.user.id, role: schema.userMemberships.role })
     .from(schema.user)
-    .innerJoin(schema.userProfiles, eq(schema.userProfiles.userId, schema.user.id))
+    .innerJoin(
+      schema.userProfiles,
+      eq(schema.userProfiles.userId, schema.user.id),
+    )
     .innerJoin(
       schema.userMemberships,
       eq(schema.userMemberships.userId, schema.user.id),
@@ -598,7 +612,6 @@ function snapshotFor(input: {
   subTheme?: string | null;
   dateCreated: string;
   publishedAt: string | null;
-  location: SubmissionLocationInput | null;
 }): Record<string, unknown> {
   return {
     title: input.title,
@@ -611,14 +624,6 @@ function snapshotFor(input: {
     subTheme: input.subTheme ?? null,
     dateCreated: input.dateCreated,
     publishedAt: input.publishedAt,
-    location: input.location
-      ? {
-          latitude: input.location.latitude,
-          longitude: input.location.longitude,
-          label: input.location.label,
-          source: input.location.source,
-        }
-      : null,
   };
 }
 
@@ -676,8 +681,13 @@ export async function saveSubmission(
       latitude: schema.stakeholders.latitude,
       longitude: schema.stakeholders.longitude,
       branchOfficeId: schema.stakeholders.branchOfficeId,
+      regionalOfficeId: schema.branchOffices.regionalOfficeId,
     })
     .from(schema.stakeholders)
+    .leftJoin(
+      schema.branchOffices,
+      eq(schema.branchOffices.id, schema.stakeholders.branchOfficeId),
+    )
     .where(
       and(
         eq(schema.stakeholders.id, stakeholderId),
@@ -732,7 +742,10 @@ export async function saveSubmission(
   }
 
   const duplicateConditions: SQL[] = [
-    eq(schema.contentSubmissions.normalizedUrlHash, normalized.normalizedUrlHash),
+    eq(
+      schema.contentSubmissions.normalizedUrlHash,
+      normalized.normalizedUrlHash,
+    ),
     ne(schema.contentSubmissions.status, "ARCHIVED"),
   ];
   if (existing) {
@@ -777,7 +790,10 @@ export async function saveSubmission(
 
   if (existing) {
     const isResubmission = existing.status === "REVISION_REQUIRED";
-    const nextVersion = input.action === "SUBMIT" && isResubmission ? existing.version + 1 : existing.version;
+    const nextVersion =
+      input.action === "SUBMIT" && isResubmission
+        ? existing.version + 1
+        : existing.version;
     const nextStatus: ContentStatus =
       input.action === "SUBMIT"
         ? isResubmission
@@ -787,9 +803,7 @@ export async function saveSubmission(
 
     try {
       await db.transaction(async (tx) => {
-        const locationId = input.location
-          ? await insertLocation(tx, input.location, `${stakeholder.name} — lokasi konten`)
-          : existing!.locationId;
+        const locationId = existing!.locationId;
 
         const [updated] = await tx
           .update(schema.contentSubmissions)
@@ -815,14 +829,28 @@ export async function saveSubmission(
             status: nextStatus,
             version: nextVersion,
             idempotencyKey: input.idempotencyKey,
-            submittedAt: input.action === "SUBMIT" ? now : existing!.submittedAt,
+            branchOfficeId:
+              existing!.branchOfficeId ?? stakeholder.branchOfficeId ?? null,
+            regionalOfficeId:
+              existing!.regionalOfficeId ??
+              stakeholder.regionalOfficeId ??
+              null,
+            firstSubmittedAt:
+              input.action === "SUBMIT"
+                ? (existing!.firstSubmittedAt ?? now)
+                : existing!.firstSubmittedAt,
+            submittedAt:
+              input.action === "SUBMIT" ? now : existing!.submittedAt,
             updatedAt: now,
           })
           .where(
             and(
               eq(schema.contentSubmissions.id, existing!.id),
               eq(schema.contentSubmissions.createdBy, user.id),
-              inArray(schema.contentSubmissions.status, ["DRAFT", "REVISION_REQUIRED"]),
+              inArray(schema.contentSubmissions.status, [
+                "DRAFT",
+                "REVISION_REQUIRED",
+              ]),
             ),
           )
           .returning();
@@ -850,7 +878,6 @@ export async function saveSubmission(
                 subTheme: taxonomy.subTheme,
                 dateCreated: input.dateCreated,
                 publishedAt,
-                location: input.location ?? null,
               }),
               actorId: user.id,
               reason: isResubmission
@@ -873,7 +900,10 @@ export async function saveSubmission(
         await tx.insert(schema.auditLogs).values({
           actorId: user.id,
           actorRole: user.role,
-          action: input.action === "SUBMIT" ? "CONTENT_SUBMITTED" : "CONTENT_DRAFT_SAVED",
+          action:
+            input.action === "SUBMIT"
+              ? "CONTENT_SUBMITTED"
+              : "CONTENT_DRAFT_SAVED",
           recordType: "CONTENT_SUBMISSION",
           recordId: updated.id,
           before: { status: existing!.status, version: existing!.version },
@@ -899,7 +929,9 @@ export async function saveSubmission(
         .where(eq(schema.contentSubmissions.id, existing.id))
         .limit(1);
 
-      if (!fresh) throw errors.server("Konten tidak dapat dimuat setelah disimpan.");
+      if (!fresh)
+        throw errors.server("Konten tidak dapat dimuat setelah disimpan.");
+      invalidateReadCache();
       return toSaved(fresh);
     } catch (error) {
       const [retryMatch] = await db
@@ -920,13 +952,12 @@ export async function saveSubmission(
 
   for (let attempt = 0; attempt < 4; attempt += 1) {
     const referenceCode = generateReferenceCode(now);
-    const status: ContentStatus = input.action === "SUBMIT" ? "SUBMITTED" : "DRAFT";
+    const status: ContentStatus =
+      input.action === "SUBMIT" ? "SUBMITTED" : "DRAFT";
 
     try {
       const created = await db.transaction(async (tx) => {
-        const locationId = input.location
-          ? await insertLocation(tx, input.location, `${stakeholder.name} — lokasi konten`)
-          : await insertRegisteredPlaceholderLocation(tx, stakeholder);
+        const locationId = await ensureStakeholderLocation(tx, stakeholder);
 
         const [row] = await tx
           .insert(schema.contentSubmissions)
@@ -954,6 +985,9 @@ export async function saveSubmission(
             status,
             version: 1,
             idempotencyKey: input.idempotencyKey,
+            branchOfficeId: stakeholder.branchOfficeId ?? null,
+            regionalOfficeId: stakeholder.regionalOfficeId ?? null,
+            firstSubmittedAt: input.action === "SUBMIT" ? now : null,
             submittedAt: input.action === "SUBMIT" ? now : null,
             archived: false,
             isDemo: false,
@@ -979,7 +1013,6 @@ export async function saveSubmission(
               subTheme: taxonomy.subTheme,
               dateCreated: input.dateCreated,
               publishedAt,
-              location: input.location ?? null,
             }),
             actorId: user.id,
             reason: "Pengiriman untuk validasi.",
@@ -999,7 +1032,10 @@ export async function saveSubmission(
         await tx.insert(schema.auditLogs).values({
           actorId: user.id,
           actorRole: user.role,
-          action: input.action === "SUBMIT" ? "CONTENT_SUBMITTED" : "CONTENT_DRAFT_SAVED",
+          action:
+            input.action === "SUBMIT"
+              ? "CONTENT_SUBMITTED"
+              : "CONTENT_DRAFT_SAVED",
           recordType: "CONTENT_SUBMISSION",
           recordId: row.id,
           before: null,
@@ -1021,6 +1057,7 @@ export async function saveSubmission(
         });
       }
 
+      invalidateReadCache();
       return toSaved(created, true);
     } catch (error) {
       if (isUniqueViolation(error)) {
@@ -1030,7 +1067,10 @@ export async function saveSubmission(
           .where(
             and(
               eq(schema.contentSubmissions.createdBy, user.id),
-              eq(schema.contentSubmissions.idempotencyKey, input.idempotencyKey),
+              eq(
+                schema.contentSubmissions.idempotencyKey,
+                input.idempotencyKey,
+              ),
             ),
           )
           .limit(1);

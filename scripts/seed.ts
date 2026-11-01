@@ -58,7 +58,11 @@ function localDateDaysAgo(days: number): string {
   return jakartaDate.format(new Date(Date.now() - days * DAY_MS));
 }
 
-function monthPeriod(offsetMonths = 0): { key: string; start: string; end: string } {
+function monthPeriod(offsetMonths = 0): {
+  key: string;
+  start: string;
+  end: string;
+} {
   const today = localDateDaysAgo(0);
   const [year, month] = today.split("-").map(Number) as [number, number];
   const base = new Date(Date.UTC(year, month - 1 + offsetMonths, 1));
@@ -86,18 +90,90 @@ const BRANCHES = [
 ] as const;
 
 const USERS = [
-  { n: 1, name: "Ratu Sevilla Hizriyah", email: DEMO_ACCOUNTS.admin.email, role: "MASTER_ADMIN", title: "Master Admin DAKOSTA" },
-  { n: 2, name: "Ayu Larasati", email: DEMO_ACCOUNTS.regional.email, role: "REGIONAL_ADMIN", title: "Admin Regional Jawa Barat" },
-  { n: 3, name: "Bima Prasetyo", email: DEMO_ACCOUNTS.regionalB.email, role: "REGIONAL_ADMIN", title: "Admin Regional DKI Jakarta" },
-  { n: 4, name: "Citra Maharani", email: DEMO_ACCOUNTS.branch.email, role: "BRANCH_ADMIN", title: "Admin Cabang Bandung Kota" },
-  { n: 5, name: "Damar Wijaya", email: "cabang.a2@demo.dakosta.local", role: "BRANCH_ADMIN", title: "Admin Cabang Kabupaten Bandung" },
-  { n: 6, name: "Eka Nuraini", email: "cabang.b1@demo.dakosta.local", role: "BRANCH_ADMIN", title: "Admin Cabang Jakarta Pusat" },
-  { n: 7, name: "Nadia Prameswari", email: DEMO_ACCOUNTS.client.email, role: "STAKEHOLDER", title: "Koordinator Konten Klinik Sehat Nusantara" },
-  { n: 8, name: "Bagas Aryasatya", email: "mitra.cahaya@demo.dakosta.local", role: "STAKEHOLDER", title: "Humas Puskesmas Cahaya Sehat" },
-  { n: 9, name: "Sekar Wulandari", email: "mitra.bunda@demo.dakosta.local", role: "STAKEHOLDER", title: "Tim Komunikasi Klinik Mitra Bunda" },
-  { n: 10, name: "Fajar Ramadhan", email: "mitra.cimahi@demo.dakosta.local", role: "STAKEHOLDER", title: "Humas Puskesmas Cimahi" },
-  { n: 11, name: "Gita Puspita", email: "mitra.jkt@demo.dakosta.local", role: "STAKEHOLDER", title: "Humas Puskesmas Jakarta Pusat" },
-  { n: 12, name: "Rina Kartika", email: "mitra.prima@demo.dakosta.local", role: "STAKEHOLDER", title: "Humas Laboratorium Prima Diagnostik" },
+  {
+    n: 1,
+    name: "Ratu Sevilla Hizriyah",
+    email: DEMO_ACCOUNTS.admin.email,
+    role: "MASTER_ADMIN",
+    title: "Master Admin DAKOSTA",
+  },
+  {
+    n: 2,
+    name: "Ayu Larasati",
+    email: DEMO_ACCOUNTS.regional.email,
+    role: "REGIONAL_ADMIN",
+    title: "Admin Regional Jawa Barat",
+  },
+  {
+    n: 3,
+    name: "Bima Prasetyo",
+    email: DEMO_ACCOUNTS.regionalB.email,
+    role: "REGIONAL_ADMIN",
+    title: "Admin Regional DKI Jakarta",
+  },
+  {
+    n: 4,
+    name: "Citra Maharani",
+    email: DEMO_ACCOUNTS.branch.email,
+    role: "BRANCH_ADMIN",
+    title: "Admin Cabang Bandung Kota",
+  },
+  {
+    n: 5,
+    name: "Damar Wijaya",
+    email: "cabang.a2@demo.dakosta.local",
+    role: "BRANCH_ADMIN",
+    title: "Admin Cabang Kabupaten Bandung",
+  },
+  {
+    n: 6,
+    name: "Eka Nuraini",
+    email: "cabang.b1@demo.dakosta.local",
+    role: "BRANCH_ADMIN",
+    title: "Admin Cabang Jakarta Pusat",
+  },
+  {
+    n: 7,
+    name: "Nadia Prameswari",
+    email: DEMO_ACCOUNTS.client.email,
+    role: "STAKEHOLDER",
+    title: "Koordinator Konten Klinik Sehat Nusantara",
+  },
+  {
+    n: 8,
+    name: "Bagas Aryasatya",
+    email: "mitra.cahaya@demo.dakosta.local",
+    role: "STAKEHOLDER",
+    title: "Humas Puskesmas Cahaya Sehat",
+  },
+  {
+    n: 9,
+    name: "Sekar Wulandari",
+    email: "mitra.bunda@demo.dakosta.local",
+    role: "STAKEHOLDER",
+    title: "Tim Komunikasi Klinik Mitra Bunda",
+  },
+  {
+    n: 10,
+    name: "Fajar Ramadhan",
+    email: "mitra.cimahi@demo.dakosta.local",
+    role: "STAKEHOLDER",
+    title: "Humas Puskesmas Cimahi",
+  },
+  {
+    n: 11,
+    name: "Gita Puspita",
+    email: "mitra.jkt@demo.dakosta.local",
+    role: "STAKEHOLDER",
+    title: "Humas Puskesmas Jakarta Pusat",
+  },
+  {
+    n: 12,
+    name: "Rina Kartika",
+    email: "mitra.prima@demo.dakosta.local",
+    role: "STAKEHOLDER",
+    title: "Humas Laboratorium Prima Diagnostik",
+  },
 ] as const;
 
 // scope: [role, regionId?, branchId?, organizationId?]
@@ -109,71 +185,524 @@ const MEMBERSHIPS: Array<{
   branch: number | null;
   organization: number | null;
 }> = [
-  { n: 1, user: 1, role: "MASTER_ADMIN", region: null, branch: null, organization: null },
-  { n: 2, user: 2, role: "REGIONAL_ADMIN", region: 1, branch: null, organization: null },
-  { n: 3, user: 3, role: "REGIONAL_ADMIN", region: 2, branch: null, organization: null },
-  { n: 4, user: 4, role: "BRANCH_ADMIN", region: null, branch: 1, organization: null },
-  { n: 5, user: 5, role: "BRANCH_ADMIN", region: null, branch: 2, organization: null },
-  { n: 6, user: 6, role: "BRANCH_ADMIN", region: null, branch: 3, organization: null },
-  { n: 7, user: 7, role: "STAKEHOLDER", region: null, branch: null, organization: 1 },
-  { n: 8, user: 8, role: "STAKEHOLDER", region: null, branch: null, organization: 2 },
-  { n: 9, user: 9, role: "STAKEHOLDER", region: null, branch: null, organization: 3 },
-  { n: 10, user: 10, role: "STAKEHOLDER", region: null, branch: null, organization: 9 },
-  { n: 11, user: 11, role: "STAKEHOLDER", region: null, branch: null, organization: 12 },
-  { n: 12, user: 12, role: "STAKEHOLDER", region: null, branch: null, organization: 7 },
+  {
+    n: 1,
+    user: 1,
+    role: "MASTER_ADMIN",
+    region: null,
+    branch: null,
+    organization: null,
+  },
+  {
+    n: 2,
+    user: 2,
+    role: "REGIONAL_ADMIN",
+    region: 1,
+    branch: null,
+    organization: null,
+  },
+  {
+    n: 3,
+    user: 3,
+    role: "REGIONAL_ADMIN",
+    region: 2,
+    branch: null,
+    organization: null,
+  },
+  {
+    n: 4,
+    user: 4,
+    role: "BRANCH_ADMIN",
+    region: null,
+    branch: 1,
+    organization: null,
+  },
+  {
+    n: 5,
+    user: 5,
+    role: "BRANCH_ADMIN",
+    region: null,
+    branch: 2,
+    organization: null,
+  },
+  {
+    n: 6,
+    user: 6,
+    role: "BRANCH_ADMIN",
+    region: null,
+    branch: 3,
+    organization: null,
+  },
+  {
+    n: 7,
+    user: 7,
+    role: "STAKEHOLDER",
+    region: null,
+    branch: null,
+    organization: 1,
+  },
+  {
+    n: 8,
+    user: 8,
+    role: "STAKEHOLDER",
+    region: null,
+    branch: null,
+    organization: 2,
+  },
+  {
+    n: 9,
+    user: 9,
+    role: "STAKEHOLDER",
+    region: null,
+    branch: null,
+    organization: 3,
+  },
+  {
+    n: 10,
+    user: 10,
+    role: "STAKEHOLDER",
+    region: null,
+    branch: null,
+    organization: 9,
+  },
+  {
+    n: 11,
+    user: 11,
+    role: "STAKEHOLDER",
+    region: null,
+    branch: null,
+    organization: 12,
+  },
+  {
+    n: 12,
+    user: 12,
+    role: "STAKEHOLDER",
+    region: null,
+    branch: null,
+    organization: 7,
+  },
 ];
 
 const ORGANIZATIONS = [
-  { n: 1, branch: 1, name: "Klinik Sehat Nusantara", type: "FASKES", class: "FKTP", code: "FKTP-BDG-001", category: "FASKES", area: "Kecamatan Sumur Bandung", lat: -6.9147, lng: 107.6098, precision: "exact" },
-  { n: 2, branch: 1, name: "Puskesmas Cahaya Sehat", type: "FASKES", class: "FKTP", code: "FKTP-BDG-002", category: "FASKES", area: "Kecamatan Coblong", lat: -6.8975, lng: 107.6102, precision: "exact" },
-  { n: 3, branch: 1, name: "Klinik Mitra Bunda", type: "FASKES", class: "FKTP", code: "FKTP-BDG-003", category: "FASKES", area: "Kecamatan Lengkong", lat: -6.9331, lng: 107.5842, precision: "approximate" },
-  { n: 4, branch: 1, name: "RSUD Bandung", type: "FASKES", class: "FKRTL", code: "FKRTL-BDG-001", category: "FASKES", area: "Kecamatan Regol", lat: -6.9387, lng: 107.6089, precision: "exact" },
-  { n: 5, branch: 1, name: "Apotek Amanah Farma", type: "OTHER", class: null, code: null, category: "ORGANISASI", area: "Kecamatan Bandung Wetan", lat: -6.9021, lng: 107.6187, precision: "exact" },
-  { n: 6, branch: 1, name: "Media Kesehatan Bandung", type: "OTHER", class: null, code: null, category: "MEDIA", area: "Kota Bandung", lat: -6.921, lng: 107.641, precision: "approximate" },
-  { n: 7, branch: 2, name: "Laboratorium Prima Diagnostik", type: "FASKES", class: "FKRTL", code: "FKRTL-BDG-002", category: "FASKES", area: "Kecamatan Cicendo", lat: -6.8877, lng: 107.5982, precision: "exact" },
-  { n: 8, branch: 2, name: "Organisasi Peduli Sehat", type: "OTHER", class: null, code: null, category: "ORGANISASI", area: "Kota Bandung", lat: -6.9552, lng: 107.6121, precision: "approximate" },
-  { n: 9, branch: 2, name: "Puskesmas Cimahi Tengah", type: "FASKES", class: "FKTP", code: "FKTP-KBB-001", category: "FASKES", area: "Kecamatan Cimahi Tengah", lat: -6.8722, lng: 107.5425, precision: "exact" },
-  { n: 10, branch: 1, name: "Dinas Kesehatan Kota Bandung", type: "PEMDA", class: null, code: null, category: "INSTANSI", area: "Kota Bandung", lat: -6.9175, lng: 107.6191, precision: "exact" },
-  { n: 11, branch: 2, name: "Klinik Sehat Bersama", type: "FASKES", class: "FKTP", code: "FKTP-BDG-004", category: "FASKES", area: "Kecamatan Margahayu", lat: -6.9589, lng: 107.5712, precision: "approximate" },
-  { n: 12, branch: 3, name: "Puskesmas Jakarta Pusat", type: "FASKES", class: "FKTP", code: "FKTP-JKT-001", category: "FASKES", area: "Kecamatan Gambir", lat: -6.1767, lng: 106.8272, precision: "exact" },
+  {
+    n: 1,
+    branch: 1,
+    name: "Klinik Sehat Nusantara",
+    type: "FASKES",
+    class: "FKTP",
+    code: "FKTP-BDG-001",
+    category: "FASKES",
+    area: "Kecamatan Sumur Bandung",
+    lat: -6.9147,
+    lng: 107.6098,
+    precision: "exact",
+  },
+  {
+    n: 2,
+    branch: 1,
+    name: "Puskesmas Cahaya Sehat",
+    type: "FASKES",
+    class: "FKTP",
+    code: "FKTP-BDG-002",
+    category: "FASKES",
+    area: "Kecamatan Coblong",
+    lat: -6.8975,
+    lng: 107.6102,
+    precision: "exact",
+  },
+  {
+    n: 3,
+    branch: 1,
+    name: "Klinik Mitra Bunda",
+    type: "FASKES",
+    class: "FKTP",
+    code: "FKTP-BDG-003",
+    category: "FASKES",
+    area: "Kecamatan Lengkong",
+    lat: -6.9331,
+    lng: 107.5842,
+    precision: "approximate",
+  },
+  {
+    n: 4,
+    branch: 1,
+    name: "RSUD Bandung",
+    type: "FASKES",
+    class: "FKRTL",
+    code: "FKRTL-BDG-001",
+    category: "FASKES",
+    area: "Kecamatan Regol",
+    lat: -6.9387,
+    lng: 107.6089,
+    precision: "exact",
+  },
+  {
+    n: 5,
+    branch: 1,
+    name: "Apotek Amanah Farma",
+    type: "OTHER",
+    class: null,
+    code: null,
+    category: "ORGANISASI",
+    area: "Kecamatan Bandung Wetan",
+    lat: -6.9021,
+    lng: 107.6187,
+    precision: "exact",
+  },
+  {
+    n: 6,
+    branch: 1,
+    name: "Media Kesehatan Bandung",
+    type: "OTHER",
+    class: null,
+    code: null,
+    category: "MEDIA",
+    area: "Kota Bandung",
+    lat: -6.921,
+    lng: 107.641,
+    precision: "approximate",
+  },
+  {
+    n: 7,
+    branch: 2,
+    name: "Laboratorium Prima Diagnostik",
+    type: "FASKES",
+    class: "FKRTL",
+    code: "FKRTL-BDG-002",
+    category: "FASKES",
+    area: "Kecamatan Cicendo",
+    lat: -6.8877,
+    lng: 107.5982,
+    precision: "exact",
+  },
+  {
+    n: 8,
+    branch: 2,
+    name: "Organisasi Peduli Sehat",
+    type: "OTHER",
+    class: null,
+    code: null,
+    category: "ORGANISASI",
+    area: "Kota Bandung",
+    lat: -6.9552,
+    lng: 107.6121,
+    precision: "approximate",
+  },
+  {
+    n: 9,
+    branch: 2,
+    name: "Puskesmas Cimahi Tengah",
+    type: "FASKES",
+    class: "FKTP",
+    code: "FKTP-KBB-001",
+    category: "FASKES",
+    area: "Kecamatan Cimahi Tengah",
+    lat: -6.8722,
+    lng: 107.5425,
+    precision: "exact",
+  },
+  {
+    n: 10,
+    branch: 1,
+    name: "Dinas Kesehatan Kota Bandung",
+    type: "PEMDA",
+    class: null,
+    code: null,
+    category: "INSTANSI",
+    area: "Kota Bandung",
+    lat: -6.9175,
+    lng: 107.6191,
+    precision: "exact",
+  },
+  {
+    n: 11,
+    branch: 2,
+    name: "Klinik Sehat Bersama",
+    type: "FASKES",
+    class: "FKTP",
+    code: "FKTP-BDG-004",
+    category: "FASKES",
+    area: "Kecamatan Margahayu",
+    lat: -6.9589,
+    lng: 107.5712,
+    precision: "approximate",
+  },
+  {
+    n: 12,
+    branch: 3,
+    name: "Puskesmas Jakarta Pusat",
+    type: "FASKES",
+    class: "FKTP",
+    code: "FKTP-JKT-001",
+    category: "FASKES",
+    area: "Kecamatan Gambir",
+    lat: -6.1767,
+    lng: 106.8272,
+    precision: "exact",
+  },
 ] as const;
 
 const THEMES = [
-  { n: 1, slug: "edukasi-jkn", name: "Edukasi JKN", description: "Pemahaman hak, alur, dan manfaat layanan JKN bagi peserta." },
-  { n: 2, slug: "layanan-primer", name: "Layanan Primer", description: "Penguatan faskes primer, antrean, dan mutu layanan dasar." },
-  { n: 3, slug: "kesehatan-ibu-anak", name: "Kesehatan Ibu & Anak", description: "Kehamilan, persalinan, tumbuh kembang, dan gizi anak." },
-  { n: 4, slug: "pencegahan-penyakit", name: "Pencegahan Penyakit", description: "Skrining, imunisasi, dan kampanye hidup sehat." },
-  { n: 5, slug: "transformasi-digital", name: "Transformasi Digital", description: "Layanan digital, data, dan transparansi informasi." },
+  {
+    n: 1,
+    slug: "edukasi-jkn",
+    name: "Edukasi JKN",
+    description: "Pemahaman hak, alur, dan manfaat layanan JKN bagi peserta.",
+  },
+  {
+    n: 2,
+    slug: "layanan-primer",
+    name: "Layanan Primer",
+    description: "Penguatan faskes primer, antrean, dan mutu layanan dasar.",
+  },
+  {
+    n: 3,
+    slug: "kesehatan-ibu-anak",
+    name: "Kesehatan Ibu & Anak",
+    description: "Kehamilan, persalinan, tumbuh kembang, dan gizi anak.",
+  },
+  {
+    n: 4,
+    slug: "pencegahan-penyakit",
+    name: "Pencegahan Penyakit",
+    description: "Skrining, imunisasi, dan kampanye hidup sehat.",
+  },
+  {
+    n: 5,
+    slug: "transformasi-digital",
+    name: "Transformasi Digital",
+    description: "Layanan digital, data, dan transparansi informasi.",
+  },
 ] as const;
 
 const CONTENT = [
-  { title: "Edukasi alur rujukan berjenjang bagi peserta JKN", status: "APPROVED", days: 3, org: 1, type: "VIDEO", main: "EDUFAST", sub: "MOBILE_JKN" },
-  { title: "Panduan memeriksa status kepesertaan JKN", status: "APPROVED", days: 7, org: 2, type: "INFOGRAFIS", main: "EDUFAST", sub: "ALUR_BEROBAT" },
-  { title: "Skrining hipertensi gratis di balai warga", status: "APPROVED", days: 12, org: 3, type: "INFOGRAFIS", main: "NON_EDUFAST", sub: "INFORMASI" },
-  { title: "Kelas ibu hamil: gizi seimbang trimester ketiga", status: "APPROVED", days: 18, org: 7, type: "VIDEO", main: "NON_EDUFAST", sub: "EDUKATIF_PERSUASIF" },
-  { title: "Antrean daring layanan primer kini lebih tertib", status: "APPROVED", days: 25, org: 9, type: "VIDEO", main: "NON_EDUFAST", sub: "MOBILE_JKN" },
-  { title: "Testimoni peserta JKN setelah berobat di FKTP", status: "APPROVED", days: 33, org: 1, type: "VIDEO", main: "EDUFAST", sub: "TESTIMONI_PESERTA" },
-  { title: "Alur berobat peserta JKN di fasilitas kesehatan", status: "APPROVED", days: 40, org: 2, type: "INFOGRAFIS", main: "EDUFAST", sub: "ALUR_BEROBAT" },
-  { title: "Imunisasi dasar lengkap: jadwal dan manfaat", status: "APPROVED", days: 45, org: 12, type: "INFOGRAFIS", main: "NON_EDUFAST", sub: "INFORMASI" },
-  { title: "Pendampingan lansia di puskesmas pembantu", status: "APPROVED", days: 50, org: 3, type: "VIDEO", main: "NON_EDUFAST", sub: "KORPORAT" },
-  { title: "Transparansi biaya layanan di klinik mitra", status: "APPROVED", days: 58, org: 7, type: "INFOGRAFIS", main: "NON_EDUFAST", sub: "INFORMASI" },
-  { title: "Nutrisi seimbang untuk anak usia sekolah", status: "APPROVED", days: 64, org: 9, type: "VIDEO", main: "NON_EDUFAST", sub: "EDUKATIF_PERSUASIF" },
-  { title: "Pemeriksaan gigi berkala untuk keluarga", status: "APPROVED", days: 72, org: 12, type: "INFOGRAFIS", main: "NON_EDUFAST", sub: "KORPORAT" },
-  { title: "Edukasi cuci tangan dan sanitasi dasar", status: "SUBMITTED", days: 1, org: 1, type: "INFOGRAFIS", main: "NON_EDUFAST", sub: "INFORMASI" },
-  { title: "Konsultasi dokter daring: kapan perlu?", status: "SUBMITTED", days: 2, org: 7, type: "VIDEO", main: "NON_EDUFAST", sub: "MOBILE_JKN" },
-  { title: "Deteksi dini anemia pada remaja putri", status: "SUBMITTED", days: 4, org: 9, type: "INFOGRAFIS", main: "NON_EDUFAST", sub: "EDUKATIF_PERSUASIF" },
-  { title: "Alur pengaduan layanan yang mudah", status: "IN_REVIEW", days: 6, org: 2, type: "INFOGRAFIS", main: "NON_EDUFAST", sub: "INFORMASI" },
-  { title: "Kesehatan mental remaja: ruang aman", status: "IN_REVIEW", days: 9, org: 12, type: "VIDEO", main: "NON_EDUFAST", sub: "EDUKATIF_PERSUASIF" },
-  { title: "Pemeriksaan laboratorium tanpa antre", status: "REVISION_REQUIRED", days: 20, org: 3, type: "VIDEO", main: "NON_EDUFAST", sub: "INFORMASI" },
-  { title: "Rujukan cepat untuk kasus darurat", status: "REVISION_REQUIRED", days: 27, org: 9, type: "INFOGRAFIS", main: "EDUFAST", sub: "ALUR_BEROBAT" },
-  { title: "Kampanye vaksinasi dewasa", status: "REJECTED", days: 15, org: 7, type: "VIDEO", main: "NON_EDUFAST", sub: "INFORMASI" },
-  { title: "Pola makan untuk penderita diabetes", status: "REJECTED", days: 44, org: 12, type: "INFOGRAFIS", main: "NON_EDUFAST", sub: "EDUKATIF_PERSUASIF" },
-  { title: "Pendampingan persalinan aman", status: "REVOKED", days: 22, org: 1, type: "VIDEO", main: "NON_EDUFAST", sub: "INFORMASI" },
-  { title: "Rekam medis elektronik dan privasi pasien", status: "ARCHIVED", days: 60, org: 2, type: "INFOGRAFIS", main: "NON_EDUFAST", sub: "INFORMASI" },
-  { title: "Gotong royong sehat di lingkungan RT", status: "DRAFT", days: 0, org: 3, type: "INFOGRAFIS", main: "NON_EDUFAST", sub: "KORPORAT" },
+  {
+    title: "Edukasi alur rujukan berjenjang bagi peserta JKN",
+    status: "APPROVED",
+    days: 3,
+    org: 1,
+    type: "VIDEO",
+    main: "EDUFAST",
+    sub: "MOBILE_JKN",
+  },
+  {
+    title: "Panduan memeriksa status kepesertaan JKN",
+    status: "APPROVED",
+    days: 7,
+    org: 2,
+    type: "INFOGRAFIS",
+    main: "EDUFAST",
+    sub: "ALUR_BEROBAT",
+  },
+  {
+    title: "Skrining hipertensi gratis di balai warga",
+    status: "APPROVED",
+    days: 12,
+    org: 3,
+    type: "INFOGRAFIS",
+    main: "NON_EDUFAST",
+    sub: "INFORMASI",
+  },
+  {
+    title: "Kelas ibu hamil: gizi seimbang trimester ketiga",
+    status: "APPROVED",
+    days: 18,
+    org: 7,
+    type: "VIDEO",
+    main: "NON_EDUFAST",
+    sub: "EDUKATIF_PERSUASIF",
+  },
+  {
+    title: "Antrean daring layanan primer kini lebih tertib",
+    status: "APPROVED",
+    days: 25,
+    org: 9,
+    type: "VIDEO",
+    main: "NON_EDUFAST",
+    sub: "MOBILE_JKN",
+  },
+  {
+    title: "Testimoni peserta JKN setelah berobat di FKTP",
+    status: "APPROVED",
+    days: 33,
+    org: 1,
+    type: "VIDEO",
+    main: "EDUFAST",
+    sub: "TESTIMONI_PESERTA",
+  },
+  {
+    title: "Alur berobat peserta JKN di fasilitas kesehatan",
+    status: "APPROVED",
+    days: 40,
+    org: 2,
+    type: "INFOGRAFIS",
+    main: "EDUFAST",
+    sub: "ALUR_BEROBAT",
+  },
+  {
+    title: "Imunisasi dasar lengkap: jadwal dan manfaat",
+    status: "APPROVED",
+    days: 45,
+    org: 12,
+    type: "INFOGRAFIS",
+    main: "NON_EDUFAST",
+    sub: "INFORMASI",
+  },
+  {
+    title: "Pendampingan lansia di puskesmas pembantu",
+    status: "APPROVED",
+    days: 50,
+    org: 3,
+    type: "VIDEO",
+    main: "NON_EDUFAST",
+    sub: "KORPORAT",
+  },
+  {
+    title: "Transparansi biaya layanan di klinik mitra",
+    status: "APPROVED",
+    days: 58,
+    org: 7,
+    type: "INFOGRAFIS",
+    main: "NON_EDUFAST",
+    sub: "INFORMASI",
+  },
+  {
+    title: "Nutrisi seimbang untuk anak usia sekolah",
+    status: "APPROVED",
+    days: 64,
+    org: 9,
+    type: "VIDEO",
+    main: "NON_EDUFAST",
+    sub: "EDUKATIF_PERSUASIF",
+  },
+  {
+    title: "Pemeriksaan gigi berkala untuk keluarga",
+    status: "APPROVED",
+    days: 72,
+    org: 12,
+    type: "INFOGRAFIS",
+    main: "NON_EDUFAST",
+    sub: "KORPORAT",
+  },
+  {
+    title: "Edukasi cuci tangan dan sanitasi dasar",
+    status: "SUBMITTED",
+    days: 1,
+    org: 1,
+    type: "INFOGRAFIS",
+    main: "NON_EDUFAST",
+    sub: "INFORMASI",
+  },
+  {
+    title: "Konsultasi dokter daring: kapan perlu?",
+    status: "SUBMITTED",
+    days: 2,
+    org: 7,
+    type: "VIDEO",
+    main: "NON_EDUFAST",
+    sub: "MOBILE_JKN",
+  },
+  {
+    title: "Deteksi dini anemia pada remaja putri",
+    status: "SUBMITTED",
+    days: 4,
+    org: 9,
+    type: "INFOGRAFIS",
+    main: "NON_EDUFAST",
+    sub: "EDUKATIF_PERSUASIF",
+  },
+  {
+    title: "Alur pengaduan layanan yang mudah",
+    status: "IN_REVIEW",
+    days: 6,
+    org: 2,
+    type: "INFOGRAFIS",
+    main: "NON_EDUFAST",
+    sub: "INFORMASI",
+  },
+  {
+    title: "Kesehatan mental remaja: ruang aman",
+    status: "IN_REVIEW",
+    days: 9,
+    org: 12,
+    type: "VIDEO",
+    main: "NON_EDUFAST",
+    sub: "EDUKATIF_PERSUASIF",
+  },
+  {
+    title: "Pemeriksaan laboratorium tanpa antre",
+    status: "REVISION_REQUIRED",
+    days: 20,
+    org: 3,
+    type: "VIDEO",
+    main: "NON_EDUFAST",
+    sub: "INFORMASI",
+  },
+  {
+    title: "Rujukan cepat untuk kasus darurat",
+    status: "REVISION_REQUIRED",
+    days: 27,
+    org: 9,
+    type: "INFOGRAFIS",
+    main: "EDUFAST",
+    sub: "ALUR_BEROBAT",
+  },
+  {
+    title: "Kampanye vaksinasi dewasa",
+    status: "REJECTED",
+    days: 15,
+    org: 7,
+    type: "VIDEO",
+    main: "NON_EDUFAST",
+    sub: "INFORMASI",
+  },
+  {
+    title: "Pola makan untuk penderita diabetes",
+    status: "REJECTED",
+    days: 44,
+    org: 12,
+    type: "INFOGRAFIS",
+    main: "NON_EDUFAST",
+    sub: "EDUKATIF_PERSUASIF",
+  },
+  {
+    title: "Pendampingan persalinan aman",
+    status: "REVOKED",
+    days: 22,
+    org: 1,
+    type: "VIDEO",
+    main: "NON_EDUFAST",
+    sub: "INFORMASI",
+  },
+  {
+    title: "Rekam medis elektronik dan privasi pasien",
+    status: "ARCHIVED",
+    days: 60,
+    org: 2,
+    type: "INFOGRAFIS",
+    main: "NON_EDUFAST",
+    sub: "INFORMASI",
+  },
+  {
+    title: "Gotong royong sehat di lingkungan RT",
+    status: "DRAFT",
+    days: 0,
+    org: 3,
+    type: "INFOGRAFIS",
+    main: "NON_EDUFAST",
+    sub: "KORPORAT",
+  },
 ] as const;
 
-const PLATFORMS = ["INSTAGRAM", "FACEBOOK", "WEBSITE", "TIKTOK", "YOUTUBE", "X", "LAINNYA"] as const;
+const PLATFORMS = [
+  "INSTAGRAM",
+  "FACEBOOK",
+  "WEBSITE",
+  "TIKTOK",
+  "YOUTUBE",
+  "X",
+  "LAINNYA",
+] as const;
 
 const JITTER = [
   [0.0006, 0.0004],
@@ -204,7 +733,13 @@ function decisionReason(status: string): string | null {
 }
 
 function hasDecision(status: string): boolean {
-  return ["APPROVED", "REVOKED", "ARCHIVED", "REJECTED", "REVISION_REQUIRED"].includes(status);
+  return [
+    "APPROVED",
+    "REVOKED",
+    "ARCHIVED",
+    "REJECTED",
+    "REVISION_REQUIRED",
+  ].includes(status);
 }
 
 function reviewerFor(orgN: number): string {
@@ -288,6 +823,8 @@ export async function runSeed(db: SeedDb): Promise<void> {
         isDemo: true,
         active: true,
         status: "ACTIVE",
+        locationStatus: "VERIFIED",
+        locationGraceDeadline: null,
         displayTitle: u.title,
       })),
     )
@@ -316,7 +853,12 @@ export async function runSeed(db: SeedDb): Promise<void> {
         faskesClass: o.class,
         faskesCode: o.code,
         faskesCodeNormalized: o.code ? o.code.toUpperCase() : null,
-        faskesType: o.type === "FASKES" ? (o.class === "FKTP" ? "PUSKESMAS" : "RUMAH_SAKIT") : null,
+        faskesType:
+          o.type === "FASKES"
+            ? o.class === "FKTP"
+              ? "PUSKESMAS"
+              : "RUMAH_SAKIT"
+            : null,
         serviceArea: o.area,
         addressLabel: `${o.name}, ${o.area}`,
         latitude: o.lat,
@@ -338,7 +880,9 @@ export async function runSeed(db: SeedDb): Promise<void> {
         role: m.role,
         regionalOfficeId: m.region ? ids.region(m.region) : null,
         branchOfficeId: m.branch ? ids.branch(m.branch) : null,
-        organizationId: m.organization ? ids.organization(m.organization) : null,
+        organizationId: m.organization
+          ? ids.organization(m.organization)
+          : null,
         effectiveAt: instantDaysAgo(180),
         createdBy: MASTER,
         createdAt: instantDaysAgo(180),
@@ -356,6 +900,31 @@ export async function runSeed(db: SeedDb): Promise<void> {
         stakeholderId: ids.organization(m.organization!),
       })),
     )
+    .onConflictDoNothing();
+
+  // Demo activation rows are synthetic: they never claim a real device GPS fix.
+  const activationRows = USERS.filter((u) => u.role !== "MASTER_ADMIN").map(
+    (u) => {
+      const membership = MEMBERSHIPS.find((m) => m.user === u.n)!;
+      const organization = membership.organization
+        ? ORGANIZATIONS[membership.organization - 1]
+        : undefined;
+      return {
+        userId: ids.user(u.n),
+        latitude: organization ? organization.lat : -6.9175,
+        longitude: organization ? organization.lng : 107.6191,
+        accuracyMeters: 35,
+        source: "demo_backfill",
+        distanceMeters: 0,
+        reviewFlag: false,
+        consentAt: instantDaysAgo(180),
+      };
+    },
+  );
+
+  await db
+    .insert(schema.userActivationLocations)
+    .values(activationRows)
     .onConflictDoNothing();
 
   await db
@@ -445,6 +1014,7 @@ export async function runSeed(db: SeedDb): Promise<void> {
     const isGps = index % 3 === 0;
     return {
       id: ids.location(index + 1),
+      stakeholderId: ids.organization(item.org),
       latitude: organization.lat + jitter[0],
       longitude: organization.lng + jitter[1],
       label: `${organization.name} — titik konten DEMO`,
@@ -459,7 +1029,9 @@ export async function runSeed(db: SeedDb): Promise<void> {
   await db.insert(schema.locations).values(locationRows).onConflictDoNothing();
 
   const submissionRows = CONTENT.map((item, index) => {
-    const ownerMembership = MEMBERSHIPS.find((m) => m.organization === item.org)!;
+    const ownerMembership = MEMBERSHIPS.find(
+      (m) => m.organization === item.org,
+    )!;
     const owner = ids.user(ownerMembership.user);
     const submitted = item.status !== "DRAFT";
     const decided = hasDecision(item.status);
@@ -484,15 +1056,23 @@ export async function runSeed(db: SeedDb): Promise<void> {
       subTheme: item.sub,
       edufastPolicyId: policyId,
       edufastPolicyVersion: policyId ? 2 : null,
-      approvedSnapshot: item.status === "APPROVED" ? { theme: item.main, subTheme: item.sub, version: 1 } : null,
+      approvedSnapshot:
+        item.status === "APPROVED"
+          ? { theme: item.main, subTheme: item.sub, version: 1 }
+          : null,
       approvedVersion: item.status === "APPROVED" ? 1 : null,
       themeId: ids.theme(((index % THEMES.length) + 1) as number),
       dateCreated: localDateDaysAgo(item.days + 4),
       publishedAt: localDateDaysAgo(item.days + 4),
       locationId: ids.location(index + 1),
+      branchOfficeId: ids.branch(ORGANIZATIONS[item.org - 1]!.branch),
+      regionalOfficeId: ids.region(
+        BRANCHES[ORGANIZATIONS[item.org - 1]!.branch - 1]!.region,
+      ),
       status: item.status,
       version: 1,
       idempotencyKey: `seed-submission-${String(index + 1).padStart(4, "0")}`,
+      firstSubmittedAt: submitted ? instantDaysAgo(item.days + 2) : null,
       submittedAt: submitted ? instantDaysAgo(item.days + 2) : null,
       approvedAt: item.status === "APPROVED" ? instantDaysAgo(item.days) : null,
       revokedAt: item.status === "REVOKED" ? instantDaysAgo(item.days) : null,
@@ -505,7 +1085,10 @@ export async function runSeed(db: SeedDb): Promise<void> {
     };
   });
 
-  await db.insert(schema.contentSubmissions).values(submissionRows).onConflictDoNothing();
+  await db
+    .insert(schema.contentSubmissions)
+    .values(submissionRows)
+    .onConflictDoNothing();
 
   await db
     .insert(schema.contentRevisions)
@@ -534,8 +1117,14 @@ export async function runSeed(db: SeedDb): Promise<void> {
     .values(
       reviewTargets.map(({ row, n }, index) => {
         const action =
-          row.status === "REVISION_REQUIRED" ? "REQUEST_REVISION" : row.status === "REJECTED" ? "REJECT" : "APPROVE";
-        const branchId = ids.branch(ORGANIZATIONS[CONTENT[n - 1]!.org - 1]!.branch);
+          row.status === "REVISION_REQUIRED"
+            ? "REQUEST_REVISION"
+            : row.status === "REJECTED"
+              ? "REJECT"
+              : "APPROVE";
+        const branchId = ids.branch(
+          ORGANIZATIONS[CONTENT[n - 1]!.org - 1]!.branch,
+        );
         return {
           id: ids.review(index + 1),
           submissionId: ids.submission(n),
@@ -807,58 +1396,197 @@ export async function runSeed(db: SeedDb): Promise<void> {
 }
 
 async function count(db: SeedDb, table: string, where = ""): Promise<number> {
-  const result = await db.execute(sql.raw(`select count(*)::int as value from ${table} ${where}`));
+  const result = await db.execute(
+    sql.raw(`select count(*)::int as value from ${table} ${where}`),
+  );
   const rows = result.rows as unknown as Array<{ value: number | string }>;
   return Number(rows[0]?.value ?? 0);
 }
 
 async function assertSeedCounts(db: SeedDb): Promise<void> {
-  const expectations: Array<{ label: string; actual: number; expected: number }> = [
-    { label: "wilayah", actual: await count(db, "regional_offices"), expected: 2 },
+  const expectations: Array<{
+    label: string;
+    actual: number;
+    expected: number;
+  }> = [
+    {
+      label: "wilayah",
+      actual: await count(db, "regional_offices"),
+      expected: 2,
+    },
     { label: "cabang", actual: await count(db, "branch_offices"), expected: 4 },
-    { label: "pengguna demo", actual: await count(db, "user_profiles", "where is_demo = true"), expected: 12 },
-    { label: "keanggotaan aktif", actual: await count(db, "user_memberships", "where revoked_at is null"), expected: 12 },
-    { label: "organisasi", actual: await count(db, "stakeholders", "where is_demo = true"), expected: 12 },
-    { label: "faskes", actual: await count(db, "stakeholders", "where organization_type = 'FASKES'"), expected: 8 },
-    { label: "kebijakan EDUFAST", actual: await count(db, "edufast_monthly_policies"), expected: 2 },
-    { label: "sub-tema kebijakan", actual: await count(db, "edufast_policy_subthemes"), expected: 5 },
+    {
+      label: "pengguna demo",
+      actual: await count(db, "user_profiles", "where is_demo = true"),
+      expected: 12,
+    },
+    {
+      label: "keanggotaan aktif",
+      actual: await count(db, "user_memberships", "where revoked_at is null"),
+      expected: 12,
+    },
+    {
+      label: "organisasi",
+      actual: await count(db, "stakeholders", "where is_demo = true"),
+      expected: 12,
+    },
+    {
+      label: "faskes",
+      actual: await count(
+        db,
+        "stakeholders",
+        "where organization_type = 'FASKES'",
+      ),
+      expected: 8,
+    },
+    {
+      label: "kebijakan EDUFAST",
+      actual: await count(db, "edufast_monthly_policies"),
+      expected: 2,
+    },
+    {
+      label: "sub-tema kebijakan",
+      actual: await count(db, "edufast_policy_subthemes"),
+      expected: 5,
+    },
     { label: "lokasi", actual: await count(db, "locations"), expected: 24 },
-    { label: "konten", actual: await count(db, "content_submissions", "where is_demo = true"), expected: 24 },
-    { label: "konten disetujui", actual: await count(db, "content_submissions", "where is_demo = true and status = 'APPROVED'"), expected: 12 },
-    { label: "konten EDUFAST", actual: await count(db, "content_submissions", "where is_demo = true and main_theme = 'EDUFAST'"), expected: 5 },
-    { label: "konten terkirim", actual: await count(db, "content_submissions", "where is_demo = true and status = 'SUBMITTED'"), expected: 3 },
-    { label: "konten ditinjau", actual: await count(db, "content_submissions", "where is_demo = true and status = 'IN_REVIEW'"), expected: 2 },
-    { label: "konten revisi", actual: await count(db, "content_submissions", "where is_demo = true and status = 'REVISION_REQUIRED'"), expected: 2 },
-    { label: "konten ditolak", actual: await count(db, "content_submissions", "where is_demo = true and status = 'REJECTED'"), expected: 2 },
-    { label: "konten dicabut", actual: await count(db, "content_submissions", "where is_demo = true and status = 'REVOKED'"), expected: 1 },
-    { label: "konten diarsipkan", actual: await count(db, "content_submissions", "where is_demo = true and status = 'ARCHIVED'"), expected: 1 },
-    { label: "draf", actual: await count(db, "content_submissions", "where is_demo = true and status = 'DRAFT'"), expected: 1 },
-    { label: "ulasan", actual: await count(db, "content_reviews"), expected: 18 },
-    { label: "revisi", actual: await count(db, "content_revisions"), expected: 2 },
-    { label: "target KPI", actual: await count(db, "kpi_targets"), expected: 6 },
-    { label: "notifikasi", actual: await count(db, "notifications"), expected: 8 },
+    {
+      label: "konten",
+      actual: await count(db, "content_submissions", "where is_demo = true"),
+      expected: 24,
+    },
+    {
+      label: "konten disetujui",
+      actual: await count(
+        db,
+        "content_submissions",
+        "where is_demo = true and status = 'APPROVED'",
+      ),
+      expected: 12,
+    },
+    {
+      label: "konten EDUFAST",
+      actual: await count(
+        db,
+        "content_submissions",
+        "where is_demo = true and main_theme = 'EDUFAST'",
+      ),
+      expected: 5,
+    },
+    {
+      label: "konten terkirim",
+      actual: await count(
+        db,
+        "content_submissions",
+        "where is_demo = true and status = 'SUBMITTED'",
+      ),
+      expected: 3,
+    },
+    {
+      label: "konten ditinjau",
+      actual: await count(
+        db,
+        "content_submissions",
+        "where is_demo = true and status = 'IN_REVIEW'",
+      ),
+      expected: 2,
+    },
+    {
+      label: "konten revisi",
+      actual: await count(
+        db,
+        "content_submissions",
+        "where is_demo = true and status = 'REVISION_REQUIRED'",
+      ),
+      expected: 2,
+    },
+    {
+      label: "konten ditolak",
+      actual: await count(
+        db,
+        "content_submissions",
+        "where is_demo = true and status = 'REJECTED'",
+      ),
+      expected: 2,
+    },
+    {
+      label: "konten dicabut",
+      actual: await count(
+        db,
+        "content_submissions",
+        "where is_demo = true and status = 'REVOKED'",
+      ),
+      expected: 1,
+    },
+    {
+      label: "konten diarsipkan",
+      actual: await count(
+        db,
+        "content_submissions",
+        "where is_demo = true and status = 'ARCHIVED'",
+      ),
+      expected: 1,
+    },
+    {
+      label: "draf",
+      actual: await count(
+        db,
+        "content_submissions",
+        "where is_demo = true and status = 'DRAFT'",
+      ),
+      expected: 1,
+    },
+    {
+      label: "ulasan",
+      actual: await count(db, "content_reviews"),
+      expected: 18,
+    },
+    {
+      label: "revisi",
+      actual: await count(db, "content_revisions"),
+      expected: 2,
+    },
+    {
+      label: "target KPI",
+      actual: await count(db, "kpi_targets"),
+      expected: 6,
+    },
+    {
+      label: "notifikasi",
+      actual: await count(db, "notifications"),
+      expected: 8,
+    },
   ];
 
   const mismatches = expectations.filter((row) => row.actual !== row.expected);
   for (const row of expectations) {
-    console.log(`  ${row.actual === row.expected ? "OK " : "FAIL"} ${row.label}: ${row.actual} (harapan ${row.expected})`);
+    console.log(
+      `  ${row.actual === row.expected ? "OK " : "FAIL"} ${row.label}: ${row.actual} (harapan ${row.expected})`,
+    );
   }
 
   if (mismatches.length > 0) {
-    throw new Error(`Seed tidak sesuai harapan: ${mismatches.map((m) => m.label).join(", ")}`);
+    throw new Error(
+      `Seed tidak sesuai harapan: ${mismatches.map((m) => m.label).join(", ")}`,
+    );
   }
 
-  console.log(`KPI demo (disetujui saja): ${expectations.find((row) => row.label === "konten disetujui")?.actual ?? 0} konten.`);
+  console.log(
+    `KPI demo (disetujui saja): ${expectations.find((row) => row.label === "konten disetujui")?.actual ?? 0} konten.`,
+  );
 }
 
 async function main(): Promise<void> {
   assertDestructiveTargetAllowed(scriptTarget, "Seed demo");
   const runtimeEnv = process.env.APP_ENV ?? process.env.VERCEL_ENV;
   if (runtimeEnv === "production") {
-    throw new Error("Seed demo dilarang di production. Tidak ada perubahan yang dilakukan.");
+    throw new Error(
+      "Seed demo dilarang di production. Tidak ada perubahan yang dilakukan.",
+    );
   }
 
-  const connectionString = process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL;
+  const connectionString =
+    process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL belum dikonfigurasi.");
 
   const pool = new Pool({ connectionString, max: 1 });

@@ -61,7 +61,10 @@ export default async function BranchContentDetailPage({
         canReview ? (
           <section className="rounded-xl border border-border bg-surface p-5 shadow-sm xl:sticky xl:top-6">
             <div className="flex items-center gap-2">
-              <ClipboardCheck className="size-4 text-brand-blue-700" aria-hidden />
+              <ClipboardCheck
+                className="size-4 text-brand-blue-700"
+                aria-hidden
+              />
               <h2 className="text-base font-semibold text-foreground">
                 Keputusan validasi
               </h2>

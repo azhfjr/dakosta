@@ -93,7 +93,8 @@ async function main(): Promise<void> {
     );
   }
 
-  const directory = process.argv.find((value) => value.startsWith("--dir="))
+  const directory = process.argv
+    .find((value) => value.startsWith("--dir="))
     ?.split("=")[1];
   if (!directory) throw new Error("Gunakan --dir=backups/<nama-backup>.");
 
@@ -121,7 +122,9 @@ async function main(): Promise<void> {
       .map((entry) => quote(entry.table))
       .join(", ");
     if (truncateList) {
-      await client.query(`truncate table ${truncateList} restart identity cascade`);
+      await client.query(
+        `truncate table ${truncateList} restart identity cascade`,
+      );
     }
 
     for (const entry of orderedTables(manifest.tables)) {

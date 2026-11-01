@@ -62,13 +62,20 @@ function apiContext(state: string): Promise<APIRequestContext> {
   return playwrightRequest.newContext({ baseURL, storageState: state });
 }
 
-function jakartaDate(partition: { year: number; month: number; day: number }): string {
+function jakartaDate(partition: {
+  year: number;
+  month: number;
+  day: number;
+}): string {
   return `${partition.year}-${String(partition.month).padStart(2, "0")}-${String(
     partition.day,
   ).padStart(2, "0")}`;
 }
 
-function shiftMonth(dateOnly: string, months: number): { year: number; month: number } {
+function shiftMonth(
+  dateOnly: string,
+  months: number,
+): { year: number; month: number } {
   const [year, month] = dateOnly.split("-").map(Number) as [number, number];
   const base = new Date(Date.UTC(year, month - 1 + months, 1));
   return { year: base.getUTCFullYear(), month: base.getUTCMonth() + 1 };
@@ -83,7 +90,9 @@ function todayJakarta(): string {
   }).format(new Date());
 }
 
-function submissionPayload(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+function submissionPayload(
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> {
   return {
     action: "SUBMIT",
     idempotencyKey: `platform-${Date.now()}-${Math.random()}`,
@@ -116,14 +125,18 @@ test.describe("Kebijakan EDUFAST", () => {
       const { year, month } = shiftMonth(todayJakarta(), 3);
       const period = `${year}-${String(month).padStart(2, "0")}`;
 
-      const draft = await call<Policy>(master, "/api/v1/admin/edufast/policies", {
-        method: "POST",
-        data: {
-          period,
-          subThemes: ["MOBILE_JKN", "TESTIMONI_PESERTA"],
-          explanation: "Uji terbit kebijakan tiga bulan ke depan.",
+      const draft = await call<Policy>(
+        master,
+        "/api/v1/admin/edufast/policies",
+        {
+          method: "POST",
+          data: {
+            period,
+            subThemes: ["MOBILE_JKN", "TESTIMONI_PESERTA"],
+            explanation: "Uji terbit kebijakan tiga bulan ke depan.",
+          },
         },
-      });
+      );
       expect(draft.status, draft.text).toBe(200);
       expect(draft.body.data?.status).toBe("DRAFT");
 
@@ -140,9 +153,14 @@ test.describe("Kebijakan EDUFAST", () => {
         "/api/v1/admin/edufast/policies",
       );
       expect(list.status, list.text).toBe(200);
-      const stored = list.body.data?.policies.find((item) => item.period === period);
+      const stored = list.body.data?.policies.find(
+        (item) => item.period === period,
+      );
       expect(stored?.status).toBe("PUBLISHED");
-      expect(stored?.subThemes.sort()).toEqual(["MOBILE_JKN", "TESTIMONI_PESERTA"]);
+      expect(stored?.subThemes.sort()).toEqual([
+        "MOBILE_JKN",
+        "TESTIMONI_PESERTA",
+      ]);
     } finally {
       await master.dispose();
     }
@@ -190,10 +208,10 @@ test.describe("Kebijakan EDUFAST", () => {
       );
       expect(result.status, result.text).toBe(201);
 
-      const detail = await call<{ edufastPolicyVersion: number | null; mainTheme: string }>(
-        client,
-        `/api/v1/submissions/${result.body.data!.submission.id}`,
-      );
+      const detail = await call<{
+        edufastPolicyVersion: number | null;
+        mainTheme: string;
+      }>(client, `/api/v1/submissions/${result.body.data!.submission.id}`);
       expect(detail.status, detail.text).toBe(200);
       expect(detail.body.data?.mainTheme).toBe("EDUFAST");
       expect(detail.body.data?.edufastPolicyVersion).toBeGreaterThan(0);
@@ -210,7 +228,9 @@ test.describe("Kebijakan EDUFAST", () => {
         data: submissionPayload({ mainTheme: "EDUFAST", subTheme: "KORPORAT" }),
       });
       expect(result.status).toBe(400);
-      expect(result.body.error?.message ?? "").toMatch(/tidak termasuk|kebijakan/i);
+      expect(result.body.error?.message ?? "").toMatch(
+        /tidak termasuk|kebijakan/i,
+      );
     } finally {
       await client.dispose();
     }
@@ -224,7 +244,9 @@ test.describe("Impor akun CSV", () => {
       const response = await master.fetch("/api/v1/admin/imports/template");
       expect(response.status()).toBe(200);
       expect(response.headers()["content-type"]).toContain("text/csv");
-      expect(response.headers()["x-import-headers"]).toContain("nama,email,peran");
+      expect(response.headers()["x-import-headers"]).toContain(
+        "nama,email,peran",
+      );
 
       const buffer = Buffer.from(await response.body());
       expect([buffer[0], buffer[1], buffer[2]]).toEqual([0xef, 0xbb, 0xbf]);
@@ -244,10 +266,14 @@ test.describe("Impor akun CSV", () => {
         "Uji Master,uji.master@e2e.example,master,,,,Master",
       ].join("\n");
 
-      const preview = await call<ImportPreview>(master, "/api/v1/admin/imports/preview", {
-        method: "POST",
-        data: { filename: "uji-impor.csv", content: csv },
-      });
+      const preview = await call<ImportPreview>(
+        master,
+        "/api/v1/admin/imports/preview",
+        {
+          method: "POST",
+          data: { filename: "uji-impor.csv", content: csv },
+        },
+      );
       expect(preview.status, preview.text).toBe(200);
 
       const data = preview.body.data!;
@@ -314,7 +340,9 @@ test.describe("Rekonsiliasi analitik dan Red Notice", () => {
     try {
       const page = await master.newPage();
       await page.goto("/admin/red-notice");
-      await expect(page.getByRole("heading", { name: "Red Notice", exact: true })).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "Red Notice", exact: true }),
+      ).toBeVisible();
       await expect(page.getByText("Klinik Sehat Bersama")).toBeVisible();
     } finally {
       await master.close();
@@ -332,7 +360,9 @@ test.describe("Rekonsiliasi analitik dan Red Notice", () => {
       await branchA1.close();
     }
 
-    const branchA2 = await browser.newContext({ storageState: BRANCH_A2_STATE });
+    const branchA2 = await browser.newContext({
+      storageState: BRANCH_A2_STATE,
+    });
     try {
       const page = await branchA2.newPage();
       await page.goto("/cabang/red-notice");

@@ -30,10 +30,11 @@ async function sendJson(
     headers: { "content-type": "application/json" },
     body: JSON.stringify(payload),
   });
-  const body = (await response.json().catch(() => null)) as
-    | { error?: { message?: string } }
-    | null;
-  if (!response.ok) return body?.error?.message ?? "Perubahan tidak dapat disimpan.";
+  const body = (await response.json().catch(() => null)) as {
+    error?: { message?: string };
+  } | null;
+  if (!response.ok)
+    return body?.error?.message ?? "Perubahan tidak dapat disimpan.";
   return null;
 }
 
@@ -114,7 +115,9 @@ export function RegionEditor({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{region ? "Ubah wilayah" : "Tambah wilayah"}</DialogTitle>
+            <DialogTitle>
+              {region ? "Ubah wilayah" : "Tambah wilayah"}
+            </DialogTitle>
             <DialogDescription>
               Kode wilayah unik. Status nonaktif menyembunyikan wilayah dari
               pilihan akun baru.
@@ -171,7 +174,9 @@ export function RegionEditor({
                 Batal
               </Button>
               <Button type="submit" className="h-11" disabled={pending}>
-                {pending ? <Loader2 className="mr-2 size-4 animate-spin" aria-hidden /> : null}
+                {pending ? (
+                  <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />
+                ) : null}
                 Simpan
               </Button>
             </DialogFooter>
@@ -264,7 +269,9 @@ export function BranchEditor({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{branch ? "Ubah cabang" : "Tambah cabang"}</DialogTitle>
+            <DialogTitle>
+              {branch ? "Ubah cabang" : "Tambah cabang"}
+            </DialogTitle>
             <DialogDescription>
               Reviewer cabang hanya dapat memutuskan konten organisasi pada
               cabang ini.
@@ -337,7 +344,9 @@ export function BranchEditor({
                 Batal
               </Button>
               <Button type="submit" className="h-11" disabled={pending}>
-                {pending ? <Loader2 className="mr-2 size-4 animate-spin" aria-hidden /> : null}
+                {pending ? (
+                  <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />
+                ) : null}
                 Simpan
               </Button>
             </DialogFooter>
@@ -380,12 +389,22 @@ export function OrganizationEditor({
   const [organizationType, setOrganizationType] = useState(
     organization?.organizationType ?? "FASKES",
   );
-  const [faskesClass, setFaskesClass] = useState(organization?.faskesClass ?? "FKTP");
+  const [faskesClass, setFaskesClass] = useState(
+    organization?.faskesClass ?? "FKTP",
+  );
   const [faskesCode, setFaskesCode] = useState(organization?.faskesCode ?? "");
-  const [serviceArea, setServiceArea] = useState(organization?.serviceArea ?? "");
-  const [addressLabel, setAddressLabel] = useState(organization?.addressLabel ?? "");
-  const [latitude, setLatitude] = useState(String(organization?.latitude ?? -6.9147));
-  const [longitude, setLongitude] = useState(String(organization?.longitude ?? 107.6098));
+  const [serviceArea, setServiceArea] = useState(
+    organization?.serviceArea ?? "",
+  );
+  const [addressLabel, setAddressLabel] = useState(
+    organization?.addressLabel ?? "",
+  );
+  const [latitude, setLatitude] = useState(
+    String(organization?.latitude ?? -6.9147),
+  );
+  const [longitude, setLongitude] = useState(
+    String(organization?.longitude ?? 107.6098),
+  );
   const [status, setStatus] = useState(organization?.status ?? "ACTIVE");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -432,7 +451,9 @@ export function OrganizationEditor({
         setError(message);
         return;
       }
-      toast.success(organization ? "Organisasi diperbarui." : "Organisasi ditambahkan.");
+      toast.success(
+        organization ? "Organisasi diperbarui." : "Organisasi ditambahkan.",
+      );
       setOpen(false);
       router.refresh();
     } catch {
@@ -473,8 +494,9 @@ export function OrganizationEditor({
           </DialogHeader>
           {impact ? (
             <p className="rounded-lg border border-border bg-surface-muted/60 px-3 py-2 text-xs text-ink-muted">
-              Dampak saat ini: {impact.contents} konten dan {impact.accounts} akun
-              tertaut. Perubahan cabang memengaruhi cakupan review dan capaian.
+              Dampak saat ini: {impact.contents} konten dan {impact.accounts}{" "}
+              akun tertaut. Perubahan cabang memengaruhi cakupan review dan
+              capaian.
             </p>
           ) : null}
           <form onSubmit={submit} className="space-y-4" noValidate>
@@ -541,7 +563,9 @@ export function OrganizationEditor({
                   <Input
                     id="org-code"
                     value={faskesCode}
-                    onChange={(event) => setFaskesCode(event.target.value.toUpperCase())}
+                    onChange={(event) =>
+                      setFaskesCode(event.target.value.toUpperCase())
+                    }
                     minLength={2}
                     maxLength={24}
                     required
@@ -549,7 +573,8 @@ export function OrganizationEditor({
                     placeholder="Contoh: 0101U001"
                   />
                   <p className="text-xs text-ink-muted">
-                    Kode disimpan tanpa spasi dan tidak membuang angka nol di depan.
+                    Kode disimpan tanpa spasi dan tidak membuang angka nol di
+                    depan.
                   </p>
                 </div>
               </div>
@@ -635,7 +660,9 @@ export function OrganizationEditor({
                 Batal
               </Button>
               <Button type="submit" className="h-11" disabled={pending}>
-                {pending ? <Loader2 className="mr-2 size-4 animate-spin" aria-hidden /> : null}
+                {pending ? (
+                  <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />
+                ) : null}
                 Simpan
               </Button>
             </DialogFooter>

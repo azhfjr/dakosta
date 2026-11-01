@@ -38,7 +38,11 @@ export function MobileNav({
           className="size-11 lg:hidden"
           aria-label="Buka menu navigasi"
         >
-          {open ? <X className="size-5" aria-hidden /> : <Menu className="size-5" aria-hidden />}
+          {open ? (
+            <X className="size-5" aria-hidden />
+          ) : (
+            <Menu className="size-5" aria-hidden />
+          )}
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-[min(20rem,85vw)] p-0">

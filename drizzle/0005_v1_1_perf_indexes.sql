@@ -1,0 +1,1 @@
+CREATE INDEX "content_submissions_stakeholder_status_approved_idx" ON "content_submissions" USING btree ("stakeholder_id","status","approved_at");

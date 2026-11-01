@@ -7,7 +7,11 @@ import {
   requireMasterApi,
   requireStepUp,
 } from "@/lib/authz/guards";
-import { consumeRateLimit, getClientIp, getRateLimitHeaders } from "@/lib/rate-limit";
+import {
+  consumeRateLimit,
+  getClientIp,
+  getRateLimitHeaders,
+} from "@/lib/rate-limit";
 import { syncTargets } from "@/lib/targets/sync";
 import { targetSyncSchema } from "@/lib/validation/target";
 

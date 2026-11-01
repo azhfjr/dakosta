@@ -3,7 +3,11 @@ import Link from "next/link";
 import { ContentTypeBadge } from "@/components/content/content-type-badge";
 import { StatusBadge } from "@/components/content/status-badge";
 import { formatDateId, formatDateTimeId, formatNumberId } from "@/lib/dates";
-import { PLATFORM_LABEL, STATUS_LABEL, type ContentStatus } from "@/lib/content-status";
+import {
+  PLATFORM_LABEL,
+  STATUS_LABEL,
+  type ContentStatus,
+} from "@/lib/content-status";
 import type { SubmissionListItem } from "@/lib/submissions";
 
 export function ContentListView({
@@ -24,11 +28,16 @@ export function ContentListView({
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          {title}
+        </h1>
         <p className="mt-1 max-w-2xl text-sm text-ink-muted">{description}</p>
       </header>
 
-      <section aria-label="Ringkasan status konten" className="grid gap-3 sm:grid-cols-3 xl:grid-cols-6">
+      <section
+        aria-label="Ringkasan status konten"
+        className="grid gap-3 sm:grid-cols-3 xl:grid-cols-6"
+      >
         {(
           [
             ["APPROVED", counts.APPROVED],
@@ -39,7 +48,10 @@ export function ContentListView({
             ["DRAFT", counts.DRAFT],
           ] as Array<[ContentStatus, number]>
         ).map(([status, value]) => (
-          <div key={status} className="rounded-xl border border-border bg-surface px-4 py-3">
+          <div
+            key={status}
+            className="rounded-xl border border-border bg-surface px-4 py-3"
+          >
             <p className="text-xs font-medium tracking-wide text-ink-muted uppercase">
               {STATUS_LABEL[status]}
             </p>
@@ -52,8 +64,12 @@ export function ContentListView({
 
       <section className="rounded-xl border border-border bg-surface shadow-sm">
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <h2 className="text-base font-semibold text-foreground">Daftar konten</h2>
-          <p className="text-xs text-ink-muted">{formatNumberId(total)} konten</p>
+          <h2 className="text-base font-semibold text-foreground">
+            Daftar konten
+          </h2>
+          <p className="text-xs text-ink-muted">
+            {formatNumberId(total)} konten
+          </p>
         </div>
         {items.length === 0 ? (
           <p className="px-4 py-12 text-center text-sm text-ink-muted">
@@ -62,7 +78,9 @@ export function ContentListView({
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[58rem] border-collapse text-sm">
-              <caption className="sr-only">Daftar konten pada lingkup akses Anda</caption>
+              <caption className="sr-only">
+                Daftar konten pada lingkup akses Anda
+              </caption>
               <thead>
                 <tr className="border-b border-border text-left text-xs font-medium tracking-wide text-ink-muted uppercase">
                   <th scope="col" className="px-4 py-3">
@@ -90,7 +108,10 @@ export function ContentListView({
               </thead>
               <tbody>
                 {items.map((item) => (
-                  <tr key={item.id} className="border-b border-border/70 last:border-0 align-top">
+                  <tr
+                    key={item.id}
+                    className="border-b border-border/70 last:border-0 align-top"
+                  >
                     <td className="px-4 py-4">
                       <Link
                         href={`${basePath}/${item.id}`}
@@ -105,15 +126,21 @@ export function ContentListView({
                     <td className="px-4 py-4">
                       <ContentTypeBadge contentType={item.contentType} />
                     </td>
-                    <td className="px-4 py-4 text-ink-muted">{item.stakeholderName}</td>
                     <td className="px-4 py-4 text-ink-muted">
-                      <span className="block text-foreground">{item.themeName}</span>
+                      {item.stakeholderName}
+                    </td>
+                    <td className="px-4 py-4 text-ink-muted">
+                      <span className="block text-foreground">
+                        {item.themeName}
+                      </span>
                       <span className="text-xs">
                         {PLATFORM_LABEL[item.platform] ?? item.platform}
                       </span>
                     </td>
                     <td className="px-4 py-4 text-ink-muted">
-                      <span className="block">{formatDateId(item.dateCreated)}</span>
+                      <span className="block">
+                        {formatDateId(item.dateCreated)}
+                      </span>
                       <span className="text-xs">
                         {item.submittedAt
                           ? `Dikirim ${formatDateTimeId(item.submittedAt)}`

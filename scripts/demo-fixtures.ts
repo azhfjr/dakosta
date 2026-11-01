@@ -24,12 +24,10 @@ export type DemoStatus =
   | "ARCHIVED";
 
 export type DemoRole =
-  | "MASTER_ADMIN"
-  | "REGIONAL_ADMIN"
-  | "BRANCH_ADMIN"
-  | "STAKEHOLDER";
+  "MASTER_ADMIN" | "REGIONAL_ADMIN" | "BRANCH_ADMIN" | "STAKEHOLDER";
 
-export type DemoReviewAction = "APPROVE" | "REQUEST_REVISION" | "REJECT" | "REVOKE";
+export type DemoReviewAction =
+  "APPROVE" | "REQUEST_REVISION" | "REJECT" | "REVOKE";
 
 const ID_PREFIX = {
   user: "00000000",
@@ -66,7 +64,8 @@ export const DEMO_IDS = {
   theme: (n: number) => demoId(ID_PREFIX.theme, n),
   roleMembership: (n: number) => demoId(ID_PREFIX.roleMembership, n),
   membership: (n: number) => demoId(ID_PREFIX.membership, n),
-  stakeholderMembership: (n: number) => demoId(ID_PREFIX.stakeholderMembership, n),
+  stakeholderMembership: (n: number) =>
+    demoId(ID_PREFIX.stakeholderMembership, n),
   target: (n: number) => demoId(ID_PREFIX.target, n),
   review: (n: number) => demoId(ID_PREFIX.review, n),
   revision: (n: number) => demoId(ID_PREFIX.revision, n),
@@ -99,7 +98,8 @@ export type DemoOrganization = {
   organizationType: "FASKES" | "PEMDA" | "OTHER";
   faskesClass: "FKTP" | "FKRTL" | null;
   faskesCode: string | null;
-  category: "FASKES" | "INSTANSI" | "MEDIA" | "INFLUENCER" | "ORGANISASI" | "TOKOH";
+  category:
+    "FASKES" | "INSTANSI" | "MEDIA" | "INFLUENCER" | "ORGANISASI" | "TOKOH";
   serviceArea: string;
   addressLabel: string;
   latitude: number;
@@ -292,44 +292,319 @@ export const DEMO_REGIONS: readonly DemoRegion[] = [
 
 export const DEMO_BRANCHES: readonly DemoBranch[] = [
   { n: 1, regionN: 1, code: "CBG-DEMO-BDG-KOTA", name: "Cabang Bandung Kota" },
-  { n: 2, regionN: 1, code: "CBG-DEMO-BDG-KAB", name: "Cabang Kabupaten Bandung" },
+  {
+    n: 2,
+    regionN: 1,
+    code: "CBG-DEMO-BDG-KAB",
+    name: "Cabang Kabupaten Bandung",
+  },
   { n: 3, regionN: 1, code: "CBG-DEMO-BEKASI", name: "Cabang Bekasi" },
   { n: 4, regionN: 2, code: "CBG-DEMO-JKT-PST", name: "Cabang Jakarta Pusat" },
   { n: 5, regionN: 2, code: "CBG-DEMO-JKT-UTR", name: "Cabang Jakarta Utara" },
-  { n: 6, regionN: 2, code: "CBG-DEMO-JKT-SEL", name: "Cabang Jakarta Selatan" },
+  {
+    n: 6,
+    regionN: 2,
+    code: "CBG-DEMO-JKT-SEL",
+    name: "Cabang Jakarta Selatan",
+  },
   { n: 7, regionN: 3, code: "CBG-DEMO-SBY", name: "Cabang Surabaya" },
   { n: 8, regionN: 3, code: "CBG-DEMO-MLG", name: "Cabang Malang" },
 ];
 
 export const DEMO_ORGANIZATIONS: readonly DemoOrganization[] = [
-  { n: 1, branchN: 1, name: "Klinik Sehat Nusantara", organizationType: "FASKES", faskesClass: "FKTP", faskesCode: "DEMO-FKTP-JB01", category: "FASKES", serviceArea: "Kecamatan Sumur Bandung", addressLabel: "Klinik Sehat Nusantara, Bandung", latitude: -6.9147, longitude: 107.6098 },
-  { n: 2, branchN: 1, name: "Puskesmas Cahaya Sehat", organizationType: "FASKES", faskesClass: "FKTP", faskesCode: "DEMO-FKTP-JB02", category: "FASKES", serviceArea: "Kecamatan Coblong", addressLabel: "Puskesmas Cahaya Sehat, Bandung", latitude: -6.8975, longitude: 107.6102 },
-  { n: 3, branchN: 1, name: "Klinik Mitra Bunda", organizationType: "FASKES", faskesClass: "FKTP", faskesCode: "DEMO-FKTP-JB03", category: "FASKES", serviceArea: "Kecamatan Lengkong", addressLabel: "Klinik Mitra Bunda, Bandung", latitude: -6.9331, longitude: 107.5842 },
-  { n: 4, branchN: 2, name: "RSUD Kabupaten Bandung", organizationType: "FASKES", faskesClass: "FKRTL", faskesCode: "DEMO-FKRTL-JB01", category: "FASKES", serviceArea: "Kecamatan Soreang", addressLabel: "RSUD Kabupaten Bandung, Soreang", latitude: -6.9552, longitude: 107.5121 },
-  { n: 5, branchN: 2, name: "Klinik Amanah Farma", organizationType: "FASKES", faskesClass: "FKTP", faskesCode: "DEMO-FKTP-JB05", category: "FASKES", serviceArea: "Kecamatan Margahayu", addressLabel: "Klinik Amanah Farma, Kabupaten Bandung", latitude: -6.9589, longitude: 107.5712 },
-  { n: 6, branchN: 2, name: "Media Kesehatan Bandung", organizationType: "OTHER", faskesClass: null, faskesCode: null, category: "MEDIA", serviceArea: "Kabupaten Bandung", addressLabel: "Media Kesehatan Bandung", latitude: -6.921, longitude: 107.541 },
-  { n: 7, branchN: 3, name: "Laboratorium Prima Diagnostik", organizationType: "FASKES", faskesClass: "FKRTL", faskesCode: "DEMO-FKRTL-JB02", category: "FASKES", serviceArea: "Kecamatan Bekasi Utara", addressLabel: "Laboratorium Prima Diagnostik, Bekasi", latitude: -6.2383, longitude: 107.0 },
-  { n: 8, branchN: 3, name: "Organisasi Peduli Sehat", organizationType: "OTHER", faskesClass: null, faskesCode: null, category: "ORGANISASI", serviceArea: "Kota Bekasi", addressLabel: "Organisasi Peduli Sehat, Bekasi", latitude: -6.2649, longitude: 106.9896 },
-  { n: 9, branchN: 3, name: "Puskesmas Cimahi Tengah", organizationType: "FASKES", faskesClass: "FKTP", faskesCode: "DEMO-FKTP-JB04", category: "FASKES", serviceArea: "Kecamatan Cimahi Tengah", addressLabel: "Puskesmas Cimahi Tengah", latitude: -6.8722, longitude: 107.5425 },
-  { n: 10, branchN: 4, name: "Puskesmas Jakarta Pusat", organizationType: "FASKES", faskesClass: "FKTP", faskesCode: "DEMO-FKTP-DKI01", category: "FASKES", serviceArea: "Kecamatan Gambir", addressLabel: "Puskesmas Jakarta Pusat", latitude: -6.1767, longitude: 106.8272 },
-  { n: 11, branchN: 4, name: "Dinas Kesehatan DKI Jakarta", organizationType: "PEMDA", faskesClass: null, faskesCode: null, category: "INSTANSI", serviceArea: "Provinsi DKI Jakarta", addressLabel: "Dinas Kesehatan DKI Jakarta", latitude: -6.1751, longitude: 106.8272 },
-  { n: 12, branchN: 4, name: "Klinik Sehat Bersama", organizationType: "FASKES", faskesClass: "FKTP", faskesCode: "DEMO-FKTP-DKI02", category: "FASKES", serviceArea: "Kecamatan Tanah Abang", addressLabel: "Klinik Sehat Bersama, Jakarta Pusat", latitude: -6.1897, longitude: 106.8112 },
-  { n: 13, branchN: 5, name: "RSUD Jakarta Utara", organizationType: "FASKES", faskesClass: "FKRTL", faskesCode: "DEMO-FKRTL-DKI01", category: "FASKES", serviceArea: "Kecamatan Koja", addressLabel: "RSUD Jakarta Utara", latitude: -6.1214, longitude: 106.8892 },
-  { n: 14, branchN: 5, name: "Puskesmas Kelapa Gading", organizationType: "FASKES", faskesClass: "FKTP", faskesCode: "DEMO-FKTP-DKI03", category: "FASKES", serviceArea: "Kecamatan Kelapa Gading", addressLabel: "Puskesmas Kelapa Gading", latitude: -6.1621, longitude: 106.9056 },
-  { n: 15, branchN: 5, name: "Jurnal Sehat Jakarta", organizationType: "OTHER", faskesClass: null, faskesCode: null, category: "MEDIA", serviceArea: "Jakarta Utara", addressLabel: "Jurnal Sehat Jakarta", latitude: -6.1418, longitude: 106.8752 },
-  { n: 16, branchN: 6, name: "Klinik Jakarta Selatan Sehat", organizationType: "FASKES", faskesClass: "FKTP", faskesCode: "DEMO-FKTP-DKI04", category: "FASKES", serviceArea: "Kecamatan Kebayoran Baru", addressLabel: "Klinik Jakarta Selatan Sehat", latitude: -6.2437, longitude: 106.7992 },
-  { n: 17, branchN: 6, name: "Komunitas Peduli Gizi", organizationType: "OTHER", faskesClass: null, faskesCode: null, category: "ORGANISASI", serviceArea: "Jakarta Selatan", addressLabel: "Komunitas Peduli Gizi", latitude: -6.2615, longitude: 106.8106 },
-  { n: 18, branchN: 7, name: "RSUD Dr. Soetomo Surabaya", organizationType: "FASKES", faskesClass: "FKRTL", faskesCode: "DEMO-FKRTL-JTM01", category: "FASKES", serviceArea: "Kecamatan Gubeng", addressLabel: "RSUD Dr. Soetomo, Surabaya", latitude: -7.2575, longitude: 112.7476 },
-  { n: 19, branchN: 7, name: "Puskesmas Surabaya Timur", organizationType: "FASKES", faskesClass: "FKTP", faskesCode: "DEMO-FKTP-JTM01", category: "FASKES", serviceArea: "Kecamatan Mulyorejo", addressLabel: "Puskesmas Surabaya Timur", latitude: -7.2692, longitude: 112.7836 },
-  { n: 20, branchN: 8, name: "Puskesmas Malang Kota", organizationType: "FASKES", faskesClass: "FKTP", faskesCode: "DEMO-FKTP-JTM02", category: "FASKES", serviceArea: "Kecamatan Klojen", addressLabel: "Puskesmas Malang Kota", latitude: -7.9786, longitude: 112.6304 },
+  {
+    n: 1,
+    branchN: 1,
+    name: "Klinik Sehat Nusantara",
+    organizationType: "FASKES",
+    faskesClass: "FKTP",
+    faskesCode: "DEMO-FKTP-JB01",
+    category: "FASKES",
+    serviceArea: "Kecamatan Sumur Bandung",
+    addressLabel: "Klinik Sehat Nusantara, Bandung",
+    latitude: -6.9147,
+    longitude: 107.6098,
+  },
+  {
+    n: 2,
+    branchN: 1,
+    name: "Puskesmas Cahaya Sehat",
+    organizationType: "FASKES",
+    faskesClass: "FKTP",
+    faskesCode: "DEMO-FKTP-JB02",
+    category: "FASKES",
+    serviceArea: "Kecamatan Coblong",
+    addressLabel: "Puskesmas Cahaya Sehat, Bandung",
+    latitude: -6.8975,
+    longitude: 107.6102,
+  },
+  {
+    n: 3,
+    branchN: 1,
+    name: "Klinik Mitra Bunda",
+    organizationType: "FASKES",
+    faskesClass: "FKTP",
+    faskesCode: "DEMO-FKTP-JB03",
+    category: "FASKES",
+    serviceArea: "Kecamatan Lengkong",
+    addressLabel: "Klinik Mitra Bunda, Bandung",
+    latitude: -6.9331,
+    longitude: 107.5842,
+  },
+  {
+    n: 4,
+    branchN: 2,
+    name: "RSUD Kabupaten Bandung",
+    organizationType: "FASKES",
+    faskesClass: "FKRTL",
+    faskesCode: "DEMO-FKRTL-JB01",
+    category: "FASKES",
+    serviceArea: "Kecamatan Soreang",
+    addressLabel: "RSUD Kabupaten Bandung, Soreang",
+    latitude: -6.9552,
+    longitude: 107.5121,
+  },
+  {
+    n: 5,
+    branchN: 2,
+    name: "Klinik Amanah Farma",
+    organizationType: "FASKES",
+    faskesClass: "FKTP",
+    faskesCode: "DEMO-FKTP-JB05",
+    category: "FASKES",
+    serviceArea: "Kecamatan Margahayu",
+    addressLabel: "Klinik Amanah Farma, Kabupaten Bandung",
+    latitude: -6.9589,
+    longitude: 107.5712,
+  },
+  {
+    n: 6,
+    branchN: 2,
+    name: "Media Kesehatan Bandung",
+    organizationType: "OTHER",
+    faskesClass: null,
+    faskesCode: null,
+    category: "MEDIA",
+    serviceArea: "Kabupaten Bandung",
+    addressLabel: "Media Kesehatan Bandung",
+    latitude: -6.921,
+    longitude: 107.541,
+  },
+  {
+    n: 7,
+    branchN: 3,
+    name: "Laboratorium Prima Diagnostik",
+    organizationType: "FASKES",
+    faskesClass: "FKRTL",
+    faskesCode: "DEMO-FKRTL-JB02",
+    category: "FASKES",
+    serviceArea: "Kecamatan Bekasi Utara",
+    addressLabel: "Laboratorium Prima Diagnostik, Bekasi",
+    latitude: -6.2383,
+    longitude: 107.0,
+  },
+  {
+    n: 8,
+    branchN: 3,
+    name: "Organisasi Peduli Sehat",
+    organizationType: "OTHER",
+    faskesClass: null,
+    faskesCode: null,
+    category: "ORGANISASI",
+    serviceArea: "Kota Bekasi",
+    addressLabel: "Organisasi Peduli Sehat, Bekasi",
+    latitude: -6.2649,
+    longitude: 106.9896,
+  },
+  {
+    n: 9,
+    branchN: 3,
+    name: "Puskesmas Cimahi Tengah",
+    organizationType: "FASKES",
+    faskesClass: "FKTP",
+    faskesCode: "DEMO-FKTP-JB04",
+    category: "FASKES",
+    serviceArea: "Kecamatan Cimahi Tengah",
+    addressLabel: "Puskesmas Cimahi Tengah",
+    latitude: -6.8722,
+    longitude: 107.5425,
+  },
+  {
+    n: 10,
+    branchN: 4,
+    name: "Puskesmas Jakarta Pusat",
+    organizationType: "FASKES",
+    faskesClass: "FKTP",
+    faskesCode: "DEMO-FKTP-DKI01",
+    category: "FASKES",
+    serviceArea: "Kecamatan Gambir",
+    addressLabel: "Puskesmas Jakarta Pusat",
+    latitude: -6.1767,
+    longitude: 106.8272,
+  },
+  {
+    n: 11,
+    branchN: 4,
+    name: "Dinas Kesehatan DKI Jakarta",
+    organizationType: "PEMDA",
+    faskesClass: null,
+    faskesCode: null,
+    category: "INSTANSI",
+    serviceArea: "Provinsi DKI Jakarta",
+    addressLabel: "Dinas Kesehatan DKI Jakarta",
+    latitude: -6.1751,
+    longitude: 106.8272,
+  },
+  {
+    n: 12,
+    branchN: 4,
+    name: "Klinik Sehat Bersama",
+    organizationType: "FASKES",
+    faskesClass: "FKTP",
+    faskesCode: "DEMO-FKTP-DKI02",
+    category: "FASKES",
+    serviceArea: "Kecamatan Tanah Abang",
+    addressLabel: "Klinik Sehat Bersama, Jakarta Pusat",
+    latitude: -6.1897,
+    longitude: 106.8112,
+  },
+  {
+    n: 13,
+    branchN: 5,
+    name: "RSUD Jakarta Utara",
+    organizationType: "FASKES",
+    faskesClass: "FKRTL",
+    faskesCode: "DEMO-FKRTL-DKI01",
+    category: "FASKES",
+    serviceArea: "Kecamatan Koja",
+    addressLabel: "RSUD Jakarta Utara",
+    latitude: -6.1214,
+    longitude: 106.8892,
+  },
+  {
+    n: 14,
+    branchN: 5,
+    name: "Puskesmas Kelapa Gading",
+    organizationType: "FASKES",
+    faskesClass: "FKTP",
+    faskesCode: "DEMO-FKTP-DKI03",
+    category: "FASKES",
+    serviceArea: "Kecamatan Kelapa Gading",
+    addressLabel: "Puskesmas Kelapa Gading",
+    latitude: -6.1621,
+    longitude: 106.9056,
+  },
+  {
+    n: 15,
+    branchN: 5,
+    name: "Jurnal Sehat Jakarta",
+    organizationType: "OTHER",
+    faskesClass: null,
+    faskesCode: null,
+    category: "MEDIA",
+    serviceArea: "Jakarta Utara",
+    addressLabel: "Jurnal Sehat Jakarta",
+    latitude: -6.1418,
+    longitude: 106.8752,
+  },
+  {
+    n: 16,
+    branchN: 6,
+    name: "Klinik Jakarta Selatan Sehat",
+    organizationType: "FASKES",
+    faskesClass: "FKTP",
+    faskesCode: "DEMO-FKTP-DKI04",
+    category: "FASKES",
+    serviceArea: "Kecamatan Kebayoran Baru",
+    addressLabel: "Klinik Jakarta Selatan Sehat",
+    latitude: -6.2437,
+    longitude: 106.7992,
+  },
+  {
+    n: 17,
+    branchN: 6,
+    name: "Komunitas Peduli Gizi",
+    organizationType: "OTHER",
+    faskesClass: null,
+    faskesCode: null,
+    category: "ORGANISASI",
+    serviceArea: "Jakarta Selatan",
+    addressLabel: "Komunitas Peduli Gizi",
+    latitude: -6.2615,
+    longitude: 106.8106,
+  },
+  {
+    n: 18,
+    branchN: 7,
+    name: "RSUD Dr. Soetomo Surabaya",
+    organizationType: "FASKES",
+    faskesClass: "FKRTL",
+    faskesCode: "DEMO-FKRTL-JTM01",
+    category: "FASKES",
+    serviceArea: "Kecamatan Gubeng",
+    addressLabel: "RSUD Dr. Soetomo, Surabaya",
+    latitude: -7.2575,
+    longitude: 112.7476,
+  },
+  {
+    n: 19,
+    branchN: 7,
+    name: "Puskesmas Surabaya Timur",
+    organizationType: "FASKES",
+    faskesClass: "FKTP",
+    faskesCode: "DEMO-FKTP-JTM01",
+    category: "FASKES",
+    serviceArea: "Kecamatan Mulyorejo",
+    addressLabel: "Puskesmas Surabaya Timur",
+    latitude: -7.2692,
+    longitude: 112.7836,
+  },
+  {
+    n: 20,
+    branchN: 8,
+    name: "Puskesmas Malang Kota",
+    organizationType: "FASKES",
+    faskesClass: "FKTP",
+    faskesCode: "DEMO-FKTP-JTM02",
+    category: "FASKES",
+    serviceArea: "Kecamatan Klojen",
+    addressLabel: "Puskesmas Malang Kota",
+    latitude: -7.9786,
+    longitude: 112.6304,
+  },
 ];
 
 export const DEMO_THEMES: readonly DemoTheme[] = [
-  { n: 1, slug: "edukasi-jkn", name: "Edukasi JKN", description: "Pemahaman hak, alur, dan manfaat layanan JKN bagi peserta." },
-  { n: 2, slug: "layanan-primer", name: "Layanan Primer", description: "Penguatan faskes primer, antrean, dan mutu layanan dasar." },
-  { n: 3, slug: "kesehatan-ibu-anak", name: "Kesehatan Ibu & Anak", description: "Kehamilan, persalinan, tumbuh kembang, dan gizi anak." },
-  { n: 4, slug: "pencegahan-penyakit", name: "Pencegahan Penyakit", description: "Skrining, imunisasi, dan kampanye hidup sehat." },
-  { n: 5, slug: "transformasi-digital", name: "Transformasi Digital", description: "Layanan digital, data, dan transparansi informasi." },
+  {
+    n: 1,
+    slug: "edukasi-jkn",
+    name: "Edukasi JKN",
+    description: "Pemahaman hak, alur, dan manfaat layanan JKN bagi peserta.",
+  },
+  {
+    n: 2,
+    slug: "layanan-primer",
+    name: "Layanan Primer",
+    description: "Penguatan faskes primer, antrean, dan mutu layanan dasar.",
+  },
+  {
+    n: 3,
+    slug: "kesehatan-ibu-anak",
+    name: "Kesehatan Ibu & Anak",
+    description: "Kehamilan, persalinan, tumbuh kembang, dan gizi anak.",
+  },
+  {
+    n: 4,
+    slug: "pencegahan-penyakit",
+    name: "Pencegahan Penyakit",
+    description: "Skrining, imunisasi, dan kampanye hidup sehat.",
+  },
+  {
+    n: 5,
+    slug: "transformasi-digital",
+    name: "Transformasi Digital",
+    description: "Layanan digital, data, dan transparansi informasi.",
+  },
 ];
 
 const REGIONAL_NAMES = ["Ayu Larasati", "Bima Prasetyo", "Citra Mahardika"];
@@ -446,23 +721,71 @@ export function organizationForContent(n: number): number {
 }
 
 export const CONTENT_STATUS_BY_N: readonly DemoStatus[] = [
-  "APPROVED", "APPROVED", "DRAFT", "APPROVED", "DRAFT", "ARCHIVED", "APPROVED",
-  "SUBMITTED", "REVISION_REQUIRED", "APPROVED", "IN_REVIEW", "DRAFT", "APPROVED",
-  "DRAFT", "REJECTED", "SUBMITTED", "REVISION_REQUIRED", "REVOKED", "REJECTED",
-  "DRAFT", "APPROVED", "APPROVED", "APPROVED", "SUBMITTED", "RESUBMITTED",
-  "REVISION_REQUIRED", "ARCHIVED", "APPROVED", "SUBMITTED", "REVISION_REQUIRED",
-  "APPROVED", "IN_REVIEW", "RESUBMITTED", "REJECTED", "APPROVED", "SUBMITTED",
-  "IN_REVIEW", "DRAFT", "RESUBMITTED", "REVISION_REQUIRED", "APPROVED",
-  "SUBMITTED", "DRAFT", "ARCHIVED", "APPROVED", "SUBMITTED", "REJECTED",
-  "REVOKED", "SUBMITTED", "IN_REVIEW",
+  "APPROVED",
+  "APPROVED",
+  "DRAFT",
+  "APPROVED",
+  "DRAFT",
+  "ARCHIVED",
+  "APPROVED",
+  "SUBMITTED",
+  "REVISION_REQUIRED",
+  "APPROVED",
+  "IN_REVIEW",
+  "DRAFT",
+  "APPROVED",
+  "DRAFT",
+  "REJECTED",
+  "SUBMITTED",
+  "REVISION_REQUIRED",
+  "REVOKED",
+  "REJECTED",
+  "DRAFT",
+  "APPROVED",
+  "APPROVED",
+  "APPROVED",
+  "SUBMITTED",
+  "RESUBMITTED",
+  "REVISION_REQUIRED",
+  "ARCHIVED",
+  "APPROVED",
+  "SUBMITTED",
+  "REVISION_REQUIRED",
+  "APPROVED",
+  "IN_REVIEW",
+  "RESUBMITTED",
+  "REJECTED",
+  "APPROVED",
+  "SUBMITTED",
+  "IN_REVIEW",
+  "DRAFT",
+  "RESUBMITTED",
+  "REVISION_REQUIRED",
+  "APPROVED",
+  "SUBMITTED",
+  "DRAFT",
+  "ARCHIVED",
+  "APPROVED",
+  "SUBMITTED",
+  "REJECTED",
+  "REVOKED",
+  "SUBMITTED",
+  "IN_REVIEW",
 ];
 
 const EDUFAST_BY_N = new Set<number>([
-  1, 2, 3, 4, 5, 6, 7, 8, 9,
-  21, 22, 23, 24, 25, 26, 27, 28, 29,
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29,
 ]);
 
-const PLATFORMS = ["INSTAGRAM", "FACEBOOK", "X", "TIKTOK", "YOUTUBE", "WEBSITE", "LAINNYA"] as const;
+const PLATFORMS = [
+  "INSTAGRAM",
+  "FACEBOOK",
+  "X",
+  "TIKTOK",
+  "YOUTUBE",
+  "WEBSITE",
+  "LAINNYA",
+] as const;
 
 const TITLE_POOL: Record<SubTheme, readonly string[]> = {
   MOBILE_JKN: [
@@ -533,11 +856,17 @@ export function jakartaDateOnly(instant: Date): string {
 }
 
 function clampInstant(candidate: Date, now: Date): Date {
-  return candidate.getTime() > now.getTime() ? new Date(now.getTime()) : candidate;
+  return candidate.getTime() > now.getTime()
+    ? new Date(now.getTime())
+    : candidate;
 }
 
 function instant(dateOnly: string, hourUtc: number, minute = 0): Date {
-  const [year, month, day] = dateOnly.split("-").map(Number) as [number, number, number];
+  const [year, month, day] = dateOnly.split("-").map(Number) as [
+    number,
+    number,
+    number,
+  ];
   return new Date(Date.UTC(year, month - 1, day, hourUtc, minute, 0, 0));
 }
 
@@ -558,7 +887,11 @@ function contentDay(n: number, period: string, today: string): number {
   return Math.min(day, Math.max(todayDay, 1));
 }
 
-function policyNForPeriod(period: string, current: string, previous: string): number {
+function policyNForPeriod(
+  period: string,
+  current: string,
+  previous: string,
+): number {
   if (period === current) return 1;
   if (period === previous) return 2;
   throw new Error(`Periode demo tidak dikenal: ${period}`);
@@ -581,7 +914,10 @@ function decisionReason(status: DemoStatus): string | null {
   }
 }
 
-function buildPolicies(now: Date): { policies: DemoPolicy[]; events: DemoPolicyEvent[] } {
+function buildPolicies(now: Date): {
+  policies: DemoPolicy[];
+  events: DemoPolicyEvent[];
+} {
   const current = periodOf(now);
   const previous = shiftPeriod(current, -1);
   const definitions = [
@@ -631,7 +967,11 @@ function buildPolicies(now: Date): { policies: DemoPolicy[]; events: DemoPolicyE
       id: DEMO_IDS.policyEvent(eventN),
       policyN: policy.n,
       action: "PUBLISHED",
-      snapshot: { period: policy.period, version: 1, subThemes: SUB_THEMES.length },
+      snapshot: {
+        period: policy.period,
+        version: 1,
+        subThemes: SUB_THEMES.length,
+      },
       createdAt: policy.publishedAt,
     });
     eventN += 1;
@@ -693,7 +1033,12 @@ export function buildSubmissions(now: Date = new Date()): DemoSubmission[] {
 
     const approvedSnapshot =
       approvedAt !== null
-        ? { title, mainTheme: isEdufast ? "EDUFAST" : "NON_EDUFAST", subTheme, version: 1 }
+        ? {
+            title,
+            mainTheme: isEdufast ? "EDUFAST" : "NON_EDUFAST",
+            subTheme,
+            version: 1,
+          }
         : null;
 
     return {
@@ -733,14 +1078,19 @@ export function buildSubmissions(now: Date = new Date()): DemoSubmission[] {
       archived: status === "ARCHIVED",
       approvedSnapshot,
       approvedVersion: approvedAt !== null ? 1 : null,
-      edufastPolicyN: isEdufast ? policyNForPeriod(period, current, previous) : null,
+      edufastPolicyN: isEdufast
+        ? policyNForPeriod(period, current, previous)
+        : null,
       edufastPolicyVersion: isEdufast ? 1 : null,
       idempotencyKey: `${DEMO_SEED_VERSION}:submission:${String(n).padStart(4, "0")}`,
     };
   });
 }
 
-export function buildLocations(now: Date = new Date(), submissions = buildSubmissions(now)): DemoLocation[] {
+export function buildLocations(
+  now: Date = new Date(),
+  submissions = buildSubmissions(now),
+): DemoLocation[] {
   const today = jakartaDateOnly(now);
   const current = periodOf(now);
 
@@ -775,7 +1125,8 @@ export function buildRevisions(
   let revisionN = 1;
 
   for (const submission of submissions) {
-    if (submission.status === "DRAFT" || submission.submittedAt === null) continue;
+    if (submission.status === "DRAFT" || submission.submittedAt === null)
+      continue;
     const baseSnapshot = {
       title: submission.title,
       narrative: submission.narrative,
@@ -840,7 +1191,12 @@ export function buildReviews(
           version: 1,
           reviewerAccountN,
           action: "APPROVE",
-          checklist: { relevansiTema: true, akurasiKonten: true, kelengkapanTautan: true, etikaDanPrivasi: true },
+          checklist: {
+            relevansiTema: true,
+            akurasiKonten: true,
+            kelengkapanTautan: true,
+            etikaDanPrivasi: true,
+          },
           notes: submission.decisionReason,
           previousStatus: "SUBMITTED",
           nextStatus: "APPROVED",
@@ -854,7 +1210,12 @@ export function buildReviews(
           version: 1,
           reviewerAccountN,
           action: "REJECT",
-          checklist: { relevansiTema: true, akurasiKonten: false, kelengkapanTautan: false, etikaDanPrivasi: true },
+          checklist: {
+            relevansiTema: true,
+            akurasiKonten: false,
+            kelengkapanTautan: false,
+            etikaDanPrivasi: true,
+          },
           notes: submission.decisionReason,
           previousStatus: "IN_REVIEW",
           nextStatus: "REJECTED",
@@ -868,7 +1229,12 @@ export function buildReviews(
           version: 1,
           reviewerAccountN,
           action: "REQUEST_REVISION",
-          checklist: { relevansiTema: true, akurasiKonten: false, kelengkapanTautan: false, etikaDanPrivasi: true },
+          checklist: {
+            relevansiTema: true,
+            akurasiKonten: false,
+            kelengkapanTautan: false,
+            etikaDanPrivasi: true,
+          },
           notes: submission.decisionReason,
           previousStatus: "SUBMITTED",
           nextStatus: "REVISION_REQUIRED",
@@ -882,7 +1248,12 @@ export function buildReviews(
           version: 1,
           reviewerAccountN,
           action: "REQUEST_REVISION",
-          checklist: { relevansiTema: true, akurasiKonten: false, kelengkapanTautan: false, etikaDanPrivasi: true },
+          checklist: {
+            relevansiTema: true,
+            akurasiKonten: false,
+            kelengkapanTautan: false,
+            etikaDanPrivasi: true,
+          },
           notes: "Perbaiki tautan publikasi sebelum dikirim ulang.",
           previousStatus: "SUBMITTED",
           nextStatus: "REVISION_REQUIRED",
@@ -896,7 +1267,12 @@ export function buildReviews(
           version: 1,
           reviewerAccountN,
           action: "APPROVE",
-          checklist: { relevansiTema: true, akurasiKonten: true, kelengkapanTautan: true, etikaDanPrivasi: true },
+          checklist: {
+            relevansiTema: true,
+            akurasiKonten: true,
+            kelengkapanTautan: true,
+            etikaDanPrivasi: true,
+          },
           notes: "Disetujui sebelum penarikan.",
           previousStatus: "SUBMITTED",
           nextStatus: "APPROVED",
@@ -908,7 +1284,12 @@ export function buildReviews(
           version: 1,
           reviewerAccountN,
           action: "REVOKE",
-          checklist: { relevansiTema: true, akurasiKonten: true, kelengkapanTautan: true, etikaDanPrivasi: true },
+          checklist: {
+            relevansiTema: true,
+            akurasiKonten: true,
+            kelengkapanTautan: true,
+            etikaDanPrivasi: true,
+          },
           notes: submission.decisionReason,
           previousStatus: "APPROVED",
           nextStatus: "REVOKED",
@@ -930,7 +1311,12 @@ export function buildTargets(now: Date = new Date()): DemoTarget[] {
   const targets: DemoTarget[] = [];
   let targetN = 1;
 
-  const push = (target: Omit<DemoTarget, "n" | "id" | "periodStart" | "periodEnd" | "createdAt">) => {
+  const push = (
+    target: Omit<
+      DemoTarget,
+      "n" | "id" | "periodStart" | "periodEnd" | "createdAt"
+    >,
+  ) => {
     targets.push({
       ...target,
       n: targetN,
@@ -1042,7 +1428,8 @@ export function buildNotifications(
     }
     const organization = DEMO_ORGANIZATIONS[submission.organizationN - 1]!;
     push({
-      recipientAccountN: submission.reviewerAccountN ?? accountForBranch(submission.branchN).n,
+      recipientAccountN:
+        submission.reviewerAccountN ?? accountForBranch(submission.branchN).n,
       eventType: "CONTENT_SUBMITTED",
       title: "Konten baru menunggu review",
       body: `${organization.name} mengirim ${submission.referenceCode} untuk ditinjau.`,
@@ -1070,7 +1457,10 @@ export function buildNotifications(
       href: `/client/konten/${submission.id}`,
       branchN: submission.branchN,
       organizationN: submission.organizationN,
-      readAt: review.createdAt.getTime() < now.getTime() - 7 * DAY_MS ? new Date(review.createdAt.getTime() + 3_600_000) : null,
+      readAt:
+        review.createdAt.getTime() < now.getTime() - 7 * DAY_MS
+          ? new Date(review.createdAt.getTime() + 3_600_000)
+          : null,
       dedupeKey: `demo:notif:review:${String(review.n).padStart(4, "0")}`,
       createdAt: review.createdAt,
     });
@@ -1145,7 +1535,10 @@ export function buildOutbox(
       title: notification.title,
     },
     recipientAccountN: notification.recipientAccountN,
-    processedAt: clampInstant(new Date(notification.createdAt.getTime() + 60_000), now),
+    processedAt: clampInstant(
+      new Date(notification.createdAt.getTime() + 60_000),
+      now,
+    ),
     createdAt: notification.createdAt,
   }));
 }
@@ -1242,7 +1635,11 @@ export function buildAudits(
     regionN: null,
     branchN: null,
     organizationN: null,
-    after: { period: currentPolicy.period, version: 1, subThemes: SUB_THEMES.length },
+    after: {
+      period: currentPolicy.period,
+      version: 1,
+      subThemes: SUB_THEMES.length,
+    },
     source: "SEED",
     createdAt: currentPolicy.publishedAt,
   });
@@ -1302,7 +1699,9 @@ export function buildDemoDataset(now: Date = new Date()): DemoDataset {
   };
 }
 
-function countByStatus(submissions: DemoSubmission[]): Record<DemoStatus, number> {
+function countByStatus(
+  submissions: DemoSubmission[],
+): Record<DemoStatus, number> {
   const base: Record<DemoStatus, number> = {
     DRAFT: 0,
     SUBMITTED: 0,
@@ -1334,20 +1733,32 @@ export function expectedCounts(now: Date = new Date()) {
   const branchApproved = DEMO_BRANCHES.map(
     (branch) =>
       dataset.submissions.filter(
-        (submission) => submission.branchN === branch.n && submission.status === "APPROVED",
+        (submission) =>
+          submission.branchN === branch.n && submission.status === "APPROVED",
       ).length,
   );
   const regionSubmissions = DEMO_REGIONS.map(
-    (region) => dataset.submissions.filter((submission) => submission.regionN === region.n).length,
+    (region) =>
+      dataset.submissions.filter(
+        (submission) => submission.regionN === region.n,
+      ).length,
   );
   const approvedCurrent = dataset.submissions.filter(
-    (submission) => submission.status === "APPROVED" && submission.period === dataset.currentPeriod,
+    (submission) =>
+      submission.status === "APPROVED" &&
+      submission.period === dataset.currentPeriod,
   ).length;
   const approvedPrevious = dataset.submissions.filter(
-    (submission) => submission.status === "APPROVED" && submission.period === dataset.previousPeriod,
+    (submission) =>
+      submission.status === "APPROVED" &&
+      submission.period === dataset.previousPeriod,
   ).length;
-  const edufast = dataset.submissions.filter((submission) => submission.mainTheme === "EDUFAST");
-  const nonDraft = dataset.submissions.filter((submission) => submission.status !== "DRAFT").length;
+  const edufast = dataset.submissions.filter(
+    (submission) => submission.mainTheme === "EDUFAST",
+  );
+  const nonDraft = dataset.submissions.filter(
+    (submission) => submission.status !== "DRAFT",
+  ).length;
   const mapPoints = dataset.submissions.filter(
     (submission) => submission.status !== "DRAFT" && !submission.archived,
   ).length;
@@ -1358,14 +1769,28 @@ export function expectedCounts(now: Date = new Date()) {
     regions: dataset.regions.length,
     branches: dataset.branches.length,
     organizations: dataset.organizations.length,
-    faskes: dataset.organizations.filter((item) => item.organizationType === "FASKES").length,
-    pemda: dataset.organizations.filter((item) => item.organizationType === "PEMDA").length,
-    other: dataset.organizations.filter((item) => item.organizationType === "OTHER").length,
+    faskes: dataset.organizations.filter(
+      (item) => item.organizationType === "FASKES",
+    ).length,
+    pemda: dataset.organizations.filter(
+      (item) => item.organizationType === "PEMDA",
+    ).length,
+    other: dataset.organizations.filter(
+      (item) => item.organizationType === "OTHER",
+    ).length,
     accounts: dataset.accounts.length,
-    masterAccounts: dataset.accounts.filter((item) => item.role === "MASTER_ADMIN").length,
-    regionalAccounts: dataset.accounts.filter((item) => item.role === "REGIONAL_ADMIN").length,
-    branchAccounts: dataset.accounts.filter((item) => item.role === "BRANCH_ADMIN").length,
-    stakeholderAccounts: dataset.accounts.filter((item) => item.role === "STAKEHOLDER").length,
+    masterAccounts: dataset.accounts.filter(
+      (item) => item.role === "MASTER_ADMIN",
+    ).length,
+    regionalAccounts: dataset.accounts.filter(
+      (item) => item.role === "REGIONAL_ADMIN",
+    ).length,
+    branchAccounts: dataset.accounts.filter(
+      (item) => item.role === "BRANCH_ADMIN",
+    ).length,
+    stakeholderAccounts: dataset.accounts.filter(
+      (item) => item.role === "STAKEHOLDER",
+    ).length,
     policies: dataset.policies.length,
     policySubthemes: dataset.policies.length * SUB_THEMES.length,
     policyEvents: dataset.policyEvents.length,
@@ -1379,9 +1804,13 @@ export function expectedCounts(now: Date = new Date()) {
     nonDraft,
     mapPoints,
     edufast: edufast.length,
-    edufastDistinctSubthemes: new Set(edufast.map((item) => item.subTheme)).size,
-    video: dataset.submissions.filter((item) => item.contentType === "VIDEO").length,
-    infografis: dataset.submissions.filter((item) => item.contentType === "INFOGRAFIS").length,
+    edufastDistinctSubthemes: new Set(edufast.map((item) => item.subTheme))
+      .size,
+    video: dataset.submissions.filter((item) => item.contentType === "VIDEO")
+      .length,
+    infografis: dataset.submissions.filter(
+      (item) => item.contentType === "INFOGRAFIS",
+    ).length,
     revisions: dataset.revisions.length,
     reviews: dataset.reviews.length,
     targets: dataset.targets.length,
@@ -1407,21 +1836,38 @@ export function assertFixtureIntegrity(now: Date = new Date()): void {
     throw new Error(`Fixture demo tidak valid: ${message}`);
   };
 
-  if (dataset.accounts.length !== 32) fail(`akun ${dataset.accounts.length}, harapan 32`);
-  if (new Set(dataset.accounts.map((item) => item.email)).size !== dataset.accounts.length) {
+  if (dataset.accounts.length !== 32)
+    fail(`akun ${dataset.accounts.length}, harapan 32`);
+  if (
+    new Set(dataset.accounts.map((item) => item.email)).size !==
+    dataset.accounts.length
+  ) {
     fail("email akun duplikat");
   }
-  if (counts.masterAccounts !== 1 || counts.regionalAccounts !== 3 || counts.branchAccounts !== 8 || counts.stakeholderAccounts !== 20) {
+  if (
+    counts.masterAccounts !== 1 ||
+    counts.regionalAccounts !== 3 ||
+    counts.branchAccounts !== 8 ||
+    counts.stakeholderAccounts !== 20
+  ) {
     fail("komposisi peran akun tidak sesuai");
   }
   for (const account of dataset.accounts) {
-    if (!account.email.endsWith(`@${DEMO_DOMAIN}`)) fail(`domain akun ${account.email}`);
-    if (account.role === "REGIONAL_ADMIN" && account.regionN === null) fail("regional tanpa wilayah");
-    if (account.role === "BRANCH_ADMIN" && account.branchN === null) fail("cabang tanpa cabang");
-    if (account.role === "STAKEHOLDER" && account.organizationN === null) fail("stakeholder tanpa organisasi");
+    if (!account.email.endsWith(`@${DEMO_DOMAIN}`))
+      fail(`domain akun ${account.email}`);
+    if (account.role === "REGIONAL_ADMIN" && account.regionN === null)
+      fail("regional tanpa wilayah");
+    if (account.role === "BRANCH_ADMIN" && account.branchN === null)
+      fail("cabang tanpa cabang");
+    if (account.role === "STAKEHOLDER" && account.organizationN === null)
+      fail("stakeholder tanpa organisasi");
   }
 
-  if (counts.regions !== 3 || counts.branches !== 8 || counts.organizations !== 20) {
+  if (
+    counts.regions !== 3 ||
+    counts.branches !== 8 ||
+    counts.organizations !== 20
+  ) {
     fail("jumlah hierarki tidak sesuai");
   }
   if (counts.faskes !== 15 || counts.pemda !== 1 || counts.other !== 4) {
@@ -1433,12 +1879,16 @@ export function assertFixtureIntegrity(now: Date = new Date()): void {
         fail(`kode faskes ${organization.name}`);
       }
       if (!organization.faskesClass) fail(`kelas faskes ${organization.name}`);
-    } else if (organization.faskesClass !== null || organization.faskesCode !== null) {
+    } else if (
+      organization.faskesClass !== null ||
+      organization.faskesCode !== null
+    ) {
       fail(`organisasi non-faskes memiliki field faskes: ${organization.name}`);
     }
   }
 
-  if (counts.submissions !== 50) fail(`konten ${counts.submissions}, harapan 50`);
+  if (counts.submissions !== 50)
+    fail(`konten ${counts.submissions}, harapan 50`);
   if (counts.status.APPROVED !== 14) fail("APPROVED harus 14");
   if (counts.status.SUBMITTED !== 8) fail("SUBMITTED harus 8");
   if (counts.status.RESUBMITTED !== 3) fail("RESUBMITTED harus 3");
@@ -1449,70 +1899,113 @@ export function assertFixtureIntegrity(now: Date = new Date()): void {
   if (counts.status.ARCHIVED !== 3) fail("ARCHIVED harus 3");
   if (counts.status.DRAFT !== 7) fail("DRAFT harus 7");
   if (counts.edufast !== 18) fail("EDUFAST harus 18");
-  if (counts.edufastDistinctSubthemes !== 6) fail("EDUFAST harus mencakup 6 sub-tema");
-  if (counts.video !== 25 || counts.infografis !== 25) fail("komposisi jenis konten harus 25/25");
+  if (counts.edufastDistinctSubthemes !== 6)
+    fail("EDUFAST harus mencakup 6 sub-tema");
+  if (counts.video !== 25 || counts.infografis !== 25)
+    fail("komposisi jenis konten harus 25/25");
   if (counts.approvedCurrent !== 8 || counts.approvedPrevious !== 6) {
     fail("sebaran approved per periode harus 8/6");
   }
-  if (JSON.stringify(counts.branchPending) !== JSON.stringify([1, 2, 2, 3, 3, 1, 1, 2])) {
+  if (
+    JSON.stringify(counts.branchPending) !==
+    JSON.stringify([1, 2, 2, 3, 3, 1, 1, 2])
+  ) {
     fail(`antrean per cabang ${counts.branchPending.join(",")}`);
   }
-  if (JSON.stringify(counts.branchApproved) !== JSON.stringify([4, 2, 3, 2, 1, 1, 1, 0])) {
+  if (
+    JSON.stringify(counts.branchApproved) !==
+    JSON.stringify([4, 2, 3, 2, 1, 1, 1, 0])
+  ) {
     fail(`approved per cabang ${counts.branchApproved.join(",")}`);
   }
 
   const references = new Set<string>();
   const idempotencyKeys = new Set<string>();
   for (const submission of dataset.submissions) {
-    if (submission.dateCreated > today) fail(`tanggal konten ${submission.n} di masa depan`);
-    if (!submission.dateCreated.startsWith(submission.period)) fail(`periode konten ${submission.n}`);
-    if (!/^DKS-\d{6}-D\d{4}$/.test(submission.referenceCode)) fail(`kode referensi ${submission.n}`);
-    if (references.has(submission.referenceCode)) fail("kode referensi duplikat");
+    if (submission.dateCreated > today)
+      fail(`tanggal konten ${submission.n} di masa depan`);
+    if (!submission.dateCreated.startsWith(submission.period))
+      fail(`periode konten ${submission.n}`);
+    if (!/^DKS-\d{6}-D\d{4}$/.test(submission.referenceCode))
+      fail(`kode referensi ${submission.n}`);
+    if (references.has(submission.referenceCode))
+      fail("kode referensi duplikat");
     references.add(submission.referenceCode);
-    if (idempotencyKeys.has(submission.idempotencyKey)) fail("idempotency duplikat");
+    if (idempotencyKeys.has(submission.idempotencyKey))
+      fail("idempotency duplikat");
     idempotencyKeys.add(submission.idempotencyKey);
-    if (!submission.publishedUrl.startsWith("https://demo.dakosta.example/")) fail(`url konten ${submission.n}`);
-    if (submission.narrative.length < 40) fail(`narasi konten ${submission.n} terlalu pendek`);
-    if (detectPii(`${submission.title}\n${submission.narrative}`)) fail(`PII pada konten ${submission.n}`);
-    if (submission.status !== "DRAFT" && submission.submittedAt === null) fail(`konten ${submission.n} tanpa submittedAt`);
-    if ((submission.status === "APPROVED" || submission.status === "ARCHIVED" || submission.status === "REVOKED") && submission.approvedAt === null) {
+    if (!submission.publishedUrl.startsWith("https://demo.dakosta.example/"))
+      fail(`url konten ${submission.n}`);
+    if (submission.narrative.length < 40)
+      fail(`narasi konten ${submission.n} terlalu pendek`);
+    if (detectPii(`${submission.title}\n${submission.narrative}`))
+      fail(`PII pada konten ${submission.n}`);
+    if (submission.status !== "DRAFT" && submission.submittedAt === null)
+      fail(`konten ${submission.n} tanpa submittedAt`);
+    if (
+      (submission.status === "APPROVED" ||
+        submission.status === "ARCHIVED" ||
+        submission.status === "REVOKED") &&
+      submission.approvedAt === null
+    ) {
       fail(`konten ${submission.n} tanpa approvedAt`);
     }
-    if (submission.status === "REVOKED" && submission.revokedAt === null) fail(`konten ${submission.n} tanpa revokedAt`);
-    if (submission.status === "RESUBMITTED" && (submission.version !== 2 || submission.resubmissionCount !== 1)) {
+    if (submission.status === "REVOKED" && submission.revokedAt === null)
+      fail(`konten ${submission.n} tanpa revokedAt`);
+    if (
+      submission.status === "RESUBMITTED" &&
+      (submission.version !== 2 || submission.resubmissionCount !== 1)
+    ) {
       fail(`resubmission konten ${submission.n}`);
     }
-    if (submission.mainTheme === "EDUFAST" && submission.edufastPolicyN === null) {
+    if (
+      submission.mainTheme === "EDUFAST" &&
+      submission.edufastPolicyN === null
+    ) {
       fail(`konten EDUFAST ${submission.n} tanpa kebijakan`);
     }
-    for (const instantValue of [submission.createdAt, submission.submittedAt, submission.approvedAt, submission.revokedAt, submission.updatedAt]) {
-      if (instantValue && instantValue.getTime() > now.getTime()) fail(`timestamp konten ${submission.n} di masa depan`);
+    for (const instantValue of [
+      submission.createdAt,
+      submission.submittedAt,
+      submission.approvedAt,
+      submission.revokedAt,
+      submission.updatedAt,
+    ]) {
+      if (instantValue && instantValue.getTime() > now.getTime())
+        fail(`timestamp konten ${submission.n} di masa depan`);
     }
   }
 
   for (const period of [dataset.currentPeriod, dataset.previousPeriod]) {
     const edufastInPeriod = dataset.submissions.filter(
-      (submission) => submission.period === period && submission.mainTheme === "EDUFAST",
+      (submission) =>
+        submission.period === period && submission.mainTheme === "EDUFAST",
     );
-    const covered = new Set(edufastInPeriod.map((submission) => submission.subTheme));
-    if (covered.size !== SUB_THEMES.length) fail(`EDUFAST ${period} tidak mencakup semua sub-tema`);
+    const covered = new Set(
+      edufastInPeriod.map((submission) => submission.subTheme),
+    );
+    if (covered.size !== SUB_THEMES.length)
+      fail(`EDUFAST ${period} tidak mencakup semua sub-tema`);
   }
 
   if (counts.revisions !== 46) fail(`revisi ${counts.revisions}, harapan 46`);
   if (counts.reviews !== 33) fail(`ulasan ${counts.reviews}, harapan 33`);
   if (counts.targets !== 28) fail(`target ${counts.targets}, harapan 28`);
-  if (counts.notifications !== 53) fail(`notifikasi ${counts.notifications}, harapan 53`);
+  if (counts.notifications !== 53)
+    fail(`notifikasi ${counts.notifications}, harapan 53`);
   if (counts.outbox !== 53) fail(`outbox ${counts.outbox}, harapan 53`);
   if (counts.audits !== 36) fail(`audit ${counts.audits}, harapan 36`);
   if (counts.locations !== 50) fail(`lokasi ${counts.locations}, harapan 50`);
-  if (counts.mapPoints !== 40) fail(`titik peta ${counts.mapPoints}, harapan 40`);
+  if (counts.mapPoints !== 40)
+    fail(`titik peta ${counts.mapPoints}, harapan 40`);
 
   const reviewKeys = new Set<string>();
   for (const review of dataset.reviews) {
     const key = `${review.submissionN}:${review.version}:${review.action}`;
     if (reviewKeys.has(key)) fail("ulasan duplikat");
     reviewKeys.add(key);
-    if (review.createdAt.getTime() > now.getTime()) fail("timestamp ulasan di masa depan");
+    if (review.createdAt.getTime() > now.getTime())
+      fail("timestamp ulasan di masa depan");
   }
   const revisionKeys = new Set<string>();
   for (const revision of dataset.revisions) {
@@ -1523,12 +2016,18 @@ export function assertFixtureIntegrity(now: Date = new Date()): void {
 
   const notificationKeys = new Set<string>();
   for (const notification of dataset.notifications) {
-    if (notificationKeys.has(notification.dedupeKey)) fail("notifikasi duplikat");
+    if (notificationKeys.has(notification.dedupeKey))
+      fail("notifikasi duplikat");
     notificationKeys.add(notification.dedupeKey);
-    if (notification.createdAt.getTime() > now.getTime()) fail("timestamp notifikasi di masa depan");
+    if (notification.createdAt.getTime() > now.getTime())
+      fail("timestamp notifikasi di masa depan");
   }
-  if (dataset.outbox.length !== dataset.notifications.length) fail("outbox tidak 1:1 dengan notifikasi");
-  if (new Set(dataset.outbox.map((item) => item.eventKey)).size !== dataset.outbox.length) {
+  if (dataset.outbox.length !== dataset.notifications.length)
+    fail("outbox tidak 1:1 dengan notifikasi");
+  if (
+    new Set(dataset.outbox.map((item) => item.eventKey)).size !==
+    dataset.outbox.length
+  ) {
     fail("event outbox duplikat");
   }
   const targetKeys = new Set<string>();
@@ -1537,7 +2036,10 @@ export function assertFixtureIntegrity(now: Date = new Date()): void {
     if (targetKeys.has(key)) fail("target duplikat");
     targetKeys.add(key);
   }
-  if (new Set(dataset.audits.map((item) => item.id)).size !== dataset.audits.length) {
+  if (
+    new Set(dataset.audits.map((item) => item.id)).size !==
+    dataset.audits.length
+  ) {
     fail("id audit duplikat");
   }
 }

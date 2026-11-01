@@ -34,7 +34,13 @@ export type AccountRow = {
 
 export type ScopeOptions = {
   regions: Array<{ id: string; name: string; code: string }>;
-  branches: Array<{ id: string; name: string; code: string; regionalOfficeId: string; regionName: string }>;
+  branches: Array<{
+    id: string;
+    name: string;
+    code: string;
+    regionalOfficeId: string;
+    regionName: string;
+  }>;
   organizations: Array<{
     id: string;
     name: string;
@@ -174,7 +180,12 @@ const accountInputSchema = z.object({
   name: z.string().trim().min(2, "Nama minimal 2 karakter.").max(80),
   email: z.string().trim().toLowerCase().email("Format email tidak valid."),
   displayTitle: z.string().trim().max(80).optional(),
-  role: z.enum(["MASTER_ADMIN", "REGIONAL_ADMIN", "BRANCH_ADMIN", "STAKEHOLDER"]),
+  role: z.enum([
+    "MASTER_ADMIN",
+    "REGIONAL_ADMIN",
+    "BRANCH_ADMIN",
+    "STAKEHOLDER",
+  ]),
   regionalOfficeId: z.string().uuid().nullish(),
   branchOfficeId: z.string().uuid().nullish(),
   organizationId: z.string().uuid().nullish(),
@@ -197,14 +208,26 @@ async function assertScopeCombination(input: {
 }): Promise<void> {
   const db = getDb();
   if (input.role === "MASTER_ADMIN") {
-    if (input.regionalOfficeId || input.branchOfficeId || input.organizationId) {
-      throw errors.validation("Master Admin tidak boleh memiliki lingkup wilayah/cabang/organisasi.");
+    if (
+      input.regionalOfficeId ||
+      input.branchOfficeId ||
+      input.organizationId
+    ) {
+      throw errors.validation(
+        "Master Admin tidak boleh memiliki lingkup wilayah/cabang/organisasi.",
+      );
     }
     return;
   }
   if (input.role === "REGIONAL_ADMIN") {
-    if (!input.regionalOfficeId || input.branchOfficeId || input.organizationId) {
-      throw errors.validation("Admin wilayah wajib terikat pada satu wilayah saja.");
+    if (
+      !input.regionalOfficeId ||
+      input.branchOfficeId ||
+      input.organizationId
+    ) {
+      throw errors.validation(
+        "Admin wilayah wajib terikat pada satu wilayah saja.",
+      );
     }
     const [region] = await db
       .select({ id: schema.regionalOffices.id })
@@ -216,7 +239,8 @@ async function assertScopeCombination(input: {
         ),
       )
       .limit(1);
-    if (!region) throw errors.validation("Wilayah tidak ditemukan atau tidak aktif.");
+    if (!region)
+      throw errors.validation("Wilayah tidak ditemukan atau tidak aktif.");
     return;
   }
   if (input.role === "BRANCH_ADMIN") {
@@ -230,7 +254,9 @@ async function assertScopeCombination(input: {
         .where(eq(schema.branchOffices.id, input.branchOfficeId))
         .limit(1);
       if (!branch || branch.regionId !== input.regionalOfficeId) {
-        throw errors.validation("Cabang tidak berada pada wilayah yang dipilih.");
+        throw errors.validation(
+          "Cabang tidak berada pada wilayah yang dipilih.",
+        );
       }
     }
     const [branch] = await db
@@ -243,11 +269,14 @@ async function assertScopeCombination(input: {
         ),
       )
       .limit(1);
-    if (!branch) throw errors.validation("Cabang tidak ditemukan atau tidak aktif.");
+    if (!branch)
+      throw errors.validation("Cabang tidak ditemukan atau tidak aktif.");
     return;
   }
   if (!input.organizationId) {
-    throw errors.validation("Akun stakeholder wajib terikat pada satu organisasi.");
+    throw errors.validation(
+      "Akun stakeholder wajib terikat pada satu organisasi.",
+    );
   }
   const [organization] = await db
     .select({ id: schema.stakeholders.id })
@@ -259,7 +288,8 @@ async function assertScopeCombination(input: {
       ),
     )
     .limit(1);
-  if (!organization) throw errors.validation("Organisasi tidak ditemukan atau tidak aktif.");
+  if (!organization)
+    throw errors.validation("Organisasi tidak ditemukan atau tidak aktif.");
 }
 
 async function countActiveMasters(excludeUserId?: string): Promise<number> {
@@ -294,9 +324,7 @@ export async function createAccount(input: CreateAccountInput): Promise<{
 
   const db = getDb();
   const tempPassword = generateTempPassword();
-  const displayTitle =
-    parsed.displayTitle?.trim() ||
-    ROLE_LABELS[parsed.role];
+  const displayTitle = parsed.displayTitle?.trim() || ROLE_LABELS[parsed.role];
 
   let createdUserId: string | null = null;
   try {
@@ -344,7 +372,10 @@ export async function createAccount(input: CreateAccountInput): Promise<{
   } catch (error) {
     if (createdUserId) {
       await getAuth()
-        .api.removeUser({ body: { userId: createdUserId }, headers: await headers() })
+        .api.removeUser({
+          body: { userId: createdUserId },
+          headers: await headers(),
+        })
         .catch(() => undefined);
     }
     if (error instanceof AppError) throw error;
@@ -368,7 +399,9 @@ const patchSchema = z
     name: z.string().trim().min(2).max(80).optional(),
     displayTitle: z.string().trim().max(80).nullish(),
     status: z.enum(["ACTIVE", "SUSPENDED", "DISABLED"]).optional(),
-    role: z.enum(["MASTER_ADMIN", "REGIONAL_ADMIN", "BRANCH_ADMIN", "STAKEHOLDER"]).optional(),
+    role: z
+      .enum(["MASTER_ADMIN", "REGIONAL_ADMIN", "BRANCH_ADMIN", "STAKEHOLDER"])
+      .optional(),
     regionalOfficeId: z.string().uuid().nullish(),
     branchOfficeId: z.string().uuid().nullish(),
     organizationId: z.string().uuid().nullish(),
@@ -450,7 +483,9 @@ export async function updateAccount(
 
   const losingMaster =
     current.role === "MASTER_ADMIN" &&
-    (nextRole !== "MASTER_ADMIN" || patch.status === "SUSPENDED" || patch.status === "DISABLED");
+    (nextRole !== "MASTER_ADMIN" ||
+      patch.status === "SUSPENDED" ||
+      patch.status === "DISABLED");
   if (losingMaster && (await countActiveMasters(userId)) === 0) {
     throw errors.conflict(
       "Master Admin aktif terakhir tidak dapat diturunkan atau dinonaktifkan.",

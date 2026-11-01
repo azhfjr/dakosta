@@ -21,9 +21,9 @@ export default async function AdminRedNoticePage() {
           Red Notice
         </h1>
         <p className="mt-1 max-w-3xl text-sm text-ink-muted">
-          Faskes aktif yang belum pernah mengirim konten sama sekali ditandai Red
-          Notice. Faskes yang hanya tidak aktif pada bulan berjalan ditampilkan
-          terpisah agar kedua kondisi tidak tertukar.
+          Faskes aktif yang belum pernah mengirim konten sama sekali ditandai
+          Red Notice. Faskes yang hanya tidak aktif pada bulan berjalan
+          ditampilkan terpisah agar kedua kondisi tidak tertukar.
         </p>
       </header>
 

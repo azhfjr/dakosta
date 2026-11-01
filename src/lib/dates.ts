@@ -29,8 +29,12 @@ const numberFormatter = new Intl.NumberFormat("id-ID");
 export function jakartaMonthStart(reference = new Date()): Date {
   const parts = monthStartFormatter.formatToParts(reference);
 
-  const year = Number(parts.find((part) => part.type === "year")?.value ?? "1970");
-  const month = Number(parts.find((part) => part.type === "month")?.value ?? "1");
+  const year = Number(
+    parts.find((part) => part.type === "year")?.value ?? "1970",
+  );
+  const month = Number(
+    parts.find((part) => part.type === "month")?.value ?? "1",
+  );
 
   // WIB tidak memakai DST sehingga offset tetap UTC+7.
   return new Date(Date.UTC(year, month - 1, 1) - WIB_OFFSET_MS);

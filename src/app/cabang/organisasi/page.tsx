@@ -21,11 +21,14 @@ export default async function BranchOrganizationsPage() {
           Organisasi cabang
         </h1>
         <p className="mt-1 max-w-2xl text-sm text-ink-muted">
-          Faskes FKTP/FKRTL dan organisasi lain di {user.scopeLabel}. Kode Faskes
-          ternormalisasi dan unik.
+          Faskes FKTP/FKRTL dan organisasi lain di {user.scopeLabel}. Kode
+          Faskes ternormalisasi dan unik.
         </p>
       </header>
-      <OrganizationTable organizations={organizations} contentBase="/cabang/konten" />
+      <OrganizationTable
+        organizations={organizations}
+        contentBase="/cabang/konten"
+      />
     </div>
   );
 }

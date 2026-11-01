@@ -52,7 +52,9 @@ export const isDemoMode = !isProductionRuntime && env.DEMO_MODE === "true";
 export function getAppUrl(): string {
   return (
     env.NEXT_PUBLIC_APP_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+    (process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "http://localhost:3000")
   );
 }
 

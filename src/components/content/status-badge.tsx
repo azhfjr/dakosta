@@ -1,4 +1,8 @@
-import { STATUS_LABEL, STATUS_TONE, type ContentStatus } from "@/lib/content-status";
+import {
+  STATUS_LABEL,
+  STATUS_TONE,
+  type ContentStatus,
+} from "@/lib/content-status";
 import { cn } from "@/lib/utils";
 
 export function StatusBadge({

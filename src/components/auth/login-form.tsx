@@ -16,7 +16,9 @@ export function LoginForm({ demoMode }: { demoMode: boolean }) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-  const [demoPending, setDemoPending] = useState<"admin" | "client" | null>(null);
+  const [demoPending, setDemoPending] = useState<"admin" | "client" | null>(
+    null,
+  );
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -141,7 +143,12 @@ export function LoginForm({ demoMode }: { demoMode: boolean }) {
           </p>
         )}
 
-        <Button type="submit" size="lg" className="h-11 w-full" disabled={pending}>
+        <Button
+          type="submit"
+          size="lg"
+          className="h-11 w-full"
+          disabled={pending}
+        >
           {pending ? (
             <Loader2 className="size-4 animate-spin" aria-hidden />
           ) : (

@@ -40,7 +40,10 @@ export async function GET(request: Request) {
     });
 
     const [items, unreadCount] = await Promise.all([
-      listNotifications(user.id, { limit: query.limit, unreadOnly: query.unreadOnly }),
+      listNotifications(user.id, {
+        limit: query.limit,
+        unreadOnly: query.unreadOnly,
+      }),
       getUnreadNotificationCount(user.id),
     ]);
 

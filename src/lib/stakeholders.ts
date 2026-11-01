@@ -82,7 +82,10 @@ export async function getStakeholderOverview(): Promise<StakeholderOverview> {
       .from(schema.userStakeholderMemberships)
       .innerJoin(
         schema.userProfiles,
-        eq(schema.userProfiles.userId, schema.userStakeholderMemberships.userId),
+        eq(
+          schema.userProfiles.userId,
+          schema.userStakeholderMemberships.userId,
+        ),
       )
       .where(eq(schema.userProfiles.active, true))
       .groupBy(schema.userStakeholderMemberships.stakeholderId),

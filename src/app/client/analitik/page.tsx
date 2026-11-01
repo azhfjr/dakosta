@@ -14,7 +14,10 @@ import {
   listAnalyticsContents,
   parseAnalyticsContentFilters,
 } from "@/lib/analytics/content-table";
-import { getAnalyticsSourceOptions, parseOrgSources } from "@/lib/analytics/source";
+import {
+  getAnalyticsSourceOptions,
+  parseOrgSources,
+} from "@/lib/analytics/source";
 import { formatDateTimeId } from "@/lib/dates";
 import { achievementPercent } from "@/lib/kpi/formulas";
 import {
@@ -47,7 +50,10 @@ export default async function ClientAnalyticsPage({
       action: "ACCESS_DENIED",
       recordType: "STAKEHOLDER",
       recordId: base.stakeholderId,
-      after: { reason: "stakeholder_scope_mismatch", route: "/client/analitik" },
+      after: {
+        reason: "stakeholder_scope_mismatch",
+        route: "/client/analitik",
+      },
     });
     redirect("/akses-ditolak");
   }
@@ -84,13 +90,15 @@ async function ClientAnalyticsBody({
   };
   contentFilters: ReturnType<typeof parseAnalyticsContentFilters>;
 }) {
-  const [overview, options, sourceOptions, bundle, content] = await Promise.all([
-    getDashboardOverview(user, filters),
-    getKpiFilterOptions(user),
-    getAnalyticsSourceOptions(user),
-    getAnalyticsBundle(user, filters),
-    listAnalyticsContents(user, contentFilters),
-  ]);
+  const [overview, options, sourceOptions, bundle, content] = await Promise.all(
+    [
+      getDashboardOverview(user, filters),
+      getKpiFilterOptions(user),
+      getAnalyticsSourceOptions(user),
+      getAnalyticsBundle(user, filters),
+      listAnalyticsContents(user, contentFilters),
+    ],
+  );
 
   const context = bundle.context;
   const resolved =
@@ -112,7 +120,10 @@ async function ClientAnalyticsBody({
       : {
           value: overview.approved.value,
           target: resolved.target,
-          achievement: achievementPercent(overview.approved.value, resolved.target),
+          achievement: achievementPercent(
+            overview.approved.value,
+            resolved.target,
+          ),
           source: resolved.source,
         };
 

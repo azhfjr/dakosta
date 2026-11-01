@@ -1,11 +1,15 @@
-import { and, desc, eq, type SQL } from "drizzle-orm";
+import { and, desc, eq, gte, lt, lte, type SQL } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 import { getDb, schema } from "@/db";
 import { getRequestId, jsonError } from "@/lib/api";
 import { recordAudit } from "@/lib/audit";
-import { CONTENT_STATUSES, PLATFORM_LABEL, STATUS_LABEL } from "@/lib/content-status";
-import { csvFileName, toCsv } from "@/lib/csv";
+import {
+  CONTENT_STATUSES,
+  PLATFORM_LABEL,
+  STATUS_LABEL,
+} from "@/lib/content-status";
+import { csvBody, csvFileName, csvHeaderLine } from "@/lib/csv";
 import { formatDateId, formatDateTimeId } from "@/lib/dates";
 import { errors } from "@/lib/errors";
 import {
@@ -13,6 +17,7 @@ import {
   getClientIp,
   getRateLimitHeaders,
 } from "@/lib/rate-limit";
+import { assertCapability } from "@/lib/rbac";
 import {
   contentScopePredicate,
   isOrganizationInScope,
@@ -27,13 +32,38 @@ import {
   type ContentType,
   type MainTheme,
 } from "@/lib/taxonomy";
+import { orgSourceCondition, parseOrgSources } from "@/lib/analytics/source";
+import { monthRange } from "@/lib/kpi/formulas";
+import { parsePeriod } from "@/lib/periods";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const EXPORT_LIMIT = 2000;
+const CHUNK_SIZE = 1000;
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const PERIOD_PATTERN = /^(\d{4}-(0[1-9]|1[0-2])|\d{4}-Q[1-4]|\d{4})$/i;
+const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+const HEADERS = [
+  "Referensi",
+  "Judul",
+  "Stakeholder",
+  "Tema utama",
+  "Sub-tema",
+  "Platform",
+  "Jenis konten",
+  "Status",
+  "Tanggal konten",
+  "Dikirim",
+  "Disetujui",
+  "Diperbarui",
+  "Label lokasi",
+  "Presisi",
+  "Status verifikasi lokasi",
+  "URL terbit",
+  "Sumber data",
+];
 
 function param(searchParams: URLSearchParams, key: string): string | null {
   const value = searchParams.get(key);
@@ -46,6 +76,7 @@ export async function GET(request: Request) {
 
   try {
     const user = await getApiUser();
+    assertCapability(user, "export:read");
     const limit = await consumeRateLimit({
       key: `export:${user.id}:${getClientIp(request)}`,
       limit: 10,
@@ -73,6 +104,14 @@ export async function GET(request: Request) {
     const stakeholderId = param(url.searchParams, "stakeholderId");
     const rawSubTheme = url.searchParams.get("subTheme");
     const subTheme = isSubTheme(rawSubTheme) ? rawSubTheme : null;
+    const sources = parseOrgSources(url.searchParams);
+    const rawPeriod = url.searchParams.get("period");
+    const period =
+      rawPeriod && PERIOD_PATTERN.test(rawPeriod)
+        ? parsePeriod(rawPeriod)
+        : null;
+    const rawMonth = url.searchParams.get("month");
+    const month = rawMonth && MONTH_PATTERN.test(rawMonth) ? rawMonth : null;
 
     if (stakeholderId && user.scope.kind !== "GLOBAL") {
       const [organization] = await getDb()
@@ -90,9 +129,15 @@ export async function GET(request: Request) {
           action: "ACCESS_DENIED",
           recordType: "ORGANIZATION",
           recordId: stakeholderId,
-          after: { reason: "organization_scope_mismatch", route: "export", requestId },
+          after: {
+            reason: "organization_scope_mismatch",
+            route: "export",
+            requestId,
+          },
         });
-        throw errors.forbidden("Anda tidak memiliki akses ke organisasi tersebut.");
+        throw errors.forbidden(
+          "Anda tidak memiliki akses ke organisasi tersebut.",
+        );
       }
     }
 
@@ -106,88 +151,79 @@ export async function GET(request: Request) {
       conditions.push(eq(schema.contentSubmissions.status, status));
     }
     if (stakeholderId) {
-      conditions.push(eq(schema.contentSubmissions.stakeholderId, stakeholderId));
+      conditions.push(
+        eq(schema.contentSubmissions.stakeholderId, stakeholderId),
+      );
     }
     if (subTheme) {
       conditions.push(eq(schema.contentSubmissions.subTheme, subTheme));
     }
-
-    const rows = await getDb()
-      .select({
-        referenceCode: schema.contentSubmissions.referenceCode,
-        title: schema.contentSubmissions.title,
-        stakeholderName: schema.stakeholders.name,
-        mainTheme: schema.contentSubmissions.mainTheme,
-        subTheme: schema.contentSubmissions.subTheme,
-        platform: schema.contentSubmissions.platform,
-        contentType: schema.contentSubmissions.contentType,
-        status: schema.contentSubmissions.status,
-        dateCreated: schema.contentSubmissions.dateCreated,
-        submittedAt: schema.contentSubmissions.submittedAt,
-        approvedAt: schema.contentSubmissions.approvedAt,
-        updatedAt: schema.contentSubmissions.updatedAt,
-        locationLabel: schema.locations.label,
-        precision: schema.locations.precision,
-        verifiedStatus: schema.locations.verifiedStatus,
-        publishedUrl: schema.contentSubmissions.publishedUrl,
-      })
-      .from(schema.contentSubmissions)
-      .innerJoin(
-        schema.stakeholders,
-        eq(schema.stakeholders.id, schema.contentSubmissions.stakeholderId),
-      )
-      .innerJoin(
-        schema.locations,
-        eq(schema.locations.id, schema.contentSubmissions.locationId),
-      )
-      .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .orderBy(desc(schema.contentSubmissions.updatedAt))
-      .limit(EXPORT_LIMIT);
-
-    const csv = toCsv(
-      [
-        "Referensi",
-        "Judul",
-        "Stakeholder",
-        "Tema utama",
-        "Sub-tema",
-        "Platform",
-        "Jenis konten",
-        "Status",
-        "Tanggal konten",
-        "Dikirim",
-        "Disetujui",
-        "Diperbarui",
-        "Label lokasi",
-        "Presisi",
-        "Status verifikasi lokasi",
-        "URL terbit",
-        "Sumber data",
-      ],
-      rows.map((row) => [
-        row.referenceCode,
-        row.title ?? "",
-        row.stakeholderName,
-        row.mainTheme
-          ? (MAIN_THEME_LABELS[row.mainTheme as MainTheme] ?? row.mainTheme)
-          : "",
-        isSubTheme(row.subTheme) ? SUB_THEME_LABELS[row.subTheme] : "",
-        PLATFORM_LABEL[row.platform] ?? row.platform,
-        row.contentType
-          ? (CONTENT_TYPE_LABELS[row.contentType as ContentType] ?? row.contentType)
-          : "Belum ditentukan",
-        STATUS_LABEL[row.status as keyof typeof STATUS_LABEL] ?? row.status,
-        formatDateId(row.dateCreated),
-        formatDateTimeId(row.submittedAt),
-        formatDateTimeId(row.approvedAt),
-        formatDateTimeId(row.updatedAt),
-        row.locationLabel,
-        row.precision === "exact" ? "Presisi" : "Perkiraan",
-        row.verifiedStatus === "VERIFIED" ? "Terverifikasi" : "Belum diverifikasi",
-        row.publishedUrl,
-        "DEMO",
-      ]),
+    const sourcePredicate = orgSourceCondition(
+      schema.contentSubmissions.stakeholderId,
+      sources,
     );
+    if (sourcePredicate) conditions.push(sourcePredicate);
+    if (period) {
+      if (status === "APPROVED") {
+        conditions.push(eq(schema.stakeholders.status, "ACTIVE"));
+        conditions.push(
+          gte(schema.contentSubmissions.approvedAt, period.start),
+          lt(schema.contentSubmissions.approvedAt, period.endExclusive),
+        );
+      } else {
+        conditions.push(
+          gte(schema.contentSubmissions.dateCreated, period.startDate),
+          lte(schema.contentSubmissions.dateCreated, period.endDate),
+        );
+      }
+    } else if (month) {
+      const range = monthRange(month);
+      conditions.push(
+        gte(schema.contentSubmissions.dateCreated, range.startLocal),
+        lte(schema.contentSubmissions.dateCreated, range.endLocal),
+      );
+    }
+
+    const where = conditions.length > 0 ? and(...conditions) : undefined;
+    const db = getDb();
+
+    async function fetchChunk(offset: number) {
+      return db
+        .select({
+          referenceCode: schema.contentSubmissions.referenceCode,
+          title: schema.contentSubmissions.title,
+          stakeholderName: schema.stakeholders.name,
+          mainTheme: schema.contentSubmissions.mainTheme,
+          subTheme: schema.contentSubmissions.subTheme,
+          platform: schema.contentSubmissions.platform,
+          contentType: schema.contentSubmissions.contentType,
+          status: schema.contentSubmissions.status,
+          dateCreated: schema.contentSubmissions.dateCreated,
+          submittedAt: schema.contentSubmissions.submittedAt,
+          approvedAt: schema.contentSubmissions.approvedAt,
+          updatedAt: schema.contentSubmissions.updatedAt,
+          locationLabel: schema.locations.label,
+          precision: schema.locations.precision,
+          verifiedStatus: schema.locations.verifiedStatus,
+          publishedUrl: schema.contentSubmissions.publishedUrl,
+        })
+        .from(schema.contentSubmissions)
+        .innerJoin(
+          schema.stakeholders,
+          eq(schema.stakeholders.id, schema.contentSubmissions.stakeholderId),
+        )
+        .innerJoin(
+          schema.locations,
+          eq(schema.locations.id, schema.contentSubmissions.locationId),
+        )
+        .where(where)
+        .orderBy(
+          desc(schema.contentSubmissions.updatedAt),
+          desc(schema.contentSubmissions.id),
+        )
+        .limit(CHUNK_SIZE)
+        .offset(offset);
+    }
 
     await recordAudit({
       actorId: user.id,
@@ -195,14 +231,82 @@ export async function GET(request: Request) {
       action: "EXPORT_GENERATED",
       recordType: "EXPORT",
       recordId: "submissions",
-      after: { format: "csv", rows: rows.length, status, stakeholderId, subTheme, requestId },
+      after: {
+        format: "csv",
+        mode: "stream",
+        status,
+        stakeholderId,
+        subTheme,
+        sources,
+        period: period?.key ?? month,
+        requestId,
+      },
     });
 
-    return new NextResponse(csv, {
+    const encoder = new TextEncoder();
+    let offset = 0;
+    const stream = new ReadableStream<Uint8Array>({
+      async pull(controller) {
+        try {
+          const rows = await fetchChunk(offset);
+          if (offset === 0) {
+            controller.enqueue(encoder.encode(csvHeaderLine(HEADERS)));
+          }
+          if (rows.length > 0) {
+            controller.enqueue(
+              encoder.encode(
+                csvBody(
+                  rows.map((row) => [
+                    row.referenceCode,
+                    row.title ?? "",
+                    row.stakeholderName,
+                    row.mainTheme
+                      ? (MAIN_THEME_LABELS[row.mainTheme as MainTheme] ??
+                        row.mainTheme)
+                      : "",
+                    isSubTheme(row.subTheme)
+                      ? SUB_THEME_LABELS[row.subTheme]
+                      : "",
+                    PLATFORM_LABEL[row.platform] ?? row.platform,
+                    row.contentType
+                      ? (CONTENT_TYPE_LABELS[row.contentType as ContentType] ??
+                        row.contentType)
+                      : "Belum ditentukan",
+                    STATUS_LABEL[row.status as keyof typeof STATUS_LABEL] ??
+                      row.status,
+                    formatDateId(row.dateCreated),
+                    formatDateTimeId(row.submittedAt),
+                    formatDateTimeId(row.approvedAt),
+                    formatDateTimeId(row.updatedAt),
+                    row.locationLabel,
+                    row.precision === "exact" ? "Presisi" : "Perkiraan",
+                    row.verifiedStatus === "VERIFIED"
+                      ? "Terverifikasi"
+                      : "Belum diverifikasi",
+                    row.publishedUrl,
+                    "DEMO",
+                  ]),
+                ),
+              ),
+            );
+          }
+          offset += rows.length;
+          if (rows.length < CHUNK_SIZE) controller.close();
+        } catch (error) {
+          controller.error(error);
+        }
+      },
+    });
+
+    return new Response(stream, {
       status: 200,
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": `attachment; filename="${csvFileName("dakosta-konten", new Date(), currentPeriod())}"`,
+        "Content-Disposition": `attachment; filename="${csvFileName(
+          "dakosta-konten",
+          new Date(),
+          period?.key ?? month ?? currentPeriod(),
+        )}"`,
         "Cache-Control": "no-store",
         ...rateHeaders,
       },

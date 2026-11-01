@@ -39,9 +39,12 @@ function mapTheme(slug: string | null, name: string | null): SubTheme {
 async function main(): Promise<void> {
   requireConfirmation();
   const url = process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL;
-  if (!url) throw new Error("DATABASE_URL belum dikonfigurasi untuk target ini.");
+  if (!url)
+    throw new Error("DATABASE_URL belum dikonfigurasi untuk target ini.");
 
-  console.log(`Backfill v4 (target=${TARGET} app_env=${process.env.APP_ENV ?? "(derived)"}).`);
+  console.log(
+    `Backfill v4 (target=${TARGET} app_env=${process.env.APP_ENV ?? "(derived)"}).`,
+  );
   const pool = new Pool({ connectionString: url, max: 1 });
   const db = drizzle(pool, { schema });
 
@@ -56,7 +59,10 @@ async function main(): Promise<void> {
         themeName: schema.themes.name,
       })
       .from(schema.contentSubmissions)
-      .leftJoin(schema.themes, eq(schema.themes.id, schema.contentSubmissions.themeId))
+      .leftJoin(
+        schema.themes,
+        eq(schema.themes.id, schema.contentSubmissions.themeId),
+      )
       .where(isNull(schema.contentSubmissions.mainTheme));
 
     const unresolved: Array<{ id: string; theme: string | null }> = [];
@@ -64,8 +70,10 @@ async function main(): Promise<void> {
 
     for (const row of legacyRows) {
       const known =
-        (row.themeSlug && LEGACY_THEME_TO_SUBTHEME[normalizeSlug(row.themeSlug)]) ||
-        (row.themeName && LEGACY_THEME_TO_SUBTHEME[normalizeSlug(row.themeName)]);
+        (row.themeSlug &&
+          LEGACY_THEME_TO_SUBTHEME[normalizeSlug(row.themeSlug)]) ||
+        (row.themeName &&
+          LEGACY_THEME_TO_SUBTHEME[normalizeSlug(row.themeName)]);
       if (!known) {
         unresolved.push({
           id: row.id,

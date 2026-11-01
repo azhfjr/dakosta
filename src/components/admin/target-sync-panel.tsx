@@ -162,7 +162,10 @@ export function TargetSyncPanel({
         <p className="text-xs text-ink-muted">
           <Users className="mr-1 inline size-3.5" aria-hidden />
           {formatNumberId(
-            sources.reduce((sum, source) => sum + source.activeOrganizations, 0),
+            sources.reduce(
+              (sum, source) => sum + source.activeOrganizations,
+              0,
+            ),
           )}{" "}
           organisasi aktif
         </p>
@@ -179,7 +182,9 @@ export function TargetSyncPanel({
               min={0}
               step={1}
               placeholder={
-                source.currentTarget === null ? "Belum seragam" : "Target saat ini"
+                source.currentTarget === null
+                  ? "Belum seragam"
+                  : "Target saat ini"
               }
               value={values[source.source] ?? ""}
               onChange={(event) =>
@@ -206,8 +211,15 @@ export function TargetSyncPanel({
           Kosongkan kolom untuk melewati sumber tersebut. Target per tema dan
           target manual tidak diubah.
         </p>
-        <Button type="button" className="h-10" onClick={requestSync} disabled={busy}>
-          {busy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
+        <Button
+          type="button"
+          className="h-10"
+          onClick={requestSync}
+          disabled={busy}
+        >
+          {busy ? (
+            <Loader2 className="size-4 animate-spin" aria-hidden />
+          ) : null}
           Sinkronkan target
         </Button>
       </div>
@@ -224,8 +236,8 @@ export function TargetSyncPanel({
           <ul className="mt-1 space-y-0.5 text-xs">
             {result.perSource.map((source) => (
               <li key={source.label}>
-                {source.label}: target {formatNumberId(source.targetCount)} untuk{" "}
-                {formatNumberId(source.organizations)} organisasi ·{" "}
+                {source.label}: target {formatNumberId(source.targetCount)}{" "}
+                untuk {formatNumberId(source.organizations)} organisasi ·{" "}
                 {formatNumberId(source.created)} baru,{" "}
                 {formatNumberId(source.updated)} diperbarui
               </li>
@@ -261,7 +273,9 @@ export function TargetSyncPanel({
                 void runSync();
               }}
             >
-              {busy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
+              {busy ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden />
+              ) : null}
               Sinkronkan sekarang
             </AlertDialogAction>
           </AlertDialogFooter>

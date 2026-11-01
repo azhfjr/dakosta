@@ -24,7 +24,11 @@ export async function PATCH(
       action: "REGION_UPDATED",
       recordType: "REGION",
       recordId: id,
-      after: { code: body.code.toUpperCase(), name: body.name, status: body.status },
+      after: {
+        code: body.code.toUpperCase(),
+        name: body.name,
+        status: body.status,
+      },
       regionId: id,
       requestId,
       source: "API",

@@ -22,7 +22,9 @@ async function fetchUnreadCount(): Promise<number | null> {
     });
     if (!response.ok) return null;
     const json = (await response.json()) as { data?: { unreadCount?: number } };
-    return typeof json.data?.unreadCount === "number" ? json.data.unreadCount : null;
+    return typeof json.data?.unreadCount === "number"
+      ? json.data.unreadCount
+      : null;
   } catch {
     return null;
   }
@@ -50,7 +52,8 @@ export function NotificationStream() {
       } catch {
         return;
       }
-      if (!payload || typeof payload.id !== "string" || seen.has(payload.id)) return;
+      if (!payload || typeof payload.id !== "string" || seen.has(payload.id))
+        return;
       if (seen.size > 300) seen.clear();
       seen.add(payload.id);
 
@@ -70,7 +73,9 @@ export function NotificationStream() {
       if (disposed || document.visibilityState !== "visible") return;
       source?.close();
       const since = encodeURIComponent(new Date().toISOString());
-      const current = new EventSource(`/api/v1/realtime/notifications?since=${since}`);
+      const current = new EventSource(
+        `/api/v1/realtime/notifications?since=${since}`,
+      );
       source = current;
 
       current.addEventListener("notification", onNotification as EventListener);
@@ -81,7 +86,10 @@ export function NotificationStream() {
         if (disposed || source !== current) return;
         current.close();
         source = null;
-        const delay = Math.min(RECONNECT_MAX_MS, RECONNECT_BASE_MS * 2 ** attempts);
+        const delay = Math.min(
+          RECONNECT_MAX_MS,
+          RECONNECT_BASE_MS * 2 ** attempts,
+        );
         attempts += 1;
         reconnectTimer = window.setTimeout(connect, delay);
       });

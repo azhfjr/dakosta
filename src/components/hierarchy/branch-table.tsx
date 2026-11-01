@@ -34,7 +34,9 @@ export function BranchTable({
   return (
     <div className="overflow-x-auto rounded-xl border border-border bg-surface shadow-sm">
       <table className="w-full min-w-[44rem] border-collapse text-sm">
-        <caption className="sr-only">Daftar cabang beserta jumlah organisasi dan konten</caption>
+        <caption className="sr-only">
+          Daftar cabang beserta jumlah organisasi dan konten
+        </caption>
         <thead>
           <tr className="border-b border-border text-left text-xs font-medium tracking-wide text-ink-muted uppercase">
             <th scope="col" className="px-4 py-3">
@@ -72,7 +74,10 @@ export function BranchTable({
         </thead>
         <tbody>
           {branches.map((branch) => (
-            <tr key={branch.id} className="border-b border-border/70 last:border-0">
+            <tr
+              key={branch.id}
+              className="border-b border-border/70 last:border-0"
+            >
               <td className="px-4 py-3">
                 {organizationBase ? (
                   <Link
@@ -82,12 +87,16 @@ export function BranchTable({
                     {branch.name}
                   </Link>
                 ) : (
-                  <span className="font-medium text-foreground">{branch.name}</span>
+                  <span className="font-medium text-foreground">
+                    {branch.name}
+                  </span>
                 )}
                 <p className="mt-0.5 text-xs text-ink-muted">{branch.code}</p>
               </td>
               {showRegion ? (
-                <td className="px-4 py-3 text-ink-muted">{branch.regionName}</td>
+                <td className="px-4 py-3 text-ink-muted">
+                  {branch.regionName}
+                </td>
               ) : null}
               <td className="px-4 py-3 text-right tabular-nums">
                 {formatNumberId(branch.organizationCount)}

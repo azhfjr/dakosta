@@ -1,9 +1,5 @@
 /** Placeholder streaming untuk halaman data. Blok dibuat mendekati ukuran konten akhir agar CLS kecil. */
-export function PageSkeleton({
-  label = "Memuat data…",
-}: {
-  label?: string;
-}) {
+export function PageSkeleton({ label = "Memuat data…" }: { label?: string }) {
   return (
     <div
       role="status"

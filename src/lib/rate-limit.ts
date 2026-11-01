@@ -62,7 +62,9 @@ function isTransientConnectionError(error: unknown): boolean {
   const text = `${error instanceof Error ? error.message : String(error)} ${
     cause instanceof Error ? cause.message : String(cause ?? "")
   }`;
-  return /connection terminated|econnreset|fetch failed|timeout|502|503|504/i.test(text);
+  return /connection terminated|econnreset|fetch failed|timeout|502|503|504/i.test(
+    text,
+  );
 }
 
 export function getClientIp(request: Request): string {
@@ -78,6 +80,8 @@ export async function getRateLimitHeaders(
     "RateLimit-Limit": String(result.limit),
     "RateLimit-Remaining": String(Math.max(0, result.limit - result.count)),
     "RateLimit-Reset": String(result.retryAfterSeconds),
-    ...(result.allowed ? {} : { "Retry-After": String(result.retryAfterSeconds) }),
+    ...(result.allowed
+      ? {}
+      : { "Retry-After": String(result.retryAfterSeconds) }),
   };
 }

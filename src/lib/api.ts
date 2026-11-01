@@ -14,9 +14,19 @@ export function getRequestId(request: Request): string {
 
 export function jsonOk<T>(
   data: T,
-  options: { requestId?: string; meta?: Record<string, unknown>; status?: number; headers?: Record<string, string> } = {},
+  options: {
+    requestId?: string;
+    meta?: Record<string, unknown>;
+    status?: number;
+    headers?: Record<string, string>;
+  } = {},
 ): NextResponse {
-  const { requestId = crypto.randomUUID(), meta, status = 200, headers } = options;
+  const {
+    requestId = crypto.randomUUID(),
+    meta,
+    status = 200,
+    headers,
+  } = options;
   return NextResponse.json(
     {
       data,
@@ -65,7 +75,11 @@ export function jsonError(
     );
   }
 
-  const authLike = error as { status?: unknown; statusCode?: unknown; message?: unknown };
+  const authLike = error as {
+    status?: unknown;
+    statusCode?: unknown;
+    message?: unknown;
+  };
   const authStatus = Number(authLike?.status ?? authLike?.statusCode);
   if (Number.isInteger(authStatus) && authStatus >= 400 && authStatus < 500) {
     return NextResponse.json(
@@ -102,6 +116,10 @@ export async function readJson<T>(request: Request): Promise<T> {
   try {
     return (await request.json()) as T;
   } catch {
-    throw new AppError("INVALID_JSON", "Isi permintaan bukan JSON yang valid.", 400);
+    throw new AppError(
+      "INVALID_JSON",
+      "Isi permintaan bukan JSON yang valid.",
+      400,
+    );
   }
 }

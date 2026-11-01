@@ -80,7 +80,9 @@ export function ChartFrame({
         </div>
         {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
       </div>
-      {legend ? <div className="mt-2 flex flex-wrap gap-1.5">{legend}</div> : null}
+      {legend ? (
+        <div className="mt-2 flex flex-wrap gap-1.5">{legend}</div>
+      ) : null}
       <div className="mt-4">
         {empty ? (
           <div className="flex min-h-[180px] items-center justify-center rounded-lg border border-dashed border-border bg-surface-muted/40 px-4 text-center text-sm text-ink-muted">
@@ -116,7 +118,9 @@ export function ChartLegendChip({
         aria-hidden
       />
       {label}
-      {value ? <span className="font-semibold text-foreground tabular">{value}</span> : null}
+      {value ? (
+        <span className="font-semibold text-foreground tabular">{value}</span>
+      ) : null}
     </span>
   );
 }

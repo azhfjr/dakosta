@@ -16,7 +16,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const queueQuerySchema = z.object({
-  status: z.enum(["ALL", "SUBMITTED", "RESUBMITTED", "IN_REVIEW"]).default("ALL"),
+  status: z
+    .enum(["ALL", "SUBMITTED", "RESUBMITTED", "IN_REVIEW"])
+    .default("ALL"),
   stakeholderId: z.string().uuid().optional(),
   subTheme: z.enum(SUB_THEMES).optional(),
   search: z.string().trim().max(120).optional(),
@@ -68,10 +70,13 @@ export async function POST(request: Request) {
     });
     if (!limit.allowed) {
       return jsonError(
-        Object.assign(new Error("Terlalu banyak keputusan dalam waktu singkat."), {
-          code: "RATE_LIMITED",
-          status: 429,
-        }),
+        Object.assign(
+          new Error("Terlalu banyak keputusan dalam waktu singkat."),
+          {
+            code: "RATE_LIMITED",
+            status: 429,
+          },
+        ),
         requestId,
       );
     }

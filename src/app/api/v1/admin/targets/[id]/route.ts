@@ -33,8 +33,12 @@ export async function PATCH(
         ...(body.stakeholderId !== undefined
           ? { stakeholderId: body.stakeholderId ?? null }
           : {}),
-        ...(body.subTheme !== undefined ? { subTheme: body.subTheme ?? null } : {}),
-        ...(body.targetCount !== undefined ? { targetCount: body.targetCount } : {}),
+        ...(body.subTheme !== undefined
+          ? { subTheme: body.subTheme ?? null }
+          : {}),
+        ...(body.targetCount !== undefined
+          ? { targetCount: body.targetCount }
+          : {}),
         ...(body.reportingUnit !== undefined
           ? { reportingUnit: body.reportingUnit }
           : {}),
@@ -79,7 +83,7 @@ export async function DELETE(
     const before = await findTarget(id);
     if (!before) throw errors.notFound("Target tidak ditemukan.");
 
-    await deleteTarget(id);
+    await deleteTarget(id, master.userId);
 
     await recordAudit({
       actorId: master.userId,

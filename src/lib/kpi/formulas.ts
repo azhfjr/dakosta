@@ -8,6 +8,8 @@ export type AttributionMode = "approved_at" | "date_created";
 
 export type KpiFilters = {
   month: string;
+  /** Selected reporting period (`YYYY-MM`, `YYYY-Q1..Q4`, or `YYYY`). */
+  periodKey?: string;
   attribution: AttributionMode;
   stakeholderId: string | null;
   subTheme: SubTheme | null;
@@ -173,7 +175,11 @@ export function dayKeys(range: MonthRange): string[] {
 }
 
 export function shortDayLabel(localDate: string): string {
-  const [year, month, day] = localDate.split("-").map(Number) as [number, number, number];
+  const [year, month, day] = localDate.split("-").map(Number) as [
+    number,
+    number,
+    number,
+  ];
   return new Intl.DateTimeFormat("id-ID", {
     day: "numeric",
     month: "short",
@@ -223,7 +229,10 @@ export function average(values: number[]): number | null {
   return roundOne(total / values.length);
 }
 
-export function leadTimeDays(submittedAt: Date | null, decidedAt: Date | null): number | null {
+export function leadTimeDays(
+  submittedAt: Date | null,
+  decidedAt: Date | null,
+): number | null {
   if (!submittedAt || !decidedAt) return null;
   const diff = decidedAt.getTime() - submittedAt.getTime();
   if (!Number.isFinite(diff) || diff < 0) return null;

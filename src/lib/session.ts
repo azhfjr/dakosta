@@ -4,7 +4,13 @@ import { redirect } from "next/navigation";
 
 import { getAuthContext } from "@/lib/authz/context";
 import { getApiAuth, requireAuth } from "@/lib/authz/guards";
-import { homePathForRole, type AppRole, type Capability, type Scope } from "@/lib/authz/types";
+import {
+  homePathForRole,
+  type AppRole,
+  type Capability,
+  type LocationStatus,
+  type Scope,
+} from "@/lib/authz/types";
 
 export type { AppRole } from "@/lib/authz/types";
 
@@ -18,6 +24,8 @@ export type SessionUser = {
   membershipId: string;
   isDemo: boolean;
   mustChangePassword: boolean;
+  locationStatus: LocationStatus;
+  locationGraceDeadline: Date | null;
   active: boolean;
   displayTitle: string | null;
   homePath: string;
@@ -26,7 +34,10 @@ export type SessionUser = {
   stakeholderIds: string[];
 };
 
-export function toSessionUser(ctx: NonNullable<Awaited<ReturnType<typeof getAuthContext>>>): SessionUser {  return {
+export function toSessionUser(
+  ctx: NonNullable<Awaited<ReturnType<typeof getAuthContext>>>,
+): SessionUser {
+  return {
     id: ctx.userId,
     name: ctx.name,
     email: ctx.email,
@@ -36,6 +47,8 @@ export function toSessionUser(ctx: NonNullable<Awaited<ReturnType<typeof getAuth
     membershipId: ctx.membershipId,
     isDemo: ctx.isDemo,
     mustChangePassword: ctx.mustChangePassword,
+    locationStatus: ctx.locationStatus,
+    locationGraceDeadline: ctx.locationGraceDeadline,
     active: true,
     displayTitle: ctx.displayTitle,
     homePath: ctx.homePath,

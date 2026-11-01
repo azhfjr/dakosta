@@ -34,12 +34,16 @@ test.describe("Target KPI Master", () => {
     await dialog.locator("#target-stakeholder").selectOption({
       label: "Klinik Sehat Nusantara",
     });
-    await dialog.locator("#target-subtheme").selectOption({ label: "Informasi" });
+    await dialog
+      .locator("#target-subtheme")
+      .selectOption({ label: "Informasi" });
     await dialog.locator("#target-count").fill("5");
     await dialog.getByRole("button", { name: "Tambah target" }).click();
     await confirmStepUp(page);
 
-    await expect(page.getByText("Target ditambahkan.", { exact: true })).toBeVisible();
+    await expect(
+      page.getByText("Target ditambahkan.", { exact: true }),
+    ).toBeVisible();
     const row = page.getByRole("row", { name: new RegExp(TARGET_SCOPE) });
     await expect(row).toBeVisible();
     await expect(row).toContainText("5");
@@ -48,7 +52,9 @@ test.describe("Target KPI Master", () => {
     await duplicate.locator("#target-stakeholder").selectOption({
       label: "Klinik Sehat Nusantara",
     });
-    await duplicate.locator("#target-subtheme").selectOption({ label: "Informasi" });
+    await duplicate
+      .locator("#target-subtheme")
+      .selectOption({ label: "Informasi" });
     await duplicate.locator("#target-count").fill("9");
     await duplicate.getByRole("button", { name: "Tambah target" }).click();
     await expect(
@@ -56,14 +62,18 @@ test.describe("Target KPI Master", () => {
     ).toBeVisible();
     await duplicate.getByRole("button", { name: "Batal" }).click();
 
-    await page.getByRole("button", { name: `Ubah target ${TARGET_SCOPE}` }).click();
+    await page
+      .getByRole("button", { name: `Ubah target ${TARGET_SCOPE}` })
+      .click();
     const editDialog = page.getByRole("dialog", { name: "Ubah target" });
     await editDialog.locator("#target-count").fill("7");
     await editDialog.getByRole("button", { name: "Simpan perubahan" }).click();
-    await expect(page.getByText("Target diperbarui.", { exact: true })).toBeVisible();
-    await expect(page.getByRole("row", { name: new RegExp(TARGET_SCOPE) })).toContainText(
-      "7",
-    );
+    await expect(
+      page.getByText("Target diperbarui.", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("row", { name: new RegExp(TARGET_SCOPE) }),
+    ).toContainText("7");
 
     const achievementLink = page
       .getByRole("row", { name: new RegExp(TARGET_SCOPE) })
@@ -71,14 +81,22 @@ test.describe("Target KPI Master", () => {
     await expect(achievementLink).toHaveAttribute("href", /subTheme=INFORMASI/);
     await achievementLink.click();
     await expect(page).toHaveURL(/\/admin\?.*subTheme=INFORMASI/);
-    await expect(page.locator('select[name="subTheme"]')).toHaveValue("INFORMASI");
+    await expect(page.locator('select[name="subTheme"]')).toHaveValue(
+      "INFORMASI",
+    );
 
     await page.goto("/admin/target");
-    await page.getByRole("button", { name: `Hapus target ${TARGET_SCOPE}` }).click();
-    const confirm = page.getByRole("alertdialog", { name: "Hapus target ini?" });
+    await page
+      .getByRole("button", { name: `Hapus target ${TARGET_SCOPE}` })
+      .click();
+    const confirm = page.getByRole("alertdialog", {
+      name: "Hapus target ini?",
+    });
     await expect(confirm).toBeVisible();
     await confirm.getByRole("button", { name: "Hapus target" }).click();
-    await expect(page.getByText("Target dihapus.", { exact: true })).toBeVisible();
+    await expect(
+      page.getByText("Target dihapus.", { exact: true }),
+    ).toBeVisible();
     await expect(
       page.getByRole("row", { name: new RegExp(TARGET_SCOPE) }),
     ).toHaveCount(0);
@@ -97,16 +115,16 @@ test.describe("Akun Master", () => {
       page.getByText(/Mode demo: pembuatan dan perubahan akun dinonaktifkan/),
     ).toBeVisible();
     await expect(page.locator("#acct-name")).toBeHidden();
-    await expect(
-      page.getByRole("button", { name: "Buat akun" }),
-    ).toBeHidden();
+    await expect(page.getByRole("button", { name: "Buat akun" })).toBeHidden();
   });
 });
 
 test.describe("Target dan stakeholder", () => {
   test.use({ storageState: CLIENT_STATE });
 
-  test("stakeholder tidak dapat membuka pengelolaan target", async ({ page }) => {
+  test("stakeholder tidak dapat membuka pengelolaan target", async ({
+    page,
+  }) => {
     await page.goto("/admin/target");
     await expect(page).toHaveURL(/\/(akses-ditolak|client)/);
   });

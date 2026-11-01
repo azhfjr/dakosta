@@ -201,7 +201,10 @@ export function AnalyticsCharts({
           legend={
             <>
               <ChartLegendChip color="var(--chart-3)" label="Dibuat" />
-              <ChartLegendChip color="var(--status-approved)" label="Disetujui" />
+              <ChartLegendChip
+                color="var(--status-approved)"
+                label="Disetujui"
+              />
             </>
           }
           empty={mixTotal === 0}
@@ -209,16 +212,51 @@ export function AnalyticsCharts({
         >
           <div className="h-[260px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={mix} margin={{ top: 8, right: 12, bottom: 0, left: -12 }}>
-                <CartesianGrid stroke={CHART_GRID} strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" stroke={CHART_AXIS} fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke={CHART_AXIS} fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+              <LineChart
+                data={mix}
+                margin={{ top: 8, right: 12, bottom: 0, left: -12 }}
+              >
+                <CartesianGrid
+                  stroke={CHART_GRID}
+                  strokeDasharray="3 3"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="label"
+                  stroke={CHART_AXIS}
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  stroke={CHART_AXIS}
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  allowDecimals={false}
+                />
                 <Tooltip
                   contentStyle={tooltipStyle}
                   labelStyle={{ color: CHART_TOOLTIP_LABEL, fontWeight: 600 }}
                 />
-                <Line isAnimationActive={false} type="monotone" dataKey="total" name="Dibuat" stroke="var(--chart-3)" strokeWidth={2.5} dot={false} />
-                <Line isAnimationActive={false} type="monotone" dataKey="approved" name="Disetujui" stroke="var(--status-approved)" strokeWidth={2.5} dot={false} />
+                <Line
+                  isAnimationActive={false}
+                  type="monotone"
+                  dataKey="total"
+                  name="Dibuat"
+                  stroke="var(--chart-3)"
+                  strokeWidth={2.5}
+                  dot={false}
+                />
+                <Line
+                  isAnimationActive={false}
+                  type="monotone"
+                  dataKey="approved"
+                  name="Disetujui"
+                  stroke="var(--status-approved)"
+                  strokeWidth={2.5}
+                  dot={false}
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -242,7 +280,10 @@ export function AnalyticsCharts({
           legend={
             <>
               <ChartLegendChip color="var(--chart-1)" label="Total" />
-              <ChartLegendChip color="var(--status-approved)" label="Disetujui" />
+              <ChartLegendChip
+                color="var(--status-approved)"
+                label="Disetujui"
+              />
             </>
           }
           empty={themeTotal === 0}
@@ -255,8 +296,19 @@ export function AnalyticsCharts({
                 margin={{ top: 4, right: 16, bottom: 0, left: 8 }}
                 barGap={2}
               >
-                <CartesianGrid stroke={CHART_GRID} strokeDasharray="3 3" horizontal={false} />
-                <XAxis type="number" stroke={CHART_AXIS} fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                <CartesianGrid
+                  stroke={CHART_GRID}
+                  strokeDasharray="3 3"
+                  horizontal={false}
+                />
+                <XAxis
+                  type="number"
+                  stroke={CHART_AXIS}
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  allowDecimals={false}
+                />
                 <YAxis
                   type="category"
                   dataKey="label"
@@ -270,8 +322,20 @@ export function AnalyticsCharts({
                   contentStyle={tooltipStyle}
                   labelStyle={{ color: CHART_TOOLTIP_LABEL, fontWeight: 600 }}
                 />
-                <Bar isAnimationActive={false} dataKey="total" name="Total" fill="var(--chart-1)" radius={[0, 4, 4, 0]} />
-                <Bar isAnimationActive={false} dataKey="approved" name="Disetujui" fill="var(--status-approved)" radius={[0, 4, 4, 0]} />
+                <Bar
+                  isAnimationActive={false}
+                  dataKey="total"
+                  name="Total"
+                  fill="var(--chart-1)"
+                  radius={[0, 4, 4, 0]}
+                />
+                <Bar
+                  isAnimationActive={false}
+                  dataKey="approved"
+                  name="Disetujui"
+                  fill="var(--status-approved)"
+                  radius={[0, 4, 4, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -298,17 +362,49 @@ export function AnalyticsCharts({
         >
           <div className="h-[240px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={edufast} margin={{ top: 8, right: 12, bottom: 0, left: -12 }}>
-                <CartesianGrid stroke={CHART_GRID} strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" stroke={CHART_AXIS} fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke={CHART_AXIS} fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+              <BarChart
+                data={edufast}
+                margin={{ top: 8, right: 12, bottom: 0, left: -12 }}
+              >
+                <CartesianGrid
+                  stroke={CHART_GRID}
+                  strokeDasharray="3 3"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="label"
+                  stroke={CHART_AXIS}
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  stroke={CHART_AXIS}
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  allowDecimals={false}
+                />
                 <Tooltip
                   contentStyle={tooltipStyle}
                   labelStyle={{ color: CHART_TOOLTIP_LABEL, fontWeight: 600 }}
                 />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Bar isAnimationActive={false} dataKey="edufast" name="EDUFAST" stackId="a" fill="var(--chart-1)" />
-                <Bar isAnimationActive={false} dataKey="nonEdufast" name="Non-EDUFAST" stackId="a" fill="var(--chart-5)" radius={[4, 4, 0, 0]} />
+                <Bar
+                  isAnimationActive={false}
+                  dataKey="edufast"
+                  name="EDUFAST"
+                  stackId="a"
+                  fill="var(--chart-1)"
+                />
+                <Bar
+                  isAnimationActive={false}
+                  dataKey="nonEdufast"
+                  name="Non-EDUFAST"
+                  stackId="a"
+                  fill="var(--chart-5)"
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -325,16 +421,51 @@ export function AnalyticsCharts({
         >
           <div className="h-[260px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={slaData} margin={{ top: 8, right: 12, bottom: 0, left: -12 }}>
-                <CartesianGrid stroke={CHART_GRID} strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" stroke={CHART_AXIS} fontSize={10} tickLine={false} axisLine={false} interval={0} angle={-12} textAnchor="end" height={54} />
-                <YAxis stroke={CHART_AXIS} fontSize={12} tickLine={false} axisLine={false} unit="h" />
+              <BarChart
+                data={slaData}
+                margin={{ top: 8, right: 12, bottom: 0, left: -12 }}
+              >
+                <CartesianGrid
+                  stroke={CHART_GRID}
+                  strokeDasharray="3 3"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="name"
+                  stroke={CHART_AXIS}
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={false}
+                  interval={0}
+                  angle={-12}
+                  textAnchor="end"
+                  height={54}
+                />
+                <YAxis
+                  stroke={CHART_AXIS}
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  unit="h"
+                />
                 <Tooltip
                   contentStyle={tooltipStyle}
                   labelStyle={{ color: CHART_TOOLTIP_LABEL, fontWeight: 600 }}
                 />
-                <Bar isAnimationActive={false} dataKey="medianDays" name="Median hari" fill="var(--chart-2)" radius={[4, 4, 0, 0]} />
-                <Bar isAnimationActive={false} dataKey="averageDays" name="Rata-rata" fill="var(--chart-3)" radius={[4, 4, 0, 0]} />
+                <Bar
+                  isAnimationActive={false}
+                  dataKey="medianDays"
+                  name="Median hari"
+                  fill="var(--chart-2)"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar
+                  isAnimationActive={false}
+                  dataKey="averageDays"
+                  name="Rata-rata"
+                  fill="var(--chart-3)"
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -360,20 +491,53 @@ export function AnalyticsCharts({
           >
             <div className="h-[260px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={aging} layout="vertical" margin={{ top: 4, right: 20, bottom: 0, left: 12 }}>
-                  <CartesianGrid stroke={CHART_GRID} strokeDasharray="3 3" horizontal={false} />
-                  <XAxis type="number" stroke={CHART_AXIS} fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
-                  <YAxis type="category" dataKey="label" width={86} stroke={CHART_AXIS} fontSize={11} tickLine={false} axisLine={false} />
+                <BarChart
+                  data={aging}
+                  layout="vertical"
+                  margin={{ top: 4, right: 20, bottom: 0, left: 12 }}
+                >
+                  <CartesianGrid
+                    stroke={CHART_GRID}
+                    strokeDasharray="3 3"
+                    horizontal={false}
+                  />
+                  <XAxis
+                    type="number"
+                    stroke={CHART_AXIS}
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    allowDecimals={false}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="label"
+                    width={86}
+                    stroke={CHART_AXIS}
+                    fontSize={11}
+                    tickLine={false}
+                    axisLine={false}
+                  />
                   <Tooltip
-                  contentStyle={tooltipStyle}
-                  labelStyle={{ color: CHART_TOOLTIP_LABEL, fontWeight: 600 }}
-                />
-                  <Bar isAnimationActive={false} dataKey="total" name="Konten" fill="var(--chart-4)" radius={[0, 4, 4, 0]}>
+                    contentStyle={tooltipStyle}
+                    labelStyle={{ color: CHART_TOOLTIP_LABEL, fontWeight: 600 }}
+                  />
+                  <Bar
+                    isAnimationActive={false}
+                    dataKey="total"
+                    name="Konten"
+                    fill="var(--chart-4)"
+                    radius={[0, 4, 4, 0]}
+                  >
                     {aging.map((row, index) => (
                       <Cell
                         key={row.bucket}
                         fill={
-                          index >= 2 ? "var(--status-rejected)" : index === 1 ? "var(--chart-4)" : "var(--chart-2)"
+                          index >= 2
+                            ? "var(--status-rejected)"
+                            : index === 1
+                              ? "var(--chart-4)"
+                              : "var(--chart-2)"
                         }
                       />
                     ))}
@@ -399,21 +563,52 @@ export function AnalyticsCharts({
         >
           <div className="h-[240px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={funnel} margin={{ top: 8, right: 12, bottom: 0, left: -12 }}>
-                <CartesianGrid stroke={CHART_GRID} strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" stroke={CHART_AXIS} fontSize={10} tickLine={false} axisLine={false} interval={0} />
-                <YAxis stroke={CHART_AXIS} fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+              <BarChart
+                data={funnel}
+                margin={{ top: 8, right: 12, bottom: 0, left: -12 }}
+              >
+                <CartesianGrid
+                  stroke={CHART_GRID}
+                  strokeDasharray="3 3"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="label"
+                  stroke={CHART_AXIS}
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={false}
+                  interval={0}
+                />
+                <YAxis
+                  stroke={CHART_AXIS}
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  allowDecimals={false}
+                />
                 <Tooltip
                   contentStyle={tooltipStyle}
                   labelStyle={{ color: CHART_TOOLTIP_LABEL, fontWeight: 600 }}
                 />
-                <Bar isAnimationActive={false} dataKey="total" name="Konten" fill="var(--chart-3)" radius={[4, 4, 0, 0]}>
+                <Bar
+                  isAnimationActive={false}
+                  dataKey="total"
+                  name="Konten"
+                  fill="var(--chart-3)"
+                  radius={[4, 4, 0, 0]}
+                >
                   {funnel.map((row, index) => (
                     <Cell
                       key={row.stage}
                       fill={
-                        ["var(--chart-3)", "var(--chart-2)", "var(--chart-1)", "var(--status-approved)", "var(--status-rejected)"][index] ??
-                        "var(--chart-3)"
+                        [
+                          "var(--chart-3)",
+                          "var(--chart-2)",
+                          "var(--chart-1)",
+                          "var(--status-approved)",
+                          "var(--status-rejected)",
+                        ][index] ?? "var(--chart-3)"
                       }
                     />
                   ))}
@@ -426,7 +621,9 @@ export function AnalyticsCharts({
             <span className="font-semibold text-foreground tabular">
               {funnel[1]?.total
                 ? `${formatNumberId(
-                    Math.round(((funnel[3]?.total ?? 0) / funnel[1].total) * 1000) / 10,
+                    Math.round(
+                      ((funnel[3]?.total ?? 0) / funnel[1].total) * 1000,
+                    ) / 10,
                   )}%`
                 : "N/A"}
             </span>
@@ -454,16 +651,48 @@ export function AnalyticsCharts({
           >
             <div className="h-[240px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={sources} margin={{ top: 8, right: 12, bottom: 0, left: -12 }}>
-                  <CartesianGrid stroke={CHART_GRID} strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="label" stroke={CHART_AXIS} fontSize={10} tickLine={false} axisLine={false} interval={0} />
-                  <YAxis stroke={CHART_AXIS} fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                <BarChart
+                  data={sources}
+                  margin={{ top: 8, right: 12, bottom: 0, left: -12 }}
+                >
+                  <CartesianGrid
+                    stroke={CHART_GRID}
+                    strokeDasharray="3 3"
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="label"
+                    stroke={CHART_AXIS}
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={false}
+                    interval={0}
+                  />
+                  <YAxis
+                    stroke={CHART_AXIS}
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    allowDecimals={false}
+                  />
                   <Tooltip
-                  contentStyle={tooltipStyle}
-                  labelStyle={{ color: CHART_TOOLTIP_LABEL, fontWeight: 600 }}
-                />
-                  <Bar isAnimationActive={false} dataKey="submitted" name="Dikirim" fill="var(--chart-3)" radius={[4, 4, 0, 0]} />
-                  <Bar isAnimationActive={false} dataKey="approved" name="Disetujui" fill="var(--status-approved)" radius={[4, 4, 0, 0]} />
+                    contentStyle={tooltipStyle}
+                    labelStyle={{ color: CHART_TOOLTIP_LABEL, fontWeight: 600 }}
+                  />
+                  <Bar
+                    isAnimationActive={false}
+                    dataKey="submitted"
+                    name="Dikirim"
+                    fill="var(--chart-3)"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    isAnimationActive={false}
+                    dataKey="approved"
+                    name="Disetujui"
+                    fill="var(--status-approved)"
+                    radius={[4, 4, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -492,15 +721,44 @@ export function AnalyticsCharts({
             style={{ height: Math.max(200, rankings.length * 34 + 40) }}
           >
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={rankings} layout="vertical" margin={{ top: 4, right: 20, bottom: 0, left: 16 }}>
-                <CartesianGrid stroke={CHART_GRID} strokeDasharray="3 3" horizontal={false} />
-                <XAxis type="number" stroke={CHART_AXIS} fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
-                <YAxis type="category" dataKey="name" width={150} stroke={CHART_AXIS} fontSize={11} tickLine={false} axisLine={false} />
+              <BarChart
+                data={rankings}
+                layout="vertical"
+                margin={{ top: 4, right: 20, bottom: 0, left: 16 }}
+              >
+                <CartesianGrid
+                  stroke={CHART_GRID}
+                  strokeDasharray="3 3"
+                  horizontal={false}
+                />
+                <XAxis
+                  type="number"
+                  stroke={CHART_AXIS}
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  allowDecimals={false}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  width={150}
+                  stroke={CHART_AXIS}
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                />
                 <Tooltip
                   contentStyle={tooltipStyle}
                   labelStyle={{ color: CHART_TOOLTIP_LABEL, fontWeight: 600 }}
                 />
-                <Bar isAnimationActive={false} dataKey="total" name="Disetujui" fill="var(--chart-1)" radius={[0, 4, 4, 0]} />
+                <Bar
+                  isAnimationActive={false}
+                  dataKey="total"
+                  name="Disetujui"
+                  fill="var(--chart-1)"
+                  radius={[0, 4, 4, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -512,24 +770,55 @@ export function AnalyticsCharts({
           title="Pembanding cohort"
           description="Median hari keputusan organisasi sejenis. Angka hanya tampil bila cohort memiliki minimal tiga organisasi."
           unit="hari"
-          empty={benchmarkData.length === 0 || benchmarkData.every((row) => !row.available)}
+          empty={
+            benchmarkData.length === 0 ||
+            benchmarkData.every((row) => !row.available)
+          }
           emptyMessage="Data pembanding belum cukup."
         >
           <div className="h-[240px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={benchmarkData} margin={{ top: 8, right: 12, bottom: 0, left: -12 }}>
-                <CartesianGrid stroke={CHART_GRID} strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" stroke={CHART_AXIS} fontSize={10} tickLine={false} axisLine={false} interval={0} />
-                <YAxis stroke={CHART_AXIS} fontSize={12} tickLine={false} axisLine={false} unit="h" />
+              <BarChart
+                data={benchmarkData}
+                margin={{ top: 8, right: 12, bottom: 0, left: -12 }}
+              >
+                <CartesianGrid
+                  stroke={CHART_GRID}
+                  strokeDasharray="3 3"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="label"
+                  stroke={CHART_AXIS}
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={false}
+                  interval={0}
+                />
+                <YAxis
+                  stroke={CHART_AXIS}
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  unit="h"
+                />
                 <Tooltip
                   contentStyle={tooltipStyle}
                   labelStyle={{ color: CHART_TOOLTIP_LABEL, fontWeight: 600 }}
                   formatter={(value, name) => [
-                    Number(value) > 0 ? `${formatNumberId(Number(value))} hari` : "Belum cukup data",
+                    Number(value) > 0
+                      ? `${formatNumberId(Number(value))} hari`
+                      : "Belum cukup data",
                     name,
                   ]}
                 />
-                <Bar isAnimationActive={false} dataKey="value" name="Median hari" fill="var(--chart-2)" radius={[4, 4, 0, 0]} />
+                <Bar
+                  isAnimationActive={false}
+                  dataKey="value"
+                  name="Median hari"
+                  fill="var(--chart-2)"
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -557,15 +846,40 @@ export function AnalyticsCharts({
         >
           <div className="h-[240px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={platforms} margin={{ top: 8, right: 12, bottom: 0, left: -12 }}>
-                <CartesianGrid stroke={CHART_GRID} strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" stroke={CHART_AXIS} fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke={CHART_AXIS} fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+              <BarChart
+                data={platforms}
+                margin={{ top: 8, right: 12, bottom: 0, left: -12 }}
+              >
+                <CartesianGrid
+                  stroke={CHART_GRID}
+                  strokeDasharray="3 3"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="label"
+                  stroke={CHART_AXIS}
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  stroke={CHART_AXIS}
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  allowDecimals={false}
+                />
                 <Tooltip
                   contentStyle={tooltipStyle}
                   labelStyle={{ color: CHART_TOOLTIP_LABEL, fontWeight: 600 }}
                 />
-                <Bar isAnimationActive={false} dataKey="total" name="Konten" fill="var(--chart-4)" radius={[4, 4, 0, 0]} />
+                <Bar
+                  isAnimationActive={false}
+                  dataKey="total"
+                  name="Konten"
+                  fill="var(--chart-4)"
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>

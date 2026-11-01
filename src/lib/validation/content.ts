@@ -42,29 +42,6 @@ const publishedUrlSchema = z
     }
   }, "Tautan harus berupa URL https yang valid.");
 
-export const submissionLocationSchema = z.object({
-  latitude: z
-    .number()
-    .finite("Koordinat tidak valid.")
-    .min(-90, "Lintang minimal -90.")
-    .max(90, "Lintang maksimal 90."),
-  longitude: z
-    .number()
-    .finite("Koordinat tidak valid.")
-    .min(-180, "Bujur minimal -180.")
-    .max(180, "Bujur maksimal 180."),
-  label: z
-    .string()
-    .trim()
-    .min(3, "Beri nama lokasi minimal 3 karakter.")
-    .max(160, "Nama lokasi terlalu panjang."),
-  source: z.enum(["device_gps", "manual_pin"]),
-  accuracyMeters: z.number().finite().positive().max(100_000).nullish(),
-  consentAt: z.string().datetime({ offset: true }).nullish(),
-});
-
-export type SubmissionLocationInput = z.infer<typeof submissionLocationSchema>;
-
 /**
  * Patient identifiers (NIK 16 digits, JKN/KIS 13 digits) must never be stored.
  * This guard is deliberately conservative: a false positive is safer than PII.
@@ -72,7 +49,10 @@ export type SubmissionLocationInput = z.infer<typeof submissionLocationSchema>;
 const PII_PATTERNS: Array<{ pattern: RegExp; label: string }> = [
   { pattern: /\b\d{16}\b/, label: "nomor 16 digit (mirip NIK)" },
   { pattern: /\b\d{13}\b/, label: "nomor 13 digit (mirip kartu JKN)" },
-  { pattern: /\b(?:NIK|JKN|KIS|BPJS)\s*[:#=]?\s*\d{6,}/i, label: "nomor identitas berlabel" },
+  {
+    pattern: /\b(?:NIK|JKN|KIS|BPJS)\s*[:#=]?\s*\d{6,}/i,
+    label: "nomor identitas berlabel",
+  },
 ];
 
 export function detectPii(text: string): string | null {
@@ -92,14 +72,25 @@ export const submissionInputSchema = z
     publishedUrl: publishedUrlSchema,
     platform: z.enum(PLATFORMS, "Platform tidak dikenal."),
     themeId: z.string().uuid("Tema tidak valid.").optional(),
-    contentType: z.enum(CONTENT_TYPE_VALUES, "Jenis konten tidak dikenal.").optional(),
-    mainTheme: z.enum(MAIN_THEME_VALUES, "Tema utama tidak dikenal.").optional(),
+    contentType: z
+      .enum(CONTENT_TYPE_VALUES, "Jenis konten tidak dikenal.")
+      .optional(),
+    mainTheme: z
+      .enum(MAIN_THEME_VALUES, "Tema utama tidak dikenal.")
+      .optional(),
     subTheme: z.enum(SUB_THEME_VALUES, "Sub-tema tidak dikenal.").optional(),
-    title: z.string().trim().max(140, "Judul maksimal 140 karakter.").optional(),
-    narrative: z.string().trim().max(5000, "Narasi maksimal 5000 karakter.").optional(),
+    title: z
+      .string()
+      .trim()
+      .max(140, "Judul maksimal 140 karakter.")
+      .optional(),
+    narrative: z
+      .string()
+      .trim()
+      .max(5000, "Narasi maksimal 5000 karakter.")
+      .optional(),
     dateCreated: dateOnlySchema,
     publishedAt: dateOnlySchema.nullish(),
-    location: submissionLocationSchema.nullish(),
     duplicateAcknowledged: z.boolean().optional(),
     privacyAttested: z.boolean().optional(),
   })
@@ -165,27 +156,12 @@ export const submissionInputSchema = z
       });
     }
 
-    if (!value.location) {
-      context.addIssue({
-        code: "custom",
-        path: ["location"],
-        message: "Lokasi konten wajib ditandai sebelum dikirim.",
-      });
-    }
-
     if (!value.privacyAttested) {
       context.addIssue({
         code: "custom",
         path: ["privacyAttested"],
-        message: "Konfirmasi bahwa konten tidak memuat data pribadi diperlukan.",
-      });
-    }
-
-    if (value.location?.source === "device_gps" && !value.location.consentAt) {
-      context.addIssue({
-        code: "custom",
-        path: ["location", "consentAt"],
-        message: "Persetujuan penggunaan lokasi perangkat diperlukan.",
+        message:
+          "Konfirmasi bahwa konten tidak memuat data pribadi diperlukan.",
       });
     }
   });

@@ -42,7 +42,8 @@ export default async function ClientContentDetailPage({
     detail = await getSubmissionDetail(user, id);
   } catch (error) {
     if (error instanceof AppError && error.status === 404) notFound();
-    if (error instanceof AppError && error.status === 403) redirect("/akses-ditolak");
+    if (error instanceof AppError && error.status === 403)
+      redirect("/akses-ditolak");
     throw error;
   }
 
@@ -65,7 +66,9 @@ export default async function ClientContentDetailPage({
               {detail.referenceCode}
             </span>
             <StatusBadge status={detail.status} />
-            <span className="text-xs text-ink-muted">Versi {detail.version}</span>
+            <span className="text-xs text-ink-muted">
+              Versi {detail.version}
+            </span>
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
             {detail.title ?? "(tanpa judul)"}
@@ -75,7 +78,8 @@ export default async function ClientContentDetailPage({
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:items-end">
-          {detail.status === "REVISION_REQUIRED" || detail.status === "DRAFT" ? (
+          {detail.status === "REVISION_REQUIRED" ||
+          detail.status === "DRAFT" ? (
             <Button asChild className="h-11">
               <Link href={`/client/lapor?submissionId=${detail.id}`}>
                 {detail.status === "DRAFT"
@@ -118,11 +122,15 @@ export default async function ClientContentDetailPage({
           ) : null}
 
           <section className="rounded-xl border border-border bg-surface p-5 shadow-sm">
-            <h2 className="text-sm font-semibold text-foreground">Detail pelaporan</h2>
+            <h2 className="text-sm font-semibold text-foreground">
+              Detail pelaporan
+            </h2>
             <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
               <div>
                 <dt className="text-xs text-ink-muted">Tema</dt>
-                <dd className="font-medium text-foreground">{detail.theme.name}</dd>
+                <dd className="font-medium text-foreground">
+                  {detail.theme.name}
+                </dd>
               </div>
               <div>
                 <dt className="text-xs text-ink-muted">Platform</dt>
@@ -157,7 +165,9 @@ export default async function ClientContentDetailPage({
               </div>
               <div className="sm:col-span-2">
                 <dt className="text-xs text-ink-muted">Tautan</dt>
-                <dd className="truncate text-brand-blue-800">{detail.publishedUrl}</dd>
+                <dd className="truncate text-brand-blue-800">
+                  {detail.publishedUrl}
+                </dd>
               </div>
             </dl>
           </section>
@@ -182,13 +192,16 @@ export default async function ClientContentDetailPage({
                 <div>
                   <dt className="text-xs text-ink-muted">Sumber</dt>
                   <dd className="text-ink">
-                    {SOURCE_LABEL[detail.location.source] ?? detail.location.source}
+                    {SOURCE_LABEL[detail.location.source] ??
+                      detail.location.source}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-xs text-ink-muted">Presisi</dt>
                   <dd className="text-ink">
-                    {detail.location.precision === "exact" ? "Presisi" : "Perkiraan"}
+                    {detail.location.precision === "exact"
+                      ? "Presisi"
+                      : "Perkiraan"}
                   </dd>
                 </div>
                 <div>
@@ -209,7 +222,10 @@ export default async function ClientContentDetailPage({
             aria-labelledby="riwayat-title"
             className="rounded-xl border border-border bg-surface p-5 shadow-sm"
           >
-            <h2 id="riwayat-title" className="text-sm font-semibold text-foreground">
+            <h2
+              id="riwayat-title"
+              className="text-sm font-semibold text-foreground"
+            >
               Riwayat
             </h2>
             <ol className="mt-4 space-y-4">
@@ -226,11 +242,16 @@ export default async function ClientContentDetailPage({
                       aria-hidden
                     />
                     {index < detail.timeline.length - 1 ? (
-                      <span className="mt-1 h-full w-px bg-border" aria-hidden />
+                      <span
+                        className="mt-1 h-full w-px bg-border"
+                        aria-hidden
+                      />
                     ) : null}
                   </div>
                   <div className="pb-1">
-                    <p className="text-sm font-medium text-foreground">{entry.label}</p>
+                    <p className="text-sm font-medium text-foreground">
+                      {entry.label}
+                    </p>
                     <p className="mt-0.5 text-xs leading-relaxed text-ink-muted">
                       {entry.description}
                     </p>
@@ -245,10 +266,15 @@ export default async function ClientContentDetailPage({
 
           {detail.reviews.length > 0 ? (
             <section className="rounded-xl border border-border bg-surface p-5 shadow-sm">
-              <h2 className="text-sm font-semibold text-foreground">Keputusan admin</h2>
+              <h2 className="text-sm font-semibold text-foreground">
+                Keputusan admin
+              </h2>
               <ul className="mt-3 space-y-3">
                 {detail.reviews.map((review) => (
-                  <li key={review.id} className="rounded-lg border border-border px-3 py-2">
+                  <li
+                    key={review.id}
+                    className="rounded-lg border border-border px-3 py-2"
+                  >
                     <p className="text-sm font-medium text-foreground">
                       {review.action === "APPROVE"
                         ? "Disetujui"
@@ -265,7 +291,8 @@ export default async function ClientContentDetailPage({
                       {review.notes ?? "Tanpa catatan tambahan."}
                     </p>
                     <p className="mt-1 text-xs text-ink-muted">
-                      {review.reviewerName} · {formatDateTimeId(review.createdAt)}
+                      {review.reviewerName} ·{" "}
+                      {formatDateTimeId(review.createdAt)}
                     </p>
                   </li>
                 ))}

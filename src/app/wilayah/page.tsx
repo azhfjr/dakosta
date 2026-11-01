@@ -1,82 +1,77 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
 
-import { KpiDashboard } from "@/components/dashboard/kpi-dashboard";
 import { PageHeader } from "@/components/shell/page-header";
-import { PageSkeleton } from "@/components/shell/page-skeleton";
+import { SlaQueue, type SlaTabKey } from "@/components/sla/sla-queue";
 import { Button } from "@/components/ui/button";
 import { formatDateTimeId } from "@/lib/dates";
-import {
-  getDashboardOverview,
-  getKpiFilterOptions,
-  monthOptions,
-  parseKpiFiltersFromParams,
-} from "@/lib/kpi/sql";
+import { listReviewQueue } from "@/lib/review";
 import { requireRole } from "@/lib/session";
+import { getActiveSlaPolicy } from "@/lib/sla";
 
 export const metadata: Metadata = {
-  title: "Ringkasan wilayah",
+  title: "SLA Check wilayah",
 };
 
 export const dynamic = "force-dynamic";
 
-type DashboardUser = Awaited<ReturnType<typeof requireRole>>;
+function firstParam(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
 
-export default async function RegionalHomePage({
+function parseStatus(value: string | undefined): SlaTabKey {
+  return value === "SUBMITTED" ||
+    value === "RESUBMITTED" ||
+    value === "IN_REVIEW"
+    ? value
+    : "ALL";
+}
+
+export default async function RegionalSlaPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const user = await requireRole("REGIONAL_ADMIN");
   const params = await searchParams;
-  const filters = parseKpiFiltersFromParams(params);
-  const description = `Capaian konten disetujui dan antrean validasi untuk ${user.scopeLabel}. Wilayah bersifat baca-saja: keputusan tetap dilakukan admin cabang.`;
+  const status = parseStatus(firstParam(params.status));
+  const search = firstParam(params.q)?.trim().slice(0, 120) || undefined;
+  const page = Math.max(Number(firstParam(params.page) ?? 1) || 1, 1);
 
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Ringkasan wilayah"
-        description={description}
-        meta={`Diperbarui ${formatDateTimeId(new Date())} WIB`}
-        actions={
-          <Button asChild className="h-9">
-            <Link href="/wilayah/analitik">Buka analitik wilayah</Link>
-          </Button>
-        }
-      />
-      <Suspense fallback={<PageSkeleton label="Memuat dasbor…" />}>
-        <RegionalHomeBody user={user} filters={filters} description={description} />
-      </Suspense>
-    </div>
-  );
-}
-
-async function RegionalHomeBody({
-  user,
-  filters,
-  description,
-}: {
-  user: DashboardUser;
-  filters: ReturnType<typeof parseKpiFiltersFromParams>;
-  description: string;
-}) {
-  const [overview, options] = await Promise.all([
-    getDashboardOverview(user, filters),
-    getKpiFilterOptions(user),
+  const [queue, policy] = await Promise.all([
+    listReviewQueue(user, { status, search, page, pageSize: 15 }),
+    getActiveSlaPolicy(),
   ]);
 
   return (
-    <KpiDashboard
-      overview={overview}
-      role={user.role}
-      options={{ ...options, months: monthOptions(filters.month) }}
-      basePath="/wilayah"
-      title="Ringkasan wilayah"
-      description={description}
-      contentDetailBase="/wilayah/konten"
-      stakeholderChartTitle="Peringkat organisasi"
-      hideHeader
-    />
+    <div className="mx-auto w-full max-w-7xl space-y-6">
+      <PageHeader
+        title="SLA Check wilayah"
+        description={`Pantau antrean, usia, dan status keputusan konten di ${user.scopeLabel}. Kedeputian bersifat baca-saja: keputusan tetap dilakukan Admin Cabang.`}
+        meta={`Diperbarui ${formatDateTimeId(new Date())} WIB`}
+        actions={
+          <>
+            <Button asChild variant="outline" className="h-9">
+              <Link href="/wilayah/dashboard">Dashboard</Link>
+            </Button>
+            <Button asChild className="h-9">
+              <Link href="/wilayah/kinerja">Kinerja</Link>
+            </Button>
+          </>
+        }
+      />
+
+      <SlaQueue
+        queue={queue}
+        policy={policy}
+        detailBase="/wilayah/konten"
+        canDecide={false}
+        basePath="/wilayah"
+        search={search}
+        status={status}
+        scopeLabel={user.scopeLabel}
+        readOnlyNote="Mode pantau: tindakan approval/revisi hanya untuk Admin Cabang."
+      />
+    </div>
   );
 }

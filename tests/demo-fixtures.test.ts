@@ -83,7 +83,10 @@ describe.each(SAMPLES)("demo fixtures at %s", (now) => {
     const today = jakartaDateOnly(now);
 
     for (const submission of dataset.submissions) {
-      expect(submission.period === dataset.currentPeriod || submission.period === dataset.previousPeriod).toBe(true);
+      expect(
+        submission.period === dataset.currentPeriod ||
+          submission.period === dataset.previousPeriod,
+      ).toBe(true);
       expect(submission.dateCreated.startsWith(submission.period)).toBe(true);
       expect(submission.dateCreated <= today).toBe(true);
       for (const stamp of [
@@ -101,7 +104,9 @@ describe.each(SAMPLES)("demo fixtures at %s", (now) => {
       expect(review.createdAt.getTime()).toBeLessThanOrEqual(now.getTime());
     }
     for (const notification of dataset.notifications) {
-      expect(notification.createdAt.getTime()).toBeLessThanOrEqual(now.getTime());
+      expect(notification.createdAt.getTime()).toBeLessThanOrEqual(
+        now.getTime(),
+      );
     }
   });
 
@@ -112,7 +117,8 @@ describe.each(SAMPLES)("demo fixtures at %s", (now) => {
         dataset.submissions
           .filter(
             (submission) =>
-              submission.period === period && submission.mainTheme === "EDUFAST",
+              submission.period === period &&
+              submission.mainTheme === "EDUFAST",
           )
           .map((submission) => submission.subTheme),
       );
@@ -128,7 +134,9 @@ describe.each(SAMPLES)("demo fixtures at %s", (now) => {
     const dataset = buildDemoDataset(now);
     const perOrganization = new Map<number, number>();
     for (const submission of dataset.submissions) {
-      expect(submission.organizationN).toBe(organizationForContent(submission.n));
+      expect(submission.organizationN).toBe(
+        organizationForContent(submission.n),
+      );
       perOrganization.set(
         submission.organizationN,
         (perOrganization.get(submission.organizationN) ?? 0) + 1,
@@ -184,11 +192,18 @@ describe("demo scope and account identity", () => {
     ]);
     expect(new Set(DEMO_BRANCHES.map((branch) => branch.code)).size).toBe(8);
     for (const branch of DEMO_BRANCHES) {
-      expect(DEMO_REGIONS.some((region) => region.n === branch.regionN)).toBe(true);
+      expect(DEMO_REGIONS.some((region) => region.n === branch.regionN)).toBe(
+        true,
+      );
     }
     for (const organization of DEMO_ORGANIZATIONS) {
-      expect(DEMO_BRANCHES.some((branch) => branch.n === organization.branchN)).toBe(true);
+      expect(
+        DEMO_BRANCHES.some((branch) => branch.n === organization.branchN),
+      ).toBe(true);
     }
-    expect(new Set(DEMO_ORGANIZATIONS.map((org) => org.faskesCode).filter(Boolean)).size).toBe(15);
+    expect(
+      new Set(DEMO_ORGANIZATIONS.map((org) => org.faskesCode).filter(Boolean))
+        .size,
+    ).toBe(15);
   });
 });

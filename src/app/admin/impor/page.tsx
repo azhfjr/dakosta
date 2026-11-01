@@ -73,7 +73,9 @@ export default async function AdminImportPage() {
                     key={row.id}
                     className="border-b border-border/70 last:border-0"
                   >
-                    <td className="px-4 py-3 text-foreground">{row.filename}</td>
+                    <td className="px-4 py-3 text-foreground">
+                      {row.filename}
+                    </td>
                     <td className="px-4 py-3 text-ink-muted">{row.status}</td>
                     <td className="px-4 py-3 text-right tabular-nums">
                       {formatNumberId(row.rowCount)}

@@ -31,7 +31,10 @@ export async function GET(request: Request) {
     const limit = Number.isFinite(limitParam) ? limitParam : 30;
 
     const submissions = await listSubmissions(user, { status, limit });
-    return jsonOk(submissions, { requestId, meta: { count: submissions.length } });
+    return jsonOk(submissions, {
+      requestId,
+      meta: { count: submissions.length },
+    });
   } catch (error) {
     return jsonError(error, requestId);
   }

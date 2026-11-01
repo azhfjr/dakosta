@@ -9,5 +9,7 @@ export default function WilayahError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  return <WorkspaceError error={error} reset={reset} scope="Ruang kerja wilayah" />;
+  return (
+    <WorkspaceError error={error} reset={reset} scope="Ruang kerja wilayah" />
+  );
 }

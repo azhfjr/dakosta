@@ -21,7 +21,11 @@ import type {
   ContentImportPreview,
 } from "@/lib/imports/content";
 
-export function ContentImportWizard({ readOnly = false }: { readOnly?: boolean }) {
+export function ContentImportWizard({
+  readOnly = false,
+}: {
+  readOnly?: boolean;
+}) {
   const router = useRouter();
   const { prompt: promptStepUp, dialog: stepUpDialog } = useStepUp();
   const [file, setFile] = useState<File | null>(null);
@@ -193,13 +197,27 @@ export function ContentImportWizard({ readOnly = false }: { readOnly?: boolean }
               <caption className="sr-only">Pratinjau impor konten</caption>
               <thead className="sticky top-0 bg-surface">
                 <tr className="border-b border-border text-left text-xs font-medium tracking-wide text-ink-muted uppercase">
-                  <th scope="col" className="px-4 py-2.5">Baris</th>
-                  <th scope="col" className="px-4 py-2.5">Organisasi</th>
-                  <th scope="col" className="px-4 py-2.5">Judul</th>
-                  <th scope="col" className="px-4 py-2.5">Jenis</th>
-                  <th scope="col" className="px-4 py-2.5">Tema</th>
-                  <th scope="col" className="px-4 py-2.5">Tanggal</th>
-                  <th scope="col" className="px-4 py-2.5">Status</th>
+                  <th scope="col" className="px-4 py-2.5">
+                    Baris
+                  </th>
+                  <th scope="col" className="px-4 py-2.5">
+                    Organisasi
+                  </th>
+                  <th scope="col" className="px-4 py-2.5">
+                    Judul
+                  </th>
+                  <th scope="col" className="px-4 py-2.5">
+                    Jenis
+                  </th>
+                  <th scope="col" className="px-4 py-2.5">
+                    Tema
+                  </th>
+                  <th scope="col" className="px-4 py-2.5">
+                    Tanggal
+                  </th>
+                  <th scope="col" className="px-4 py-2.5">
+                    Status
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -208,16 +226,24 @@ export function ContentImportWizard({ readOnly = false }: { readOnly?: boolean }
                     key={row.rowNumber}
                     className="border-b border-border/70 align-top last:border-0"
                   >
-                    <td className="px-4 py-2.5 text-ink-muted tabular">{row.rowNumber}</td>
+                    <td className="px-4 py-2.5 text-ink-muted tabular">
+                      {row.rowNumber}
+                    </td>
                     <td className="px-4 py-2.5 font-medium text-foreground">
                       {row.organizationName ?? "—"}
                     </td>
                     <td className="px-4 py-2.5 text-ink-muted">
                       {row.title ?? "(tanpa judul)"}
                     </td>
-                    <td className="px-4 py-2.5 text-ink-muted">{row.contentType ?? "—"}</td>
-                    <td className="px-4 py-2.5 text-ink-muted">{row.subTheme ?? "—"}</td>
-                    <td className="px-4 py-2.5 text-ink-muted">{row.dateCreated ?? "—"}</td>
+                    <td className="px-4 py-2.5 text-ink-muted">
+                      {row.contentType ?? "—"}
+                    </td>
+                    <td className="px-4 py-2.5 text-ink-muted">
+                      {row.subTheme ?? "—"}
+                    </td>
+                    <td className="px-4 py-2.5 text-ink-muted">
+                      {row.dateCreated ?? "—"}
+                    </td>
                     <td className="px-4 py-2.5">
                       <span
                         className={

@@ -8,7 +8,11 @@ import {
   requireStepUp,
 } from "@/lib/authz/guards";
 import { monthKeyFor } from "@/lib/kpi/formulas";
-import { consumeRateLimit, getClientIp, getRateLimitHeaders } from "@/lib/rate-limit";
+import {
+  consumeRateLimit,
+  getClientIp,
+  getRateLimitHeaders,
+} from "@/lib/rate-limit";
 import {
   createTarget,
   getTargetOverview,
@@ -29,8 +33,14 @@ export async function GET(request: Request) {
       ? (rawMonth as string)
       : monthKeyFor();
 
+    const rawPage = Number(url.searchParams.get("page"));
+    const rawPageSize = Number(url.searchParams.get("pageSize"));
+    const page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : 1;
+    const pageSize =
+      Number.isInteger(rawPageSize) && rawPageSize >= 0 ? rawPageSize : 50;
+
     const [overview, stakeholders] = await Promise.all([
-      getTargetOverview(month),
+      getTargetOverview(month, { page, pageSize }),
       listTargetStakeholders(),
     ]);
 

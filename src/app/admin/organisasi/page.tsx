@@ -24,7 +24,8 @@ export default async function AdminOrganizationsPage({
 
   const [organizations, hierarchy] = await Promise.all([
     listOrganizations(admin.scope, {
-      branchId: branchId && /^[0-9a-f-]{36}$/i.test(branchId) ? branchId : undefined,
+      branchId:
+        branchId && /^[0-9a-f-]{36}$/i.test(branchId) ? branchId : undefined,
     }),
     listHierarchyOptions(),
   ]);
@@ -41,7 +42,10 @@ export default async function AdminOrganizationsPage({
             Kode Faskes ternormalisasi dan unik untuk organisasi aktif.
           </p>
         </div>
-        <OrganizationEditor branches={hierarchy.branches} readOnly={admin.isDemo} />
+        <OrganizationEditor
+          branches={hierarchy.branches}
+          readOnly={admin.isDemo}
+        />
       </header>
 
       {admin.isDemo ? (

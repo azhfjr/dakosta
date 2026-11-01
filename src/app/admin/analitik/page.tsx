@@ -9,7 +9,10 @@ import {
   listAnalyticsContents,
   parseAnalyticsContentFilters,
 } from "@/lib/analytics/content-table";
-import { getAnalyticsSourceOptions, parseOrgSources } from "@/lib/analytics/source";
+import {
+  getAnalyticsSourceOptions,
+  parseOrgSources,
+} from "@/lib/analytics/source";
 import { formatDateTimeId } from "@/lib/dates";
 import {
   getDashboardOverview,
@@ -69,13 +72,15 @@ async function AdminAnalyticsBody({
   };
   contentFilters: ReturnType<typeof parseAnalyticsContentFilters>;
 }) {
-  const [overview, options, sourceOptions, bundle, content] = await Promise.all([
-    getDashboardOverview(user, filters),
-    getKpiFilterOptions(user),
-    getAnalyticsSourceOptions(user),
-    getAnalyticsBundle(user, filters, { rankings: "branch" }),
-    listAnalyticsContents(user, contentFilters),
-  ]);
+  const [overview, options, sourceOptions, bundle, content] = await Promise.all(
+    [
+      getDashboardOverview(user, filters),
+      getKpiFilterOptions(user),
+      getAnalyticsSourceOptions(user),
+      getAnalyticsBundle(user, filters, { rankings: "branch" }),
+      listAnalyticsContents(user, contentFilters),
+    ],
+  );
 
   return (
     <AnalyticsView

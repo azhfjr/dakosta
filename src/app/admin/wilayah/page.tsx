@@ -24,8 +24,9 @@ export default async function AdminRegionsPage() {
             Wilayah
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-ink-muted">
-            Struktur wilayah DAKOSTA beserta jumlah cabang, organisasi, dan capaian
-            kontennya. Data mengikuti hierarki region → branch → organization.
+            Struktur wilayah DAKOSTA beserta jumlah cabang, organisasi, dan
+            capaian kontennya. Data mengikuti hierarki region → branch →
+            organization.
           </p>
         </div>
         <RegionEditor readOnly={admin.isDemo} />
@@ -43,8 +44,8 @@ export default async function AdminRegionsPage() {
             Belum ada wilayah terdaftar
           </p>
           <p className="mx-auto mt-1 max-w-md text-sm text-ink-muted">
-            Mulai dari wilayah, lalu tambahkan cabang dan organisasi. Gunakan tombol
-            “Tambah wilayah” di kanan atas untuk membuat wilayah pertama.
+            Mulai dari wilayah, lalu tambahkan cabang dan organisasi. Gunakan
+            tombol “Tambah wilayah” di kanan atas untuk membuat wilayah pertama.
           </p>
         </div>
       ) : (
@@ -88,7 +89,9 @@ export default async function AdminRegionsPage() {
                   className="border-b border-border/70 last:border-0"
                 >
                   <td className="px-4 py-3">
-                    <span className="font-medium text-foreground">{region.name}</span>
+                    <span className="font-medium text-foreground">
+                      {region.name}
+                    </span>
                     <p className="text-xs text-ink-muted">{region.code}</p>
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums">

@@ -1,7 +1,4 @@
-import {
-  templateCsv,
-  ACCOUNT_IMPORT_HEADERS,
-} from "@/lib/imports/accounts";
+import { templateCsv, ACCOUNT_IMPORT_HEADERS } from "@/lib/imports/accounts";
 import { requireMasterApi } from "@/lib/authz/guards";
 import { getRequestId, jsonError } from "@/lib/api";
 

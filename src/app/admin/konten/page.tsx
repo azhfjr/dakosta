@@ -5,13 +5,15 @@ import { FileText } from "lucide-react";
 import { ContentTypeBadge } from "@/components/content/content-type-badge";
 import { StatusBadge } from "@/components/content/status-badge";
 import { Button } from "@/components/ui/button";
+import { StakeholderSelect } from "@/components/ui/stakeholder-select";
 import { formatDateId, formatDateTimeId, formatNumberId } from "@/lib/dates";
-import { PLATFORM_LABEL, STATUS_LABEL, type ContentStatus } from "@/lib/content-status";
-import { getKpiFilterOptions } from "@/lib/kpi/sql";
 import {
-  getSubmissionStatusCounts,
-  listSubmissions,
-} from "@/lib/submissions";
+  PLATFORM_LABEL,
+  STATUS_LABEL,
+  type ContentStatus,
+} from "@/lib/content-status";
+import { getKpiFilterOptions } from "@/lib/kpi/sql";
+import { getSubmissionStatusCounts, listSubmissions } from "@/lib/submissions";
 import { requireRole } from "@/lib/session";
 import { isSubTheme, type SubTheme } from "@/lib/taxonomy";
 
@@ -36,7 +38,9 @@ const TABS: Array<{ key: ContentStatus | "ALL"; label: string }> = [
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function parseStatus(value: string | string[] | undefined): ContentStatus | "ALL" {
+function parseStatus(
+  value: string | string[] | undefined,
+): ContentStatus | "ALL" {
   const raw = Array.isArray(value) ? value[0] : value;
   const found = TABS.find((tab) => tab.key === raw);
   return found ? found.key : "ALL";
@@ -47,7 +51,9 @@ function parseUuid(value: string | string[] | undefined): string | undefined {
   return raw && UUID_PATTERN.test(raw) ? raw : undefined;
 }
 
-function parseSubTheme(value: string | string[] | undefined): SubTheme | undefined {
+function parseSubTheme(
+  value: string | string[] | undefined,
+): SubTheme | undefined {
   const raw = Array.isArray(value) ? value[0] : value;
   return isSubTheme(raw) ? raw : undefined;
 }
@@ -150,18 +156,11 @@ export default async function AdminContentPage({
         ) : null}
         <label>
           <span className="sr-only">Filter stakeholder</span>
-          <select
-            name="stakeholderId"
+          <StakeholderSelect
+            options={options.stakeholders}
             defaultValue={stakeholderId ?? ""}
             className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-          >
-            <option value="">Semua stakeholder</option>
-            {options.stakeholders.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
+          />
         </label>
         <label>
           <span className="sr-only">Filter tema</span>
@@ -199,8 +198,13 @@ export default async function AdminContentPage({
         className="rounded-xl border border-border bg-surface shadow-sm"
       >
         <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border px-5 py-3">
-          <h2 id="konten-daftar" className="text-base font-semibold text-foreground">
-            {status === "ALL" ? "Konten terbaru" : `Konten ${STATUS_LABEL[status]}`}
+          <h2
+            id="konten-daftar"
+            className="text-base font-semibold text-foreground"
+          >
+            {status === "ALL"
+              ? "Konten terbaru"
+              : `Konten ${STATUS_LABEL[status]}`}
           </h2>
           <p className="text-xs text-ink-muted">
             Maksimal 100 konten, diurutkan dari pembaruan terakhir.
@@ -214,7 +218,8 @@ export default async function AdminContentPage({
               Belum ada konten pada status ini
             </p>
             <p className="mt-1 text-sm text-ink-muted">
-              Konten akan tampil setelah stakeholder menyimpan atau mengirim laporan.
+              Konten akan tampil setelah stakeholder menyimpan atau mengirim
+              laporan.
             </p>
           </div>
         ) : (
@@ -225,14 +230,30 @@ export default async function AdminContentPage({
               </caption>
               <thead>
                 <tr className="border-b border-border text-left text-xs font-medium tracking-wide text-ink-muted uppercase">
-                  <th scope="col" className="px-5 py-3">Konten</th>
-                  <th scope="col" className="px-5 py-3">Jenis konten</th>
-                  <th scope="col" className="px-5 py-3">Stakeholder</th>
-                  <th scope="col" className="px-5 py-3">Tema / platform</th>
-                  <th scope="col" className="px-5 py-3">Tanggal konten</th>
-                  <th scope="col" className="px-5 py-3">Dikirim</th>
-                  <th scope="col" className="px-5 py-3">Disetujui</th>
-                  <th scope="col" className="px-5 py-3">Status</th>
+                  <th scope="col" className="px-5 py-3">
+                    Konten
+                  </th>
+                  <th scope="col" className="px-5 py-3">
+                    Jenis konten
+                  </th>
+                  <th scope="col" className="px-5 py-3">
+                    Stakeholder
+                  </th>
+                  <th scope="col" className="px-5 py-3">
+                    Tema / platform
+                  </th>
+                  <th scope="col" className="px-5 py-3">
+                    Tanggal konten
+                  </th>
+                  <th scope="col" className="px-5 py-3">
+                    Dikirim
+                  </th>
+                  <th scope="col" className="px-5 py-3">
+                    Disetujui
+                  </th>
+                  <th scope="col" className="px-5 py-3">
+                    Status
+                  </th>
                   <th scope="col" className="px-5 py-3">
                     <span className="sr-only">Tindakan</span>
                   </th>
@@ -262,7 +283,9 @@ export default async function AdminContentPage({
                       {item.stakeholderName}
                     </td>
                     <td className="px-5 py-3 text-ink-muted">
-                      <span className="block text-foreground">{item.themeName}</span>
+                      <span className="block text-foreground">
+                        {item.themeName}
+                      </span>
                       <span className="text-xs">
                         {PLATFORM_LABEL[item.platform] ?? item.platform}
                       </span>
@@ -280,7 +303,12 @@ export default async function AdminContentPage({
                       <StatusBadge status={item.status} />
                     </td>
                     <td className="px-5 py-3 text-right">
-                      <Button asChild size="sm" variant="outline" className="h-9">
+                      <Button
+                        asChild
+                        size="sm"
+                        variant="outline"
+                        className="h-9"
+                      >
                         <Link href={`/admin/validasi/${item.id}`}>Buka</Link>
                       </Button>
                     </td>

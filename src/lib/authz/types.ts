@@ -1,8 +1,5 @@
 export type AppRole =
-  | "MASTER_ADMIN"
-  | "REGIONAL_ADMIN"
-  | "BRANCH_ADMIN"
-  | "STAKEHOLDER";
+  "MASTER_ADMIN" | "REGIONAL_ADMIN" | "BRANCH_ADMIN" | "STAKEHOLDER";
 
 export const APP_ROLES: readonly AppRole[] = [
   "MASTER_ADMIN",
@@ -59,6 +56,10 @@ export type Capability =
   | "content:review"
   | "content:override"
   | "content:revoke"
+  | "sla:read"
+  | "sla:review"
+  | "performance:read"
+  | "performance:export"
   | "policy:read"
   | "policy:manage"
   | "analytics:read"
@@ -70,6 +71,17 @@ export type Capability =
   | "target:manage"
   | "demo:reset";
 
+export type LocationStatus = "PENDING" | "GRACE" | "VERIFIED" | "EXEMPT";
+
+export function isLocationStatus(value: string): value is LocationStatus {
+  return (
+    value === "PENDING" ||
+    value === "GRACE" ||
+    value === "VERIFIED" ||
+    value === "EXEMPT"
+  );
+}
+
 export type AuthContext = {
   userId: string;
   name: string;
@@ -79,6 +91,8 @@ export type AuthContext = {
   capabilities: readonly Capability[];
   isDemo: boolean;
   mustChangePassword: boolean;
+  locationStatus: LocationStatus;
+  locationGraceDeadline: Date | null;
   displayTitle: string | null;
   membershipId: string;
   homePath: string;

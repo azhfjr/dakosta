@@ -5,7 +5,11 @@ import {
   resolveTargetAmount,
   type TargetScopeSource,
 } from "@/lib/targets";
-import { targetCreateSchema, targetSyncSchema, targetUpdateSchema } from "@/lib/validation/target";
+import {
+  targetCreateSchema,
+  targetSyncSchema,
+  targetUpdateSchema,
+} from "@/lib/validation/target";
 
 const rows = [
   { stakeholderId: null, themeId: null, subTheme: null, targetCount: 30 },
@@ -52,7 +56,10 @@ describe("target resolver", () => {
       resolveTargetAmount(rows, { stakeholderId: "b", subTheme: "MOBILE_JKN" }),
     ).toEqual({ target: null, source: null });
     sourceOf(
-      resolveTargetAmount(rows, { stakeholderId: null, subTheme: "MOBILE_JKN" }),
+      resolveTargetAmount(rows, {
+        stakeholderId: null,
+        subTheme: "MOBILE_JKN",
+      }),
       12,
       "SUB_THEME",
     );
@@ -82,12 +89,14 @@ describe("target resolver", () => {
   });
 
   it("requires every owned stakeholder to have a target", () => {
-    expect(
-      resolveAggregateTarget(rows, ["a", "b"], null),
-    ).toEqual({ target: 18, source: "AGGREGATE" });
-    expect(
-      resolveAggregateTarget(rows, ["a", "missing"], null),
-    ).toEqual({ target: null, source: null });
+    expect(resolveAggregateTarget(rows, ["a", "b"], null)).toEqual({
+      target: 18,
+      source: "AGGREGATE",
+    });
+    expect(resolveAggregateTarget(rows, ["a", "missing"], null)).toEqual({
+      target: null,
+      source: null,
+    });
     expect(resolveAggregateTarget(rows, [], null)).toEqual({
       target: null,
       source: null,
@@ -115,10 +124,12 @@ describe("target validation", () => {
 
   it("rejects invalid months, negative targets, and unknown sub-themes", () => {
     expect(
-      targetCreateSchema.safeParse({ month: "2026-13", targetCount: 1 }).success,
+      targetCreateSchema.safeParse({ month: "2026-13", targetCount: 1 })
+        .success,
     ).toBe(false);
     expect(
-      targetCreateSchema.safeParse({ month: "2026-10", targetCount: -1 }).success,
+      targetCreateSchema.safeParse({ month: "2026-10", targetCount: -1 })
+        .success,
     ).toBe(false);
     expect(
       targetCreateSchema.safeParse({

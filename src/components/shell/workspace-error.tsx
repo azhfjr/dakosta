@@ -30,11 +30,13 @@ export function WorkspaceError({
               Sebagian data gagal diambil
             </h1>
             <p className="text-sm leading-relaxed text-ink-muted">
-              Tidak ada data yang diubah. Muat ulang bagian ini; bila masih gagal,
-              periksa koneksi lalu coba lagi beberapa saat lagi.
+              Tidak ada data yang diubah. Muat ulang bagian ini; bila masih
+              gagal, periksa koneksi lalu coba lagi beberapa saat lagi.
             </p>
             {error.digest ? (
-              <p className="text-xs text-ink-muted">Kode kejadian: {error.digest}</p>
+              <p className="text-xs text-ink-muted">
+                Kode kejadian: {error.digest}
+              </p>
             ) : null}
             <div className="pt-2">
               <Button className="h-10" onClick={reset}>

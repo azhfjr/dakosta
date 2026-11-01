@@ -9,13 +9,37 @@ import { getAuthContext, hasCapability } from "./context";
 import { hasRecentStepUp } from "./step-up";
 import type { AppRole, AuthContext, Capability } from "./types";
 
-type PageOptions = { allowPasswordChangePending?: boolean };
+type PageOptions = {
+  allowPasswordChangePending?: boolean;
+  allowPendingLocation?: boolean;
+};
 
-export async function requireAuth(options: PageOptions = {}): Promise<AuthContext> {
+export function needsLocationActivation(
+  ctx: Pick<AuthContext, "role" | "locationStatus" | "locationGraceDeadline">,
+): boolean {
+  if (ctx.role === "MASTER_ADMIN") return false;
+  if (ctx.locationStatus === "VERIFIED" || ctx.locationStatus === "EXEMPT") {
+    return false;
+  }
+  if (ctx.locationStatus === "GRACE") {
+    return Boolean(
+      ctx.locationGraceDeadline &&
+      ctx.locationGraceDeadline.getTime() <= Date.now(),
+    );
+  }
+  return true;
+}
+
+export async function requireAuth(
+  options: PageOptions = {},
+): Promise<AuthContext> {
   const ctx = await getAuthContext();
   if (!ctx) redirect("/masuk");
   if (ctx.mustChangePassword && !options.allowPasswordChangePending) {
     redirect("/ganti-password");
+  }
+  if (!options.allowPendingLocation && needsLocationActivation(ctx)) {
+    redirect("/aktivasi-lokasi");
   }
   return ctx;
 }
@@ -75,6 +99,13 @@ export async function getApiAuth(
       403,
     );
   }
+  if (!options.allowPendingLocation && needsLocationActivation(ctx)) {
+    throw new AppError(
+      "LOCATION_ACTIVATION_REQUIRED",
+      "Aktifkan lokasi perangkat terlebih dahulu sebelum melanjutkan.",
+      403,
+    );
+  }
   return ctx;
 }
 
@@ -96,7 +127,9 @@ export async function requireApiCapability(
   return ctx;
 }
 
-export async function requireApiRole(...roles: AppRole[]): Promise<AuthContext> {
+export async function requireApiRole(
+  ...roles: AppRole[]
+): Promise<AuthContext> {
   const ctx = await getApiAuth();
   if (!roles.includes(ctx.role)) {
     await recordAudit({

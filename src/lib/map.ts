@@ -1,14 +1,6 @@
 import "server-only";
 
-import {
-  and,
-  asc,
-  count,
-  desc,
-  eq,
-  ne,
-  type SQL,
-} from "drizzle-orm";
+import { and, asc, count, desc, eq, ne, type SQL } from "drizzle-orm";
 
 import { getDb, schema } from "@/db";
 import { recordAudit } from "@/lib/audit";
@@ -20,6 +12,7 @@ import {
 import type { ContentStatus } from "@/lib/content-status";
 import { errors } from "@/lib/errors";
 import { isValidCoordinate } from "@/lib/geo";
+import { cachedRead, readCacheKey } from "@/lib/read-cache";
 import type { SessionUser } from "@/lib/session";
 import { isSubTheme, SUB_THEME_LABELS, type SubTheme } from "@/lib/taxonomy";
 
@@ -103,13 +96,15 @@ export function parseMapFilters(
     const raw = params[key];
     return Array.isArray(raw) ? raw[0] : raw;
   };
-  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const uuid =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   const stakeholderId = read("stakeholderId");
   const subTheme = read("subTheme");
   const status = read("status");
 
   return {
-    stakeholderId: stakeholderId && uuid.test(stakeholderId) ? stakeholderId : null,
+    stakeholderId:
+      stakeholderId && uuid.test(stakeholderId) ? stakeholderId : null,
     subTheme: isSubTheme(subTheme) ? subTheme : null,
     status: isMapStatus(status) ? status : "ALL",
   };
@@ -172,6 +167,21 @@ export async function getMapOverview(
   user: SessionUser,
   filters: MapFilters,
 ): Promise<MapOverview> {
+  return cachedRead(
+    readCacheKey(user, [
+      "map-overview",
+      filters.stakeholderId,
+      filters.subTheme,
+      filters.status,
+    ]),
+    () => loadMapOverview(user, filters),
+  );
+}
+
+async function loadMapOverview(
+  user: SessionUser,
+  filters: MapFilters,
+): Promise<MapOverview> {
   if (filters.stakeholderId) {
     const [organization] = await getDb()
       .select({
@@ -181,10 +191,7 @@ export async function getMapOverview(
       .from(schema.stakeholders)
       .where(eq(schema.stakeholders.id, filters.stakeholderId))
       .limit(1);
-    if (
-      !organization ||
-      !isOrganizationInScope(user.scope, organization)
-    ) {
+    if (!organization || !isOrganizationInScope(user.scope, organization)) {
       await recordAudit({
         actorId: user.id,
         actorRole: user.role,
@@ -193,7 +200,9 @@ export async function getMapOverview(
         recordId: filters.stakeholderId,
         after: { reason: "organization_scope_mismatch", route: "/peta" },
       });
-      throw errors.forbidden("Anda tidak memiliki akses ke organisasi tersebut.");
+      throw errors.forbidden(
+        "Anda tidak memiliki akses ke organisasi tersebut.",
+      );
     }
   }
 
@@ -250,10 +259,7 @@ export async function getMapOverview(
         eq(schema.locations.id, schema.contentSubmissions.locationId),
       )
       .where(scoped)
-      .groupBy(
-        schema.contentSubmissions.status,
-        schema.locations.precision,
-      ),
+      .groupBy(schema.contentSubmissions.status, schema.locations.precision),
     db
       .select({
         id: schema.stakeholders.id,
@@ -272,9 +278,8 @@ export async function getMapOverview(
   const truncated = pointRows.length > MAP_POINT_LIMIT;
   const points = pointRows
     .slice(0, MAP_POINT_LIMIT)
-    .filter(
-      (row) =>
-        isValidCoordinate(Number(row.latitude), Number(row.longitude)),
+    .filter((row) =>
+      isValidCoordinate(Number(row.latitude), Number(row.longitude)),
     )
     .map<MapPoint>((row) => {
       const status = row.status as ContentStatus;
@@ -289,13 +294,15 @@ export async function getMapOverview(
         stakeholderName: row.stakeholderName,
         subTheme,
         themeName:
-          row.themeName ?? (subTheme ? SUB_THEME_LABELS[subTheme] : "Tanpa tema"),
+          row.themeName ??
+          (subTheme ? SUB_THEME_LABELS[subTheme] : "Tanpa tema"),
         latitude: Number(row.latitude),
         longitude: Number(row.longitude),
         locationLabel: row.locationLabel,
         locationSource: row.locationSource,
         precision: precisionOf(row.precision),
-        accuracyMeters: row.accuracyMeters == null ? null : Number(row.accuracyMeters),
+        accuracyMeters:
+          row.accuracyMeters == null ? null : Number(row.accuracyMeters),
         approvedAt: row.approvedAt?.toISOString() ?? null,
         submittedAt: row.submittedAt?.toISOString() ?? null,
         updatedAt: row.updatedAt.toISOString(),

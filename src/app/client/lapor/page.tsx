@@ -83,18 +83,8 @@ export default async function ReportContentPage({
             dateCreated: schema.contentSubmissions.dateCreated,
             publishedAt: schema.contentSubmissions.publishedAt,
             decisionReason: schema.contentSubmissions.decisionReason,
-            locationLabel: schema.locations.label,
-            locationLatitude: schema.locations.latitude,
-            locationLongitude: schema.locations.longitude,
-            locationSource: schema.locations.source,
-            locationAccuracy: schema.locations.accuracyMeters,
-            locationConsentAt: schema.locations.consentAt,
           })
           .from(schema.contentSubmissions)
-          .leftJoin(
-            schema.locations,
-            eq(schema.locations.id, schema.contentSubmissions.locationId),
-          )
           .where(
             and(
               eq(schema.contentSubmissions.id, submissionId),
@@ -120,7 +110,10 @@ export default async function ReportContentPage({
   } else if (submissionId) {
     if (!draft) {
       initialError = "Konten tidak ditemukan atau bukan milik akun Anda.";
-    } else if (draft.status !== "DRAFT" && draft.status !== "REVISION_REQUIRED") {
+    } else if (
+      draft.status !== "DRAFT" &&
+      draft.status !== "REVISION_REQUIRED"
+    ) {
       const label = STATUS_LABEL[draft.status as ContentStatus] ?? draft.status;
       initialError = `Konten ${draft.referenceCode} berstatus "${label}" dan tidak dapat diubah.`;
     } else if (!stakeholders.some((item) => item.id === draft.stakeholderId)) {
@@ -140,22 +133,6 @@ export default async function ReportContentPage({
         narrative: draft.narrative,
         dateCreated: draft.dateCreated,
         publishedAt: draft.publishedAt,
-        location:
-          draft.locationLatitude !== null && draft.locationLongitude !== null
-            ? {
-                latitude: draft.locationLatitude,
-                longitude: draft.locationLongitude,
-                source:
-                  draft.locationSource === "device_gps"
-                    ? "device_gps"
-                    : "manual_pin",
-                accuracyMeters: draft.locationAccuracy,
-                consentAt: draft.locationConsentAt
-                  ? draft.locationConsentAt.toISOString()
-                  : null,
-              }
-            : null,
-        locationLabel: draft.locationLabel,
         decisionReason: draft.decisionReason,
       };
     }
@@ -176,14 +153,17 @@ export default async function ReportContentPage({
         <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">
           {initial
             ? "Perbarui konten sesuai catatan reviewer, lalu kirim ulang untuk validasi. Capaian belum dihitung sampai konten disetujui."
-            : "Lengkapi tautan, narasi, tema, dan lokasi konten. Reviewer cabang akan memvalidasi sebelum konten dihitung sebagai capaian. Jangan memuat data pribadi, nomor identitas, atau rekam medis."}
+            : "Lengkapi tautan, narasi, dan tema konten. Reviewer cabang akan memvalidasi sebelum konten dihitung sebagai capaian. Jangan memuat data pribadi, nomor identitas, atau rekam medis."}
         </p>
       </header>
 
       {initialError ? (
         <div className="rounded-xl border border-status-rejected/30 bg-status-rejected/5 p-5">
           <div className="flex items-start gap-3">
-            <Info className="mt-0.5 size-5 shrink-0 text-status-rejected" aria-hidden />
+            <Info
+              className="mt-0.5 size-5 shrink-0 text-status-rejected"
+              aria-hidden
+            />
             <div className="space-y-3">
               <div>
                 <h2 className="text-sm font-semibold text-foreground">
@@ -202,15 +182,19 @@ export default async function ReportContentPage({
       ) : stakeholders.length === 0 ? (
         <div className="rounded-xl border border-status-review/30 bg-status-review/5 p-5">
           <div className="flex items-start gap-3">
-            <Info className="mt-0.5 size-5 shrink-0 text-status-review" aria-hidden />
+            <Info
+              className="mt-0.5 size-5 shrink-0 text-status-review"
+              aria-hidden
+            />
             <div className="space-y-3">
               <div>
                 <h2 className="text-sm font-semibold text-foreground">
                   Akun belum terhubung ke stakeholder aktif
                 </h2>
                 <p className="mt-1 text-sm leading-relaxed text-ink-muted">
-                  Pelaporan memerlukan keterkaitan dengan minimal satu organisasi aktif.
-                  Hubungi Master Admin untuk menautkan akun Anda.
+                  Pelaporan memerlukan keterkaitan dengan minimal satu
+                  organisasi aktif. Hubungi Master Admin untuk menautkan akun
+                  Anda.
                 </p>
               </div>
               <Button asChild variant="outline" size="sm">
@@ -230,11 +214,18 @@ export default async function ReportContentPage({
       )}
 
       <section className="rounded-xl border border-border bg-surface-muted/60 p-4 text-sm leading-relaxed text-ink-muted">
-        <h2 className="text-sm font-semibold text-foreground">Sebelum mengirim</h2>
+        <h2 className="text-sm font-semibold text-foreground">
+          Sebelum mengirim
+        </h2>
         <ul className="mt-2 list-disc space-y-1 pl-5">
           <li>Tautan harus dapat dibuka publik dan memakai https.</li>
-          <li>Lokasi wajib ditandai; GPS opsional, pin manual selalu tersedia.</li>
-          <li>Jangan memuat data pribadi, nomor identitas, atau rekam medis.</li>
+          <li>
+            Lokasi tidak ditandai per konten; instansi memakai lokasi yang
+            tersimpan saat aktivasi akun.
+          </li>
+          <li>
+            Jangan memuat data pribadi, nomor identitas, atau rekam medis.
+          </li>
           <li>Konten yang ditolak atau perlu revisi tidak menambah capaian.</li>
         </ul>
       </section>

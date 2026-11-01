@@ -72,7 +72,9 @@ export function UserManagement({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [displayTitle, setDisplayTitle] = useState("");
-  const [selectedStakeholders, setSelectedStakeholders] = useState<string[]>([]);
+  const [selectedStakeholders, setSelectedStakeholders] = useState<string[]>(
+    [],
+  );
   const [formError, setFormError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
@@ -204,8 +206,8 @@ export function UserManagement({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-ink-muted">
-          {initialUsers.length} akun terdaftar. Registrasi publik ditutup;
-          akun dibuat oleh admin dengan kata sandi sementara.
+          {initialUsers.length} akun terdaftar. Registrasi publik ditutup; akun
+          dibuat oleh admin dengan kata sandi sementara.
         </p>
         <Button onClick={() => setCreateOpen(true)}>
           <Plus className="size-4" aria-hidden />
@@ -218,16 +220,29 @@ export function UserManagement({
           <caption className="sr-only">Daftar akun pengguna</caption>
           <thead>
             <tr className="border-b border-border text-left text-xs font-medium tracking-wide text-ink-muted uppercase">
-              <th scope="col" className="px-5 py-3">Pengguna</th>
-              <th scope="col" className="px-5 py-3">Peran</th>
-              <th scope="col" className="px-5 py-3">Stakeholder</th>
-              <th scope="col" className="px-5 py-3">Status</th>
-              <th scope="col" className="px-5 py-3 text-right">Tindakan</th>
+              <th scope="col" className="px-5 py-3">
+                Pengguna
+              </th>
+              <th scope="col" className="px-5 py-3">
+                Peran
+              </th>
+              <th scope="col" className="px-5 py-3">
+                Stakeholder
+              </th>
+              <th scope="col" className="px-5 py-3">
+                Status
+              </th>
+              <th scope="col" className="px-5 py-3 text-right">
+                Tindakan
+              </th>
             </tr>
           </thead>
           <tbody>
             {initialUsers.map((user) => (
-              <tr key={user.id} className="border-b border-border/70 last:border-0">
+              <tr
+                key={user.id}
+                className="border-b border-border/70 last:border-0"
+              >
                 <td className="px-5 py-3">
                   <p className="font-medium text-foreground">{user.name}</p>
                   <p className="text-xs text-ink-muted">{user.email}</p>
@@ -497,7 +512,9 @@ export function UserManagement({
             <div className="space-y-4">
               <div className="flex items-center justify-between rounded-lg border border-border p-3">
                 <div>
-                  <p className="text-sm font-medium text-foreground">Akun aktif</p>
+                  <p className="text-sm font-medium text-foreground">
+                    Akun aktif
+                  </p>
                   <p className="text-xs text-ink-muted">
                     Akun nonaktif tidak bisa masuk.
                   </p>

@@ -12,6 +12,7 @@ import {
   Network,
   PlusCircle,
   ScrollText,
+  ShieldCheck,
   Target,
   Upload,
   UserRound,
@@ -30,16 +31,42 @@ export type NavItem = {
 };
 
 const ADMIN_NAV: NavItem[] = [
-  { href: "/admin", label: "Ringkasan", icon: LayoutDashboard, exact: true, ready: true },
-  { href: "/admin/validasi", label: "Validasi", icon: ClipboardCheck, ready: true },
+  {
+    href: "/admin",
+    label: "Ringkasan",
+    icon: LayoutDashboard,
+    exact: true,
+    ready: true,
+  },
+  {
+    href: "/admin/validasi",
+    label: "Validasi",
+    icon: ClipboardCheck,
+    ready: true,
+  },
   { href: "/admin/konten", label: "Konten", icon: FileText, ready: true },
   { href: "/admin/wilayah", label: "Wilayah", icon: Network, ready: true },
   { href: "/admin/cabang", label: "Cabang", icon: Building2, ready: true },
-  { href: "/admin/organisasi", label: "Organisasi", icon: Building2, ready: true },
+  {
+    href: "/admin/organisasi",
+    label: "Organisasi",
+    icon: Building2,
+    ready: true,
+  },
   { href: "/admin/edufast", label: "EDUFAST", icon: Target, ready: true },
-  { href: "/admin/red-notice", label: "Red Notice", icon: Network, ready: true },
+  {
+    href: "/admin/red-notice",
+    label: "Red Notice",
+    icon: Network,
+    ready: true,
+  },
   { href: "/admin/impor", label: "Impor akun", icon: Upload, ready: true },
-  { href: "/admin/konten/impor", label: "Impor konten", icon: Upload, ready: true },
+  {
+    href: "/admin/konten/impor",
+    label: "Impor konten",
+    icon: Upload,
+    ready: true,
+  },
   { href: "/admin/akun", label: "Akun", icon: Users, ready: true },
   { href: "/admin/peta", label: "Peta", icon: Map, ready: true },
   { href: "/admin/analitik", label: "Analitik", icon: BarChart3, ready: true },
@@ -50,32 +77,74 @@ const ADMIN_NAV: NavItem[] = [
 ];
 
 const REGIONAL_NAV: NavItem[] = [
-  { href: "/wilayah", label: "Ringkasan", icon: LayoutDashboard, exact: true, ready: true },
+  {
+    href: "/wilayah",
+    label: "SLA Check",
+    icon: ShieldCheck,
+    exact: true,
+    ready: true,
+  },
+  {
+    href: "/wilayah/dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    ready: true,
+  },
+  { href: "/wilayah/kinerja", label: "Kinerja", icon: Target, ready: true },
   { href: "/wilayah/cabang", label: "Cabang", icon: Building2, ready: true },
-  { href: "/wilayah/organisasi", label: "Organisasi", icon: Building2, ready: true },
-  { href: "/wilayah/konten", label: "Konten", icon: FileText, ready: true },
-  { href: "/wilayah/red-notice", label: "Red Notice", icon: Network, ready: true },
-  { href: "/wilayah/analitik", label: "Analitik", icon: BarChart3, ready: true },
-  { href: "/wilayah/peta", label: "Peta", icon: Map, ready: true },
-  { href: "/wilayah/laporan", label: "Laporan", icon: ScrollText, ready: true },
+  {
+    href: "/wilayah/organisasi",
+    label: "Organisasi",
+    icon: Building2,
+    ready: true,
+  },
+  {
+    href: "/wilayah/red-notice",
+    label: "Red Notice",
+    icon: Network,
+    ready: true,
+  },
   { href: "/wilayah/notifikasi", label: "Notifikasi", icon: Bell, ready: true },
 ];
 
 const BRANCH_NAV: NavItem[] = [
-  { href: "/cabang", label: "Ringkasan", icon: LayoutDashboard, exact: true, ready: true },
-  { href: "/cabang/review", label: "Review", icon: ClipboardCheck, ready: true },
-  { href: "/cabang/konten", label: "Konten", icon: FileText, ready: true },
-  { href: "/cabang/organisasi", label: "Organisasi", icon: Building2, ready: true },
-  { href: "/cabang/analitik", label: "Analitik", icon: BarChart3, ready: true },
-  { href: "/cabang/red-notice", label: "Red Notice", icon: Network, ready: true },
-  { href: "/cabang/peta", label: "Peta", icon: Map, ready: true },
-  { href: "/cabang/laporan", label: "Laporan", icon: ScrollText, ready: true },
+  {
+    href: "/cabang",
+    label: "SLA Check",
+    icon: ShieldCheck,
+    exact: true,
+    ready: true,
+  },
+  {
+    href: "/cabang/dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    ready: true,
+  },
+  { href: "/cabang/kinerja", label: "Kinerja", icon: Target, ready: true },
+  {
+    href: "/cabang/organisasi",
+    label: "Organisasi",
+    icon: Building2,
+    ready: true,
+  },
+  {
+    href: "/cabang/red-notice",
+    label: "Red Notice",
+    icon: Network,
+    ready: true,
+  },
   { href: "/cabang/notifikasi", label: "Notifikasi", icon: Bell, ready: true },
 ];
 
 const CLIENT_NAV: NavItem[] = [
   { href: "/client", label: "Beranda", icon: Home, exact: true, ready: true },
-  { href: "/client/lapor", label: "Lapor konten", icon: PlusCircle, ready: true },
+  {
+    href: "/client/lapor",
+    label: "Lapor konten",
+    icon: PlusCircle,
+    ready: true,
+  },
   { href: "/client/konten", label: "Konten saya", icon: FileText, ready: true },
   { href: "/client/analitik", label: "Analitik", icon: BarChart3, ready: true },
   { href: "/client/notifikasi", label: "Notifikasi", icon: Bell, ready: true },

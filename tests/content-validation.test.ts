@@ -10,7 +10,8 @@ const baseSubmit = {
   contentType: "VIDEO" as const,
   mainTheme: "NON_EDUFAST" as const,
   subTheme: "INFORMASI" as const,
-  narrative: "Narasi konten demonstrasi sintetis yang cukup panjang untuk validasi.",
+  narrative:
+    "Narasi konten demonstrasi sintetis yang cukup panjang untuk validasi.",
   dateCreated: "2026-10-01",
   location: {
     latitude: -6.9,

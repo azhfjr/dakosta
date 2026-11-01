@@ -39,8 +39,8 @@ export default async function AdminBranchesPage({
             Cabang
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-ink-muted">
-            Cabang pengelola review per wilayah. Admin Cabang hanya dapat memutuskan
-            konten organisasi pada cabangnya.
+            Cabang pengelola review per wilayah. Admin Cabang hanya dapat
+            memutuskan konten organisasi pada cabangnya.
           </p>
         </div>
         <BranchEditor regions={hierarchy.regions} readOnly={admin.isDemo} />

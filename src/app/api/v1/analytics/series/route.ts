@@ -1,8 +1,6 @@
 import { getRequestId, jsonError, jsonOk } from "@/lib/api";
-import {
-  getDashboardOverview,
-  parseKpiFiltersFromQuery,
-} from "@/lib/kpi/sql";
+import { getDashboardOverview, parseKpiFiltersFromQuery } from "@/lib/kpi/sql";
+import { assertCapability } from "@/lib/rbac";
 import { getApiUser } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -13,6 +11,7 @@ export async function GET(request: Request) {
 
   try {
     const user = await getApiUser();
+    assertCapability(user, "analytics:read");
     const filters = parseKpiFiltersFromQuery(new URL(request.url).searchParams);
     const overview = await getDashboardOverview(user, filters);
 

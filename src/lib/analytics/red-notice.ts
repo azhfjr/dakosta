@@ -3,7 +3,11 @@ import "server-only";
 import { and, count, eq, sql, type SQL } from "drizzle-orm";
 
 import { getDb, schema } from "@/db";
-import { listOrganizations, listRedNotice, type OrganizationSummary } from "@/lib/hierarchy";
+import {
+  listOrganizations,
+  listRedNotice,
+  type OrganizationSummary,
+} from "@/lib/hierarchy";
 import { monthKeyFor, monthRange } from "@/lib/kpi/formulas";
 import type { SessionUser } from "@/lib/session";
 
@@ -31,7 +35,8 @@ export async function getRedNotice(user: SessionUser): Promise<{
 
   const activeFaskes = organizations.filter(
     (organization) =>
-      organization.organizationType === "FASKES" && organization.status === "ACTIVE",
+      organization.organizationType === "FASKES" &&
+      organization.status === "ACTIVE",
   );
 
   const scopeCondition: SQL[] = [
@@ -52,7 +57,9 @@ export async function getRedNotice(user: SessionUser): Promise<{
   ];
 
   if (user.scope.kind === "BRANCH") {
-    scopeCondition.push(eq(schema.stakeholders.branchOfficeId, user.scope.branchId));
+    scopeCondition.push(
+      eq(schema.stakeholders.branchOfficeId, user.scope.branchId),
+    );
   } else if (user.scope.kind === "REGION") {
     scopeCondition.push(
       user.scope.branchIds.length === 0

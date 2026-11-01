@@ -12,7 +12,9 @@ test.describe("Impor konten massal (Master Admin)", () => {
     await expect(
       page.getByRole("heading", { name: "Impor konten massal", level: 1 }),
     ).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Cara penggunaan" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Cara penggunaan" }),
+    ).toBeVisible();
     await expect(
       page.getByText(
         "Mode demo: impor konten dinonaktifkan agar data demo tetap terkendali.",
@@ -25,7 +27,9 @@ test.describe("Impor konten massal (Master Admin)", () => {
       storageState: ADMIN_STATE,
     });
     try {
-      const template = await context.fetch("/api/v1/admin/imports/content/template");
+      const template = await context.fetch(
+        "/api/v1/admin/imports/content/template",
+      );
       expect(template.status()).toBe(200);
       expect(template.headers()["content-type"]).toContain("text/csv");
       expect(template.headers()["content-disposition"]).toContain(
@@ -37,13 +41,20 @@ test.describe("Impor konten massal (Master Admin)", () => {
         "organisasi,judul,tautan,platform,jenis_konten,tema_utama,sub_tema,narasi,tanggal_konten,tanggal_terbit,lintang,bujur,lokasi",
       );
 
-      const preview = await context.fetch("/api/v1/admin/imports/content/preview", {
-        method: "POST",
-        data: { filename: "demo.csv", content: "organisasi,judul\n" },
-      });
+      const preview = await context.fetch(
+        "/api/v1/admin/imports/content/preview",
+        {
+          method: "POST",
+          data: { filename: "demo.csv", content: "organisasi,judul\n" },
+        },
+      );
       expect(preview.status()).toBe(403);
-      const payload = (await preview.json()) as { error?: { message?: string } };
-      expect(payload.error?.message).toContain("Akun demo tidak dapat mengimpor konten");
+      const payload = (await preview.json()) as {
+        error?: { message?: string };
+      };
+      expect(payload.error?.message).toContain(
+        "Akun demo tidak dapat mengimpor konten",
+      );
     } finally {
       await context.dispose();
     }

@@ -16,7 +16,8 @@ export async function GET(request: Request) {
       status: 200,
       headers: {
         "content-type": "text/csv; charset=utf-8",
-        "content-disposition": 'attachment; filename="template-impor-konten.csv"',
+        "content-disposition":
+          'attachment; filename="template-impor-konten.csv"',
         "x-import-headers": CONTENT_IMPORT_HEADERS.join(","),
         "cache-control": "no-store",
       },

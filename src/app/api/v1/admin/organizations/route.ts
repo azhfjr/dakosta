@@ -7,7 +7,11 @@ import {
   createOrganization,
   createOrganizationInputSchema,
 } from "@/lib/hierarchy-admin";
-import { consumeRateLimit, getClientIp, getRateLimitHeaders } from "@/lib/rate-limit";
+import {
+  consumeRateLimit,
+  getClientIp,
+  getRateLimitHeaders,
+} from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,7 +29,10 @@ export async function POST(request: Request) {
     if (!limit.allowed) {
       return NextResponse.json(
         {
-          error: { code: "RATE_LIMITED", message: "Terlalu banyak perubahan. Coba lagi sebentar." },
+          error: {
+            code: "RATE_LIMITED",
+            message: "Terlalu banyak perubahan. Coba lagi sebentar.",
+          },
           meta: { requestId },
         },
         { status: 429, headers: await getRateLimitHeaders(limit) },

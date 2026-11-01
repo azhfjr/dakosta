@@ -15,7 +15,10 @@ describe("CSV export", () => {
   });
 
   it("neutralizes spreadsheet formula injection", () => {
-    const csv = toCsv(["nilai"], [["=HYPERLINK(\"http://evil\")"], ["+1"], ["-1"], ["@cmd"]]);
+    const csv = toCsv(
+      ["nilai"],
+      [['=HYPERLINK("http://evil")'], ["+1"], ["-1"], ["@cmd"]],
+    );
     expect(csv).not.toMatch(/(^|,)=HYPERLINK/);
     expect(csv).toContain("'=HYPERLINK");
     expect(csv).toContain("'+1");

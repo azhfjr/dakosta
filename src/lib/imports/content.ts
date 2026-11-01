@@ -83,7 +83,7 @@ const MAIN_THEME_ALIASES: Record<string, MainTheme> = {
   edufast: "EDUFAST",
   "non-edufast": "NON_EDUFAST",
   "non edufast": "NON_EDUFAST",
-  "non_edufast": "NON_EDUFAST",
+  non_edufast: "NON_EDUFAST",
   nonedufast: "NON_EDUFAST",
   non: "NON_EDUFAST",
 };
@@ -93,7 +93,10 @@ function key(value: string): string {
 }
 
 function compact(value: string): string {
-  return value.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
 }
 
 function normalizeSubTheme(value: string): SubTheme | null {
@@ -171,7 +174,9 @@ export function contentTemplateCsv(): string {
   return `\uFEFF${sample
     .map((row) =>
       row
-        .map((cell) => (/[",\r\n]/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell))
+        .map((cell) =>
+          /[",\r\n]/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell,
+        )
         .join(","),
     )
     .join("\r\n")}\r\n`;
@@ -240,11 +245,7 @@ function resolveOrganization(
 ): OrganizationEntry | null {
   const raw = value.trim();
   if (!raw) return null;
-  return (
-    index.byCode.get(compact(raw)) ??
-    index.byName.get(key(raw)) ??
-    null
-  );
+  return index.byCode.get(compact(raw)) ?? index.byName.get(key(raw)) ?? null;
 }
 
 function digestOf(content: string): string {
@@ -280,7 +281,9 @@ async function buildPreview(input: {
 }): Promise<{ preview: ContentImportPreview; parsed: ParsedRow[] }> {
   const db = input.db ?? getDb();
   if (input.content.length > CONTENT_IMPORT_MAX_BYTES) {
-    throw errors.validation("Berkas melebihi 1 MB. Pecah menjadi beberapa berkas.");
+    throw errors.validation(
+      "Berkas melebihi 1 MB. Pecah menjadi beberapa berkas.",
+    );
   }
 
   const { headers, rows } = parseCsv(input.content);
@@ -388,7 +391,9 @@ async function buildPreview(input: {
     const latitudeRaw = column(row, "lintang");
     const longitudeRaw = column(row, "bujur");
     const latitude = latitudeRaw ? Number(latitudeRaw) : organization?.latitude;
-    const longitude = longitudeRaw ? Number(longitudeRaw) : organization?.longitude;
+    const longitude = longitudeRaw
+      ? Number(longitudeRaw)
+      : organization?.longitude;
     if (
       latitude === undefined ||
       longitude === undefined ||
@@ -491,9 +496,7 @@ async function buildPreview(input: {
       const hash = normalizePublishedUrl(row.url).normalizedUrlHash;
       const referenceCode = existingByHash.get(hash);
       if (referenceCode) {
-        row.errors.push(
-          `Tautan sudah terdaftar pada konten ${referenceCode}.`,
-        );
+        row.errors.push(`Tautan sudah terdaftar pada konten ${referenceCode}.`);
         row.status = "INVALID";
         row.input = null;
       }
@@ -610,7 +613,11 @@ export async function commitContentImport(input: {
       continue;
     }
     try {
-      const saved = await saveSubmission(input.actor, row.input, input.requestId);
+      const saved = await saveSubmission(
+        input.actor,
+        row.input,
+        input.requestId,
+      );
       rows.push({
         rowNumber: row.rowNumber,
         status: "CREATED",

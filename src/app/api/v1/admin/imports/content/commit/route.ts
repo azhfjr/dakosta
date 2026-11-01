@@ -10,7 +10,11 @@ import {
 } from "@/lib/authz/guards";
 import { errors } from "@/lib/errors";
 import { commitContentImport } from "@/lib/imports/content";
-import { consumeRateLimit, getClientIp, getRateLimitHeaders } from "@/lib/rate-limit";
+import {
+  consumeRateLimit,
+  getClientIp,
+  getRateLimitHeaders,
+} from "@/lib/rate-limit";
 import { getApiUser } from "@/lib/session";
 
 export const runtime = "nodejs";

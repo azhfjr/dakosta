@@ -106,7 +106,11 @@ export function PolicyManager({
     }
   }
 
-  async function post(path: string, payload: Record<string, unknown>, message: string) {
+  async function post(
+    path: string,
+    payload: Record<string, unknown>,
+    message: string,
+  ) {
     setBusy(path);
     try {
       const response = await fetch(path, {
@@ -189,7 +193,12 @@ export function PolicyManager({
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          <Button type="button" disabled={busy !== null} onClick={saveDraft} className="h-10">
+          <Button
+            type="button"
+            disabled={busy !== null}
+            onClick={saveDraft}
+            className="h-10"
+          >
             {busy === "save" ? (
               <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />
             ) : (
@@ -268,7 +277,9 @@ export function PolicyManager({
                       {policy.subThemes
                         .map(
                           (value) =>
-                            SUB_THEME_LABELS[value as keyof typeof SUB_THEME_LABELS] ?? value,
+                            SUB_THEME_LABELS[
+                              value as keyof typeof SUB_THEME_LABELS
+                            ] ?? value,
                         )
                         .join(", ")}
                     </p>
@@ -357,7 +368,9 @@ export function PolicyManager({
                 key={event.id}
                 className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm"
               >
-                <span className="font-medium text-foreground">{event.action}</span>
+                <span className="font-medium text-foreground">
+                  {event.action}
+                </span>
                 <span className="text-xs text-ink-muted">
                   {event.createdAtLabel} WIB
                 </span>

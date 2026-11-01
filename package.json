@@ -19,6 +19,7 @@
     "db:restore": "tsx scripts/restore-db.ts",
     "db:seed": "tsx scripts/seed.ts",
     "db:seed:staging": "tsx scripts/seed.ts --target=staging",
+    "db:seed:load": "tsx scripts/seed-load.ts --target=staging",
     "db:seed:demo:production": "tsx scripts/seed-demo-production.ts --target=production",
     "db:purge:demo:production": "tsx scripts/purge-demo-only.ts --target=production",
     "db:verify:demo:production": "tsx scripts/verify-demo-production.ts --target=production",

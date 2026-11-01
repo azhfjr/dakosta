@@ -60,7 +60,10 @@ export async function listAdminUsers(): Promise<AdminUserRow[]> {
     .from(schema.userStakeholderMemberships)
     .innerJoin(
       schema.stakeholders,
-      eq(schema.stakeholders.id, schema.userStakeholderMemberships.stakeholderId),
+      eq(
+        schema.stakeholders.id,
+        schema.userStakeholderMemberships.stakeholderId,
+      ),
     )
     .orderBy(asc(schema.stakeholders.name));
 

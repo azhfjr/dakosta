@@ -46,13 +46,19 @@ export function collectDemoScope(now: Date = new Date()): DemoScope {
     reviewIds: dataset.reviews.map((review) => review.id),
     revisionIds: dataset.revisions.map((revision) => revision.id),
     targetIds: dataset.targets.map((target) => target.id),
-    notificationIds: dataset.notifications.map((notification) => notification.id),
+    notificationIds: dataset.notifications.map(
+      (notification) => notification.id,
+    ),
     outboxIds: dataset.outbox.map((item) => item.id),
     auditIds: dataset.audits.map((audit) => audit.id),
     policyIds: dataset.policies.map((policy) => policy.id),
     policyEventIds: dataset.policyEvents.map((event) => event.id),
-    roleMembershipIds: DEMO_ACCOUNTS.map((account) => DEMO_IDS.roleMembership(account.n)),
-    membershipIds: DEMO_ACCOUNTS.map((account) => DEMO_IDS.membership(account.n)),
+    roleMembershipIds: DEMO_ACCOUNTS.map((account) =>
+      DEMO_IDS.roleMembership(account.n),
+    ),
+    membershipIds: DEMO_ACCOUNTS.map((account) =>
+      DEMO_IDS.membership(account.n),
+    ),
     stakeholderMembershipIds: DEMO_ACCOUNTS.filter(
       (account) => account.organizationN !== null,
     ).map((account) => DEMO_IDS.stakeholderMembership(account.organizationN!)),
@@ -86,22 +92,52 @@ async function remove(tx: SqlExecutor, query: SQL): Promise<void> {
  * Deletes only the explicit demo ids produced by `demo-fixtures`. Themes,
  * rate limits, migration runs, and every non-demo row are left untouched.
  */
-export async function purgeDemoOnly(tx: SqlExecutor, scope: DemoScope): Promise<void> {
+export async function purgeDemoOnly(
+  tx: SqlExecutor,
+  scope: DemoScope,
+): Promise<void> {
   if (scope.userIds.length === 0) return;
 
-  await remove(tx, sql`delete from outbox_events where id in (${uuidList(scope.outboxIds)})`);
-  await remove(tx, sql`delete from notifications where id in (${uuidList(scope.notificationIds)})`);
-  await remove(tx, sql`delete from content_reviews where id in (${uuidList(scope.reviewIds)})`);
-  await remove(tx, sql`delete from content_revisions where id in (${uuidList(scope.revisionIds)})`);
-  await remove(tx, sql`delete from content_submissions where id in (${uuidList(scope.submissionIds)})`);
-  await remove(tx, sql`delete from kpi_targets where id in (${uuidList(scope.targetIds)})`);
-  await remove(tx, sql`delete from locations where id in (${uuidList(scope.locationIds)})`);
-  await remove(tx, sql`delete from edufast_policy_events where id in (${uuidList(scope.policyEventIds)})`);
+  await remove(
+    tx,
+    sql`delete from outbox_events where id in (${uuidList(scope.outboxIds)})`,
+  );
+  await remove(
+    tx,
+    sql`delete from notifications where id in (${uuidList(scope.notificationIds)})`,
+  );
+  await remove(
+    tx,
+    sql`delete from content_reviews where id in (${uuidList(scope.reviewIds)})`,
+  );
+  await remove(
+    tx,
+    sql`delete from content_revisions where id in (${uuidList(scope.revisionIds)})`,
+  );
+  await remove(
+    tx,
+    sql`delete from content_submissions where id in (${uuidList(scope.submissionIds)})`,
+  );
+  await remove(
+    tx,
+    sql`delete from kpi_targets where id in (${uuidList(scope.targetIds)})`,
+  );
+  await remove(
+    tx,
+    sql`delete from locations where id in (${uuidList(scope.locationIds)})`,
+  );
+  await remove(
+    tx,
+    sql`delete from edufast_policy_events where id in (${uuidList(scope.policyEventIds)})`,
+  );
   await remove(
     tx,
     sql`delete from edufast_policy_subthemes where policy_id in (${uuidList(scope.policyIds)})`,
   );
-  await remove(tx, sql`delete from edufast_monthly_policies where id in (${uuidList(scope.policyIds)})`);
+  await remove(
+    tx,
+    sql`delete from edufast_monthly_policies where id in (${uuidList(scope.policyIds)})`,
+  );
   await remove(
     tx,
     sql`delete from organization_transfers where organization_id in (${uuidList(scope.stakeholderIds)})`,
@@ -122,20 +158,50 @@ export async function purgeDemoOnly(tx: SqlExecutor, scope: DemoScope): Promise<
     tx,
     sql`delete from user_stakeholder_memberships where id in (${uuidList(scope.stakeholderMembershipIds)})`,
   );
-  await remove(tx, sql`delete from user_memberships where id in (${uuidList(scope.membershipIds)})`);
+  await remove(
+    tx,
+    sql`delete from user_memberships where id in (${uuidList(scope.membershipIds)})`,
+  );
   await remove(
     tx,
     sql`delete from user_role_memberships where id in (${uuidList(scope.roleMembershipIds)})`,
   );
-  await remove(tx, sql`delete from stakeholders where id in (${uuidList(scope.stakeholderIds)})`);
-  await remove(tx, sql`delete from branch_offices where id in (${uuidList(scope.branchIds)})`);
-  await remove(tx, sql`delete from regional_offices where id in (${uuidList(scope.regionIds)})`);
-  await remove(tx, sql`delete from audit_logs where id in (${uuidList(scope.auditIds)})`);
-  await remove(tx, sql`delete from session where user_id in (${textList(scope.userIds)})`);
-  await remove(tx, sql`delete from account where user_id in (${textList(scope.userIds)})`);
-  await remove(tx, sql`delete from verification where identifier in (${textList(scope.emails)})`);
-  await remove(tx, sql`delete from user_profiles where user_id in (${textList(scope.userIds)})`);
-  await remove(tx, sql`delete from "user" where id in (${textList(scope.userIds)})`);
+  await remove(
+    tx,
+    sql`delete from stakeholders where id in (${uuidList(scope.stakeholderIds)})`,
+  );
+  await remove(
+    tx,
+    sql`delete from branch_offices where id in (${uuidList(scope.branchIds)})`,
+  );
+  await remove(
+    tx,
+    sql`delete from regional_offices where id in (${uuidList(scope.regionIds)})`,
+  );
+  await remove(
+    tx,
+    sql`delete from audit_logs where id in (${uuidList(scope.auditIds)})`,
+  );
+  await remove(
+    tx,
+    sql`delete from session where user_id in (${textList(scope.userIds)})`,
+  );
+  await remove(
+    tx,
+    sql`delete from account where user_id in (${textList(scope.userIds)})`,
+  );
+  await remove(
+    tx,
+    sql`delete from verification where identifier in (${textList(scope.emails)})`,
+  );
+  await remove(
+    tx,
+    sql`delete from user_profiles where user_id in (${textList(scope.userIds)})`,
+  );
+  await remove(
+    tx,
+    sql`delete from "user" where id in (${textList(scope.userIds)})`,
+  );
 }
 
 export type DemoInvariants = {
@@ -170,7 +236,9 @@ function fingerprintSecret(value: string | null): string | null {
  * client before the transaction and on the transaction itself right before
  * commit, so a mismatch still rolls back.
  */
-export async function snapshotInvariants(reader: SqlExecutor): Promise<DemoInvariants> {
+export async function snapshotInvariants(
+  reader: SqlExecutor,
+): Promise<DemoInvariants> {
   const demoUsers = collectDemoScope().userIds;
   const demoUserList = textList(demoUsers);
 
@@ -182,7 +250,8 @@ export async function snapshotInvariants(reader: SqlExecutor): Promise<DemoInvar
      where u.email = 'admin@dakosta.local'
      limit 1
   `);
-  const masterRow = master.rows[0] as { id: string; password: string | null } | undefined;
+  const masterRow = master.rows[0] as
+    { id: string; password: string | null } | undefined;
 
   const masterAdminMemberships = await readScalar(
     reader,

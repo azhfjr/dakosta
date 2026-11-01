@@ -38,7 +38,9 @@ export function sourceOfOrganization(organization: {
   faskesClass: string | null;
 }): OrgSource {
   if (organization.organizationType === "FASKES") {
-    return organization.faskesClass === "FKRTL" ? "FASKES_FKRTL" : "FASKES_FKTP";
+    return organization.faskesClass === "FKRTL"
+      ? "FASKES_FKRTL"
+      : "FASKES_FKTP";
   }
   if (organization.organizationType === "PEMDA") return "PEMDA";
   return "OTHER";
@@ -137,19 +139,17 @@ export async function getAnalyticsSourceOptions(
       active: sql<number>`count(*) filter (where ${schema.stakeholders.status} = 'ACTIVE')`,
     })
     .from(schema.stakeholders)
-    .where(
-      and(
-        scope,
-        isNotNull(schema.stakeholders.organizationType),
-      ),
-    )
+    .where(and(scope, isNotNull(schema.stakeholders.organizationType)))
     .groupBy(
       schema.stakeholders.organizationType,
       schema.stakeholders.faskesClass,
     )
     .orderBy(asc(schema.stakeholders.organizationType));
 
-  const totals = new Map<OrgSource, { organizations: number; active: number }>();
+  const totals = new Map<
+    OrgSource,
+    { organizations: number; active: number }
+  >();
   for (const row of rows) {
     const source = sourceOfOrganization({
       organizationType: row.organizationType,

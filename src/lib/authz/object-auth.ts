@@ -106,7 +106,10 @@ export async function requireBranchInScope(
   if (!row) throw errors.notFound("Cabang tidak ditemukan.");
 
   if (ctx.scope.kind === "GLOBAL") return row;
-  if (ctx.scope.kind === "REGION" && ctx.scope.regionId === row.regionalOfficeId) {
+  if (
+    ctx.scope.kind === "REGION" &&
+    ctx.scope.regionId === row.regionalOfficeId
+  ) {
     return row;
   }
   if (ctx.scope.kind === "BRANCH" && ctx.scope.branchId === row.id) return row;
@@ -120,7 +123,10 @@ export async function requireRegionInScope(
   regionId: string,
 ): Promise<{ id: string; name: string }> {
   const [row] = await getDb()
-    .select({ id: schema.regionalOffices.id, name: schema.regionalOffices.name })
+    .select({
+      id: schema.regionalOffices.id,
+      name: schema.regionalOffices.name,
+    })
     .from(schema.regionalOffices)
     .where(eq(schema.regionalOffices.id, regionId))
     .limit(1);

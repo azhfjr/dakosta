@@ -1,9 +1,21 @@
 import "server-only";
 
-import { and, asc, count, countDistinct, eq, inArray, isNotNull, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  countDistinct,
+  eq,
+  inArray,
+  isNotNull,
+  sql,
+} from "drizzle-orm";
 
 import { getDb, schema } from "@/db";
-import { organizationScopePredicate, regionScopePredicate } from "@/lib/authz/predicates";
+import {
+  organizationScopePredicate,
+  regionScopePredicate,
+} from "@/lib/authz/predicates";
 import type { Scope } from "@/lib/authz/types";
 
 export type RegionSummary = {
@@ -92,7 +104,9 @@ async function contentStatsByOrganization(): Promise<
         submitted: Number(row.submitted),
         approved: Number(row.approved),
         pending: Number(row.pending),
-        lastSubmittedAt: row.lastSubmittedAt ? new Date(row.lastSubmittedAt) : null,
+        lastSubmittedAt: row.lastSubmittedAt
+          ? new Date(row.lastSubmittedAt)
+          : null,
       },
     ]),
   );
@@ -113,7 +127,9 @@ export async function listOrganizations(
     conditions.push(eq(schema.stakeholders.branchOfficeId, options.branchId));
   }
   if (options.regionId) {
-    conditions.push(eq(schema.branchOffices.regionalOfficeId, options.regionId));
+    conditions.push(
+      eq(schema.branchOffices.regionalOfficeId, options.regionId),
+    );
   }
 
   const rows = await getDb()
@@ -155,7 +171,9 @@ export async function listOrganizations(
         total: countDistinct(schema.userMemberships.userId),
       })
       .from(schema.userMemberships)
-      .where(sql`${schema.userMemberships.revokedAt} is null and ${schema.userMemberships.organizationId} is not null`)
+      .where(
+        sql`${schema.userMemberships.revokedAt} is null and ${schema.userMemberships.organizationId} is not null`,
+      )
       .groupBy(schema.userMemberships.organizationId),
   ]);
   const accounts = new Map(
@@ -341,9 +359,7 @@ export async function listRegions(scope: Scope): Promise<RegionSummary[]> {
         schema.branchOffices,
         eq(schema.branchOffices.id, schema.stakeholders.branchOfficeId),
       )
-      .where(
-        inArray(schema.branchOffices.regionalOfficeId, regionIds),
-      )
+      .where(inArray(schema.branchOffices.regionalOfficeId, regionIds))
       .groupBy(schema.branchOffices.regionalOfficeId),
     getDb()
       .select({
@@ -370,7 +386,9 @@ export async function listRegions(scope: Scope): Promise<RegionSummary[]> {
       .groupBy(schema.branchOffices.regionalOfficeId),
   ]);
 
-  const branches = new Map(branchRows.map((row) => [row.regionId, Number(row.total)]));
+  const branches = new Map(
+    branchRows.map((row) => [row.regionId, Number(row.total)]),
+  );
   const orgs = new Map(orgRows.map((row) => [row.regionId, row]));
   const contents = new Map(contentRows.map((row) => [row.regionId, row]));
 
@@ -423,7 +441,8 @@ export async function listFaskesRankings(
   const organizations = await listOrganizations(scope);
   const faskes = organizations.filter(
     (organization) =>
-      organization.organizationType === "FASKES" && organization.status === "ACTIVE",
+      organization.organizationType === "FASKES" &&
+      organization.status === "ACTIVE",
   );
 
   return faskes
@@ -449,7 +468,10 @@ export async function listFaskesRankings(
     .slice(0, limit);
 }
 
-export async function countSubmittedSince(scope: Scope, since: Date): Promise<number> {
+export async function countSubmittedSince(
+  scope: Scope,
+  since: Date,
+): Promise<number> {
   const predicate = organizationScopePredicate(scope, {
     id: schema.stakeholders.id,
     branchId: schema.stakeholders.branchOfficeId,

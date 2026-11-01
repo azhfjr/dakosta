@@ -7,13 +7,18 @@ import { and, eq, isNull } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import * as schema from "../src/db/schema";
-import { getTargetSyncPreview, syncTargets, type TargetDb } from "@/lib/targets/sync";
+import {
+  getTargetSyncPreview,
+  syncTargets,
+  type TargetDb,
+} from "@/lib/targets/sync";
 
 const MIGRATIONS = [
   "0000_goofy_dagger.sql",
   "0001_fluffy_serpent_society.sql",
   "0002_v4_revoke_action.sql",
   "0003_content_taxonomy_and_review.sql",
+  "0004_v1_1_foundations.sql",
 ];
 
 const MONTH = "2026-10";
@@ -25,7 +30,12 @@ const ORGANIZATIONS = [
   { id: "org-fkrtl-1", type: "FASKES", faskesClass: "FKRTL", status: "ACTIVE" },
   { id: "org-pemda-1", type: "PEMDA", faskesClass: null, status: "ACTIVE" },
   { id: "org-other-1", type: "OTHER", faskesClass: null, status: "ACTIVE" },
-  { id: "org-fktp-old", type: "FASKES", faskesClass: "FKTP", status: "INACTIVE" },
+  {
+    id: "org-fktp-old",
+    type: "FASKES",
+    faskesClass: "FKTP",
+    status: "INACTIVE",
+  },
 ];
 
 let client: PGlite;
@@ -38,7 +48,9 @@ function uuidFor(index: number): string {
 beforeAll(async () => {
   client = new PGlite();
   for (const file of MIGRATIONS) {
-    await client.exec(readFileSync(join(process.cwd(), "drizzle", file), "utf8"));
+    await client.exec(
+      readFileSync(join(process.cwd(), "drizzle", file), "utf8"),
+    );
   }
 
   await client.query(
@@ -74,7 +86,9 @@ afterAll(async () => {
 describe("target synchronization", () => {
   it("counts only active organizations per source", async () => {
     const preview = await getTargetSyncPreview(MONTH, db);
-    const fktp = preview.sources.find((source) => source.source === "FASKES_FKTP");
+    const fktp = preview.sources.find(
+      (source) => source.source === "FASKES_FKTP",
+    );
     expect(fktp?.activeOrganizations).toBe(2);
     expect(fktp?.withTarget).toBe(0);
     expect(fktp?.missing).toBe(2);
@@ -102,7 +116,9 @@ describe("target synchronization", () => {
 
     expect(result.created).toBe(5);
     expect(result.updated).toBe(0);
-    expect(result.perSource.find((row) => row.source === "FASKES_FKTP")).toMatchObject({
+    expect(
+      result.perSource.find((row) => row.source === "FASKES_FKTP"),
+    ).toMatchObject({
       targetCount: 2,
       organizations: 2,
       created: 2,
@@ -155,7 +171,9 @@ describe("target synchronization", () => {
     ).toBe(3);
 
     const preview = await getTargetSyncPreview(MONTH, db);
-    const fktp = preview.sources.find((source) => source.source === "FASKES_FKTP");
+    const fktp = preview.sources.find(
+      (source) => source.source === "FASKES_FKTP",
+    );
     expect(fktp).toMatchObject({
       activeOrganizations: 2,
       withTarget: 2,
@@ -206,5 +224,19 @@ describe("target synchronization", () => {
         ),
       );
     expect(orgTarget.map((row) => Number(row.targetCount))).toEqual([7]);
+  });
+
+  it("records an append-only history for every synchronized target", async () => {
+    const history = await db
+      .select({
+        targetCount: schema.kpiTargetHistory.targetCount,
+        changeType: schema.kpiTargetHistory.changeType,
+      })
+      .from(schema.kpiTargetHistory)
+      .where(eq(schema.kpiTargetHistory.stakeholderId, uuidFor(1)));
+
+    expect(
+      history.map((row) => `${row.changeType}:${row.targetCount}`),
+    ).toEqual(["CREATED:2", "UPDATED:3", "UPDATED:7"]);
   });
 });

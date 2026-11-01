@@ -24,8 +24,9 @@ export default async function AdminAccountsPage() {
           Akun & akses
         </h1>
         <p className="mt-1 max-w-2xl text-sm text-ink-muted">
-          Kelola akun empat peran, lingkup akses, reset kata sandi, dan pencabutan
-          sesi. Perubahan lingkup berlaku segera dan mencabut sesi lama.
+          Kelola akun empat peran, lingkup akses, reset kata sandi, dan
+          pencabutan sesi. Perubahan lingkup berlaku segera dan mencabut sesi
+          lama.
         </p>
       </header>
 

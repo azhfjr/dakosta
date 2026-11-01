@@ -17,6 +17,12 @@ const BUDGETS = {
   "/admin/target": { role: "admin", ttfb: 1200, lcp: 2500 },
   "/admin/konten": { role: "admin", ttfb: 1200, lcp: 2500 },
   "/admin/konten/impor": { role: "admin", ttfb: 1200, lcp: 2500 },
+  "/wilayah": { role: "regional", ttfb: 1200, lcp: 2500 },
+  "/wilayah/dashboard": { role: "regional", ttfb: 1200, lcp: 2500, js: 375 },
+  "/wilayah/kinerja": { role: "regional", ttfb: 1200, lcp: 2500, js: 375 },
+  "/cabang": { role: "branch", ttfb: 1200, lcp: 2500 },
+  "/cabang/dashboard": { role: "branch", ttfb: 1200, lcp: 2500, js: 375 },
+  "/cabang/kinerja": { role: "branch", ttfb: 1200, lcp: 2500, js: 375 },
   "/cabang/review": { role: "branch", ttfb: 1200, lcp: 2500 },
   "/client": { role: "client", ttfb: 1200, lcp: 2500, js: 375 },
   "/client/analitik": { role: "client", ttfb: 1200, lcp: 2500, js: 375 },
@@ -33,11 +39,17 @@ const STATE_FILES = {
 
 const stateFile = path.join("e2e", ".auth", "admin.json");
 if (!existsSync(stateFile)) {
-  console.error("State login admin tidak ditemukan. Jalankan global setup E2E dahulu.");
+  console.error(
+    "State login admin tidak ditemukan. Jalankan global setup E2E dahulu.",
+  );
   process.exit(1);
-}function percentile(values, p) {
+}
+function percentile(values, p) {
   const sorted = [...values].sort((a, b) => a - b);
-  const index = Math.min(sorted.length - 1, Math.ceil((p / 100) * sorted.length) - 1);
+  const index = Math.min(
+    sorted.length - 1,
+    Math.ceil((p / 100) * sorted.length) - 1,
+  );
   return sorted[index] ?? 0;
 }
 
@@ -64,7 +76,9 @@ async function contextForRole(role) {
   const file = STATE_FILES[role];
   const resolved = file ? path.join("e2e", ".auth", file) : null;
   if (!resolved || !existsSync(resolved)) {
-    throw new Error(`State login ${role} tidak ditemukan. Jalankan global setup E2E dahulu.`);
+    throw new Error(
+      `State login ${role} tidak ditemukan. Jalankan global setup E2E dahulu.`,
+    );
   }
   const context = await browser.newContext({
     baseURL,
@@ -102,7 +116,8 @@ try {
           lcp: window.__perf?.lcp ?? 0,
           cls: window.__perf?.cls ?? 0,
           scriptBytes: scripts.reduce(
-            (total, entry) => total + (entry.encodedBodySize || entry.transferSize || 0),
+            (total, entry) =>
+              total + (entry.encodedBodySize || entry.transferSize || 0),
             0,
           ),
         };
@@ -114,13 +129,21 @@ try {
       }
     }
     scriptBytes = Math.max(...samples.map((item) => item.scriptBytes));
-    const ttfb = percentile(samples.map((item) => item.ttfb), 95);
-    const lcp = percentile(samples.map((item) => item.lcp), 95);
+    const ttfb = percentile(
+      samples.map((item) => item.ttfb),
+      95,
+    );
+    const lcp = percentile(
+      samples.map((item) => item.lcp),
+      95,
+    );
     const cls = Math.max(...samples.map((item) => item.cls));
     const jsKb = Math.round(scriptBytes / 1024);
     const breaches = [];
-    if (ttfb > budget.ttfb) breaches.push(`TTFB ${Math.round(ttfb)}ms > ${budget.ttfb}ms`);
-    if (lcp > budget.lcp) breaches.push(`LCP ${Math.round(lcp)}ms > ${budget.lcp}ms`);
+    if (ttfb > budget.ttfb)
+      breaches.push(`TTFB ${Math.round(ttfb)}ms > ${budget.ttfb}ms`);
+    if (lcp > budget.lcp)
+      breaches.push(`LCP ${Math.round(lcp)}ms > ${budget.lcp}ms`);
     if (cls > MAX_CLS) breaches.push(`CLS ${cls.toFixed(3)} > ${MAX_CLS}`);
     const jsLimit = budget.js ?? MAX_ROUTE_KB;
     if (jsKb > jsLimit) breaches.push(`JS ${jsKb}KB > ${jsLimit}KB`);
@@ -133,12 +156,16 @@ try {
   await browser.close();
 }
 
-console.log("Rute                     TTFB p95   LCP p95    CLS     JS KB  Status");
+console.log(
+  "Rute                     TTFB p95   LCP p95    CLS     JS KB  Status",
+);
 for (const row of results) {
   console.log(
     `${row.route.padEnd(24)} ${String(Math.round(row.ttfb)).padStart(8)}ms ${String(
       Math.round(row.lcp),
-    ).padStart(8)}ms ${row.cls.toFixed(3).padStart(7)} ${String(row.jsKb).padStart(6)}  ${
+    ).padStart(
+      8,
+    )}ms ${row.cls.toFixed(3).padStart(7)} ${String(row.jsKb).padStart(6)}  ${
       row.breaches.length === 0 ? "OK" : row.breaches.join("; ")
     }`,
   );

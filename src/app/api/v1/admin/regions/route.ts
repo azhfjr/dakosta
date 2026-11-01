@@ -4,7 +4,11 @@ import { getRequestId, jsonError, jsonOk, readJson } from "@/lib/api";
 import { recordAudit } from "@/lib/audit";
 import { assertSameOrigin, requireMasterApi } from "@/lib/authz/guards";
 import { createRegion, createRegionInputSchema } from "@/lib/hierarchy-admin";
-import { consumeRateLimit, getClientIp, getRateLimitHeaders } from "@/lib/rate-limit";
+import {
+  consumeRateLimit,
+  getClientIp,
+  getRateLimitHeaders,
+} from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,7 +26,10 @@ export async function POST(request: Request) {
     if (!limit.allowed) {
       return NextResponse.json(
         {
-          error: { code: "RATE_LIMITED", message: "Terlalu banyak perubahan. Coba lagi sebentar." },
+          error: {
+            code: "RATE_LIMITED",
+            message: "Terlalu banyak perubahan. Coba lagi sebentar.",
+          },
           meta: { requestId },
         },
         { status: 429, headers: await getRateLimitHeaders(limit) },
@@ -38,7 +45,11 @@ export async function POST(request: Request) {
       action: "REGION_CREATED",
       recordType: "REGION",
       recordId: region.id,
-      after: { code: body.code.toUpperCase(), name: body.name, status: body.status },
+      after: {
+        code: body.code.toUpperCase(),
+        name: body.name,
+        status: body.status,
+      },
       regionId: region.id,
       requestId,
       source: "API",

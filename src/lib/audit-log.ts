@@ -26,11 +26,13 @@ export type AuditLogPage = {
   actions: string[];
 };
 
-export async function listAuditLogs(options: {
-  page?: number;
-  pageSize?: number;
-  action?: string;
-} = {}): Promise<AuditLogPage> {
+export async function listAuditLogs(
+  options: {
+    page?: number;
+    pageSize?: number;
+    action?: string;
+  } = {},
+): Promise<AuditLogPage> {
   const db = getDb();
   const pageSize = Math.min(Math.max(options.pageSize ?? 40, 1), 100);
   const page = Math.max(options.page ?? 1, 1);
@@ -41,10 +43,7 @@ export async function listAuditLogs(options: {
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 
   const [totalRows, actionRows, rows] = await Promise.all([
-    db
-      .select({ total: count() })
-      .from(schema.auditLogs)
-      .where(where),
+    db.select({ total: count() }).from(schema.auditLogs).where(where),
     db
       .selectDistinct({ action: schema.auditLogs.action })
       .from(schema.auditLogs)

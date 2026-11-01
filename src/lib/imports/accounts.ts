@@ -24,10 +24,13 @@ export const ACCOUNT_IMPORT_HEADERS = [
 export const IMPORT_MAX_BYTES = 1_000_000;
 export const IMPORT_MAX_ROWS = 1000;
 
-const ROLE_CODES: Record<string, "MASTER_ADMIN" | "REGIONAL_ADMIN" | "BRANCH_ADMIN" | "STAKEHOLDER"> = {
+const ROLE_CODES: Record<
+  string,
+  "MASTER_ADMIN" | "REGIONAL_ADMIN" | "BRANCH_ADMIN" | "STAKEHOLDER"
+> = {
   master: "MASTER_ADMIN",
   "master admin": "MASTER_ADMIN",
-  "master_admin": "MASTER_ADMIN",
+  master_admin: "MASTER_ADMIN",
   wilayah: "REGIONAL_ADMIN",
   "admin wilayah": "REGIONAL_ADMIN",
   "regional admin": "REGIONAL_ADMIN",
@@ -40,7 +43,10 @@ const ROLE_CODES: Record<string, "MASTER_ADMIN" | "REGIONAL_ADMIN" | "BRANCH_ADM
   organisasi: "STAKEHOLDER",
 };
 
-export function parseCsv(text: string): { headers: string[]; rows: string[][] } {
+export function parseCsv(text: string): {
+  headers: string[];
+  rows: string[][];
+} {
   const input = text.replace(/^\uFEFF/, "");
   const records: string[][] = [];
   let record: string[] = [];
@@ -82,7 +88,9 @@ export function parseCsv(text: string): { headers: string[]; rows: string[][] } 
     records.push(record);
   }
 
-  const nonEmpty = records.filter((row) => row.some((cell) => cell.trim().length > 0));
+  const nonEmpty = records.filter((row) =>
+    row.some((cell) => cell.trim().length > 0),
+  );
   const [headerRow, ...body] = nonEmpty;
   if (!headerRow) throw errors.validation("Berkas CSV kosong.");
   return {
@@ -94,14 +102,40 @@ export function parseCsv(text: string): { headers: string[]; rows: string[][] } 
 export function templateCsv(): string {
   const sample = [
     ["nama", "email", "peran", "wilayah", "cabang", "organisasi", "jabatan"],
-    ["Contoh Admin Cabang", "admin.cabang@instansi.go.id", "cabang", "", "CBG-BDG-KOTA", "", "Admin Cabang Bandung Kota"],
-    ["Contoh Stakeholder", "humas.fktp@instansi.go.id", "stakeholder", "", "", "FKTP-BDG-001", "Humas FKTP"],
-    ["Contoh Admin Wilayah", "admin.wilayah@instansi.go.id", "wilayah", "REG-JABAR", "", "", "Admin Regional"],
+    [
+      "Contoh Admin Cabang",
+      "admin.cabang@instansi.go.id",
+      "cabang",
+      "",
+      "CBG-BDG-KOTA",
+      "",
+      "Admin Cabang Bandung Kota",
+    ],
+    [
+      "Contoh Stakeholder",
+      "humas.fktp@instansi.go.id",
+      "stakeholder",
+      "",
+      "",
+      "FKTP-BDG-001",
+      "Humas FKTP",
+    ],
+    [
+      "Contoh Admin Wilayah",
+      "admin.wilayah@instansi.go.id",
+      "wilayah",
+      "REG-JABAR",
+      "",
+      "",
+      "Admin Regional",
+    ],
   ];
   return `\uFEFF${sample
     .map((row) =>
       row
-        .map((cell) => (/[",\r\n]/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell))
+        .map((cell) =>
+          /[",\r\n]/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell,
+        )
         .join(","),
     )
     .join("\r\n")}\r\n`;
@@ -130,15 +164,25 @@ type ScopeIndex = {
   regionsByCode: Map<string, { id: string; name: string }>;
   regionsByName: Map<string, { id: string; name: string }>;
   branchesByCode: Map<string, { id: string; name: string; regionId: string }>;
-  organizationsByCode: Map<string, { id: string; name: string; branchId: string | null }>;
-  organizationsByName: Map<string, { id: string; name: string; branchId: string | null }>;
+  organizationsByCode: Map<
+    string,
+    { id: string; name: string; branchId: string | null }
+  >;
+  organizationsByName: Map<
+    string,
+    { id: string; name: string; branchId: string | null }
+  >;
 };
 
 async function loadScopeIndex(): Promise<ScopeIndex> {
   const db = getDb();
   const [regions, branches, organizations] = await Promise.all([
     db
-      .select({ id: schema.regionalOffices.id, name: schema.regionalOffices.name, code: schema.regionalOffices.code })
+      .select({
+        id: schema.regionalOffices.id,
+        name: schema.regionalOffices.name,
+        code: schema.regionalOffices.code,
+      })
       .from(schema.regionalOffices)
       .where(eq(schema.regionalOffices.status, "ACTIVE")),
     db
@@ -161,10 +205,20 @@ async function loadScopeIndex(): Promise<ScopeIndex> {
       .where(eq(schema.stakeholders.status, "ACTIVE")),
   ]);
 
-  const organizationsByCode = new Map<string, { id: string; name: string; branchId: string | null }>();
-  const organizationsByName = new Map<string, { id: string; name: string; branchId: string | null }>();
+  const organizationsByCode = new Map<
+    string,
+    { id: string; name: string; branchId: string | null }
+  >();
+  const organizationsByName = new Map<
+    string,
+    { id: string; name: string; branchId: string | null }
+  >();
   for (const organization of organizations) {
-    const entry = { id: organization.id, name: organization.name, branchId: organization.branchId };
+    const entry = {
+      id: organization.id,
+      name: organization.name,
+      branchId: organization.branchId,
+    };
     organizationsByName.set(organization.name.toLowerCase(), entry);
     if (organization.faskesCode) {
       organizationsByCode.set(organization.faskesCode.toUpperCase(), entry);
@@ -172,8 +226,18 @@ async function loadScopeIndex(): Promise<ScopeIndex> {
   }
 
   return {
-    regionsByCode: new Map(regions.map((region) => [region.code.toUpperCase(), { id: region.id, name: region.name }])),
-    regionsByName: new Map(regions.map((region) => [region.name.toLowerCase(), { id: region.id, name: region.name }])),
+    regionsByCode: new Map(
+      regions.map((region) => [
+        region.code.toUpperCase(),
+        { id: region.id, name: region.name },
+      ]),
+    ),
+    regionsByName: new Map(
+      regions.map((region) => [
+        region.name.toLowerCase(),
+        { id: region.id, name: region.name },
+      ]),
+    ),
     branchesByCode: new Map(
       branches.map((branch) => [
         branch.code.toUpperCase(),
@@ -186,7 +250,11 @@ async function loadScopeIndex(): Promise<ScopeIndex> {
 }
 
 const rowSchema = z.object({
-  nama: z.string().trim().min(2, "Nama minimal 2 karakter.").max(80, "Nama maksimal 80 karakter."),
+  nama: z
+    .string()
+    .trim()
+    .min(2, "Nama minimal 2 karakter.")
+    .max(80, "Nama maksimal 80 karakter."),
   email: z.string().trim().toLowerCase().email("Format email tidak valid."),
   peran: z.string().trim().min(1, "Peran wajib diisi."),
   wilayah: z.string().trim().optional().default(""),
@@ -212,7 +280,9 @@ function normalizeRow(
   const value = parsed.data;
   const role = ROLE_CODES[value.peran.toLowerCase()];
   if (!role) {
-    errors.push("peran: Gunakan master admin, admin wilayah, admin cabang, atau stakeholder.");
+    errors.push(
+      "peran: Gunakan master admin, admin wilayah, admin cabang, atau stakeholder.",
+    );
     return { normalized: {}, errors };
   }
   if (role === "MASTER_ADMIN") {
@@ -238,7 +308,9 @@ function normalizeRow(
     if (!region) errors.push("wilayah: Kode/nama wilayah tidak ditemukan.");
     else normalized.regionalOfficeId = region.id;
     if (value.cabang || value.organisasi) {
-      errors.push("wilayah: Admin wilayah tidak boleh memiliki cabang/organisasi.");
+      errors.push(
+        "wilayah: Admin wilayah tidak boleh memiliki cabang/organisasi.",
+      );
     }
   } else if (role === "BRANCH_ADMIN") {
     const branch = index.branchesByCode.get(value.cabang.toUpperCase());
@@ -251,7 +323,8 @@ function normalizeRow(
     const organization =
       index.organizationsByCode.get(value.organisasi.toUpperCase()) ??
       index.organizationsByName.get(value.organisasi.toLowerCase());
-    if (!organization) errors.push("organisasi: Kode Faskes/nama organisasi tidak ditemukan.");
+    if (!organization)
+      errors.push("organisasi: Kode Faskes/nama organisasi tidak ditemukan.");
     else normalized.organizationId = organization.id;
   }
 
@@ -265,15 +338,22 @@ export async function previewImport(input: {
   idempotencyKey?: string;
 }): Promise<ImportPreview> {
   if (Buffer.byteLength(input.content, "utf8") > IMPORT_MAX_BYTES) {
-    throw errors.validation("Berkas melebihi 1 MB. Pecah menjadi beberapa berkas.");
+    throw errors.validation(
+      "Berkas melebihi 1 MB. Pecah menjadi beberapa berkas.",
+    );
   }
 
   const { headers, rows } = parseCsv(input.content);
-  const missing = ACCOUNT_IMPORT_HEADERS.filter((header) => !headers.includes(header));
+  const missing = ACCOUNT_IMPORT_HEADERS.filter(
+    (header) => !headers.includes(header),
+  );
   if (missing.length > 0) {
-    throw errors.validation(`Kolom wajib tidak ditemukan: ${missing.join(", ")}.`);
+    throw errors.validation(
+      `Kolom wajib tidak ditemukan: ${missing.join(", ")}.`,
+    );
   }
-  if (rows.length === 0) throw errors.validation("Berkas tidak memiliki baris data.");
+  if (rows.length === 0)
+    throw errors.validation("Berkas tidak memiliki baris data.");
   if (rows.length > IMPORT_MAX_ROWS) {
     throw errors.validation(`Maksimal ${IMPORT_MAX_ROWS} baris per impor.`);
   }
@@ -296,8 +376,11 @@ export async function previewImport(input: {
   });
 
   const digest = createHash("sha256").update(input.content).digest("hex");
-  const idempotencyKey = input.idempotencyKey ?? `import:${input.actorId}:${digest}`;
-  const validCount = results.filter((result) => result.status === "VALID").length;
+  const idempotencyKey =
+    input.idempotencyKey ?? `import:${input.actorId}:${digest}`;
+  const validCount = results.filter(
+    (result) => result.status === "VALID",
+  ).length;
   const errorCount = results.length - validCount;
 
   const db = getDb();
@@ -308,7 +391,9 @@ export async function previewImport(input: {
     .limit(1);
 
   if (existing) {
-    await db.delete(schema.accountImportRows).where(eq(schema.accountImportRows.importId, existing.id));
+    await db
+      .delete(schema.accountImportRows)
+      .where(eq(schema.accountImportRows.importId, existing.id));
     await db
       .update(schema.accountImports)
       .set({
@@ -316,7 +401,11 @@ export async function previewImport(input: {
         filename: input.filename,
         digest,
         status: "VALIDATED",
-        previewStats: { valid: validCount, invalid: errorCount, total: results.length },
+        previewStats: {
+          valid: validCount,
+          invalid: errorCount,
+          total: results.length,
+        },
         rowCount: results.length,
         errorCount,
         committedAt: null,
@@ -352,7 +441,11 @@ export async function previewImport(input: {
       mode: "create_only",
       status: "VALIDATED",
       idempotencyKey,
-      previewStats: { valid: validCount, invalid: errorCount, total: results.length },
+      previewStats: {
+        valid: validCount,
+        invalid: errorCount,
+        total: results.length,
+      },
       rowCount: results.length,
       errorCount,
     })
@@ -388,7 +481,12 @@ export type ImportCommitResult = {
   skipped: number;
   failed: number;
   rows: ImportRowResult[];
-  credentials: Array<{ rowNumber: number; name: string; email: string; tempPassword: string }>;
+  credentials: Array<{
+    rowNumber: number;
+    name: string;
+    email: string;
+    tempPassword: string;
+  }>;
 };
 
 export async function commitImport(input: {
@@ -437,7 +535,8 @@ export async function commitImport(input: {
       const account = await createAccount({
         name: normalized.name!,
         email: normalized.email!,
-        role: normalized.role as "REGIONAL_ADMIN" | "BRANCH_ADMIN" | "STAKEHOLDER",
+        role: normalized.role as
+          "REGIONAL_ADMIN" | "BRANCH_ADMIN" | "STAKEHOLDER",
         regionalOfficeId: normalized.regionalOfficeId ?? null,
         branchOfficeId: normalized.branchOfficeId ?? null,
         organizationId: normalized.organizationId ?? null,
@@ -500,7 +599,14 @@ export async function commitImport(input: {
     })
     .where(eq(schema.accountImports.id, input.importId));
 
-  return { importId: input.importId, created, skipped, failed, rows: results, credentials };
+  return {
+    importId: input.importId,
+    created,
+    skipped,
+    failed,
+    rows: results,
+    credentials,
+  };
 }
 
 export type ImportHistoryRow = {

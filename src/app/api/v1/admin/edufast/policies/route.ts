@@ -25,7 +25,10 @@ export async function GET(request: Request) {
   const requestId = getRequestId(request);
   try {
     await requireMasterApi();
-    const [policies, events] = await Promise.all([listPolicies(), listPolicyEvents(20)]);
+    const [policies, events] = await Promise.all([
+      listPolicies(),
+      listPolicyEvents(20),
+    ]);
     return jsonOk({ policies, events }, { requestId });
   } catch (error) {
     return jsonError(error, requestId);

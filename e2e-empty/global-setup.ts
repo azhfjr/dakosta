@@ -15,10 +15,14 @@ export default async function globalSetup(): Promise<void> {
     );
   }
   if (databaseTarget !== "staging") {
-    throw new Error("Reset basis data kosong hanya diizinkan dengan E2E_DB_TARGET=staging.");
+    throw new Error(
+      "Reset basis data kosong hanya diizinkan dengan E2E_DB_TARGET=staging.",
+    );
   }
 
-  console.log("[e2e-empty] Mengosongkan basis data staging dan membuat satu Master Admin.");
+  console.log(
+    "[e2e-empty] Mengosongkan basis data staging dan membuat satu Master Admin.",
+  );
   execSync("npm run db:reset:staging -- --empty", { stdio: "inherit" });
 
   rmSync(AUTH_DIR, { recursive: true, force: true });

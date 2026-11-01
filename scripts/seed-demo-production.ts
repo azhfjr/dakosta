@@ -43,7 +43,8 @@ import {
 } from "./demo-purge";
 
 const DAY_MS = 86_400_000;
-const BASE_URL = process.env.DEMO_BASE_URL ?? "https://dakosta-dakosta.vercel.app";
+const BASE_URL =
+  process.env.DEMO_BASE_URL ?? "https://dakosta-dakosta.vercel.app";
 const CONFIRM_TOKEN = "seed-production-demo";
 
 type SeedDb = NeonDatabase<typeof schema>;
@@ -79,7 +80,10 @@ function stagingIdentity(): string | null {
   return url ? databaseIdentity(url) : null;
 }
 
-function assertCliGuards(args: string[]): { backupDir: string | null; dryRun: boolean } {
+function assertCliGuards(args: string[]): {
+  backupDir: string | null;
+  dryRun: boolean;
+} {
   const target = argValue("--target", args);
   const backupDir = argValue("--backup", args);
   const dryRun = args.includes("--dry-run");
@@ -145,7 +149,9 @@ function assertCliGuards(args: string[]): { backupDir: string | null; dryRun: bo
 }
 
 function readScalar(reader: SqlExecutor, query: SQL): Promise<number> {
-  return reader.execute(query).then((result) => Number(result.rows[0]?.value ?? 0));
+  return reader
+    .execute(query)
+    .then((result) => Number(result.rows[0]?.value ?? 0));
 }
 
 function uuidIn(values: string[]): SQL {
@@ -169,7 +175,9 @@ async function expectNoCollision(
 ): Promise<void> {
   const total = await readScalar(reader, query);
   if (total > 0) {
-    refuse(`Tabrakan kunci ${label}: ${total} baris non-demo memakai kunci demo.`);
+    refuse(
+      `Tabrakan kunci ${label}: ${total} baris non-demo memakai kunci demo.`,
+    );
   }
 }
 
@@ -193,7 +201,9 @@ async function preflight(
      where u.email = 'admin@dakosta.local'
   `);
   if (masterRows.rows.length !== 1) {
-    refuse(`Master asli harus tepat 1 akun (ditemukan ${masterRows.rows.length}).`);
+    refuse(
+      `Master asli harus tepat 1 akun (ditemukan ${masterRows.rows.length}).`,
+    );
   }
   const master = masterRows.rows[0] as {
     id: string;
@@ -201,17 +211,26 @@ async function preflight(
     status: string;
     active: boolean;
   };
-  if (master.is_demo !== false || master.status !== "ACTIVE" || master.active !== true) {
+  if (
+    master.is_demo !== false ||
+    master.status !== "ACTIVE" ||
+    master.active !== true
+  ) {
     refuse("Master asli tidak aktif atau bertanda demo.");
   }
-  if (before.masterAdminMemberships !== 1 || before.masterUserId !== master.id) {
+  if (
+    before.masterAdminMemberships !== 1 ||
+    before.masterUserId !== master.id
+  ) {
     refuse("Membership MASTER_ADMIN aktif untuk akun asli bukan tepat 1.");
   }
   if (before.halfDemoUsers !== 0) {
     refuse(`Ditemukan ${before.halfDemoUsers} akun demo setengah jadi.`);
   }
   if (before.foreignDemoUsers !== 0) {
-    refuse(`Ditemukan ${before.foreignDemoUsers} akun demo di luar dataset ini.`);
+    refuse(
+      `Ditemukan ${before.foreignDemoUsers} akun demo di luar dataset ini.`,
+    );
   }
 
   await expectNoCollision(
@@ -388,10 +407,37 @@ export async function insertDemoDataset(
       isDemo: true,
       active: true,
       status: "ACTIVE",
+      locationStatus: "VERIFIED",
+      locationGraceDeadline: null,
       displayTitle: account.title,
       createdAt: now,
       updatedAt: now,
     })),
+  );
+
+  await tx.insert(schema.userActivationLocations).values(
+    dataset.accounts
+      .filter((account) => account.role !== "MASTER_ADMIN")
+      .map((account) => {
+        const organization =
+          account.organizationN !== null
+            ? dataset.organizations.find(
+                (item) => item.n === account.organizationN,
+              )
+            : undefined;
+        return {
+          userId: DEMO_IDS.user(account.n),
+          latitude: organization ? organization.latitude : -6.9175,
+          longitude: organization ? organization.longitude : 107.6191,
+          accuracyMeters: 35,
+          source: "demo_backfill",
+          distanceMeters: 0,
+          reviewFlag: false,
+          consentAt: now,
+          createdAt: now,
+          updatedAt: now,
+        };
+      }),
   );
 
   await tx.insert(schema.userRoleMemberships).values(
@@ -669,7 +715,10 @@ function scopeLabel(account: (typeof DEMO_ACCOUNTS)[number]): string {
   return `organisasi=${organization?.name ?? "-"}`;
 }
 
-function resolveDemoPassword(): { password: string; source: "env" | "generated" } {
+function resolveDemoPassword(): {
+  password: string;
+  source: "env" | "generated";
+} {
   const fromEnv = process.env.DEMO_SEED_PASSWORD;
   if (fromEnv && fromEnv.length >= 12) {
     return { password: fromEnv, source: "env" };
@@ -702,7 +751,8 @@ function writeCredentialsFile(
     "",
     "peran | email | cakupan",
     ...DEMO_ACCOUNTS.map(
-      (account) => `${account.role} | ${account.email} | ${scopeLabel(account)}`,
+      (account) =>
+        `${account.role} | ${account.email} | ${scopeLabel(account)}`,
     ),
     "",
   ];
@@ -981,7 +1031,15 @@ async function main(): Promise<void> {
 
     const passwordHash = await hashPassword(password);
     const startedAt = new Date();
-    await runTransaction(db, dataset, scope, before, passwordHash, counts, startedAt);
+    await runTransaction(
+      db,
+      dataset,
+      scope,
+      before,
+      passwordHash,
+      counts,
+      startedAt,
+    );
 
     const after = await snapshotInvariants(db);
     assertInvariantsPreserved(before, after);
@@ -990,15 +1048,22 @@ async function main(): Promise<void> {
     const credentialsPath = writeCredentialsFile(password, stamp, now);
 
     console.log("Seed demo produksi selesai.");
-    console.log(`Akun demo: ${counts.accounts} (master 1, wilayah 3, cabang ${counts.branchAccounts}, stakeholder ${counts.stakeholderAccounts}).`);
-    console.log(`Konten demo: ${counts.submissions} (approved ${counts.approved}, pending ${counts.pending}, EDUFAST ${counts.edufast}).`);
+    console.log(
+      `Akun demo: ${counts.accounts} (master 1, wilayah 3, cabang ${counts.branchAccounts}, stakeholder ${counts.stakeholderAccounts}).`,
+    );
+    console.log(
+      `Konten demo: ${counts.submissions} (approved ${counts.approved}, pending ${counts.pending}, EDUFAST ${counts.edufast}).`,
+    );
     console.log(`Kredensial: ${credentialsPath} (mode 0600, tidak dicetak).`);
   } finally {
     await pool.end();
   }
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(process.argv[1]).href
+) {
   main().catch((error: unknown) => {
     console.error(error instanceof Error ? error.message : error);
     process.exit(1);

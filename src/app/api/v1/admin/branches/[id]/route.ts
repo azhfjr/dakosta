@@ -24,7 +24,11 @@ export async function PATCH(
       action: "BRANCH_UPDATED",
       recordType: "BRANCH",
       recordId: id,
-      after: { code: body.code.toUpperCase(), name: body.name, status: body.status },
+      after: {
+        code: body.code.toUpperCase(),
+        name: body.name,
+        status: body.status,
+      },
       regionId: body.regionalOfficeId,
       branchId: id,
       requestId,

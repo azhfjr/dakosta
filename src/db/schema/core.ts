@@ -20,23 +20,75 @@ import { edufastMonthlyPolicies } from "./edufast";
 const instant = (name: string) =>
   timestamp(name, { withTimezone: true, mode: "date" });
 
-export const userProfiles = pgTable("user_profiles", {
-  userId: text("user_id")
-    .primaryKey()
-    .references(() => user.id, { onDelete: "cascade" }),
-  mustChangePassword: boolean("must_change_password").notNull().default(true),
-  isDemo: boolean("is_demo").notNull().default(false),
-  active: boolean("active").notNull().default(true),
-  status: text("status").notNull().default("ACTIVE"),
-  displayTitle: text("display_title"),
-  createdAt: instant("created_at").defaultNow().notNull(),
-  updatedAt: instant("updated_at").defaultNow().notNull(),
-}, (table) => [
-  check(
-    "user_profiles_status_check",
-    sql`${table.status} in ('ACTIVE', 'INVITED', 'SUSPENDED', 'DISABLED')`,
-  ),
-]);
+export const userProfiles = pgTable(
+  "user_profiles",
+  {
+    userId: text("user_id")
+      .primaryKey()
+      .references(() => user.id, { onDelete: "cascade" }),
+    mustChangePassword: boolean("must_change_password").notNull().default(true),
+    isDemo: boolean("is_demo").notNull().default(false),
+    active: boolean("active").notNull().default(true),
+    status: text("status").notNull().default("ACTIVE"),
+    displayTitle: text("display_title"),
+    locationStatus: text("location_status").notNull().default("PENDING"),
+    locationGraceDeadline: instant("location_grace_deadline"),
+    createdAt: instant("created_at").defaultNow().notNull(),
+    updatedAt: instant("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    check(
+      "user_profiles_status_check",
+      sql`${table.status} in ('ACTIVE', 'INVITED', 'SUSPENDED', 'DISABLED')`,
+    ),
+    check(
+      "user_profiles_location_status_check",
+      sql`${table.locationStatus} in ('PENDING', 'GRACE', 'VERIFIED', 'EXEMPT')`,
+    ),
+    index("user_profiles_location_status_idx").on(table.locationStatus),
+  ],
+);
+
+/**
+ * One activation fix per account. Coordinates are never editable per content;
+ * the browser geolocation call happens once and a failed/denied permission
+ * leaves the account PENDING instead of blocking it silently.
+ */
+export const userActivationLocations = pgTable(
+  "user_activation_locations",
+  {
+    userId: text("user_id")
+      .primaryKey()
+      .references(() => user.id, { onDelete: "cascade" }),
+    latitude: doublePrecision("latitude").notNull(),
+    longitude: doublePrecision("longitude").notNull(),
+    accuracyMeters: doublePrecision("accuracy_meters").notNull(),
+    source: text("source").notNull(),
+    distanceMeters: doublePrecision("distance_meters"),
+    reviewFlag: boolean("review_flag").notNull().default(false),
+    consentAt: instant("consent_at").notNull(),
+    createdAt: instant("created_at").defaultNow().notNull(),
+    updatedAt: instant("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    check(
+      "user_activation_locations_source_check",
+      sql`${table.source} in ('browser_geolocation', 'demo_backfill', 'master_exception')`,
+    ),
+    check(
+      "user_activation_locations_latitude_check",
+      sql`${table.latitude} between -90 and 90`,
+    ),
+    check(
+      "user_activation_locations_longitude_check",
+      sql`${table.longitude} between -180 and 180`,
+    ),
+    check(
+      "user_activation_locations_accuracy_check",
+      sql`${table.accuracyMeters} >= 0`,
+    ),
+  ],
+);
 
 export const userRoleMemberships = pgTable(
   "user_role_memberships",
@@ -110,9 +162,12 @@ export const stakeholders = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     name: text("name").notNull(),
     category: text("category").notNull(),
-    branchOfficeId: uuid("branch_office_id").references(() => branchOffices.id, {
-      onDelete: "restrict",
-    }),
+    branchOfficeId: uuid("branch_office_id").references(
+      () => branchOffices.id,
+      {
+        onDelete: "restrict",
+      },
+    ),
     organizationType: text("organization_type").notNull().default("OTHER"),
     faskesClass: text("faskes_class"),
     faskesCode: text("faskes_code"),
@@ -122,7 +177,9 @@ export const stakeholders = pgTable(
     addressLabel: text("address_label"),
     latitude: doublePrecision("latitude").notNull(),
     longitude: doublePrecision("longitude").notNull(),
-    locationPrecision: text("location_precision").notNull().default("approximate"),
+    locationPrecision: text("location_precision")
+      .notNull()
+      .default("approximate"),
     websiteUrl: text("website_url"),
     socialHandle: text("social_handle"),
     status: text("status").notNull().default("ACTIVE"),
@@ -338,6 +395,9 @@ export const locations = pgTable(
   "locations",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    stakeholderId: uuid("stakeholder_id").references(() => stakeholders.id, {
+      onDelete: "set null",
+    }),
     latitude: doublePrecision("latitude").notNull(),
     longitude: doublePrecision("longitude").notNull(),
     label: text("label").notNull(),
@@ -349,6 +409,7 @@ export const locations = pgTable(
     createdAt: instant("created_at").defaultNow().notNull(),
   },
   (table) => [
+    index("locations_stakeholder_idx").on(table.stakeholderId),
     check(
       "locations_source_check",
       sql`${table.source} in ('device_gps', 'manual_pin', 'registered_stakeholder')`,
@@ -403,7 +464,10 @@ export const contentSubmissions = pgTable(
       { onDelete: "set null" },
     ),
     edufastPolicyVersion: integer("edufast_policy_version"),
-    approvedSnapshot: jsonb("approved_snapshot").$type<Record<string, unknown> | null>(),
+    approvedSnapshot: jsonb("approved_snapshot").$type<Record<
+      string,
+      unknown
+    > | null>(),
     approvedVersion: integer("approved_version"),
     resubmissionCount: integer("resubmission_count").notNull().default(0),
     sourceSubmissionId: uuid("source_submission_id"),
@@ -415,9 +479,21 @@ export const contentSubmissions = pgTable(
     locationId: uuid("location_id")
       .notNull()
       .references(() => locations.id, { onDelete: "restrict" }),
+    // Snapshots keep historical scope stable when an organization moves branch.
+    branchOfficeId: uuid("branch_office_id").references(
+      () => branchOffices.id,
+      {
+        onDelete: "set null",
+      },
+    ),
+    regionalOfficeId: uuid("regional_office_id").references(
+      () => regionalOffices.id,
+      { onDelete: "set null" },
+    ),
     status: text("status").notNull().default("DRAFT"),
     version: integer("version").notNull().default(1),
     idempotencyKey: text("idempotency_key").notNull(),
+    firstSubmittedAt: instant("first_submitted_at"),
     submittedAt: instant("submitted_at"),
     approvedAt: instant("approved_at"),
     revokedAt: instant("revoked_at"),
@@ -459,9 +535,30 @@ export const contentSubmissions = pgTable(
       table.subTheme,
       table.approvedAt,
     ),
+    index("content_submissions_stakeholder_status_approved_idx").on(
+      table.stakeholderId,
+      table.status,
+      table.approvedAt,
+    ),
     index("content_submissions_approved_partial_idx")
       .on(table.approvedAt)
       .where(sql`${table.status} = 'APPROVED'`),
+    index("content_submissions_sla_queue_idx").on(
+      table.status,
+      table.firstSubmittedAt,
+    ),
+    index("content_submissions_branch_approved_idx").on(
+      table.branchOfficeId,
+      table.approvedAt,
+    ),
+    index("content_submissions_region_approved_idx").on(
+      table.regionalOfficeId,
+      table.approvedAt,
+    ),
+    index("content_submissions_institution_approved_idx").on(
+      table.stakeholderId,
+      table.approvedAt,
+    ),
     check(
       "content_submissions_status_check",
       sql`${table.status} in ('DRAFT', 'SUBMITTED', 'RESUBMITTED', 'IN_REVIEW', 'APPROVED', 'REVISION_REQUIRED', 'REJECTED', 'REVOKED', 'ARCHIVED')`,
@@ -544,6 +641,10 @@ export const contentReviews = pgTable(
     ),
     index("content_reviews_reviewer_idx").on(table.reviewerId),
     index("content_reviews_branch_idx").on(table.reviewerBranchId),
+    index("content_reviews_submission_created_idx").on(
+      table.submissionId,
+      table.createdAt,
+    ),
     check(
       "content_reviews_action_check",
       sql`${table.action} in ('APPROVE', 'REQUEST_REVISION', 'REJECT', 'REVOKE')`,
@@ -607,6 +708,88 @@ export const kpiTargets = pgTable(
     check(
       "kpi_targets_sub_theme_check",
       sql`${table.subTheme} is null or ${table.subTheme} in ('MOBILE_JKN', 'TESTIMONI_PESERTA', 'ALUR_BEROBAT', 'EDUKATIF_PERSUASIF', 'KORPORAT', 'INFORMASI')`,
+    ),
+  ],
+);
+
+/** Append-only audit of every institution target mutation. */
+export const kpiTargetHistory = pgTable(
+  "kpi_target_history",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    targetId: uuid("target_id"),
+    stakeholderId: uuid("stakeholder_id").references(() => stakeholders.id, {
+      onDelete: "set null",
+    }),
+    branchOfficeId: uuid("branch_office_id").references(
+      () => branchOffices.id,
+      {
+        onDelete: "set null",
+      },
+    ),
+    regionalOfficeId: uuid("regional_office_id").references(
+      () => regionalOffices.id,
+      { onDelete: "set null" },
+    ),
+    themeId: uuid("theme_id"),
+    subTheme: text("sub_theme"),
+    periodStart: date("period_start", { mode: "string" }).notNull(),
+    periodEnd: date("period_end", { mode: "string" }).notNull(),
+    targetCount: integer("target_count").notNull(),
+    changeType: text("change_type").notNull(),
+    actorId: text("actor_id").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    createdAt: instant("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("kpi_target_history_stakeholder_period_idx").on(
+      table.stakeholderId,
+      table.periodStart,
+    ),
+    check(
+      "kpi_target_history_change_check",
+      sql`${table.changeType} in ('CREATED', 'UPDATED', 'DELETED')`,
+    ),
+  ],
+);
+
+/**
+ * SLA targets are opt-in. Without an active policy the UI reports aging and
+ * workflow state only (never an invented deadline).
+ */
+export const slaPolicies = pgTable(
+  "sla_policies",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    targetDays: integer("target_days"),
+    calendar: text("calendar").notNull().default("24x7"),
+    startsAt: text("starts_at").notNull().default("FIRST_SUBMISSION"),
+    pausesOnRevision: boolean("pauses_on_revision").notNull().default(false),
+    active: boolean("active").notNull().default(true),
+    note: text("note"),
+    createdBy: text("created_by").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    updatedBy: text("updated_by").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    createdAt: instant("created_at").defaultNow().notNull(),
+    updatedAt: instant("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("sla_policies_active_idx").on(table.active, table.updatedAt),
+    check(
+      "sla_policies_target_days_check",
+      sql`${table.targetDays} is null or ${table.targetDays} > 0`,
+    ),
+    check(
+      "sla_policies_calendar_check",
+      sql`${table.calendar} in ('24x7', 'BUSINESS_DAYS')`,
+    ),
+    check(
+      "sla_policies_starts_at_check",
+      sql`${table.startsAt} in ('FIRST_SUBMISSION', 'LATEST_SUBMISSION')`,
     ),
   ],
 );

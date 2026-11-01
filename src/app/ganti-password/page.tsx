@@ -31,7 +31,10 @@ export default async function ChangePasswordPage() {
         </div>
       </header>
 
-      <main id="konten" className="flex flex-1 items-center justify-center px-4 py-10">
+      <main
+        id="konten"
+        className="flex flex-1 items-center justify-center px-4 py-10"
+      >
         <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-sm sm:p-8">
           <div className="mb-6 space-y-2">
             <h1 className="text-xl font-semibold text-foreground">

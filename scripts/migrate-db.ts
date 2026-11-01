@@ -13,7 +13,10 @@ async function main(): Promise<void> {
   const target = resolveDbTarget();
   loadScriptEnv(target);
 
-  if (target === "production" && process.env.MIGRATE_CONFIRM !== "apply-production") {
+  if (
+    target === "production" &&
+    process.env.MIGRATE_CONFIRM !== "apply-production"
+  ) {
     throw new Error(
       "Migrasi production memerlukan MIGRATE_CONFIRM=apply-production. Tidak ada perubahan yang dilakukan.",
     );

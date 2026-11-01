@@ -69,8 +69,8 @@ export default async function MasukPage() {
                   Masuk ke DAKOSTA
                 </h2>
                 <p className="text-sm leading-relaxed text-ink-muted">
-                  Gunakan akun yang diberikan Master Admin. Sesi Anda diverifikasi
-                  di server; peran tidak ditentukan oleh browser.
+                  Gunakan akun yang diberikan Master Admin. Sesi Anda
+                  diverifikasi di server; peran tidak ditentukan oleh browser.
                 </p>
               </div>
 

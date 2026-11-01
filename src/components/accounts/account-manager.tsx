@@ -63,9 +63,9 @@ export function AccountManager({
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const [filterRole, setFilterRole] = useState<"ALL" | AppRole>("ALL");
-  const [filterStatus, setFilterStatus] = useState<"ALL" | "ACTIVE" | "SUSPENDED" | "DISABLED">(
-    "ALL",
-  );
+  const [filterStatus, setFilterStatus] = useState<
+    "ALL" | "ACTIVE" | "SUSPENDED" | "DISABLED"
+  >("ALL");
   const [page, setPage] = useState(1);
 
   const [editing, setEditing] = useState<AccountRow | null>(null);
@@ -81,7 +81,8 @@ export function AccountManager({
     const needle = query.trim().toLowerCase();
     return accounts.filter((account) => {
       if (filterRole !== "ALL" && account.role !== filterRole) return false;
-      if (filterStatus !== "ALL" && account.status !== filterStatus) return false;
+      if (filterStatus !== "ALL" && account.status !== filterStatus)
+        return false;
       if (!needle) return true;
       return (
         account.name.toLowerCase().includes(needle) ||
@@ -93,7 +94,10 @@ export function AccountManager({
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount);
-  const visible = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  const visible = filtered.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE,
+  );
   const rangeStart = filtered.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1;
   const rangeEnd = Math.min(safePage * PAGE_SIZE, filtered.length);
 
@@ -103,7 +107,9 @@ export function AccountManager({
       )
     : options.branches;
   const editBranches = editRegion
-    ? options.branches.filter((branch) => branch.regionalOfficeId === editRegion)
+    ? options.branches.filter(
+        (branch) => branch.regionalOfficeId === editRegion,
+      )
     : options.branches;
 
   function resetFilters() {
@@ -154,7 +160,9 @@ export function AccountManager({
           email: body.data.email,
           tempPassword: body.data.tempPassword,
         });
-        toast.success("Akun dibuat. Serahkan kata sandi sementara secara langsung.");
+        toast.success(
+          "Akun dibuat. Serahkan kata sandi sementara secara langsung.",
+        );
         setName("");
         setEmail("");
         setDisplayTitle("");
@@ -196,11 +204,11 @@ export function AccountManager({
             name: editName,
             displayTitle: editTitle || null,
             role: editRole,
-            regionalOfficeId: editRole === "MASTER_ADMIN" ? null : editRegion || null,
+            regionalOfficeId:
+              editRole === "MASTER_ADMIN" ? null : editRegion || null,
             branchOfficeId:
               editRole === "BRANCH_ADMIN" ? editBranch || null : null,
-            organizationId:
-              editRole === "STAKEHOLDER" ? editOrg || null : null,
+            organizationId: editRole === "STAKEHOLDER" ? editOrg || null : null,
           }),
         });
         const body = (await response.json()) as {
@@ -270,7 +278,10 @@ export function AccountManager({
     await attempt();
   }
 
-  async function setStatus(account: AccountRow, status: "ACTIVE" | "SUSPENDED") {
+  async function setStatus(
+    account: AccountRow,
+    status: "ACTIVE" | "SUSPENDED",
+  ) {
     async function attempt() {
       setBusyId(account.id);
       try {
@@ -290,7 +301,9 @@ export function AccountManager({
           toast.error(body.error?.message ?? "Status tidak dapat diubah.");
           return;
         }
-        toast.success(status === "ACTIVE" ? "Akun diaktifkan." : "Akun ditangguhkan.");
+        toast.success(
+          status === "ACTIVE" ? "Akun diaktifkan." : "Akun ditangguhkan.",
+        );
         router.refresh();
       } catch {
         toast.error("Tidak dapat menghubungi server.");
@@ -352,8 +365,8 @@ export function AccountManager({
 
       {readOnly ? (
         <p className="rounded-xl border border-brand-blue-500/25 bg-brand-blue-100/40 px-4 py-3 text-sm text-brand-blue-900">
-          Mode demo: pembuatan dan perubahan akun dinonaktifkan. Direktori akun tetap
-          dapat dilihat untuk keperluan presentasi.
+          Mode demo: pembuatan dan perubahan akun dinonaktifkan. Direktori akun
+          tetap dapat dilihat untuk keperluan presentasi.
         </p>
       ) : null}
 
@@ -372,7 +385,10 @@ export function AccountManager({
           Akun dibuat di dalam DAKOSTA. Kata sandi sementara ditampilkan sekali
           dan tidak dikirim melalui email.
         </p>
-        <form onSubmit={createAccount} className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <form
+          onSubmit={createAccount}
+          className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+        >
           <div className="space-y-1.5">
             <Label htmlFor="acct-name">Nama</Label>
             <Input
@@ -478,7 +494,9 @@ export function AccountManager({
                 {options.organizations.map((organization) => (
                   <option key={organization.id} value={organization.id}>
                     {organization.name}
-                    {organization.branchName ? ` · ${organization.branchName}` : ""}
+                    {organization.branchName
+                      ? ` · ${organization.branchName}`
+                      : ""}
                   </option>
                 ))}
               </select>
@@ -539,7 +557,8 @@ export function AccountManager({
               value={filterStatus}
               onChange={(event) => {
                 setFilterStatus(
-                  event.target.value as "ALL" | "ACTIVE" | "SUSPENDED" | "DISABLED",
+                  event.target.value as
+                    "ALL" | "ACTIVE" | "SUSPENDED" | "DISABLED",
                 );
                 setPage(1);
               }}
@@ -603,15 +622,23 @@ export function AccountManager({
                       </span>
                       <p className="text-xs text-ink-muted">{account.email}</p>
                       {account.displayTitle ? (
-                        <p className="text-xs text-ink-muted">{account.displayTitle}</p>
+                        <p className="text-xs text-ink-muted">
+                          {account.displayTitle}
+                        </p>
                       ) : null}
                     </td>
-                    <td className="px-4 py-3 text-ink-muted">{account.roleLabel}</td>
-                    <td className="px-4 py-3 text-ink-muted">{account.scopeLabel}</td>
+                    <td className="px-4 py-3 text-ink-muted">
+                      {account.roleLabel}
+                    </td>
+                    <td className="px-4 py-3 text-ink-muted">
+                      {account.scopeLabel}
+                    </td>
                     <td className="px-4 py-3">
                       <span className="inline-flex rounded-full border border-border bg-surface-muted px-2.5 py-0.5 text-xs font-medium text-ink-muted">
                         {account.status}
-                        {account.mustChangePassword ? " · wajib ganti sandi" : ""}
+                        {account.mustChangePassword
+                          ? " · wajib ganti sandi"
+                          : ""}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -661,16 +688,21 @@ export function AccountManager({
                           variant="ghost"
                           className="h-8"
                           disabled={
-                            busyId === account.id || account.id === currentUserId
+                            busyId === account.id ||
+                            account.id === currentUserId
                           }
                           onClick={() =>
                             setStatus(
                               account,
-                              account.status === "ACTIVE" ? "SUSPENDED" : "ACTIVE",
+                              account.status === "ACTIVE"
+                                ? "SUSPENDED"
+                                : "ACTIVE",
                             )
                           }
                         >
-                          {account.status === "ACTIVE" ? "Tangguhkan" : "Aktifkan"}
+                          {account.status === "ACTIVE"
+                            ? "Tangguhkan"
+                            : "Aktifkan"}
                         </Button>
                       </div>
                     </td>
@@ -707,7 +739,9 @@ export function AccountManager({
                 variant="outline"
                 className="h-8"
                 disabled={safePage >= pageCount}
-                onClick={() => setPage((current) => Math.min(pageCount, current + 1))}
+                onClick={() =>
+                  setPage((current) => Math.min(pageCount, current + 1))
+                }
               >
                 Berikutnya
                 <ChevronRight className="ml-1 size-3.5" aria-hidden />
@@ -727,8 +761,8 @@ export function AccountManager({
           <DialogHeader>
             <DialogTitle>Ubah akun</DialogTitle>
             <DialogDescription>
-              Perubahan peran atau lingkup mencabut seluruh sesi aktif akun ini dan
-              tercatat pada audit.
+              Perubahan peran atau lingkup mencabut seluruh sesi aktif akun ini
+              dan tercatat pada audit.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={saveEdit} className="space-y-4">
@@ -825,7 +859,9 @@ export function AccountManager({
                   {options.organizations.map((organization) => (
                     <option key={organization.id} value={organization.id}>
                       {organization.name}
-                      {organization.branchName ? ` · ${organization.branchName}` : ""}
+                      {organization.branchName
+                        ? ` · ${organization.branchName}`
+                        : ""}
                     </option>
                   ))}
                 </select>

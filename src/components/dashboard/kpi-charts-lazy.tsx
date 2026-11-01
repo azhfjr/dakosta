@@ -4,14 +4,12 @@ import dynamic from "next/dynamic";
 import { useEffect, useRef, useState, type ComponentProps } from "react";
 
 const LazyKpiCharts = dynamic(
-  () => import("@/components/dashboard/kpi-charts").then((mod) => mod.KpiCharts),
+  () =>
+    import("@/components/dashboard/kpi-charts").then((mod) => mod.KpiCharts),
   {
     ssr: false,
     loading: () => (
-      <div
-        aria-hidden
-        className="grid gap-6 xl:grid-cols-2"
-      >
+      <div aria-hidden className="grid gap-6 xl:grid-cols-2">
         {[0, 1, 2, 3].map((index) => (
           <div
             key={index}

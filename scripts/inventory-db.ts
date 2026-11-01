@@ -1,6 +1,11 @@
 import { Pool } from "@neondatabase/serverless";
 
-import { describeTarget, loadScriptEnv, requireDatabaseUrlForScript, resolveDbTarget } from "./_env";
+import {
+  describeTarget,
+  loadScriptEnv,
+  requireDatabaseUrlForScript,
+  resolveDbTarget,
+} from "./_env";
 
 const target = resolveDbTarget();
 loadScriptEnv(target);
@@ -36,7 +41,10 @@ const KEY_TABLES = [
 ] as const;
 
 async function main(): Promise<void> {
-  const pool = new Pool({ connectionString: requireDatabaseUrlForScript(), max: 1 });
+  const pool = new Pool({
+    connectionString: requireDatabaseUrlForScript(),
+    max: 1,
+  });
   try {
     const tables = await pool.query<{ table_name: string }>(
       `select table_name from information_schema.tables
@@ -46,9 +54,11 @@ async function main(): Promise<void> {
 
     console.log(`Inventaris basis data (${describeTarget(target)}).`);
 
-    const migrations = await pool.query<{ total: string }>(
-      `select count(*)::text as total from drizzle.__drizzle_migrations`,
-    ).catch(() => ({ rows: [{ total: "n/a" }] }));
+    const migrations = await pool
+      .query<{ total: string }>(
+        `select count(*)::text as total from drizzle.__drizzle_migrations`,
+      )
+      .catch(() => ({ rows: [{ total: "n/a" }] }));
     console.log(`migrasi_tercatat=${migrations.rows[0]?.total ?? "n/a"}`);
 
     for (const table of KEY_TABLES) {
@@ -57,7 +67,11 @@ async function main(): Promise<void> {
         console.log(`${table}=tidak_ada`);
         continue;
       }
-      const hasDemoFlag = ["user_profiles", "stakeholders", "content_submissions"].includes(table);
+      const hasDemoFlag = [
+        "user_profiles",
+        "stakeholders",
+        "content_submissions",
+      ].includes(table);
       const result = await pool.query<{ total: string; demo: string | null }>(
         hasDemoFlag
           ? `select count(*)::text as total, count(*) filter (where is_demo)::text as demo from ${quoted}`
@@ -80,7 +94,9 @@ async function main(): Promise<void> {
           group by m.role
           order by m.role`,
       );
-      console.log(`peran_aktif=${roles.rows.map((row) => `${row.role}:${row.total}`).join(",") || "kosong"}`);
+      console.log(
+        `peran_aktif=${roles.rows.map((row) => `${row.role}:${row.total}`).join(",") || "kosong"}`,
+      );
     }
   } finally {
     await pool.end();

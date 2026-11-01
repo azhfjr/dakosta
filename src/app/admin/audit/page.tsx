@@ -117,11 +117,15 @@ export default async function AdminAuditPage({
         className="rounded-xl border border-border bg-surface shadow-sm"
       >
         <div className="border-b border-border px-5 py-3">
-          <h2 id="audit-daftar" className="text-base font-semibold text-foreground">
+          <h2
+            id="audit-daftar"
+            className="text-base font-semibold text-foreground"
+          >
             Catatan terbaru
           </h2>
           <p className="text-xs text-ink-muted">
-            Halaman {log.page} dari {log.pageCount} · {log.pageSize} catatan per halaman
+            Halaman {log.page} dari {log.pageCount} · {log.pageSize} catatan per
+            halaman
           </p>
         </div>
 
@@ -143,12 +147,24 @@ export default async function AdminAuditPage({
               </caption>
               <thead>
                 <tr className="border-b border-border text-left text-xs font-medium tracking-wide text-ink-muted uppercase">
-                  <th scope="col" className="px-5 py-3">Waktu</th>
-                  <th scope="col" className="px-5 py-3">Aktor</th>
-                  <th scope="col" className="px-5 py-3">Aksi</th>
-                  <th scope="col" className="px-5 py-3">Objek</th>
-                  <th scope="col" className="px-5 py-3">Request</th>
-                  <th scope="col" className="px-5 py-3">Detail</th>
+                  <th scope="col" className="px-5 py-3">
+                    Waktu
+                  </th>
+                  <th scope="col" className="px-5 py-3">
+                    Aktor
+                  </th>
+                  <th scope="col" className="px-5 py-3">
+                    Aksi
+                  </th>
+                  <th scope="col" className="px-5 py-3">
+                    Objek
+                  </th>
+                  <th scope="col" className="px-5 py-3">
+                    Request
+                  </th>
+                  <th scope="col" className="px-5 py-3">
+                    Detail
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -164,7 +180,9 @@ export default async function AdminAuditPage({
                       <span className="block text-foreground">
                         {row.actorName ?? "Sistem"}
                       </span>
-                      <span className="text-xs text-ink-muted">{row.actorRole}</span>
+                      <span className="text-xs text-ink-muted">
+                        {row.actorRole}
+                      </span>
                     </td>
                     <td className="px-5 py-3">
                       <span className="block font-medium text-foreground">
@@ -175,7 +193,9 @@ export default async function AdminAuditPage({
                       </span>
                     </td>
                     <td className="px-5 py-3 text-ink-muted">
-                      <span className="block text-foreground">{row.recordType}</span>
+                      <span className="block text-foreground">
+                        {row.recordType}
+                      </span>
                       {row.recordId ? (
                         <span className="font-mono text-xs break-all">
                           {row.recordId}

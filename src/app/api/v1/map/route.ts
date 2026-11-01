@@ -1,5 +1,6 @@
 import { getRequestId, jsonError, jsonOk } from "@/lib/api";
 import { getMapOverview, parseMapFiltersFromQuery } from "@/lib/map";
+import { assertCapability } from "@/lib/rbac";
 import { getApiUser } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -10,6 +11,7 @@ export async function GET(request: Request) {
 
   try {
     const user = await getApiUser();
+    assertCapability(user, "map:read");
     const filters = parseMapFiltersFromQuery(new URL(request.url).searchParams);
     const overview = await getMapOverview(user, filters);
 

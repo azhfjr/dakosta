@@ -17,12 +17,17 @@ const CLASS_LABEL: Record<string, string> = {
 };
 
 export function organizationTypeLabel(
-  organization: Pick<OrganizationSummary, "organizationType" | "faskesClass" | "faskesCode">,
+  organization: Pick<
+    OrganizationSummary,
+    "organizationType" | "faskesClass" | "faskesCode"
+  >,
 ): string {
   if (organization.organizationType === "FASKES") {
     return `${CLASS_LABEL[organization.faskesClass ?? ""] ?? "Faskes"} · ${organization.faskesCode ?? "tanpa kode"}`;
   }
-  return TYPE_LABEL[organization.organizationType] ?? organization.organizationType;
+  return (
+    TYPE_LABEL[organization.organizationType] ?? organization.organizationType
+  );
 }
 
 export function OrganizationTable({
@@ -105,9 +110,13 @@ export function OrganizationTable({
                     {organization.name}
                   </Link>
                 ) : (
-                  <span className="font-medium text-foreground">{organization.name}</span>
+                  <span className="font-medium text-foreground">
+                    {organization.name}
+                  </span>
                 )}
-                <p className="mt-0.5 text-xs text-ink-muted">{organization.serviceArea}</p>
+                <p className="mt-0.5 text-xs text-ink-muted">
+                  {organization.serviceArea}
+                </p>
               </td>
               <td className="px-4 py-3 text-ink-muted">
                 {organizationTypeLabel(organization)}
@@ -116,7 +125,9 @@ export function OrganizationTable({
                 <span className="block text-foreground">
                   {organization.branchName ?? "Belum ditempatkan"}
                 </span>
-                <span className="text-xs">{organization.regionName ?? "—"}</span>
+                <span className="text-xs">
+                  {organization.regionName ?? "—"}
+                </span>
               </td>
               <td className="px-4 py-3 text-right tabular-nums">
                 {formatNumberId(organization.contentCount)}
@@ -139,7 +150,9 @@ export function OrganizationTable({
                       : "border-border bg-surface-muted text-ink-muted"
                   }
                 >
-                  {organization.status === "ACTIVE" ? "Aktif" : organization.status}
+                  {organization.status === "ACTIVE"
+                    ? "Aktif"
+                    : organization.status}
                 </Badge>
               </td>
               {editorBranches && !readOnly ? (

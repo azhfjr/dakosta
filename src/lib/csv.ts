@@ -13,13 +13,25 @@ function cell(value: unknown): string {
   return text;
 }
 
-export function toCsv(headers: string[], rows: Array<Array<unknown>>): string {
-  const lines = [headers.map(cell).join(","), ...rows.map((row) => row.map(cell).join(","))];
+export function csvHeaderLine(headers: string[]): string {
   // BOM membantu Excel mengenali UTF-8.
-  return `\uFEFF${lines.join("\r\n")}\r\n`;
+  return `\uFEFF${headers.map(cell).join(",")}\r\n`;
 }
 
-export function csvFileName(prefix: string, date = new Date(), period?: string): string {
+export function csvBody(rows: Array<Array<unknown>>): string {
+  if (rows.length === 0) return "";
+  return `${rows.map((row) => row.map(cell).join(",")).join("\r\n")}\r\n`;
+}
+
+export function toCsv(headers: string[], rows: Array<Array<unknown>>): string {
+  return csvHeaderLine(headers) + csvBody(rows);
+}
+
+export function csvFileName(
+  prefix: string,
+  date = new Date(),
+  period?: string,
+): string {
   if (period) return `${prefix}-${period}.csv`;
   const stamp = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Jakarta",
