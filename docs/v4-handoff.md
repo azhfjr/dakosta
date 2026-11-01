@@ -262,11 +262,26 @@ Prosedur (setiap langkah destruktif memerlukan konfirmasi pengguna):
 6. Rollback data demo: `PURGE_DEMO_CONFIRM=purge-demo-only npm run
 db:purge:demo:production`.
 
-Bukti eksekusi seed awal (50 konten, 2026-10-31) — perluasan 2.400 konten
-dijalankan ulang dengan prosedur yang sama dan buktinya disimpan sebagai
-`docs/audit/evidence/E-seed-demo-production-<stamp>.log`,
-`E-verify-demo-production-<stamp>.log`, dan
-`E-smoke-production-<stamp>.json`:
+Bukti eksekusi seed awal (50 konten, 2026-10-31). Perluasan 2.400 konten
+(2026-11-02) menjalankan prosedur yang sama tanpa deploy aplikasi dan tanpa
+perubahan environment:
+
+- Backup `backups/2026-11-01T22-32-46-590Z-production/`; dry-run
+  `E-seed-demo-production-dryrun-2026-11-01T22-33-18Z.log`.
+- Percobaan pertama `E-seed-demo-production-2026-11-01T22-34-11Z.log`
+  rollback penuh: satu konten non-demo buatan UI (`DKS-202611-JK563`)
+  menahan FK `delete from stakeholders`. Setelah persetujuan pengguna baris
+  tersebut dihapus (`E-demo-blocker-delete-2026-11-01T22-36-32Z.log`).
+- Seed lulus `E-seed-demo-production-2026-11-01T22-36-40Z.log`; verifikasi
+  `E-verify-demo-production-2026-11-01T22-38-04Z.log`; smoke 21/21
+  `E-smoke-production-2026-11-01T22-38-54-291Z.json`; spot-check
+  `E-spot-check-2026-11-01T22-40-37Z.log`.
+- Hasil: 2.400 konten, 648 target; approved/target 40/60 (bulan berjalan),
+  40/40 (bulan sebelumnya), 60/59 (bulan tertua); peta 1.745 titik.
+- Catatan: konten buatan akun demo lewat UI tersimpan `is_demo=false` dan
+  harus ditinjau sebelum reseed berikutnya.
+
+Bukti seed awal (50 konten):
 
 | Pemeriksaan           | Hasil                                                                                                                   |
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------- |

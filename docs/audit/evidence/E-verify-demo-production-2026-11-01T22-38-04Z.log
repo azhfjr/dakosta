@@ -1,0 +1,9 @@
+
+> b8cd74b6@0.1.0 db:verify:demo:production
+> tsx scripts/verify-demo-production.ts --target=production
+
+verifikasi: target=production base=https://dakosta-dakosta.vercel.app periode=2026-11/2026-10
+kredensial: sumber=env (nilai tidak dicetak) tier_db=on tier_http=on
+tier_db=ok akun=32/32 sandi_ok=32 konten=2400 approved=40/40 target=60/40 nondo_profiles=1
+tier_http=ok base=https://dakosta-dakosta.vercel.app login=4 smoke=3 konten_master=2400 peta=1745 wilayah_a=1080 cabang_a1=9 mitra_01=120
+Verifikasi demo produksi lulus. Tidak ada data yang ditulis.

@@ -1,0 +1,13 @@
+
+> b8cd74b6@0.1.0 db:seed:demo:production
+> tsx scripts/seed-demo-production.ts --target=production --backup=backups/2026-11-01T22-32-46-590Z-production
+
+db_fingerprint=sha256:4b917861e5b5 matches_staging=no
+preflight=ok master_fingerprint_unchanged=yes akun=32 konten=2400 stakeholder=20
+periode_berjalan=2026-11 periode_sebelumnya=2026-10 approved=40/40 target=60/40
+rencana: wilayah=3 cabang=8 organisasi=20 lokasi=2400 revisi=2400 ulasan=2500 target=648 notifikasi=2565 outbox=2565 audit=2503
+kredensial: sumber=DEMO_SEED_PASSWORD (nilai tidak dicetak)
+Seed demo produksi selesai.
+Akun demo: 32 (master 1, wilayah 3, cabang 8, stakeholder 20).
+Konten demo: 2400 (approved 1380, pending 60, EDUFAST 1440).
+Kredensial: .secrets/demo-accounts-2026-11-01T22-37-43-427Z.txt (mode 0600, tidak dicetak).

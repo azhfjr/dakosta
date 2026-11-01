@@ -1,0 +1,10 @@
+master 2026-11 approved=40 target=60
+master 2026-10 approved=40 target=40
+master 2024-12 approved=60 target=59
+master targets total=27 scopes=27 target=60 global=yes
+master analitik titik=30 approved=40 target=60
+master page /admin=200
+master page /admin/analitik=200
+master page /admin/peta=200
+master page /admin/target=200
+/api/v1/dashboard/admin?period=2026-11: HTTP 403 Anda tidak memiliki akses ke sumber daya ini.

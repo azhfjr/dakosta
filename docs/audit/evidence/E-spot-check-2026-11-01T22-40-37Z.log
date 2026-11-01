@@ -1,0 +1,24 @@
+master 2026-11 approved=40 target=60
+master 2026-10 approved=40 target=40
+master 2024-12 approved=60 target=59
+master targets total=27 scopes=27 target=60 global=yes
+master analitik titik=30 approved=40 target=60
+master page /admin=200
+master page /admin/analitik=200
+master page /admin/peta=200
+master page /admin/target=200
+regional 2026-11 kinerja_csv=ok baris=9 approved=18 target=27
+regional 2026-10 kinerja_csv=ok baris=9 approved=18 target=18
+regional 2024-12 kinerja_csv=ok baris=9 approved=27 target=27
+regional pages kinerja+dashboard=200
+branch 2026-11 kinerja_csv=ok baris=3 approved=6 target=9
+branch 2026-10 kinerja_csv=ok baris=3 approved=6 target=6
+branch 2024-12 kinerja_csv=ok baris=3 approved=9 target=9
+branch pages kinerja+dashboard=200
+stakeholder 2026-11 approved=2 target=3
+stakeholder 2026-10 approved=2 target=3
+stakeholder 2024-12 approved=3 target=2
+stakeholder page /client=200
+stakeholder page /client/analitik=200
+stakeholder page /client/konten=200
+Spot-check G7 lulus. Tidak ada data yang ditulis.

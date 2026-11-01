@@ -4,25 +4,25 @@
 
 Label: DONE (bukti lulus), PARTIAL (sebagian), BLOCKED, NOT RUN.
 
-| Area                                 | Status                                                | Bukti                                                                                                                                  |
-| ------------------------------------ | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Audit statis D1–D13                  | DONE                                                  | `docs/audit/**`                                                                                                                        |
-| Lint                                 | DONE (PASS)                                           | `npm run lint` → exit 0                                                                                                                |
-| Typecheck                            | DONE (PASS)                                           | `npx tsc --noEmit` → exit 0                                                                                                            |
-| Unit/integration                     | DONE (120/120 PASS)                                   | `npm test` → 19 berkas, 120 tes (termasuk fixture 2.400 konten dan seed PGlite)                                                        |
-| Dataset demo produksi (2.400 konten) | PARTIAL — fixture/tes DONE, seed produksi G3/G4 belum | Fixture 24 bulan + 648 target; bukti produksi menyusul `E-seed-demo-production-*`, `E-verify-demo-production-*`                        |
-| Format                               | DONE (PASS)                                           | `npm run format:check` → semua berkas sesuai                                                                                           |
-| Build produksi                       | DONE (PASS)                                           | `npm run build:verify` → `.next-verify`                                                                                                |
-| E2E Playwright                       | PARTIAL — 53/54 lulus pada build rilis                | `.tmp-e2e-final.log`; kegagalan tunggal = data target sisa run lama, lulus setelah reset                                               |
-| A11y axe (WCAG 2.1 AA)               | DONE (PASS)                                           | `e2e/a11y.spec.ts` lulus pada semua run (4 tes)                                                                                        |
-| Perf 14 rute (100k)                  | DONE (PASS)                                           | `E-perf-100k-2026-11-01T18-08-44.log`                                                                                                  |
-| Load 50 VU/5m (100k)                 | GAGAL pada build rilis `85feaa9`                      | `E-load-read-2026-11-01T13-50-18-420Z.json` → p95 4.021 ms; lulus 09:33 pada build pra-rilis (p95 1.867 ms)                            |
-| Load 200/500 VU, soak                | GAGAL — dijalankan pada jaringan rusak                | `E-load-soak-2026-11-01T15-23-52-009Z.json` (200 VU, p95 14,9 dtk, 78.111 error, 0 5xx); `E-load-export-2026-11-01T15-29-54-279Z.json` |
-| Query plan (4 skenario)              | DONE (PASS)                                           | `E-explain-*-2026-11-01T11-12-*.json`                                                                                                  |
-| Rekonsiliasi angka                   | DONE (PASS)                                           | `platform.spec.ts` rekonsiliasi + smoke produksi                                                                                       |
-| `npm audit --omit=dev`               | DONE (0 kerentanan)                                   | `npm audit --omit=dev` → found 0 vulnerabilities                                                                                       |
-| Migrasi aditif 0004/0005             | DONE (PASS)                                           | 30 DDL tanpa DROP/TRUNCATE/DELETE; reheasal staging tercatat                                                                           |
-| Deploy produksi                      | DONE (di-override pengguna)                           | `dpl_ub12np1amRNyc5V5Np7LePXG4wqt`; smoke 21/21 `E-smoke-production-2026-11-01T17-37-35-067Z.json`                                     |
+| Area                                 | Status                                 | Bukti                                                                                                                                                                                                                                             |
+| ------------------------------------ | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Audit statis D1–D13                  | DONE                                   | `docs/audit/**`                                                                                                                                                                                                                                   |
+| Lint                                 | DONE (PASS)                            | `npm run lint` → exit 0                                                                                                                                                                                                                           |
+| Typecheck                            | DONE (PASS)                            | `npx tsc --noEmit` → exit 0                                                                                                                                                                                                                       |
+| Unit/integration                     | DONE (120/120 PASS)                    | `npm test` → 19 berkas, 120 tes (termasuk fixture 2.400 konten dan seed PGlite)                                                                                                                                                                   |
+| Dataset demo produksi (2.400 konten) | DONE (produksi terverifikasi)          | Seed `E-seed-demo-production-2026-11-01T22-36-40Z.log`; verify DB+HTTP `E-verify-demo-production-2026-11-01T22-38-04Z.log`; smoke 21/21 `E-smoke-production-2026-11-01T22-38-54-291Z.json`; spot-check G7 `E-spot-check-2026-11-01T22-40-37Z.log` |
+| Format                               | DONE (PASS)                            | `npm run format:check` → semua berkas sesuai                                                                                                                                                                                                      |
+| Build produksi                       | DONE (PASS)                            | `npm run build:verify` → `.next-verify`                                                                                                                                                                                                           |
+| E2E Playwright                       | PARTIAL — 53/54 lulus pada build rilis | `.tmp-e2e-final.log`; kegagalan tunggal = data target sisa run lama, lulus setelah reset                                                                                                                                                          |
+| A11y axe (WCAG 2.1 AA)               | DONE (PASS)                            | `e2e/a11y.spec.ts` lulus pada semua run (4 tes)                                                                                                                                                                                                   |
+| Perf 14 rute (100k)                  | DONE (PASS)                            | `E-perf-100k-2026-11-01T18-08-44.log`                                                                                                                                                                                                             |
+| Load 50 VU/5m (100k)                 | GAGAL pada build rilis `85feaa9`       | `E-load-read-2026-11-01T13-50-18-420Z.json` → p95 4.021 ms; lulus 09:33 pada build pra-rilis (p95 1.867 ms)                                                                                                                                       |
+| Load 200/500 VU, soak                | GAGAL — dijalankan pada jaringan rusak | `E-load-soak-2026-11-01T15-23-52-009Z.json` (200 VU, p95 14,9 dtk, 78.111 error, 0 5xx); `E-load-export-2026-11-01T15-29-54-279Z.json`                                                                                                            |
+| Query plan (4 skenario)              | DONE (PASS)                            | `E-explain-*-2026-11-01T11-12-*.json`                                                                                                                                                                                                             |
+| Rekonsiliasi angka                   | DONE (PASS)                            | `platform.spec.ts` rekonsiliasi + smoke produksi                                                                                                                                                                                                  |
+| `npm audit --omit=dev`               | DONE (0 kerentanan)                    | `npm audit --omit=dev` → found 0 vulnerabilities                                                                                                                                                                                                  |
+| Migrasi aditif 0004/0005             | DONE (PASS)                            | 30 DDL tanpa DROP/TRUNCATE/DELETE; reheasal staging tercatat                                                                                                                                                                                      |
+| Deploy produksi                      | DONE (di-override pengguna)            | `dpl_ub12np1amRNyc5V5Np7LePXG4wqt`; smoke 21/21 `E-smoke-production-2026-11-01T17-37-35-067Z.json`                                                                                                                                                |
 
 ## Implementasi paket
 
@@ -86,9 +86,22 @@ Karena probe **5 VU** pun gagal sementara tidak ada 5xx dan basis data menganggu
 - Smoke produksi 21/21 PASS `E-smoke-production-2026-11-01T17-37-35-067Z.json`: health, header keamanan, 401/307, login 4 peran, halaman per peran, RBAC negatif, PDF/CSV Kinerja, rekonsiliasi dashboard=CSV, PDF lama 404.
 - Catatan operasional: Vercel memblokir deploy CLI yang membawa metadata commit dengan author tak terverifikasi; deploy rilis dilakukan dari snapshot `git archive` di luar direktori git sehingga tidak ada atribusi commit.
 
+## Perluasan dataset demo (2026-11-02)
+
+- Backup logis pra-mutasi `backups/2026-11-01T22-32-46-590Z-production/` (manifest target `production`).
+- Dry-run `E-seed-demo-production-dryrun-2026-11-01T22-33-18Z.log`: 24 periode, 2.400 konten, 648 target, tanpa menulis.
+- Percobaan seed pertama `E-seed-demo-production-2026-11-01T22-34-11Z.log` gagal di `delete from stakeholders` karena satu konten non-demo `DKS-202611-JK563` (dibuat akun demo lewat UI, `is_demo=false`) menahan FK; transaksi rollback penuh.
+- Atas persetujuan pengguna, satu baris penghalang dihapus — `E-demo-blocker-delete-2026-11-01T22-36-32Z.log`.
+- Seed ulang lulus `E-seed-demo-production-2026-11-01T22-36-40Z.log`: 32 akun, 2.400 konten (APPROVED 1.380, pending 60), lokasi 2.400, revisi 2.400, ulasan 2.500, target 648, notifikasi/outbox 2.565, audit 2.503.
+- Verifikasi read-only lulus DB + HTTP `E-verify-demo-production-2026-11-01T22-38-04Z.log`: akun 32/32, konten 2.400, approved 40/40, target 60/40, konten master 2.400, peta 1.745, wilayah A 1.080, antrean cabang A1 9, mitra 120.
+- Smoke produksi 21/21 `E-smoke-production-2026-11-01T22-38-54-291Z.json`, termasuk rekonsiliasi dashboard = Kinerja = CSV.
+- Spot-check G7 `E-spot-check-2026-11-01T22-40-37Z.log`: master 40/60, 40/40, 60/59; target 27 baris; CSV regional 9 baris, cabang 3 baris; stakeholder 2/3, 2/3, 3/2; semua halaman 200.
+- Tidak ada perubahan kode runtime aplikasi, deploy, atau variabel environment.
+
 ## Risiko tersisa
 
 - Kapasitas platform produksi Vercel/Neon tidak diuji beban; dinyatakan NOT VERIFIED (tidak ada stress produksi).
+- Konten yang dibuat akun demo lewat UI tersimpan `is_demo=false`; seed ulang berikutnya bisa gagal di FK `RESTRICT`. Sebelum reseed, identifikasi dan (dengan persetujuan) hapus/reklasifikasi baris tersebut.
 - Endpoint pooled Neon menolak parameter startup (`options`, `statement_timeout`); batas kueri harus tetap di sisi klien (`query_timeout`).
 - Staging WAN menyebabkan flakiness E2E; produksi berada di region yang sama dengan basis data.
 - Data uji sintetis; tidak ada PII.

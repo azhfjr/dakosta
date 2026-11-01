@@ -284,6 +284,9 @@ PURGE_DEMO_CONFIRM=purge-demo-only npm run db:purge:demo:production
   daftar titik dipotong dan `totals.points` tetap menghitung seluruhnya.
 - `db:purge:production` (purge penuh) kini permanen diblokir karena Master asli
   `is_demo=false`; gunakan `db:purge:demo:production` untuk menghapus demo.
+- Konten yang dibuat akun demo lewat UI tersimpan `is_demo=false`; seed ulang
+  dapat gagal di FK `RESTRICT` bila konten itu mereferensikan stakeholder demo.
+  Tinjau dan (dengan persetujuan) hapus baris tersebut sebelum seed ulang.
 - Kredensial demo ditulis ke `.secrets/demo-accounts-<stamp>.txt` (mode 0600,
   gitignored); hanya path yang dicetak, nilai sandi tidak pernah ditampilkan.
 
