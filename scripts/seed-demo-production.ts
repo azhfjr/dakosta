@@ -19,12 +19,14 @@ import * as schema from "../src/db/schema";
 import { isProtectedAccountEmail } from "../src/lib/authz/protected-accounts";
 import { SUB_THEMES } from "../src/lib/taxonomy";
 import { loadScriptEnv, requireDatabaseUrlForScript } from "./_env";
+import { chunk } from "./demo-chunk";
 import {
   DEMO_ACCOUNTS,
   DEMO_BRANCHES,
   DEMO_IDS,
   DEMO_ORGANIZATIONS,
   DEMO_REGIONS,
+  DEMO_SEED_VERSION,
   assertFixtureIntegrity,
   buildDemoDataset,
   expectedCounts,
@@ -181,6 +183,15 @@ async function expectNoCollision(
   }
 }
 
+async function insertChunked<T>(
+  rows: readonly T[],
+  insert: (values: T[]) => Promise<unknown>,
+): Promise<void> {
+  for (const part of chunk([...rows])) {
+    await insert(part);
+  }
+}
+
 async function preflight(
   reader: SqlExecutor,
   scope: DemoScope,
@@ -262,7 +273,7 @@ async function preflight(
   await expectNoCollision(
     reader,
     sql`select count(*)::text as value from content_submissions
-         where idempotency_key like 'demo-seed-v1:%'
+         where idempotency_key like ${`${DEMO_SEED_VERSION}:%`}
            and not (id in (${uuidIn(scope.submissionIds)}))`,
     "content_submissions.idempotency_key",
   );
@@ -270,14 +281,14 @@ async function preflight(
     reader,
     sql`select count(*)::text as value from edufast_monthly_policies
          where status = 'PUBLISHED'
-           and period_yyyy_mm in (${dataset.currentPeriod}, ${dataset.previousPeriod})
+           and period_yyyy_mm in (${textIn(dataset.periods)})
            and not (id in (${uuidIn(scope.policyIds)}))`,
     "edufast_monthly_policies PUBLISHED",
   );
   await expectNoCollision(
     reader,
     sql`select count(*)::text as value from kpi_targets
-         where period_start in (${`${dataset.currentPeriod}-01`}, ${`${dataset.previousPeriod}-01`})
+         where period_start in (${textIn(dataset.periods.map((period) => `${period}-01`))})
            and not (id in (${uuidIn(scope.targetIds)}))`,
     "kpi_targets periode",
   );
@@ -484,7 +495,7 @@ export async function insertDemoDataset(
       })),
   );
 
-  await tx.insert(schema.edufastMonthlyPolicies).values(
+  await insertChunked(
     dataset.policies.map((policy) => ({
       id: policy.id,
       periodYyyyMm: policy.period,
@@ -498,9 +509,10 @@ export async function insertDemoDataset(
       createdAt: policy.createdAt,
       updatedAt: policy.publishedAt,
     })),
+    (values) => tx.insert(schema.edufastMonthlyPolicies).values(values),
   );
 
-  await tx.insert(schema.edufastPolicySubthemes).values(
+  await insertChunked(
     dataset.policies.flatMap((policy) =>
       SUB_THEMES.map((subTheme) => ({
         policyId: policy.id,
@@ -508,9 +520,10 @@ export async function insertDemoDataset(
         createdAt: policy.publishedAt,
       })),
     ),
+    (values) => tx.insert(schema.edufastPolicySubthemes).values(values),
   );
 
-  await tx.insert(schema.edufastPolicyEvents).values(
+  await insertChunked(
     dataset.policyEvents.map((event) => ({
       id: event.id,
       policyId: DEMO_IDS.policy(event.policyN),
@@ -519,9 +532,10 @@ export async function insertDemoDataset(
       snapshot: event.snapshot,
       createdAt: event.createdAt,
     })),
+    (values) => tx.insert(schema.edufastPolicyEvents).values(values),
   );
 
-  await tx.insert(schema.locations).values(
+  await insertChunked(
     dataset.locations.map((location) => ({
       id: location.id,
       latitude: location.latitude,
@@ -534,9 +548,10 @@ export async function insertDemoDataset(
       precision: location.precision,
       createdAt: location.createdAt,
     })),
+    (values) => tx.insert(schema.locations).values(values),
   );
 
-  await tx.insert(schema.contentSubmissions).values(
+  await insertChunked(
     dataset.submissions.map((submission) => ({
       id: submission.id,
       referenceCode: submission.referenceCode,
@@ -564,9 +579,15 @@ export async function insertDemoDataset(
       dateCreated: submission.dateCreated,
       publishedAt: submission.publishedAt,
       locationId: DEMO_IDS.location(submission.n),
+      branchOfficeId: DEMO_IDS.branch(submission.branchN),
+      regionalOfficeId: DEMO_IDS.region(submission.regionN),
       status: submission.status,
       version: submission.version,
       idempotencyKey: submission.idempotencyKey,
+      firstSubmittedAt:
+        submission.status === "RESUBMITTED" && submission.submittedAt !== null
+          ? new Date(submission.submittedAt.getTime() - DAY_MS)
+          : submission.submittedAt,
       submittedAt: submission.submittedAt,
       approvedAt: submission.approvedAt,
       revokedAt: submission.revokedAt,
@@ -580,9 +601,10 @@ export async function insertDemoDataset(
       createdAt: submission.createdAt,
       updatedAt: submission.updatedAt,
     })),
+    (values) => tx.insert(schema.contentSubmissions).values(values),
   );
 
-  await tx.insert(schema.contentRevisions).values(
+  await insertChunked(
     dataset.revisions.map((revision) => ({
       id: revision.id,
       submissionId: DEMO_IDS.submission(revision.submissionN),
@@ -592,9 +614,10 @@ export async function insertDemoDataset(
       reason: revision.reason,
       createdAt: revision.createdAt,
     })),
+    (values) => tx.insert(schema.contentRevisions).values(values),
   );
 
-  await tx.insert(schema.contentReviews).values(
+  await insertChunked(
     dataset.reviews.map((review) => {
       const submission = dataset.submissions[review.submissionN - 1]!;
       return {
@@ -614,9 +637,10 @@ export async function insertDemoDataset(
         createdAt: review.createdAt,
       };
     }),
+    (values) => tx.insert(schema.contentReviews).values(values),
   );
 
-  await tx.insert(schema.kpiTargets).values(
+  await insertChunked(
     dataset.targets.map((targetItem) => ({
       id: targetItem.id,
       workspaceLabel: targetItem.workspaceLabel,
@@ -634,9 +658,10 @@ export async function insertDemoDataset(
       createdAt: targetItem.createdAt,
       updatedAt: targetItem.createdAt,
     })),
+    (values) => tx.insert(schema.kpiTargets).values(values),
   );
 
-  await tx.insert(schema.notifications).values(
+  await insertChunked(
     dataset.notifications.map((notification) => ({
       id: notification.id,
       recipientId: DEMO_IDS.user(notification.recipientAccountN),
@@ -658,9 +683,10 @@ export async function insertDemoDataset(
       dedupeKey: notification.dedupeKey,
       createdAt: notification.createdAt,
     })),
+    (values) => tx.insert(schema.notifications).values(values),
   );
 
-  await tx.insert(schema.outboxEvents).values(
+  await insertChunked(
     dataset.outbox.map((item) => ({
       id: item.id,
       eventKey: item.eventKey,
@@ -674,9 +700,10 @@ export async function insertDemoDataset(
       processedAt: item.processedAt,
       createdAt: item.createdAt,
     })),
+    (values) => tx.insert(schema.outboxEvents).values(values),
   );
 
-  await tx.insert(schema.auditLogs).values(
+  await insertChunked(
     dataset.audits.map((audit) => ({
       id: audit.id,
       actorId: DEMO_IDS.user(audit.actorAccountN),
@@ -691,11 +718,12 @@ export async function insertDemoDataset(
         audit.organizationN !== null
           ? DEMO_IDS.organization(audit.organizationN)
           : null,
-      correlationId: "demo-seed-v1",
+      correlationId: DEMO_SEED_VERSION,
       reason: "Seed dataset demo produksi",
       source: "SEED",
       createdAt: audit.createdAt,
     })),
+    (values) => tx.insert(schema.auditLogs).values(values),
   );
 }
 
@@ -843,15 +871,54 @@ export async function assertSeededCounts(
     sql`select count(*)::text as value from content_submissions where is_demo = true and content_type = 'INFOGRAFIS'`,
     counts.infografis,
   );
+  const approvedMonth = (period: string) => sql`
+    select count(*)::text as value
+      from content_submissions
+     where is_demo = true
+       and status = 'APPROVED'
+       and to_char(approved_at at time zone 'Asia/Jakarta', 'YYYY-MM') = ${period}
+  `;
   await expectCount(
     "approved periode berjalan",
-    sql`select count(*)::text as value from content_submissions where is_demo = true and status = 'APPROVED' and to_char(date_created, 'YYYY-MM') = ${dataset.currentPeriod}`,
+    approvedMonth(dataset.currentPeriod),
     counts.approvedCurrent,
   );
   await expectCount(
     "approved periode sebelumnya",
-    sql`select count(*)::text as value from content_submissions where is_demo = true and status = 'APPROVED' and to_char(date_created, 'YYYY-MM') = ${dataset.previousPeriod}`,
+    approvedMonth(dataset.previousPeriod),
     counts.approvedPrevious,
+  );
+  await expectCount(
+    "approved periode tertua",
+    approvedMonth(counts.oldestPeriod),
+    counts.approvedOldest,
+  );
+  const perPeriod = counts.submissions / counts.periods.length;
+  await expectCount(
+    "periode konten lengkap",
+    sql`select count(*)::text as value
+          from (
+            select to_char(date_created, 'YYYY-MM') as period
+              from content_submissions
+             where is_demo = true
+             group by 1
+            having count(*) = ${perPeriod}
+          ) periods`,
+    counts.periods.length,
+  );
+  await expectCount(
+    "approved per instansi dan periode",
+    sql`select count(*)::text as value
+          from (
+            select stakeholder_id,
+                   to_char(approved_at at time zone 'Asia/Jakarta', 'YYYY-MM') as period
+              from content_submissions
+             where is_demo = true
+               and status = 'APPROVED'
+               and approved_at is not null
+             group by 1, 2
+          ) coverage`,
+    counts.organizations * counts.periods.length,
   );
   await expectCount(
     "lokasi",
@@ -872,6 +939,21 @@ export async function assertSeededCounts(
     "target KPI",
     sql`select count(*)::text as value from kpi_targets where id in (${uuidIn(scope.targetIds)})`,
     counts.targets,
+  );
+  await expectCount(
+    "bentuk target per periode",
+    sql`select count(*)::text as value
+          from (
+            select period_start
+              from kpi_targets
+             where id in (${uuidIn(scope.targetIds)})
+             group by period_start
+            having count(*) = ${1 + SUB_THEMES.length + counts.organizations}
+               and count(*) filter (where stakeholder_id is null and sub_theme is null) = 1
+               and count(*) filter (where stakeholder_id is not null and sub_theme is null) = ${counts.organizations}
+               and count(*) filter (where stakeholder_id is null and sub_theme is not null) = ${SUB_THEMES.length}
+          ) periods`,
+    counts.periods.length,
   );
   await expectCount(
     "notifikasi",
@@ -963,6 +1045,7 @@ async function runTransaction(
         organizations: counts.organizations,
         accounts: counts.accounts,
         submissions: counts.submissions,
+        periods: counts.periods.length,
         locations: counts.locations,
         revisions: counts.revisions,
         reviews: counts.reviews,
@@ -975,6 +1058,8 @@ async function runTransaction(
         policyEvents: counts.policyEvents,
         approvedCurrent: counts.approvedCurrent,
         approvedPrevious: counts.approvedPrevious,
+        approvedOldest: counts.approvedOldest,
+        oldestTarget: counts.oldestTarget,
       },
       checksum: createHash("sha256")
         .update(
@@ -982,12 +1067,13 @@ async function runTransaction(
             dataset.currentPeriod,
             counts.accounts,
             counts.submissions,
+            counts.targets,
             counts.reviews,
           ]),
         )
         .digest("hex")
         .slice(0, 16),
-      notes: `Dataset demo ${dataset.currentPeriod}/${dataset.previousPeriod} (${counts.submissions} konten oleh ${counts.stakeholderAccounts} stakeholder).`,
+      notes: `Dataset demo ${counts.periods.length} bulan (${dataset.currentPeriod}..${counts.oldestPeriod}), ${counts.submissions} konten dan ${counts.targets} target oleh ${counts.stakeholderAccounts} stakeholder.`,
     });
   });
 }
@@ -1020,6 +1106,35 @@ async function main(): Promise<void> {
     );
 
     if (dryRun) {
+      const approvedByPeriod = new Map<string, number>();
+      for (const submission of dataset.submissions) {
+        if (
+          submission.status !== "APPROVED" ||
+          submission.approvedAt === null
+        ) {
+          continue;
+        }
+        const period = jakartaDateOnly(submission.approvedAt).slice(0, 7);
+        approvedByPeriod.set(period, (approvedByPeriod.get(period) ?? 0) + 1);
+      }
+      for (const period of dataset.periods) {
+        const content = dataset.submissions.filter(
+          (submission) => submission.period === period,
+        ).length;
+        const globalTarget =
+          dataset.targets.find(
+            (target) =>
+              target.period === period &&
+              target.organizationN === null &&
+              target.subTheme === null,
+          )?.targetCount ?? 0;
+        console.log(
+          `periode=${period} konten=${content} approved=${approvedByPeriod.get(period) ?? 0} target_global=${globalTarget}`,
+        );
+      }
+      console.log(
+        `total: periode=${dataset.periods.length} konten=${dataset.submissions.length} approved=${counts.approved} target=${counts.targets}`,
+      );
       console.log("Dry run selesai. Tidak ada baris yang ditulis.");
       return;
     }

@@ -2,13 +2,16 @@ import { createHash } from "node:crypto";
 
 import { sql, type SQL } from "drizzle-orm";
 
+import { chunk } from "./demo-chunk";
 import {
   DEMO_ACCOUNTS,
   DEMO_BRANCHES,
   DEMO_IDS,
   DEMO_ORGANIZATIONS,
   DEMO_REGIONS,
+  DEMO_VOLUME,
   buildDemoDataset,
+  type DemoVolume,
 } from "./demo-fixtures";
 
 export type DemoScope = {
@@ -32,8 +35,11 @@ export type DemoScope = {
   emails: string[];
 };
 
-export function collectDemoScope(now: Date = new Date()): DemoScope {
-  const dataset = buildDemoDataset(now);
+export function collectDemoScope(
+  now: Date = new Date(),
+  volume: DemoVolume = DEMO_VOLUME,
+): DemoScope {
+  const dataset = buildDemoDataset(now, volume);
   return {
     userIds: DEMO_ACCOUNTS.map((account) => DEMO_IDS.user(account.n)),
     regionIds: DEMO_REGIONS.map((region) => DEMO_IDS.region(region.n)),
@@ -88,6 +94,16 @@ async function remove(tx: SqlExecutor, query: SQL): Promise<void> {
   await tx.execute(query);
 }
 
+async function removeInChunks(
+  tx: SqlExecutor,
+  ids: readonly string[],
+  buildQuery: (values: string[]) => SQL,
+): Promise<void> {
+  for (const part of chunk([...ids])) {
+    await remove(tx, buildQuery(part));
+  }
+}
+
 /**
  * Deletes only the explicit demo ids produced by `demo-fixtures`. Themes,
  * rate limits, migration runs, and every non-demo row are left untouched.
@@ -98,45 +114,59 @@ export async function purgeDemoOnly(
 ): Promise<void> {
   if (scope.userIds.length === 0) return;
 
-  await remove(
+  await removeInChunks(
     tx,
-    sql`delete from outbox_events where id in (${uuidList(scope.outboxIds)})`,
+    scope.outboxIds,
+    (ids) => sql`delete from outbox_events where id in (${uuidList(ids)})`,
   );
-  await remove(
+  await removeInChunks(
     tx,
-    sql`delete from notifications where id in (${uuidList(scope.notificationIds)})`,
+    scope.notificationIds,
+    (ids) => sql`delete from notifications where id in (${uuidList(ids)})`,
   );
-  await remove(
+  await removeInChunks(
     tx,
-    sql`delete from content_reviews where id in (${uuidList(scope.reviewIds)})`,
+    scope.reviewIds,
+    (ids) => sql`delete from content_reviews where id in (${uuidList(ids)})`,
   );
-  await remove(
+  await removeInChunks(
     tx,
-    sql`delete from content_revisions where id in (${uuidList(scope.revisionIds)})`,
+    scope.revisionIds,
+    (ids) => sql`delete from content_revisions where id in (${uuidList(ids)})`,
   );
-  await remove(
+  await removeInChunks(
     tx,
-    sql`delete from content_submissions where id in (${uuidList(scope.submissionIds)})`,
+    scope.submissionIds,
+    (ids) =>
+      sql`delete from content_submissions where id in (${uuidList(ids)})`,
   );
-  await remove(
+  await removeInChunks(
     tx,
-    sql`delete from kpi_targets where id in (${uuidList(scope.targetIds)})`,
+    scope.targetIds,
+    (ids) => sql`delete from kpi_targets where id in (${uuidList(ids)})`,
   );
-  await remove(
+  await removeInChunks(
     tx,
-    sql`delete from locations where id in (${uuidList(scope.locationIds)})`,
+    scope.locationIds,
+    (ids) => sql`delete from locations where id in (${uuidList(ids)})`,
   );
-  await remove(
+  await removeInChunks(
     tx,
-    sql`delete from edufast_policy_events where id in (${uuidList(scope.policyEventIds)})`,
+    scope.policyEventIds,
+    (ids) =>
+      sql`delete from edufast_policy_events where id in (${uuidList(ids)})`,
   );
-  await remove(
+  await removeInChunks(
     tx,
-    sql`delete from edufast_policy_subthemes where policy_id in (${uuidList(scope.policyIds)})`,
+    scope.policyIds,
+    (ids) =>
+      sql`delete from edufast_policy_subthemes where policy_id in (${uuidList(ids)})`,
   );
-  await remove(
+  await removeInChunks(
     tx,
-    sql`delete from edufast_monthly_policies where id in (${uuidList(scope.policyIds)})`,
+    scope.policyIds,
+    (ids) =>
+      sql`delete from edufast_monthly_policies where id in (${uuidList(ids)})`,
   );
   await remove(
     tx,
@@ -178,9 +208,10 @@ export async function purgeDemoOnly(
     tx,
     sql`delete from regional_offices where id in (${uuidList(scope.regionIds)})`,
   );
-  await remove(
+  await removeInChunks(
     tx,
-    sql`delete from audit_logs where id in (${uuidList(scope.auditIds)})`,
+    scope.auditIds,
+    (ids) => sql`delete from audit_logs where id in (${uuidList(ids)})`,
   );
   await remove(
     tx,

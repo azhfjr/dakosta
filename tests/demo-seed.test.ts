@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 import * as schema from "../src/db/schema";
 import {
   DEMO_IDS,
+  DEMO_VOLUME_TEST,
   buildDemoDataset,
   expectedCounts,
 } from "../scripts/demo-fixtures";
@@ -58,7 +59,7 @@ async function countRows(
 }
 
 describe("production demo seed against Postgres semantics", () => {
-  it("inserts the full dataset, preserves real data, and is idempotent", async () => {
+  it("inserts the configured dataset, preserves real data, and is idempotent", async () => {
     const client = await createDatabase();
     const db = drizzle(client, { schema });
     const reader = db as unknown as SqlExecutor;
@@ -130,9 +131,10 @@ describe("production demo seed against Postgres semantics", () => {
       expect(before.masterUserId).toBe("real-master-0001");
       expect(before.masterAdminMemberships).toBe(1);
 
-      const dataset = buildDemoDataset(NOW);
-      const counts = expectedCounts(NOW);
-      const scope = collectDemoScope(NOW);
+      const dataset = buildDemoDataset(NOW, DEMO_VOLUME_TEST);
+      const counts = expectedCounts(NOW, DEMO_VOLUME_TEST);
+      const scope = collectDemoScope(NOW, DEMO_VOLUME_TEST);
+      const sample = dataset.submissions[0]!;
 
       const seedOnce = async () => {
         await db.transaction(async (tx) => {
@@ -155,33 +157,62 @@ describe("production demo seed against Postgres semantics", () => {
 
       expect(
         await countRows(client, "user_profiles", "where is_demo = true"),
-      ).toBe(32);
+      ).toBe(counts.accounts);
       expect(
         await countRows(
           client,
           "user",
           "where email like '%@demo.dakosta.local'",
         ),
-      ).toBe(32);
+      ).toBe(counts.accounts);
       expect(
         await countRows(client, "content_submissions", "where is_demo = true"),
-      ).toBe(50);
+      ).toBe(counts.submissions);
       expect(
         await countRows(client, "content_submissions", "where is_demo = false"),
       ).toBe(1);
-      expect(await countRows(client, "locations")).toBe(51);
+      expect(await countRows(client, "locations")).toBe(counts.locations + 1);
       expect(await countRows(client, "themes")).toBe(5);
       expect(
         await countRows(client, "themes", "where slug = 'edukasi-jkn'"),
       ).toBe(1);
-      expect(await countRows(client, "edufast_monthly_policies")).toBe(2);
-      expect(await countRows(client, "edufast_policy_subthemes")).toBe(12);
-      expect(await countRows(client, "content_revisions")).toBe(46);
-      expect(await countRows(client, "content_reviews")).toBe(33);
-      expect(await countRows(client, "kpi_targets")).toBe(28);
-      expect(await countRows(client, "notifications")).toBe(53);
-      expect(await countRows(client, "outbox_events")).toBe(53);
-      expect(await countRows(client, "audit_logs")).toBe(36);
+      expect(await countRows(client, "edufast_monthly_policies")).toBe(
+        counts.policies,
+      );
+      expect(await countRows(client, "edufast_policy_subthemes")).toBe(
+        counts.policySubthemes,
+      );
+      expect(await countRows(client, "edufast_policy_events")).toBe(
+        counts.policyEvents,
+      );
+      expect(await countRows(client, "content_revisions")).toBe(
+        counts.revisions,
+      );
+      expect(await countRows(client, "content_reviews")).toBe(counts.reviews);
+      expect(await countRows(client, "kpi_targets")).toBe(counts.targets);
+      expect(await countRows(client, "notifications")).toBe(
+        counts.notifications,
+      );
+      expect(await countRows(client, "outbox_events")).toBe(counts.outbox);
+      expect(await countRows(client, "audit_logs")).toBe(counts.audits);
+
+      const snapshots = await client.query<{
+        branch_office_id: string;
+        regional_office_id: string;
+        first_submitted_at: string | null;
+        submitted_at: string | null;
+      }>(
+        `select branch_office_id, regional_office_id, first_submitted_at, submitted_at
+           from content_submissions where id = $1`,
+        [sample.id],
+      );
+      const snapshot = snapshots.rows[0]!;
+      expect(snapshot.branch_office_id).toBe(DEMO_IDS.branch(sample.branchN));
+      expect(snapshot.regional_office_id).toBe(DEMO_IDS.region(sample.regionN));
+      expect(snapshot.first_submitted_at).not.toBeNull();
+      expect(
+        new Date(snapshot.first_submitted_at!).getTime(),
+      ).toBeLessThanOrEqual(new Date(snapshot.submitted_at!).getTime());
 
       const masterAfter = await client.query<{ password: string }>(
         `select a.password from "user" u join account a
@@ -220,7 +251,7 @@ describe("production demo seed against Postgres semantics", () => {
              on a.user_id = u.id and a.provider_id = 'credential'
             where u.email like '%@demo.dakosta.local'`,
       );
-      expect(allDemoAccounts.rows).toHaveLength(32);
+      expect(allDemoAccounts.rows).toHaveLength(counts.accounts);
       for (const row of allDemoAccounts.rows) {
         expect(row.role).toBe("user");
         await expect(
@@ -229,28 +260,35 @@ describe("production demo seed against Postgres semantics", () => {
       }
 
       const sampleSubmission = await client.query<{ id: string }>(
-        `select id from content_submissions where reference_code = 'DKS-202610-D0021'`,
+        `select id from content_submissions where reference_code = $1`,
+        [sample.referenceCode],
       );
-      const sampleId = sampleSubmission.rows[0]?.id;
-      expect(sampleId).toBe(DEMO_IDS.submission(21));
+      expect(sampleSubmission.rows[0]?.id).toBe(sample.id);
 
       await seedOnce();
 
       expect(
         await countRows(client, "user_profiles", "where is_demo = true"),
-      ).toBe(32);
+      ).toBe(counts.accounts);
       expect(
         await countRows(client, "content_submissions", "where is_demo = true"),
-      ).toBe(50);
-      expect(await countRows(client, "content_revisions")).toBe(46);
-      expect(await countRows(client, "content_reviews")).toBe(33);
-      expect(await countRows(client, "notifications")).toBe(53);
-      expect(await countRows(client, "outbox_events")).toBe(53);
+      ).toBe(counts.submissions);
+      expect(await countRows(client, "content_revisions")).toBe(
+        counts.revisions,
+      );
+      expect(await countRows(client, "content_reviews")).toBe(counts.reviews);
+      expect(await countRows(client, "kpi_targets")).toBe(counts.targets);
+      expect(await countRows(client, "notifications")).toBe(
+        counts.notifications,
+      );
+      expect(await countRows(client, "outbox_events")).toBe(counts.outbox);
+      expect(await countRows(client, "audit_logs")).toBe(counts.audits);
       expect(await countRows(client, "themes")).toBe(5);
       const sampleAfterRerun = await client.query<{ id: string }>(
-        `select id from content_submissions where reference_code = 'DKS-202610-D0021'`,
+        `select id from content_submissions where reference_code = $1`,
+        [sample.referenceCode],
       );
-      expect(sampleAfterRerun.rows[0]?.id).toBe(sampleId);
+      expect(sampleAfterRerun.rows[0]?.id).toBe(sample.id);
 
       const afterSecond = await snapshotInvariants(reader);
       assertInvariantsPreserved(before, afterSecond);
@@ -277,6 +315,16 @@ describe("production demo seed against Postgres semantics", () => {
       expect(
         await countRows(client, "content_submissions", "where is_demo = false"),
       ).toBe(1);
+      expect(await countRows(client, "locations")).toBe(1);
+      expect(await countRows(client, "content_revisions")).toBe(0);
+      expect(await countRows(client, "content_reviews")).toBe(0);
+      expect(await countRows(client, "kpi_targets")).toBe(0);
+      expect(await countRows(client, "notifications")).toBe(0);
+      expect(await countRows(client, "outbox_events")).toBe(0);
+      expect(await countRows(client, "audit_logs")).toBe(0);
+      expect(await countRows(client, "edufast_monthly_policies")).toBe(0);
+      expect(await countRows(client, "edufast_policy_subthemes")).toBe(0);
+      expect(await countRows(client, "edufast_policy_events")).toBe(0);
       expect(await countRows(client, "themes")).toBe(5);
       expect(
         await countRows(client, "user_profiles", "where is_demo = false"),

@@ -1,27 +1,28 @@
 # D13 — Status Jujur
 
-**Diperbarui:** 2026-11-02 (deploy produksi v1.1). Baseline `51c92be`, branch `fix/all-features-hardening`.
+**Diperbarui:** 2026-11-02 (deploy produksi v1.1 + perluasan dataset demo). Baseline `51c92be`, branch `fix/all-features-hardening`.
 
 Label: DONE (bukti lulus), PARTIAL (sebagian), BLOCKED, NOT RUN.
 
-| Area                     | Status                                 | Bukti                                                                                                       |
-| ------------------------ | -------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Audit statis D1–D13      | DONE                                   | `docs/audit/**`                                                                                             |
-| Lint                     | DONE (PASS)                            | `npm run lint` → exit 0                                                                                     |
-| Typecheck                | DONE (PASS)                            | `npx tsc --noEmit` → exit 0                                                                                 |
-| Unit/integration         | DONE (111/111 PASS)                    | `npm test` → 18 berkas, 111 tes                                                                             |
-| Format                   | DONE (PASS)                            | `npm run format:check` → semua berkas sesuai                                                                |
-| Build produksi           | DONE (PASS)                            | `npm run build:verify` → `.next-verify`                                                                     |
-| E2E Playwright           | PARTIAL — 53/54 lulus pada build rilis | `.tmp-e2e-final.log`; kegagalan tunggal = data target sisa run lama, lulus setelah reset                    |
-| A11y axe (WCAG 2.1 AA)   | DONE (PASS)                            | `e2e/a11y.spec.ts` lulus pada semua run (4 tes)                                                             |
-| Perf 14 rute (100k)      | DONE (PASS)                            | `E-perf-100k-2026-11-01T18-08-44.log`                                                                       |
-| Load 50 VU/5m (100k)     | GAGAL pada build rilis `85feaa9`       | `E-load-read-2026-11-01T13-50-18-420Z.json` → p95 4.021 ms; lulus 09:33 pada build pra-rilis (p95 1.867 ms) |
-| Load 200/500 VU, soak    | GAGAL — dijalankan pada jaringan rusak | `E-load-soak-2026-11-01T15-23-52-009Z.json` (200 VU, p95 14,9 dtk, 78.111 error, 0 5xx); `E-load-export-2026-11-01T15-29-54-279Z.json` |
-| Query plan (4 skenario)  | DONE (PASS)                            | `E-explain-*-2026-11-01T11-12-*.json`                                                                       |
-| Rekonsiliasi angka       | DONE (PASS)                            | `platform.spec.ts` rekonsiliasi + smoke produksi                                                            |
-| `npm audit --omit=dev`   | DONE (0 kerentanan)                    | `npm audit --omit=dev` → found 0 vulnerabilities                                                            |
-| Migrasi aditif 0004/0005 | DONE (PASS)                            | 30 DDL tanpa DROP/TRUNCATE/DELETE; reheasal staging tercatat                                                |
-| Deploy produksi          | DONE (di-override pengguna)            | `dpl_ub12np1amRNyc5V5Np7LePXG4wqt`; smoke 21/21 `E-smoke-production-2026-11-01T17-37-35-067Z.json`           |
+| Area                                 | Status                                                | Bukti                                                                                                                                  |
+| ------------------------------------ | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Audit statis D1–D13                  | DONE                                                  | `docs/audit/**`                                                                                                                        |
+| Lint                                 | DONE (PASS)                                           | `npm run lint` → exit 0                                                                                                                |
+| Typecheck                            | DONE (PASS)                                           | `npx tsc --noEmit` → exit 0                                                                                                            |
+| Unit/integration                     | DONE (120/120 PASS)                                   | `npm test` → 19 berkas, 120 tes (termasuk fixture 2.400 konten dan seed PGlite)                                                        |
+| Dataset demo produksi (2.400 konten) | PARTIAL — fixture/tes DONE, seed produksi G3/G4 belum | Fixture 24 bulan + 648 target; bukti produksi menyusul `E-seed-demo-production-*`, `E-verify-demo-production-*`                        |
+| Format                               | DONE (PASS)                                           | `npm run format:check` → semua berkas sesuai                                                                                           |
+| Build produksi                       | DONE (PASS)                                           | `npm run build:verify` → `.next-verify`                                                                                                |
+| E2E Playwright                       | PARTIAL — 53/54 lulus pada build rilis                | `.tmp-e2e-final.log`; kegagalan tunggal = data target sisa run lama, lulus setelah reset                                               |
+| A11y axe (WCAG 2.1 AA)               | DONE (PASS)                                           | `e2e/a11y.spec.ts` lulus pada semua run (4 tes)                                                                                        |
+| Perf 14 rute (100k)                  | DONE (PASS)                                           | `E-perf-100k-2026-11-01T18-08-44.log`                                                                                                  |
+| Load 50 VU/5m (100k)                 | GAGAL pada build rilis `85feaa9`                      | `E-load-read-2026-11-01T13-50-18-420Z.json` → p95 4.021 ms; lulus 09:33 pada build pra-rilis (p95 1.867 ms)                            |
+| Load 200/500 VU, soak                | GAGAL — dijalankan pada jaringan rusak                | `E-load-soak-2026-11-01T15-23-52-009Z.json` (200 VU, p95 14,9 dtk, 78.111 error, 0 5xx); `E-load-export-2026-11-01T15-29-54-279Z.json` |
+| Query plan (4 skenario)              | DONE (PASS)                                           | `E-explain-*-2026-11-01T11-12-*.json`                                                                                                  |
+| Rekonsiliasi angka                   | DONE (PASS)                                           | `platform.spec.ts` rekonsiliasi + smoke produksi                                                                                       |
+| `npm audit --omit=dev`               | DONE (0 kerentanan)                                   | `npm audit --omit=dev` → found 0 vulnerabilities                                                                                       |
+| Migrasi aditif 0004/0005             | DONE (PASS)                                           | 30 DDL tanpa DROP/TRUNCATE/DELETE; reheasal staging tercatat                                                                           |
+| Deploy produksi                      | DONE (di-override pengguna)                           | `dpl_ub12np1amRNyc5V5Np7LePXG4wqt`; smoke 21/21 `E-smoke-production-2026-11-01T17-37-35-067Z.json`                                     |
 
 ## Implementasi paket
 
@@ -60,15 +61,15 @@ Hasil: error tak tertangani pada suite turun dari berulang menjadi **0**; sisa k
 
 Build rilis `85feaa9` diuji pada staging lokal (port 3400, `DB_POOL_MAX=20`, Neon staging us-east-1):
 
-| Uji                     | Hasil                                                                  | Status       |
-| ----------------------- | ---------------------------------------------------------------------- | ------------ |
-| Tahap 1 — 50 VU/5m      | 22,5 rps; p50 1.826 ms; p95 4.021 ms; p99 6.086 ms; error 0; 5xx 0     | GAGAL ambang |
-| Diagnostik 20 VU        | `/client` p50 4.706 ms; DB aktif 1–2 dari 21 koneksi                   | DB idle      |
-| Probe 5 VU/60s          | 0,5 rps; p50 7.505 ms; p95 17.739 ms; error 0; 5xx 0                   | GAGAL ambang |
-| Jaringan                | RTT TCP 790 ms ke Neon, 333 ms ke 1.1.1.1; `SELECT 1` idle 1,7–4,3 dtk | Memburuk     |
-| Tahap 2–3               | tidak dijalankan                                                       | NOT RUN      |
-| Soak 200 VU/30m         | 18,9 rps; p95 14,9 dtk; p99 30 dtk; 78.111 error; 0 5xx                | GAGAL        |
-| Ekspor 20 VU/5m         | 22,5 rps; p95 1.142 ms; p99 4.317 ms; 2.707 error; 0 5xx               | GAGAL        |
+| Uji                | Hasil                                                                  | Status       |
+| ------------------ | ---------------------------------------------------------------------- | ------------ |
+| Tahap 1 — 50 VU/5m | 22,5 rps; p50 1.826 ms; p95 4.021 ms; p99 6.086 ms; error 0; 5xx 0     | GAGAL ambang |
+| Diagnostik 20 VU   | `/client` p50 4.706 ms; DB aktif 1–2 dari 21 koneksi                   | DB idle      |
+| Probe 5 VU/60s     | 0,5 rps; p50 7.505 ms; p95 17.739 ms; error 0; 5xx 0                   | GAGAL ambang |
+| Jaringan           | RTT TCP 790 ms ke Neon, 333 ms ke 1.1.1.1; `SELECT 1` idle 1,7–4,3 dtk | Memburuk     |
+| Tahap 2–3          | tidak dijalankan                                                       | NOT RUN      |
+| Soak 200 VU/30m    | 18,9 rps; p95 14,9 dtk; p99 30 dtk; 78.111 error; 0 5xx                | GAGAL        |
+| Ekspor 20 VU/5m    | 22,5 rps; p95 1.142 ms; p99 4.317 ms; 2.707 error; 0 5xx               | GAGAL        |
 
 Karena probe **5 VU** pun gagal sementara tidak ada 5xx dan basis data menganggur, penyebabnya adalah latensi/ketidakstabilan jalur jaringan lokal ke Neon saat pengujian; log server mencatat 1.427 `timeout exceeded when trying to connect`. Run 50 VU yang lulus pukul 09:33 UTC pada build pra-rilis (p95 1.867 ms) menunjukkan aplikasi dapat memenuhi ambang saat jaringan normal.
 

@@ -11,10 +11,10 @@ Demo publik (rilis v3): **https://dakosta-dakosta.vercel.app**
 
 ## Status rilis v4
 
-| Lingkungan                                                 | Status                                  | Keterangan                                                                                                                                                     |
-| ---------------------------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Staging (database Neon `dakosta_staging` + Vercel Preview) | **TERVERIFIKASI**                       | 3 migrasi, fixture deterministik, unit 34/34, E2E 40/40, subset build produksi 23/23, axe + mobile, smoke preview                                              |
-| Produksi                                                   | **v4 live + dataset demo (2026-10-31)** | 3 migrasi, backup terverifikasi, 1 Master asli, containment demo aktif, 32 akun demo + 50 konten dari 20 stakeholder, verifikasi DB/HTTP lulus, seed idempoten |
+| Lingkungan                                                 | Status                                            | Keterangan                                                                                                                                                                        |
+| ---------------------------------------------------------- | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Staging (database Neon `dakosta_staging` + Vercel Preview) | **TERVERIFIKASI**                                 | 3 migrasi, fixture deterministik, unit 34/34, E2E 40/40, subset build produksi 23/23, axe + mobile, smoke preview                                                                 |
+| Produksi                                                   | **v4 live + dataset demo (diperluas 2026-11-02)** | 3 migrasi, backup terverifikasi, 1 Master asli, containment demo aktif, 32 akun demo + 2.400 konten dari 20 stakeholder, 648 target KPI, verifikasi DB/HTTP lulus, seed idempoten |
 
 Bukti per gate, traceability R01–R18, dan daftar item PARTIAL/BLOCKED ada di
 [`docs/v4-handoff.md`](docs/v4-handoff.md).
@@ -244,8 +244,11 @@ npm run db:bootstrap:master                   # butuh BOOTSTRAP_CONFIRM=bootstra
 ### Dataset demo produksi
 
 Produksi dapat diisi dataset demo sintetis (32 akun, 3 wilayah, 8 cabang, 20
-organisasi stakeholder, 50 konten) tanpa mengaktifkan `DEMO_MODE`. Akun demo
-masuk lewat `/masuk` seperti akun biasa; `/api/v1/demo/login` tetap 404.
+organisasi stakeholder, 2.400 konten dalam 24 bulan, 648 target KPI) tanpa
+mengaktifkan `DEMO_MODE`. Setiap instansi menerima 5 konten setiap bulan dan
+target bulanannya, sehingga dashboard, Kinerja, analitik, dan peta terisi untuk
+semua cabang. Akun demo masuk lewat `/masuk` seperti akun biasa;
+`/api/v1/demo/login` tetap 404.
 
 ```bash
 # 1) backup + verifikasi manifest
@@ -276,7 +279,9 @@ PURGE_DEMO_CONFIRM=purge-demo-only npm run db:purge:demo:production
 - Purge demo memakai daftar ID eksplisit dan email terlindungi; snapshot
   invariant non-demo (Master, hash sandi, jumlah baris) dibandingkan sebelum
   dan sesudah, dan selisih apa pun membatalkan transaksi.
-- Peta menampilkan 40 titik karena 7 draf dan 3 arsip memang dikecualikan.
+- Peta menampilkan maksimal 500 titik terbaru dari 1.745 titik eligible
+  (2.400 konten − 20 draf − 635 arsip); API menandai `truncated=true` saat
+  daftar titik dipotong dan `totals.points` tetap menghitung seluruhnya.
 - `db:purge:production` (purge penuh) kini permanen diblokir karena Master asli
   `is_demo=false`; gunakan `db:purge:demo:production` untuk menghapus demo.
 - Kredensial demo ditulis ke `.secrets/demo-accounts-<stamp>.txt` (mode 0600,

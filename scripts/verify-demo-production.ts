@@ -25,6 +25,9 @@ import { assertSeededCounts } from "./seed-demo-production";
 const DEFAULT_BASE_URL = "https://dakosta-dakosta.vercel.app";
 const CREDENTIALS_PREFIX = "demo-accounts-";
 const DEMO_ACCOUNT_MESSAGE = "Akun demo tidak dapat mengubah akun";
+const SUBMISSION_PAGE_CAP = 100;
+const MAP_POINT_CAP = 500;
+const REVIEW_PAGE_CAP = 50;
 
 type VerifyDb = NeonDatabase<typeof schema>;
 
@@ -437,11 +440,34 @@ async function verifyHttp(
       expected.previousTarget,
     );
 
+    const oldest = expectOk(
+      "dashboard bulan tertua",
+      await api<{ approved: { value: number; target: number | null } }>(
+        base,
+        `/api/v1/dashboard/admin?month=${expected.oldestPeriod}`,
+        cookie,
+      ),
+    );
+    expectEqual(
+      "approved bulan tertua",
+      oldest.approved.value,
+      expected.approvedOldest,
+    );
+    expectEqual(
+      "target bulan tertua",
+      oldest.approved.target ?? -1,
+      expected.oldestTarget,
+    );
+
     const submissions = expectOk(
       "daftar konten master",
       await api<unknown[]>(base, "/api/v1/submissions?limit=100", cookie),
     );
-    expectEqual("konten master", submissions.length, expected.submissions);
+    expectEqual(
+      "konten master",
+      submissions.length,
+      Math.min(SUBMISSION_PAGE_CAP, expected.submissions),
+    );
 
     const map = expectOk(
       "peta master",
@@ -451,7 +477,11 @@ async function verifyHttp(
         cookie,
       ),
     );
-    expectEqual("titik peta", map.points.length, expected.mapPoints);
+    expectEqual(
+      "titik peta",
+      map.points.length,
+      Math.min(MAP_POINT_CAP, expected.mapPoints),
+    );
     expectEqual("total titik peta", map.totals.points, expected.mapPoints);
 
     const created = await fetch(`${base}/api/v1/admin/users`, {
@@ -477,7 +507,7 @@ async function verifyHttp(
     expectEqual(
       "konten wilayah A",
       submissions.length,
-      expected.regionSubmissions[0]!,
+      Math.min(SUBMISSION_PAGE_CAP, expected.regionSubmissions[0]!),
     );
 
     const cross = await api<unknown>(
@@ -503,7 +533,7 @@ async function verifyHttp(
     expectEqual(
       "item antrean cabang A1",
       queue.items.length,
-      expected.branchPending[0]!,
+      Math.min(REVIEW_PAGE_CAP, expected.branchPending[0]!),
     );
 
     const cross = await api<unknown>(
@@ -521,7 +551,11 @@ async function verifyHttp(
       "konten mitra",
       await api<unknown[]>(base, "/api/v1/submissions?limit=100", cookie),
     );
-    expectEqual("konten mitra", submissions.length, stakeholderContent);
+    expectEqual(
+      "konten mitra",
+      submissions.length,
+      Math.min(SUBMISSION_PAGE_CAP, stakeholderContent),
+    );
 
     for (const path of ["/client", "/client/konten"]) {
       const page = await fetch(`${base}${path}`, {

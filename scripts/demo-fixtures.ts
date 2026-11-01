@@ -9,8 +9,30 @@ import { detectPii } from "../src/lib/validation/content";
  */
 
 export const DEMO_DOMAIN = "demo.dakosta.local";
-export const DEMO_SEED_VERSION = "demo-seed-v1";
+export const DEMO_SEED_VERSION = "demo-seed-v2";
 const DAY_MS = 86_400_000;
+
+export type DemoVolume = {
+  months: number;
+  slotsPerOrgMonth: number;
+};
+
+export const DEMO_VOLUME: DemoVolume = { months: 24, slotsPerOrgMonth: 5 };
+export const DEMO_VOLUME_TEST: DemoVolume = { months: 3, slotsPerOrgMonth: 5 };
+
+export function demoSubmissionsPerMonth(
+  volume: DemoVolume = DEMO_VOLUME,
+): number {
+  return DEMO_ORGANIZATIONS.length * volume.slotsPerOrgMonth;
+}
+
+export function demoSubmissionTotal(volume: DemoVolume = DEMO_VOLUME): number {
+  return volume.months * demoSubmissionsPerMonth(volume);
+}
+
+export function demoTargetTotal(volume: DemoVolume = DEMO_VOLUME): number {
+  return volume.months * (1 + SUB_THEMES.length + DEMO_ORGANIZATIONS.length);
+}
 
 export type DemoStatus =
   | "DRAFT"
@@ -716,66 +738,56 @@ export function regionForOrganization(organizationN: number): number {
   return DEMO_BRANCHES[branchForOrganization(organizationN) - 1]!.regionN;
 }
 
-export function organizationForContent(n: number): number {
-  return n <= 30 ? Math.ceil(n / 3) : 11 + Math.floor((n - 31) / 2);
+export function organizationForContent(
+  n: number,
+  volume: DemoVolume = DEMO_VOLUME,
+): number {
+  const perPeriod = demoSubmissionsPerMonth(volume);
+  return Math.floor(((n - 1) % perPeriod) / volume.slotsPerOrgMonth) + 1;
 }
 
-export const CONTENT_STATUS_BY_N: readonly DemoStatus[] = [
-  "APPROVED",
-  "APPROVED",
-  "DRAFT",
-  "APPROVED",
-  "DRAFT",
-  "ARCHIVED",
-  "APPROVED",
-  "SUBMITTED",
-  "REVISION_REQUIRED",
-  "APPROVED",
-  "IN_REVIEW",
-  "DRAFT",
-  "APPROVED",
-  "DRAFT",
-  "REJECTED",
-  "SUBMITTED",
-  "REVISION_REQUIRED",
-  "REVOKED",
-  "REJECTED",
-  "DRAFT",
-  "APPROVED",
-  "APPROVED",
-  "APPROVED",
-  "SUBMITTED",
-  "RESUBMITTED",
-  "REVISION_REQUIRED",
-  "ARCHIVED",
-  "APPROVED",
-  "SUBMITTED",
-  "REVISION_REQUIRED",
-  "APPROVED",
-  "IN_REVIEW",
-  "RESUBMITTED",
-  "REJECTED",
-  "APPROVED",
-  "SUBMITTED",
-  "IN_REVIEW",
-  "DRAFT",
-  "RESUBMITTED",
-  "REVISION_REQUIRED",
-  "APPROVED",
-  "SUBMITTED",
-  "DRAFT",
-  "ARCHIVED",
-  "APPROVED",
-  "SUBMITTED",
-  "REJECTED",
-  "REVOKED",
-  "SUBMITTED",
-  "IN_REVIEW",
-];
+function mix32(a: number, b: number, c: number): number {
+  let hash = (a * 0x9e3779b1) ^ (b * 0x85ebca6b) ^ (c * 0xc2b2ae35);
+  hash ^= hash >>> 16;
+  hash = Math.imul(hash, 0x7feb352d);
+  hash ^= hash >>> 15;
+  hash = Math.imul(hash, 0x846ca68b);
+  hash ^= hash >>> 16;
+  return hash >>> 0;
+}
 
-const EDUFAST_BY_N = new Set<number>([
-  1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-]);
+export function demoStatusFor(
+  age: number,
+  organizationN: number,
+  slot: number,
+): DemoStatus {
+  if (age === 0) {
+    return (
+      ["APPROVED", "APPROVED", "IN_REVIEW", "SUBMITTED", "DRAFT"] as const
+    )[slot]!;
+  }
+  if (age === 1) {
+    return (
+      [
+        "APPROVED",
+        "APPROVED",
+        "RESUBMITTED",
+        "REVISION_REQUIRED",
+        "ARCHIVED",
+      ] as const
+    )[slot]!;
+  }
+  if (age === 2) {
+    return (
+      ["APPROVED", "APPROVED", "ARCHIVED", "REJECTED", "REVOKED"] as const
+    )[slot]!;
+  }
+  if (slot === 0 || slot === 1 || slot === 2) return "APPROVED";
+  if (slot === 3) {
+    return mix32(organizationN, age, 1) % 4 === 0 ? "REJECTED" : "ARCHIVED";
+  }
+  return age % 3 === 0 ? "REVOKED" : "ARCHIVED";
+}
 
 const PLATFORMS = [
   "INSTAGRAM",
@@ -880,21 +892,8 @@ function monthEnd(period: string): string {
   return `${period}-${String(lastDay).padStart(2, "0")}`;
 }
 
-function contentDay(n: number, period: string, today: string): number {
-  const day = 2 + ((n * 7) % 26);
-  if (period !== today.slice(0, 7)) return day;
-  const todayDay = Number(today.slice(8, 10));
-  return Math.min(day, Math.max(todayDay, 1));
-}
-
-function policyNForPeriod(
-  period: string,
-  current: string,
-  previous: string,
-): number {
-  if (period === current) return 1;
-  if (period === previous) return 2;
-  throw new Error(`Periode demo tidak dikenal: ${period}`);
+function policyNForAge(age: number): number {
+  return age + 1;
 }
 
 function decisionReason(status: DemoStatus): string | null {
@@ -914,37 +913,33 @@ function decisionReason(status: DemoStatus): string | null {
   }
 }
 
-function buildPolicies(now: Date): {
+function buildPolicies(
+  now: Date,
+  volume: DemoVolume = DEMO_VOLUME,
+): {
   policies: DemoPolicy[];
   events: DemoPolicyEvent[];
 } {
   const current = periodOf(now);
-  const previous = shiftPeriod(current, -1);
-  const definitions = [
-    {
-      n: 1,
-      period: current,
-      explanation:
-        "Fokus EDUFAST bulan berjalan: pemanfaatan Mobile JKN, alur berobat, testimoni peserta, dan edukasi persuasif.",
-    },
-    {
-      n: 2,
-      period: previous,
-      explanation:
-        "Fokus EDUFAST bulan sebelumnya: informasi layanan, alur berobat, dan konten korporat.",
-    },
-  ];
+  const definitions = Array.from({ length: volume.months }, (_, age) => ({
+    n: age + 1,
+    period: shiftPeriod(current, -age),
+  }));
 
   const policies = definitions.map((item) => {
     const publishedAt = clampInstant(instant(`${item.period}-01`, 1, 0), now);
     const createdAt = new Date(Math.max(publishedAt.getTime() - 3_600_000, 0));
+    const explanation =
+      item.n === 1
+        ? "Fokus EDUFAST bulan berjalan: pemanfaatan Mobile JKN, alur berobat, testimoni peserta, dan edukasi persuasif."
+        : `Fokus EDUFAST periode ${item.period}: informasi layanan, alur berobat, dan konten korporat.`;
     return {
       n: item.n,
       id: DEMO_IDS.policy(item.n),
       period: item.period,
       periodStart: `${item.period}-01`,
       periodEnd: monthEnd(item.period),
-      explanation: item.explanation,
+      explanation,
       createdAt,
       publishedAt,
     };
@@ -984,122 +979,154 @@ function periodOf(now: Date): string {
   return jakartaDateOnly(now).slice(0, 7);
 }
 
-export function buildSubmissions(now: Date = new Date()): DemoSubmission[] {
+export function buildSubmissions(
+  now: Date = new Date(),
+  volume: DemoVolume = DEMO_VOLUME,
+): DemoSubmission[] {
   const today = jakartaDateOnly(now);
   const current = periodOf(now);
-  const previous = shiftPeriod(current, -1);
+  const elapsedDay = Number(today.slice(8, 10));
+  const submissions: DemoSubmission[] = [];
+  let n = 1;
 
-  return CONTENT_STATUS_BY_N.map((status, index) => {
-    const n = index + 1;
-    const organizationN = organizationForContent(n);
-    const organization = DEMO_ORGANIZATIONS[organizationN - 1]!;
-    const branchN = organization.branchN;
-    const regionN = DEMO_BRANCHES[branchN - 1]!.regionN;
-    const authorAccountN = 12 + organizationN;
-    const reviewerAccountN = 4 + branchN;
-    const period = n <= 20 ? previous : current;
-    const day = contentDay(n, period, today);
-    const dateCreated = `${period}-${String(day).padStart(2, "0")}`;
-    const subTheme = SUB_THEMES[(n - 1) % SUB_THEMES.length]!;
-    const titlePool = TITLE_POOL[subTheme];
-    const title = `${titlePool[(n - 1) % titlePool.length]} · ${organization.name}`;
-    const publishedUrl = `https://demo.dakosta.example/konten/${String(n).padStart(2, "0")}`;
-    const normalized = normalizePublishedUrl(publishedUrl);
-    const isDraft = status === "DRAFT";
-    const isEdufast = EDUFAST_BY_N.has(n);
+  for (let age = 0; age < volume.months; age += 1) {
+    const period = shiftPeriod(current, -age);
+    for (
+      let organizationN = 1;
+      organizationN <= DEMO_ORGANIZATIONS.length;
+      organizationN += 1
+    ) {
+      const organization = DEMO_ORGANIZATIONS[organizationN - 1]!;
+      const branchN = organization.branchN;
+      const regionN = DEMO_BRANCHES[branchN - 1]!.regionN;
+      const authorAccountN = 12 + organizationN;
+      const reviewerAccountN = 4 + branchN;
 
-    const createdAt = clampInstant(instant(dateCreated, 2, 20 + (n % 20)), now);
-    const initialSubmitAt = clampInstant(instant(dateCreated, 3, n % 50), now);
+      for (let slot = 0; slot < volume.slotsPerOrgMonth; slot += 1) {
+        const seqInPeriod =
+          (organizationN - 1) * volume.slotsPerOrgMonth + slot + 1;
+        const seed = mix32(organizationN, age, slot);
+        const status = demoStatusFor(age, organizationN, slot);
+        const day =
+          age === 0
+            ? 1 + (seed % Math.max(1, elapsedDay - 1))
+            : 1 + (seed % 26);
+        const dateCreated = `${period}-${String(day).padStart(2, "0")}`;
+        const subTheme =
+          SUB_THEMES[(organizationN - 1 + slot) % SUB_THEMES.length]!;
+        const titlePool = TITLE_POOL[subTheme];
+        const title = `${titlePool[(organizationN + slot) % titlePool.length]} · ${organization.name}`;
+        const publishedUrl = `https://demo.dakosta.example/konten/${String(n).padStart(4, "0")}`;
+        const normalized = normalizePublishedUrl(publishedUrl);
+        const isDraft = status === "DRAFT";
+        const isEdufast = slot % 2 === 0;
 
-    let submittedAt: Date | null = isDraft ? null : initialSubmitAt;
-    let approvedAt: Date | null = null;
-    let revokedAt: Date | null = null;
-    let updatedAt = isDraft ? createdAt : initialSubmitAt;
+        const createdAt = clampInstant(
+          instant(dateCreated, 2, 20 + (seed % 40)),
+          now,
+        );
+        const initialSubmitAt = clampInstant(
+          instant(dateCreated, 3, seed % 60),
+          now,
+        );
 
-    if (status === "APPROVED" || status === "ARCHIVED") {
-      approvedAt = clampInstant(addDays(initialSubmitAt, 1), now);
-      updatedAt = approvedAt;
-    } else if (status === "REJECTED" || status === "REVISION_REQUIRED") {
-      updatedAt = clampInstant(addDays(initialSubmitAt, 0.5), now);
-    } else if (status === "RESUBMITTED") {
-      const revisionAt = clampInstant(addDays(initialSubmitAt, 0.5), now);
-      submittedAt = clampInstant(addDays(revisionAt, 0.5), now);
-      updatedAt = submittedAt;
-    } else if (status === "REVOKED") {
-      approvedAt = clampInstant(addDays(initialSubmitAt, 1), now);
-      revokedAt = clampInstant(addDays(approvedAt, 0.5), now);
-      updatedAt = revokedAt;
+        let submittedAt: Date | null = isDraft ? null : initialSubmitAt;
+        let approvedAt: Date | null = null;
+        let revokedAt: Date | null = null;
+        let updatedAt = isDraft ? createdAt : initialSubmitAt;
+
+        if (status === "APPROVED" || status === "ARCHIVED") {
+          approvedAt = clampInstant(addDays(initialSubmitAt, 1), now);
+          updatedAt = approvedAt;
+        } else if (status === "REJECTED" || status === "REVISION_REQUIRED") {
+          updatedAt = clampInstant(addDays(initialSubmitAt, 0.5), now);
+        } else if (status === "RESUBMITTED") {
+          const revisionAt = clampInstant(addDays(initialSubmitAt, 0.5), now);
+          submittedAt = clampInstant(addDays(revisionAt, 0.5), now);
+          updatedAt = submittedAt;
+        } else if (status === "REVOKED") {
+          approvedAt = clampInstant(addDays(initialSubmitAt, 1), now);
+          revokedAt = clampInstant(addDays(approvedAt, 0.5), now);
+          updatedAt = revokedAt;
+        }
+
+        const approvedSnapshot =
+          approvedAt !== null
+            ? {
+                title,
+                mainTheme: isEdufast ? "EDUFAST" : "NON_EDUFAST",
+                subTheme,
+                version: 1,
+              }
+            : null;
+
+        submissions.push({
+          n,
+          id: DEMO_IDS.submission(n),
+          referenceCode: `DKS-${period.replace("-", "")}-D${String(seqInPeriod).padStart(4, "0")}`,
+          organizationN,
+          regionN,
+          branchN,
+          authorAccountN,
+          reviewerAccountN:
+            status === "DRAFT" ||
+            status === "SUBMITTED" ||
+            status === "IN_REVIEW"
+              ? null
+              : reviewerAccountN,
+          title,
+          narrative: `${title}. ${SUB_THEME_NARRATIVE[subTheme]} Narasi ini merupakan konten demonstrasi sintetis dan tidak memuat data pribadi, nomor identitas, maupun rekam medis.`,
+          publishedUrl,
+          normalizedUrl: normalized.normalizedUrl,
+          normalizedUrlHash: normalized.normalizedUrlHash,
+          platform: PLATFORMS[(organizationN + slot + age) % PLATFORMS.length]!,
+          contentType: isEdufast ? "VIDEO" : "INFOGRAFIS",
+          mainTheme: isEdufast ? "EDUFAST" : "NON_EDUFAST",
+          subTheme,
+          themeSlug:
+            DEMO_THEMES[(organizationN + slot + age) % DEMO_THEMES.length]!
+              .slug,
+          period,
+          dateCreated,
+          publishedAt: isDraft ? null : dateCreated,
+          status,
+          version: status === "RESUBMITTED" ? 2 : 1,
+          resubmissionCount: status === "RESUBMITTED" ? 1 : 0,
+          submittedAt,
+          approvedAt,
+          revokedAt,
+          createdAt,
+          updatedAt,
+          decisionReason: decisionReason(status),
+          archived: status === "ARCHIVED",
+          approvedSnapshot,
+          approvedVersion: approvedAt !== null ? 1 : null,
+          edufastPolicyN: isEdufast ? policyNForAge(age) : null,
+          edufastPolicyVersion: isEdufast ? 1 : null,
+          idempotencyKey: `${DEMO_SEED_VERSION}:submission:${String(n).padStart(5, "0")}`,
+        });
+        n += 1;
+      }
     }
+  }
 
-    const approvedSnapshot =
-      approvedAt !== null
-        ? {
-            title,
-            mainTheme: isEdufast ? "EDUFAST" : "NON_EDUFAST",
-            subTheme,
-            version: 1,
-          }
-        : null;
-
-    return {
-      n,
-      id: DEMO_IDS.submission(n),
-      referenceCode: `DKS-${period.replace("-", "")}-D${String(n).padStart(4, "0")}`,
-      organizationN,
-      regionN,
-      branchN,
-      authorAccountN,
-      reviewerAccountN:
-        status === "DRAFT" || status === "SUBMITTED" || status === "IN_REVIEW"
-          ? null
-          : reviewerAccountN,
-      title,
-      narrative: `${title}. ${SUB_THEME_NARRATIVE[subTheme]} Narasi ini merupakan konten demonstrasi sintetis dan tidak memuat data pribadi, nomor identitas, maupun rekam medis.`,
-      publishedUrl,
-      normalizedUrl: normalized.normalizedUrl,
-      normalizedUrlHash: normalized.normalizedUrlHash,
-      platform: PLATFORMS[(n - 1) % PLATFORMS.length]!,
-      contentType: n % 2 === 1 ? "VIDEO" : "INFOGRAFIS",
-      mainTheme: isEdufast ? "EDUFAST" : "NON_EDUFAST",
-      subTheme,
-      themeSlug: DEMO_THEMES[(n - 1) % DEMO_THEMES.length]!.slug,
-      period,
-      dateCreated,
-      publishedAt: isDraft ? null : dateCreated,
-      status,
-      version: status === "RESUBMITTED" ? 2 : 1,
-      resubmissionCount: status === "RESUBMITTED" ? 1 : 0,
-      submittedAt,
-      approvedAt,
-      revokedAt,
-      createdAt,
-      updatedAt,
-      decisionReason: decisionReason(status),
-      archived: status === "ARCHIVED",
-      approvedSnapshot,
-      approvedVersion: approvedAt !== null ? 1 : null,
-      edufastPolicyN: isEdufast
-        ? policyNForPeriod(period, current, previous)
-        : null,
-      edufastPolicyVersion: isEdufast ? 1 : null,
-      idempotencyKey: `${DEMO_SEED_VERSION}:submission:${String(n).padStart(4, "0")}`,
-    };
-  });
+  return submissions;
 }
 
 export function buildLocations(
   now: Date = new Date(),
   submissions = buildSubmissions(now),
 ): DemoLocation[] {
-  const today = jakartaDateOnly(now);
-  const current = periodOf(now);
-
   return submissions.map((submission) => {
     const organization = DEMO_ORGANIZATIONS[submission.organizationN - 1]!;
-    const jitter = JITTER[(submission.n - 1) % JITTER.length]!;
-    const isGps = submission.n % 3 === 0;
-    const period = submission.n <= 20 ? shiftPeriod(current, -1) : current;
-    const locationDate = `${period}-${String(contentDay(submission.n, period, today)).padStart(2, "0")}`;
+    const seed = mix32(submission.organizationN, submission.n, 2);
+    const jitter = JITTER[submission.n % JITTER.length]!;
+    const isGps = seed % 3 !== 0;
+    const createdAt = clampInstant(
+      instant(submission.dateCreated, 2, seed % 60),
+      now,
+    );
+
     return {
       n: submission.n,
       id: DEMO_IDS.location(submission.n),
@@ -1109,10 +1136,10 @@ export function buildLocations(
       label: `${organization.name} — titik konten demo`,
       source: isGps ? "device_gps" : "manual_pin",
       accuracyMeters: isGps ? 25 : null,
-      consentAt: isGps ? clampInstant(instant(locationDate, 2, 0), now) : null,
+      consentAt: isGps ? createdAt : null,
       verifiedStatus: isGps ? "VERIFIED" : "MANUAL_UNVERIFIED",
       precision: isGps ? "exact" : "approximate",
-      createdAt: clampInstant(instant(locationDate, 2, 0), now),
+      createdAt,
     };
   });
 }
@@ -1305,9 +1332,33 @@ export function buildReviews(
   return reviews;
 }
 
-export function buildTargets(now: Date = new Date()): DemoTarget[] {
+function approvedCountsByOrganizationPeriod(
+  submissions: readonly DemoSubmission[],
+): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const submission of submissions) {
+    if (submission.status !== "APPROVED" || submission.approvedAt === null) {
+      continue;
+    }
+    const period = jakartaDateOnly(submission.approvedAt).slice(0, 7);
+    const key = `${submission.organizationN}:${period}`;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return counts;
+}
+
+function targetDelta(age: number, organizationN: number): number {
+  if (age === 0) return 1;
+  return ([-1, 0, 1] as const)[(organizationN + age) % 3]!;
+}
+
+export function buildTargets(
+  now: Date = new Date(),
+  submissions = buildSubmissions(now),
+  volume: DemoVolume = DEMO_VOLUME,
+): DemoTarget[] {
   const current = periodOf(now);
-  const previous = shiftPeriod(current, -1);
+  const approved = approvedCountsByOrganizationPeriod(submissions);
   const targets: DemoTarget[] = [];
   let targetN = 1;
 
@@ -1328,41 +1379,47 @@ export function buildTargets(now: Date = new Date()): DemoTarget[] {
     targetN += 1;
   };
 
-  push({
-    workspaceLabel: "Workspace DAKOSTA",
-    organizationN: null,
-    subTheme: null,
-    period: current,
-    targetCount: 12,
-  });
+  for (let age = 0; age < volume.months; age += 1) {
+    const period = shiftPeriod(current, -age);
+    const organizationTargets = DEMO_ORGANIZATIONS.map((organization) => {
+      const approvedCount = approved.get(`${organization.n}:${period}`) ?? 0;
+      return Math.max(1, approvedCount + targetDelta(age, organization.n));
+    });
+    const globalTarget = organizationTargets.reduce(
+      (sum, target) => sum + target,
+      0,
+    );
+    const subThemeBase = Math.floor(globalTarget / SUB_THEMES.length);
+    const subThemeRemainder = globalTarget % SUB_THEMES.length;
 
-  for (const subTheme of SUB_THEMES) {
     push({
-      workspaceLabel: `Sub-tema ${subTheme}`,
+      workspaceLabel: "Workspace DAKOSTA",
       organizationN: null,
-      subTheme,
-      period: current,
-      targetCount: 2,
-    });
-  }
-
-  for (const organization of DEMO_ORGANIZATIONS) {
-    push({
-      workspaceLabel: organization.name,
-      organizationN: organization.n,
       subTheme: null,
-      period: current,
-      targetCount: 2,
+      period,
+      targetCount: globalTarget,
+    });
+
+    SUB_THEMES.forEach((subTheme, index) => {
+      push({
+        workspaceLabel: `Sub-tema ${subTheme}`,
+        organizationN: null,
+        subTheme,
+        period,
+        targetCount: subThemeBase + (index === 0 ? subThemeRemainder : 0),
+      });
+    });
+
+    DEMO_ORGANIZATIONS.forEach((organization, index) => {
+      push({
+        workspaceLabel: organization.name,
+        organizationN: organization.n,
+        subTheme: null,
+        period,
+        targetCount: organizationTargets[index]!,
+      });
     });
   }
-
-  push({
-    workspaceLabel: "Workspace DAKOSTA",
-    organizationN: null,
-    subTheme: null,
-    period: previous,
-    targetCount: 10,
-  });
 
   return targets;
 }
@@ -1651,6 +1708,7 @@ export type DemoDataset = {
   now: Date;
   currentPeriod: string;
   previousPeriod: string;
+  periods: string[];
   accounts: DemoAccount[];
   regions: readonly DemoRegion[];
   branches: readonly DemoBranch[];
@@ -1668,11 +1726,17 @@ export type DemoDataset = {
   audits: DemoAudit[];
 };
 
-export function buildDemoDataset(now: Date = new Date()): DemoDataset {
+export function buildDemoDataset(
+  now: Date = new Date(),
+  volume: DemoVolume = DEMO_VOLUME,
+): DemoDataset {
   const currentPeriod = periodOf(now);
   const previousPeriod = shiftPeriod(currentPeriod, -1);
-  const policies = buildPolicies(now);
-  const submissions = buildSubmissions(now);
+  const periods = Array.from({ length: volume.months }, (_, age) =>
+    shiftPeriod(currentPeriod, -age),
+  );
+  const policies = buildPolicies(now, volume);
+  const submissions = buildSubmissions(now, volume);
   const revisions = buildRevisions(now, submissions);
   const reviews = buildReviews(now, submissions);
   const notifications = buildNotifications(now, submissions, reviews);
@@ -1681,6 +1745,7 @@ export function buildDemoDataset(now: Date = new Date()): DemoDataset {
     now,
     currentPeriod,
     previousPeriod,
+    periods,
     accounts: [...DEMO_ACCOUNTS],
     regions: DEMO_REGIONS,
     branches: DEMO_BRANCHES,
@@ -1692,7 +1757,7 @@ export function buildDemoDataset(now: Date = new Date()): DemoDataset {
     submissions,
     revisions,
     reviews,
-    targets: buildTargets(now),
+    targets: buildTargets(now, submissions, volume),
     notifications,
     outbox: buildOutbox(now, notifications),
     audits: buildAudits(now, submissions, reviews, policies.policies),
@@ -1717,9 +1782,31 @@ function countByStatus(
   return base;
 }
 
-export function expectedCounts(now: Date = new Date()) {
-  const dataset = buildDemoDataset(now);
+export function expectedCounts(
+  now: Date = new Date(),
+  volume: DemoVolume = DEMO_VOLUME,
+) {
+  const dataset = buildDemoDataset(now, volume);
   const status = countByStatus(dataset.submissions);
+  const approvedInPeriod = (period: string): number =>
+    dataset.submissions.filter(
+      (submission) =>
+        submission.status === "APPROVED" &&
+        submission.approvedAt !== null &&
+        jakartaDateOnly(submission.approvedAt).slice(0, 7) === period,
+    ).length;
+  const globalTargetFor = (period: string): number => {
+    const row = dataset.targets.find(
+      (target) =>
+        target.period === period &&
+        target.organizationN === null &&
+        target.subTheme === null,
+    );
+    if (!row) {
+      throw new Error(`Target global ${period} tidak ditemukan`);
+    }
+    return row.targetCount;
+  };
   const branchPending = DEMO_BRANCHES.map(
     (branch) =>
       dataset.submissions.filter(
@@ -1743,16 +1830,10 @@ export function expectedCounts(now: Date = new Date()) {
         (submission) => submission.regionN === region.n,
       ).length,
   );
-  const approvedCurrent = dataset.submissions.filter(
-    (submission) =>
-      submission.status === "APPROVED" &&
-      submission.period === dataset.currentPeriod,
-  ).length;
-  const approvedPrevious = dataset.submissions.filter(
-    (submission) =>
-      submission.status === "APPROVED" &&
-      submission.period === dataset.previousPeriod,
-  ).length;
+  const approvedCurrent = approvedInPeriod(dataset.currentPeriod);
+  const approvedPrevious = approvedInPeriod(dataset.previousPeriod);
+  const oldestPeriod = dataset.periods[dataset.periods.length - 1]!;
+  const approvedOldest = approvedInPeriod(oldestPeriod);
   const edufast = dataset.submissions.filter(
     (submission) => submission.mainTheme === "EDUFAST",
   );
@@ -1766,6 +1847,9 @@ export function expectedCounts(now: Date = new Date()) {
   return {
     currentPeriod: dataset.currentPeriod,
     previousPeriod: dataset.previousPeriod,
+    periods: dataset.periods,
+    volume,
+    oldestPeriod,
     regions: dataset.regions.length,
     branches: dataset.branches.length,
     organizations: dataset.organizations.length,
@@ -1801,6 +1885,7 @@ export function expectedCounts(now: Date = new Date()) {
     approved: status.APPROVED,
     approvedCurrent,
     approvedPrevious,
+    approvedOldest,
     nonDraft,
     mapPoints,
     edufast: edufast.length,
@@ -1820,17 +1905,23 @@ export function expectedCounts(now: Date = new Date()) {
     branchPending,
     branchApproved,
     regionSubmissions,
-    currentTarget: 12,
-    previousTarget: 10,
+    currentTarget: globalTargetFor(dataset.currentPeriod),
+    previousTarget: globalTargetFor(dataset.previousPeriod),
+    oldestTarget: globalTargetFor(oldestPeriod),
     currentApproved: approvedCurrent,
     previousApproved: approvedPrevious,
   };
 }
 
-export function assertFixtureIntegrity(now: Date = new Date()): void {
-  const dataset = buildDemoDataset(now);
-  const counts = expectedCounts(now);
+export function assertFixtureIntegrity(
+  now: Date = new Date(),
+  volume: DemoVolume = DEMO_VOLUME,
+): void {
+  const dataset = buildDemoDataset(now, volume);
+  const counts = expectedCounts(now, volume);
   const today = jakartaDateOnly(now);
+  const perPeriod = demoSubmissionsPerMonth(volume);
+  const targetsPerPeriod = 1 + SUB_THEMES.length + DEMO_ORGANIZATIONS.length;
 
   const fail = (message: string): never => {
     throw new Error(`Fixture demo tidak valid: ${message}`);
@@ -1887,36 +1978,208 @@ export function assertFixtureIntegrity(now: Date = new Date()): void {
     }
   }
 
-  if (counts.submissions !== 50)
-    fail(`konten ${counts.submissions}, harapan 50`);
-  if (counts.status.APPROVED !== 14) fail("APPROVED harus 14");
-  if (counts.status.SUBMITTED !== 8) fail("SUBMITTED harus 8");
-  if (counts.status.RESUBMITTED !== 3) fail("RESUBMITTED harus 3");
-  if (counts.status.IN_REVIEW !== 4) fail("IN_REVIEW harus 4");
-  if (counts.status.REVISION_REQUIRED !== 5) fail("REVISION_REQUIRED harus 5");
-  if (counts.status.REJECTED !== 4) fail("REJECTED harus 4");
-  if (counts.status.REVOKED !== 2) fail("REVOKED harus 2");
-  if (counts.status.ARCHIVED !== 3) fail("ARCHIVED harus 3");
-  if (counts.status.DRAFT !== 7) fail("DRAFT harus 7");
-  if (counts.edufast !== 18) fail("EDUFAST harus 18");
-  if (counts.edufastDistinctSubthemes !== 6)
-    fail("EDUFAST harus mencakup 6 sub-tema");
-  if (counts.video !== 25 || counts.infografis !== 25)
-    fail("komposisi jenis konten harus 25/25");
-  if (counts.approvedCurrent !== 8 || counts.approvedPrevious !== 6) {
-    fail("sebaran approved per periode harus 8/6");
+  if (counts.submissions !== demoSubmissionTotal(volume)) {
+    fail(
+      `konten ${counts.submissions}, harapan ${demoSubmissionTotal(volume)}`,
+    );
   }
-  if (
-    JSON.stringify(counts.branchPending) !==
-    JSON.stringify([1, 2, 2, 3, 3, 1, 1, 2])
-  ) {
-    fail(`antrean per cabang ${counts.branchPending.join(",")}`);
+  if (counts.policies !== volume.months) {
+    fail(`kebijakan ${counts.policies}, harapan ${volume.months}`);
   }
-  if (
-    JSON.stringify(counts.branchApproved) !==
-    JSON.stringify([4, 2, 3, 2, 1, 1, 1, 0])
-  ) {
-    fail(`approved per cabang ${counts.branchApproved.join(",")}`);
+  if (counts.policyEvents !== volume.months * 2) {
+    fail(
+      `event kebijakan ${counts.policyEvents}, harapan ${volume.months * 2}`,
+    );
+  }
+  if (counts.policySubthemes !== volume.months * SUB_THEMES.length) {
+    fail(`sub-tema kebijakan ${counts.policySubthemes} tidak sesuai`);
+  }
+  for (const [status, value] of Object.entries(counts.status)) {
+    if (value <= 0) fail(`status ${status} tidak terwakili`);
+  }
+  if (counts.edufastDistinctSubthemes !== SUB_THEMES.length) {
+    fail("EDUFAST harus mencakup semua sub-tema");
+  }
+  if (counts.video + counts.infografis !== counts.submissions) {
+    fail("komposisi jenis konten tidak lengkap");
+  }
+  for (const branch of dataset.branches) {
+    if (
+      dataset.submissions.filter(
+        (submission) => submission.branchN === branch.n,
+      ).length === 0
+    ) {
+      fail(`cabang ${branch.code} tanpa konten`);
+    }
+  }
+  for (const region of dataset.regions) {
+    if (
+      dataset.submissions.filter(
+        (submission) => submission.regionN === region.n,
+      ).length === 0
+    ) {
+      fail(`wilayah ${region.code} tanpa konten`);
+    }
+  }
+
+  const submissionsByOrganizationPeriod = new Map<string, number>();
+  const approvedByOrganizationPeriod = new Map<string, number>();
+  for (const submission of dataset.submissions) {
+    const orgKey = `${submission.organizationN}:${submission.period}`;
+    submissionsByOrganizationPeriod.set(
+      orgKey,
+      (submissionsByOrganizationPeriod.get(orgKey) ?? 0) + 1,
+    );
+    if (submission.status !== "APPROVED" || submission.approvedAt === null) {
+      continue;
+    }
+    const approvedPeriod = jakartaDateOnly(submission.approvedAt).slice(0, 7);
+    if (approvedPeriod !== submission.period) {
+      fail(
+        `approvedAt konten ${submission.n} (${approvedPeriod}) di luar periode ${submission.period}`,
+      );
+    }
+    const approvedKey = `${submission.organizationN}:${approvedPeriod}`;
+    approvedByOrganizationPeriod.set(
+      approvedKey,
+      (approvedByOrganizationPeriod.get(approvedKey) ?? 0) + 1,
+    );
+  }
+
+  for (const period of dataset.periods) {
+    const inPeriod = dataset.submissions.filter(
+      (submission) => submission.period === period,
+    );
+    if (inPeriod.length !== perPeriod) {
+      fail(`konten periode ${period} ${inPeriod.length}, harapan ${perPeriod}`);
+    }
+    for (const organization of dataset.organizations) {
+      const key = `${organization.n}:${period}`;
+      if (
+        (submissionsByOrganizationPeriod.get(key) ?? 0) !==
+        volume.slotsPerOrgMonth
+      ) {
+        fail(`konten ${organization.name} periode ${period} tidak sesuai slot`);
+      }
+      if ((approvedByOrganizationPeriod.get(key) ?? 0) < 2) {
+        fail(`approved ${organization.name} periode ${period} kurang dari 2`);
+      }
+    }
+    const edufastCovered = new Set(
+      inPeriod
+        .filter((submission) => submission.mainTheme === "EDUFAST")
+        .map((submission) => submission.subTheme),
+    );
+    if (edufastCovered.size !== SUB_THEMES.length) {
+      fail(`EDUFAST ${period} tidak mencakup semua sub-tema`);
+    }
+  }
+
+  if (counts.targets !== demoTargetTotal(volume)) {
+    fail(`target ${counts.targets}, harapan ${demoTargetTotal(volume)}`);
+  }
+  const targetsByPeriod = new Map<string, DemoTarget[]>();
+  for (const target of dataset.targets) {
+    const rows = targetsByPeriod.get(target.period) ?? [];
+    rows.push(target);
+    targetsByPeriod.set(target.period, rows);
+  }
+  for (const period of dataset.periods) {
+    const rows = targetsByPeriod.get(period) ?? [];
+    if (rows.length !== targetsPerPeriod) {
+      fail(
+        `target periode ${period} ${rows.length}, harapan ${targetsPerPeriod}`,
+      );
+    }
+    const global = rows.find(
+      (target) => target.organizationN === null && target.subTheme === null,
+    );
+    if (!global) fail(`target global ${period} tidak ada`);
+    const globalTarget = global!.targetCount;
+    const organizationSum = rows
+      .filter((target) => target.organizationN !== null)
+      .reduce((sum, target) => sum + target.targetCount, 0);
+    if (organizationSum !== globalTarget) {
+      fail(`target instansi ${period} tidak sama dengan global`);
+    }
+    const subThemeSum = rows
+      .filter((target) => target.subTheme !== null)
+      .reduce((sum, target) => sum + target.targetCount, 0);
+    if (subThemeSum !== globalTarget) {
+      fail(`target sub-tema ${period} tidak sama dengan global`);
+    }
+    const age = dataset.periods.indexOf(period);
+    for (const organization of dataset.organizations) {
+      const row = rows.find(
+        (target) =>
+          target.organizationN === organization.n && target.subTheme === null,
+      );
+      if (!row) fail(`target ${organization.name} periode ${period} tidak ada`);
+      const approvedCount =
+        approvedByOrganizationPeriod.get(`${organization.n}:${period}`) ?? 0;
+      const expectedTarget = Math.max(
+        1,
+        approvedCount + targetDelta(age, organization.n),
+      );
+      if (row!.targetCount !== expectedTarget) {
+        fail(`target ${organization.name} periode ${period} tidak sesuai`);
+      }
+    }
+    for (const target of rows) {
+      if (target.targetCount < 1) fail(`target ${period} tidak positif`);
+    }
+  }
+
+  const nonDraftCount = dataset.submissions.filter(
+    (submission) => submission.status !== "DRAFT",
+  ).length;
+  const resubmittedCount = dataset.submissions.filter(
+    (submission) => submission.status === "RESUBMITTED",
+  ).length;
+  const decisionStatuses = new Set([
+    "APPROVED",
+    "ARCHIVED",
+    "REJECTED",
+    "REVISION_REQUIRED",
+    "RESUBMITTED",
+    "REVOKED",
+  ]);
+  const decisionReviews = dataset.submissions.filter((submission) =>
+    decisionStatuses.has(submission.status),
+  ).length;
+  const revokedReviews = dataset.submissions.filter(
+    (submission) => submission.status === "REVOKED",
+  ).length;
+  const expectedRevisions = nonDraftCount + resubmittedCount;
+  const expectedReviews = decisionReviews + revokedReviews;
+  const expectedNotifications = counts.pending + expectedReviews + 5;
+  const expectedAudits = expectedReviews + 3;
+  const expectedMapPoints = dataset.submissions.filter(
+    (submission) => submission.status !== "DRAFT" && !submission.archived,
+  ).length;
+
+  if (counts.revisions !== expectedRevisions) {
+    fail(`revisi ${counts.revisions}, harapan ${expectedRevisions}`);
+  }
+  if (counts.reviews !== expectedReviews) {
+    fail(`ulasan ${counts.reviews}, harapan ${expectedReviews}`);
+  }
+  if (counts.notifications !== expectedNotifications) {
+    fail(
+      `notifikasi ${counts.notifications}, harapan ${expectedNotifications}`,
+    );
+  }
+  if (counts.outbox !== expectedNotifications) {
+    fail(`outbox ${counts.outbox}, harapan ${expectedNotifications}`);
+  }
+  if (counts.audits !== expectedAudits) {
+    fail(`audit ${counts.audits}, harapan ${expectedAudits}`);
+  }
+  if (counts.locations !== counts.submissions) {
+    fail(`lokasi ${counts.locations}, harapan ${counts.submissions}`);
+  }
+  if (counts.mapPoints !== expectedMapPoints) {
+    fail(`titik peta ${counts.mapPoints}, harapan ${expectedMapPoints}`);
   }
 
   const references = new Set<string>();
@@ -1975,29 +2238,6 @@ export function assertFixtureIntegrity(now: Date = new Date()): void {
         fail(`timestamp konten ${submission.n} di masa depan`);
     }
   }
-
-  for (const period of [dataset.currentPeriod, dataset.previousPeriod]) {
-    const edufastInPeriod = dataset.submissions.filter(
-      (submission) =>
-        submission.period === period && submission.mainTheme === "EDUFAST",
-    );
-    const covered = new Set(
-      edufastInPeriod.map((submission) => submission.subTheme),
-    );
-    if (covered.size !== SUB_THEMES.length)
-      fail(`EDUFAST ${period} tidak mencakup semua sub-tema`);
-  }
-
-  if (counts.revisions !== 46) fail(`revisi ${counts.revisions}, harapan 46`);
-  if (counts.reviews !== 33) fail(`ulasan ${counts.reviews}, harapan 33`);
-  if (counts.targets !== 28) fail(`target ${counts.targets}, harapan 28`);
-  if (counts.notifications !== 53)
-    fail(`notifikasi ${counts.notifications}, harapan 53`);
-  if (counts.outbox !== 53) fail(`outbox ${counts.outbox}, harapan 53`);
-  if (counts.audits !== 36) fail(`audit ${counts.audits}, harapan 36`);
-  if (counts.locations !== 50) fail(`lokasi ${counts.locations}, harapan 50`);
-  if (counts.mapPoints !== 40)
-    fail(`titik peta ${counts.mapPoints}, harapan 40`);
 
   const reviewKeys = new Set<string>();
   for (const review of dataset.reviews) {

@@ -208,26 +208,36 @@ Catatan:
   rute lain 238–245 KB. Chart dimuat saat terlihat sehingga mobile tidak
   mengunduh chunk Recharts di awal.
 
-## 10. Dataset demo produksi (dieksekusi 2026-10-31)
+## 10. Dataset demo produksi (dieksekusi 2026-10-31; diperluas 2026-11-02)
 
 Dataset demo sintetis untuk seluruh peran, dibuat oleh 20 stakeholder di 8
-kantor cabang. Fixture deterministik (`scripts/demo-fixtures.ts`), seeder
-transaksional (`scripts/seed-demo-production.ts`), purge demo-only
-(`scripts/purge-demo-only.ts`), dan verifikasi read-only
-(`scripts/verify-demo-production.ts`).
+kantor cabang. Fixture deterministik (`scripts/demo-fixtures.ts`) kini
+menghasilkan 2.400 konten dalam 24 bulan (5 konten per organisasi per bulan)
+dengan target KPI per instansi setiap bulan. Seeder transaksional
+(`scripts/seed-demo-production.ts`), purge demo-only
+(`scripts/demo-purge.ts`), dan verifikasi read-only
+(`scripts/verify-demo-production.ts`). Insert dan delete dipecah per 500 baris
+agar tetap di bawah batas 65.535 parameter PostgreSQL.
 
-| Komponen                           | Jumlah                                                                                                                    |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Wilayah / cabang / organisasi      | 3 / 8 / 20                                                                                                                |
-| Akun demo (`@demo.dakosta.local`)  | 32 (1 master, 3 wilayah, 8 cabang, 20 stakeholder)                                                                        |
-| Konten (2–3 per stakeholder)       | 50; APPROVED 14, SUBMITTED 8, RESUBMITTED 3, IN_REVIEW 4, REVISION_REQUIRED 5, REJECTED 4, REVOKED 2, ARCHIVED 3, DRAFT 7 |
-| Lokasi / revisi / ulasan           | 50 / 46 / 33                                                                                                              |
-| Target KPI                         | 28 (global 12 + 6 sub-tema + 20 stakeholder bulan berjalan; global 10 bulan sebelumnya)                                   |
-| Notifikasi / outbox / audit        | 53 / 53 / 36                                                                                                              |
-| Kebijakan EDUFAST                  | 2 PUBLISHED (6 sub-tema per bulan, 4 event)                                                                               |
-| Titik peta                         | 40 (50 konten − 7 draf − 3 arsip)                                                                                         |
-| Approved / target bulan berjalan   | 8 / 12                                                                                                                    |
-| Approved / target bulan sebelumnya | 6 / 10                                                                                                                    |
+| Komponen                           | Jumlah                                                                                                                                                                 |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Wilayah / cabang / organisasi      | 3 / 8 / 20                                                                                                                                                             |
+| Akun demo (`@demo.dakosta.local`)  | 32 (1 master, 3 wilayah, 8 cabang, 20 stakeholder)                                                                                                                     |
+| Konten (24 bulan × 100)            | 2.400; 5 per organisasi per bulan; APPROVED 1.380, ARCHIVED 635, REVOKED 160, REJECTED 125, DRAFT 20, SUBMITTED 20, RESUBMITTED 20, IN_REVIEW 20, REVISION_REQUIRED 20 |
+| Lokasi / revisi / ulasan           | 2.400 / 2.400 / 2.500                                                                                                                                                  |
+| Target KPI                         | 648 = 24 bulan × (1 global + 6 sub-tema global + 20 instansi); target instansi = approved + delta (−1/0/+1), bulan berjalan +1                                         |
+| Notifikasi / outbox / audit        | 2.565 / 2.565 / 2.503                                                                                                                                                  |
+| Kebijakan EDUFAST                  | 24 PUBLISHED (1 per bulan), 144 sub-tema, 48 event                                                                                                                     |
+| Titik peta                         | 1.745 eligible (2.400 konten − 20 draf − 635 arsip); API mengembalikan maksimal 500 titik terbaru dengan `truncated=true`, `totals.points` tetap 1.745                 |
+| Approved / target bulan berjalan   | 40 / 60                                                                                                                                                                |
+| Approved / target bulan sebelumnya | 40 / 40                                                                                                                                                                |
+| Approved / target bulan tertua     | 60 / 59                                                                                                                                                                |
+
+Setiap pasangan (instansi, bulan) memiliki minimal 2 konten APPROVED dan satu
+baris target, sehingga Kinerja master/regional/cabang/stakeholder tidak lagi
+menampilkan `NO_TARGET`. Setiap periode juga memuat keenam sub-tema EDUFAST.
+ID deterministik dan idempotency `demo-seed-v2:*` membuat seed ulang
+menghasilkan baris yang sama.
 
 Containment yang wajib aktif sebelum seed:
 
@@ -252,7 +262,11 @@ Prosedur (setiap langkah destruktif memerlukan konfirmasi pengguna):
 6. Rollback data demo: `PURGE_DEMO_CONFIRM=purge-demo-only npm run
 db:purge:demo:production`.
 
-Bukti eksekusi produksi:
+Bukti eksekusi seed awal (50 konten, 2026-10-31) — perluasan 2.400 konten
+dijalankan ulang dengan prosedur yang sama dan buktinya disimpan sebagai
+`docs/audit/evidence/E-seed-demo-production-<stamp>.log`,
+`E-verify-demo-production-<stamp>.log`, dan
+`E-smoke-production-<stamp>.json`:
 
 | Pemeriksaan           | Hasil                                                                                                                   |
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------- |
@@ -335,18 +349,18 @@ diubah selama publikasi ini.
 Commit rilis `51c92be` (`fix(db): apply query timeout client-side for pooled
 Neon endpoints`) memuat seluruh paket S0–S7 di atas `85feaa9`. Status gerbang:
 
-| Gerbang | Isi                                  | Status                                                                                          |
-| ------- | ------------------------------------ | ----------------------------------------------------------------------------------------------- |
-| G1      | Lint, typecheck, format, build       | PASS                                                                                            |
-| G2      | Unit/integration                     | PASS — 111/111                                                                                  |
-| G3      | E2E Playwright                       | PARTIAL — 53/54 pada build rilis; sisa kegagalan transien jaringan, lulus terisolasi            |
-| G4      | A11y axe                             | PASS                                                                                            |
-| G5      | Performa 100k (14 rute)              | PASS — `E-perf-100k-2026-11-01T18-08-44.log`                                                    |
+| Gerbang | Isi                                  | Status                                                                                             |
+| ------- | ------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| G1      | Lint, typecheck, format, build       | PASS                                                                                               |
+| G2      | Unit/integration                     | PASS — 111/111                                                                                     |
+| G3      | E2E Playwright                       | PARTIAL — 53/54 pada build rilis; sisa kegagalan transien jaringan, lulus terisolasi               |
+| G4      | A11y axe                             | PASS                                                                                               |
+| G5      | Performa 100k (14 rute)              | PASS — `E-perf-100k-2026-11-01T18-08-44.log`                                                       |
 | G6      | Beban 50/200/500 VU + soak           | **BELUM LULUS** — degradasi jaringan staging; deploy dilanjutkan atas instruksi eksplisit pengguna |
-| G7      | Rekonsiliasi angka                   | PASS — smoke produksi dashboard = CSV                                                           |
-| G8      | Keamanan (`npm audit`, RBAC negatif) | PASS — 0 kerentanan produksi; RBAC negatif lulus di smoke                                       |
-| G9      | Migrasi aditif + rehearsal           | PASS — 30 DDL tanpa DROP/TRUNCATE/DELETE                                                        |
-| G10     | Deploy produksi                      | **PASS** — `dpl_ub12np1amRNyc5V5Np7LePXG4wqt`, smoke 21/21, rollback terbukti                 |
+| G7      | Rekonsiliasi angka                   | PASS — smoke produksi dashboard = CSV                                                              |
+| G8      | Keamanan (`npm audit`, RBAC negatif) | PASS — 0 kerentanan produksi; RBAC negatif lulus di smoke                                          |
+| G9      | Migrasi aditif + rehearsal           | PASS — 30 DDL tanpa DROP/TRUNCATE/DELETE                                                           |
+| G10     | Deploy produksi                      | **PASS** — `dpl_ub12np1amRNyc5V5Np7LePXG4wqt`, smoke 21/21, rollback terbukti                      |
 
 Bukti G6: run 50 VU pada `85feaa9` menghasilkan p95 4.021 ms (ambang 2.000 ms)
 tanpa satu pun 5xx, sementara basis data hanya 1–2 koneksi aktif dari 21. Probe
@@ -373,4 +387,3 @@ belum lulus; keputusan deploy diambil pengguna.
 Tidak ada perubahan environment variable produksi. Vercel memblokir deploy CLI
 yang membawa metadata commit dengan author tak terverifikasi; rilis dilakukan
 dari snapshot `git archive` di luar direktori git sehingga tanpa atribusi commit.
-
