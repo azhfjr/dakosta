@@ -330,33 +330,47 @@ Smoke produksi setelah deploy:
 Tidak ada environment variable, migrasi, seed, atau sinkronisasi target yang
 diubah selama publikasi ini.
 
-## 13. Kandidat rilis v1.1 (2026-11-01) — belum dideploy
+## 13. Rilis v1.1 — dipublikasikan 2026-11-02
 
-Commit `85feaa9` (`feat(release): deliver v1.1 SLA, Kinerja, activation, and
-DB resilience`) memuat seluruh paket S0–S7 dan siap dari sisi kode. Status
-gerbang:
+Commit rilis `51c92be` (`fix(db): apply query timeout client-side for pooled
+Neon endpoints`) memuat seluruh paket S0–S7 di atas `85feaa9`. Status gerbang:
 
-| Gerbang | Isi                                  | Status                                                                               |
-| ------- | ------------------------------------ | ------------------------------------------------------------------------------------ |
-| G1      | Lint, typecheck, format, build       | PASS                                                                                 |
-| G2      | Unit/integration                     | PASS — 111/111                                                                       |
-| G3      | E2E Playwright                       | PARTIAL — 53/54 pada build rilis; sisa kegagalan transien jaringan, lulus terisolasi |
-| G4      | A11y axe                             | PASS                                                                                 |
-| G5      | Performa 100k (14 rute)              | PASS — `E-perf-100k-2026-11-01T18-08-44.log`                                         |
-| G6      | Beban 50/200/500 VU + soak           | **BELUM LULUS** — tahap 1 gagal karena degradasi jaringan staging                    |
-| G7      | Rekonsiliasi angka                   | PASS (E2E rekonsiliasi + smoke sebelumnya)                                           |
-| G8      | Keamanan (`npm audit`, RBAC negatif) | PASS — 0 kerentanan produksi                                                         |
-| G9      | Migrasi aditif + rehearsal           | PASS — 30 DDL tanpa DROP/TRUNCATE/DELETE                                             |
-| G10     | Deploy produksi                      | **WITHHELD** — menunggu G6                                                           |
+| Gerbang | Isi                                  | Status                                                                                          |
+| ------- | ------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| G1      | Lint, typecheck, format, build       | PASS                                                                                            |
+| G2      | Unit/integration                     | PASS — 111/111                                                                                  |
+| G3      | E2E Playwright                       | PARTIAL — 53/54 pada build rilis; sisa kegagalan transien jaringan, lulus terisolasi            |
+| G4      | A11y axe                             | PASS                                                                                            |
+| G5      | Performa 100k (14 rute)              | PASS — `E-perf-100k-2026-11-01T18-08-44.log`                                                    |
+| G6      | Beban 50/200/500 VU + soak           | **BELUM LULUS** — degradasi jaringan staging; deploy dilanjutkan atas instruksi eksplisit pengguna |
+| G7      | Rekonsiliasi angka                   | PASS — smoke produksi dashboard = CSV                                                           |
+| G8      | Keamanan (`npm audit`, RBAC negatif) | PASS — 0 kerentanan produksi; RBAC negatif lulus di smoke                                       |
+| G9      | Migrasi aditif + rehearsal           | PASS — 30 DDL tanpa DROP/TRUNCATE/DELETE                                                        |
+| G10     | Deploy produksi                      | **PASS** — `dpl_ub12np1amRNyc5V5Np7LePXG4wqt`, smoke 21/21, rollback terbukti                 |
 
 Bukti G6: run 50 VU pada `85feaa9` menghasilkan p95 4.021 ms (ambang 2.000 ms)
 tanpa satu pun 5xx, sementara basis data hanya 1–2 koneksi aktif dari 21. Probe
 5 VU pun gagal (p95 17,7 dtk) dan pengukuran jaringan mencatat RTT TCP 790 ms
 ke Neon us-east-1 serta `SELECT 1` 1,7–4,3 dtk saat idle. Lihat
-`docs/audit/evidence/E-env-network-2026-11-01T14-12Z.json`.
+`docs/audit/evidence/E-env-network-2026-11-01T14-12Z.json`. Soak 200 VU juga
+gagal pada jaringan yang sama (78.111 error, 0 5xx). G6 dicatat jujur sebagai
+belum lulus; keputusan deploy diambil pengguna.
 
-Sesuai gerbang yang disetujui, **tidak ada deploy, migrasi, backfill, seed,
-atau perubahan environment variable produksi** yang dijalankan. Untuk
-melanjutkan: tunggu jalur jaringan normal, jalankan ulang tahap beban 1–3 dan
-soak (idealnya pada instans yang diskalakan agar mewakili Vercel), lalu deploy
-dengan prosedur §11.3 bila seluruh gerbang lulus.
+### Urutan publikasi produksi
+
+1. Backup logis `backups/2026-11-01T13-46-04-747Z-production/` (30 tabel) diverifikasi.
+2. Migrasi aditif 0004/0005 diterapkan (`MIGRATE_CONFIRM=apply-production`).
+3. Backfill lokasi sintetis hanya akun demo: 32 kandidat, 32 diisi; non-demo tidak disentuh.
+4. Deploy `dpl_5s8UGAPRzLqNw6P3BziSDihJTqFy` READY, tetapi health 503 karena
+   parameter startup `options`/`statement_timeout` ditolak endpoint pooled Neon
+   (`08P01`). Rollback `vercel promote dpl_ywPaDgPyV6upfddusrSxU57uW9sU`
+   memulihkan health 200 `db:ok`.
+5. Perbaikan `51c92be` memakai `query_timeout` klien; typecheck dan 111 tes lulus.
+6. Deploy final `dpl_ub12np1amRNyc5V5Np7LePXG4wqt` READY; alias
+   `https://dakosta-dakosta.vercel.app`; smoke produksi **21/21 PASS**
+   (`E-smoke-production-2026-11-01T17-37-35-067Z.json`).
+
+Tidak ada perubahan environment variable produksi. Vercel memblokir deploy CLI
+yang membawa metadata commit dengan author tak terverifikasi; rilis dilakukan
+dari snapshot `git archive` di luar direktori git sehingga tanpa atribusi commit.
+

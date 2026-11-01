@@ -1,6 +1,6 @@
 # D10 — Performance & Capacity Plan
 
-**Status saat ini:** performa 100k, query plan, dan beban baca tahap 1 lulus pada 2026-11-01 09:33 UTC (build pra-rilis). Run ulang tahap 1 pada build rilis `85feaa9` (13:50 UTC) dan probe 5 VU (14:10 UTC) gagal karena degradasi jalur jaringan lokal ke Neon us-east-1, bukan karena kapasitas atau kode. Tahap 2–3, soak, dan ekspor **NOT RUN**. Gerbang beban (G6) belum lulus, sehingga deploy ditahan.
+**Status saat ini:** performa 100k, query plan, dan beban baca tahap 1 lulus pada 2026-11-01 09:33 UTC (build pra-rilis). Run ulang tahap 1 pada build rilis `85feaa9` (13:50 UTC), probe 5 VU (14:10 UTC), soak 200 VU, dan ekspor 20 VU gagal karena degradasi jalur jaringan lokal ke Neon us-east-1, bukan karena kapasitas atau kode. Tahap 2–3 **NOT RUN**. Gerbang beban (G6) **tetap belum lulus**; deploy produksi dilanjutkan pada 2026-11-02 atas instruksi eksplisit pengguna dan dicatat terbuka di `13-status.md`.
 
 ## Baseline yang ada
 
@@ -100,7 +100,7 @@ Beban baca tahap 1 (`E-load-read-2026-11-01T09-33-26-443Z.json`, build pra-rilis
 | Jaringan (`E-env-network-2026-11-01T14-12Z.json`) | RTT TCP 790 ms ke Neon us-east-1, 333 ms ke 1.1.1.1, 572 ms ke Google; `SELECT 1` idle 1,7–4,3 dtk | Uplink lokal sedang memburuk        |
 | Log server saat restart                           | 1.427 `timeout exceeded when trying to connect`                                                    | Akuisisi koneksi Neon gagal/timeout |
 
-Karena probe 5 VU (jauh di bawah kapasitas satu instans) juga gagal SLO sementara tidak ada 5xx dan DB menganggur, penyebabnya adalah latensi/ketidakstabilan jalur jaringan staging saat pengujian, bukan regresi kode rilis. Beban 200/500/1.000 VU, soak 30 menit, dan ekspor tidak dijalankan karena tahap 1 belum dapat diukur secara sah pada kondisi ini; G6 dinyatakan **belum lulus**.
+Karena probe 5 VU (jauh di bawah kapasitas satu instans) juga gagal SLO sementara tidak ada 5xx dan DB menganggur, penyebabnya adalah latensi/ketidakstabilan jalur jaringan staging saat pengujian, bukan regresi kode rilis. Soak 200 VU dan ekspor 20 VU kemudian dijalankan pada jaringan yang sama dan gagal (78.111 dan 2.707 error, keduanya 0 5xx); beban 500/1.000 VU tidak dijalankan; G6 dinyatakan **belum lulus**.
 
 Kapasitas terukur dari run yang lulus (45 rps pada satu proses `next start`) juga menunjukkan tahap 2–3 pada satu instans lokal tidak dapat mencapai p95 ≤2.000 ms tanpa penskalaan horizontal; angka kapasitas platform produksi tetap **NOT VERIFIED** (tidak ada stress produksi).
 

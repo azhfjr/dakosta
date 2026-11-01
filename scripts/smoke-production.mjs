@@ -250,7 +250,13 @@ async function main() {
   );
   await regionalReview.arrayBuffer();
 
-  const branchAdminApi = await get("/api/v1/admin/branches", cookie.branch);
+  // The branches API only implements POST; an empty body would fail validation
+  // (400) even for a master, so a 403 here proves the RBAC guard runs first.
+  const branchAdminApi = await fetch(`${baseUrl}/api/v1/admin/branches`, {
+    method: "POST",
+    headers: { cookie: cookie.branch, "content-type": "application/json" },
+    body: JSON.stringify({}),
+  });
   record(
     "cabang tidak boleh mengelola cabang",
     branchAdminApi.status === 403,
@@ -289,10 +295,12 @@ async function main() {
   );
   await oldPdf.arrayBuffer();
 
-  // Reconciliation: Dashboard API = Kinerja page = Kinerja CSV.
+  // Reconciliation: master dashboard API = master CSV, and regional Kinerja
+  // page = regional CSV. The dashboard API is master-scoped, so it must not be
+  // compared against a regional export.
   const dashboard = await get(
     `/api/v1/dashboard/admin?period=${month}`,
-    cookie.regional,
+    cookie.admin,
   );
   let dashboardApproved = null;
   if (dashboard.status === 200) {
@@ -335,14 +343,35 @@ async function main() {
     csvResponse.status === 200 && approvedColumn >= 0,
     `status ${csvResponse.status}, ${csvRows.length - 1} baris`,
   );
+
+  const adminCsvResponse = await get(
+    `/api/v1/exports/performance?period=${month}`,
+    cookie.admin,
+  );
+  const adminCsvRows = parseCsv(
+    (await adminCsvResponse.text()).replace(/^\uFEFF/, ""),
+  );
+  const adminApprovedColumn = (adminCsvRows[0] ?? []).findIndex(
+    (header) => header === "Realisasi Approved",
+  );
+  const adminCsvApproved =
+    adminApprovedColumn >= 0
+      ? adminCsvRows
+          .slice(1)
+          .reduce(
+            (sum, row) => sum + (parseNumber(row[adminApprovedColumn]) ?? 0),
+            0,
+          )
+      : null;
   record(
     "rekonsiliasi Dashboard = Kinerja = CSV",
     dashboardApproved !== null &&
+      adminCsvApproved !== null &&
+      dashboardApproved === adminCsvApproved &&
       kinerjaApproved !== null &&
       csvApproved !== null &&
-      dashboardApproved === kinerjaApproved &&
       kinerjaApproved === csvApproved,
-    `dashboard ${dashboardApproved}, kinerja ${kinerjaApproved}, csv ${csvApproved}`,
+    `dashboard ${dashboardApproved}, csv admin ${adminCsvApproved}, kinerja wilayah ${kinerjaApproved}, csv wilayah ${csvApproved}`,
   );
 
   const submissionsCsv = await get(
