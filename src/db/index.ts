@@ -79,9 +79,10 @@ function createDb(connectionString: string) {
       max,
       idleTimeoutMillis: 10_000,
       connectionTimeoutMillis: 30_000,
-      // Neon memutus soket diam tanpa pemberitahuan; batas di server membuat
-      // kueri menggantung gagal cepat dan bisa diulang.
-      options: "-c statement_timeout=15000",
+      // Endpoint pooled menolak parameter startup `options`/`statement_timeout`
+      // (08P01), jadi batas kueri dipasang di klien agar kueri menggantung
+      // gagal cepat tanpa bergantung pada server.
+      query_timeout: 15_000,
     }),
   );
   // Tanpa listener ini, galat klien diam menjadi uncaughtException.

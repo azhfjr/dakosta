@@ -1,0 +1,65 @@
+{
+  "profile": "export",
+  "vus": 20,
+  "durationSeconds": 300,
+  "rampSeconds": 60,
+  "period": "2026-11",
+  "baseUrl": "http://localhost:3400",
+  "totalRequests": 6767,
+  "throughputRps": 22.5,
+  "p50Ms": 586.9,
+  "p95Ms": 1142,
+  "p99Ms": 4317.2,
+  "maxMs": 24028.7,
+  "errors": 2707,
+  "errorRate": 0.4,
+  "clientErrors": 0,
+  "expectedClientResponses": 6534,
+  "fiveXx": 0,
+  "networkErrors": 0,
+  "pdfFailures": 2707,
+  "statusCounts": {
+    "200": 233,
+    "429": 6534
+  },
+  "thresholds": {
+    "maxP95": 4000,
+    "maxP99": 8000,
+    "maxErrorRate": 0.01,
+    "max5xx": null
+  },
+  "routes": [
+    {
+      "route": "GET /api/v1/exports/performance",
+      "count": 1315,
+      "errors": 1265,
+      "p50Ms": 586.5,
+      "p95Ms": 1349.2,
+      "p99Ms": 3902.6,
+      "maxMs": 5611.7
+    },
+    {
+      "route": "GET /api/v1/exports/submissions",
+      "count": 2662,
+      "errors": 2562,
+      "p50Ms": 587,
+      "p95Ms": 1158.6,
+      "p99Ms": 15475.6,
+      "maxMs": 24028.7
+    },
+    {
+      "route": "GET /api/v1/reports/performance",
+      "count": 2790,
+      "errors": 2707,
+      "p50Ms": 586.9,
+      "p95Ms": 1068.2,
+      "p99Ms": 3664.7,
+      "maxMs": 5851.3
+    }
+  ],
+  "passed": false,
+  "failures": [
+    "error rate 0.4 > 0.01",
+    "PDF tidak valid: 2707"
+  ]
+}

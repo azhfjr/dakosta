@@ -54,3 +54,6 @@ next-env.d.ts
 # operational data
 /backups
 /.secrets
+
+.vercel
+.env*
