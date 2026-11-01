@@ -1,0 +1,35 @@
+{
+  "capturedAt": "2026-11-01T14:12:00Z",
+  "releaseCommit": "85feaa9",
+  "target": "staging lokal (next start port 3400) + Neon staging us-east-1",
+  "network": {
+    "dnsLookupMs": 2,
+    "tcp443Cloudflare1_1_1_1Ms": 333,
+    "tcp443GoogleMs": 572,
+    "tcp5432NeonUsEast1Ms": 790,
+    "neonSelect1SequentialMs": [
+      5360, 269, 272, 289, 289, 275, 271, 312, 280, 282
+    ],
+    "neonSelect1Concurrent20TotalMs": 3370,
+    "stagingHealthIdleMs": [1678, 3882, 4346],
+    "productionHealthMs": [1898, 755, 631]
+  },
+  "loadProbe": {
+    "profile": "read",
+    "vus": 5,
+    "durationSeconds": 60,
+    "throughputRps": 0.5,
+    "p50Ms": 7504.6,
+    "p95Ms": 17739.2,
+    "p99Ms": 17823.6,
+    "errors": 0,
+    "fiveXx": 0,
+    "evidenceFile": "E-load-read-2026-11-01T14-10-33-728Z.json"
+  },
+  "serverLog": {
+    "poolConnectTimeouts": 1427,
+    "message": "timeout exceeded when trying to connect",
+    "window": "07:04-07:08Z server restart window"
+  },
+  "conclusion": "Jalur jaringan lokal ke internet dan ke Neon us-east-1 sedang memburuk (RTT TCP 790 ms; SELECT 1 butuh 1,7-4,3 dtk saat idle). Beban 5 VU pun gagal SLO tanpa satu pun 5xx, sehingga kegagalan beban bukan regresi kapasitas atau kode aplikasi. Tahap 2-3, soak, dan ekspor tidak dijalankan."
+}

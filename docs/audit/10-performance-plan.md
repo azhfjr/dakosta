@@ -1,18 +1,18 @@
 # D10 — Performance & Capacity Plan
 
-**Status saat ini:** baseline statis selesai; performa 100k, query plan, dan beban baca tahap 1 sudah dijalankan. Tahap beban lanjutan dicatat di bagian Hasil.
+**Status saat ini:** performa 100k, query plan, dan beban baca tahap 1 lulus pada 2026-11-01 09:33 UTC (build pra-rilis). Run ulang tahap 1 pada build rilis `85feaa9` (13:50 UTC) dan probe 5 VU (14:10 UTC) gagal karena degradasi jalur jaringan lokal ke Neon us-east-1, bukan karena kapasitas atau kode. Tahap 2–3, soak, dan ekspor **NOT RUN**. Gerbang beban (G6) belum lulus, sehingga deploy ditahan.
 
 ## Baseline yang ada
 
-| Alat                       | Cakupan                                                             | Status                                   |
-| -------------------------- | ------------------------------------------------------------------- | ---------------------------------------- |
-| `scripts/perf-check.mjs`   | 8 rute, TTFB p95 ≤1.200 ms, LCP p95 ≤2.500 ms, CLS ≤0.1, JS ≤375 KB | DONE — 14/14 rute OK (100k, 2026-11-01)  |
-| `scripts/audit-routes.mjs` | Route sweep per role, deteksi 5xx                                   | DONE                                     |
-| Playwright                 | 9 spec E2E termasuk RBAC/axe                                        | DONE — lihat `13-status.md`              |
-| Vitest                     | unit/integration                                                    | DONE — termasuk `tests/db-retry.test.ts` |
-| Load test                  | `scripts/load-test.mjs` (read/mixed/soak/export)                    | DONE tahap 1; tahap lanjutan lihat Hasil |
-| Query plan                 | `scripts/explain-check.ts`                                          | DONE — 4 skenario dalam anggaran         |
-| CI/CD                      | belum ada                                                           | NOT RUN                                  |
+| Alat                       | Cakupan                                                             | Status                                                                                                           |
+| -------------------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `scripts/perf-check.mjs`   | 8 rute, TTFB p95 ≤1.200 ms, LCP p95 ≤2.500 ms, CLS ≤0.1, JS ≤375 KB | DONE — 14/14 rute OK (100k, 2026-11-01)                                                                          |
+| `scripts/audit-routes.mjs` | Route sweep per role, deteksi 5xx                                   | DONE                                                                                                             |
+| Playwright                 | 9 spec E2E termasuk RBAC/axe                                        | DONE — lihat `13-status.md`                                                                                      |
+| Vitest                     | unit/integration                                                    | DONE — termasuk `tests/db-retry.test.ts`                                                                         |
+| Load test                  | `scripts/load-test.mjs` (read/mixed/soak/export)                    | PARTIAL — tahap 1 lulus 09:33 (build pra-rilis); run ulang rilis gagal karena lingkungan; tahap lanjutan NOT RUN |
+| Query plan                 | `scripts/explain-check.ts`                                          | DONE — 4 skenario dalam anggaran                                                                                 |
+| CI/CD                      | belum ada                                                           | NOT RUN                                                                                                          |
 
 ## Capacity model
 
@@ -88,9 +88,30 @@ Performa rute (`E-perf-100k-2026-11-01T18-08-44.log`, 14/14 OK):
 
 Query plan (`E-explain-kinerja|dashboard|map|sla-2026-11-01T11-12-*.json`): keempat skenario memakai index dan berada di bawah anggaran (Kinerja <500 ms, Dashboard/Peta <1.000 ms, SLA <500 ms).
 
-Beban baca tahap 1 (`E-load-read-2026-11-01T09-33-26-443Z.json`): 50 VU, 5 menit, 13.592 permintaan, 45,1 rps, p50 931 ms, p95 1.867 ms, p99 2.407 ms, error 0, 5xx 0, **pass**.
+Beban baca tahap 1 (`E-load-read-2026-11-01T09-33-26-443Z.json`, build pra-rilis): 50 VU, 5 menit, 13.592 permintaan, 45,1 rps, p50 931 ms, p95 1.867 ms, p99 2.407 ms, error 0, 5xx 0, **pass**.
 
-Tahap beban lanjutan (200/500/1.000 VU, soak 30 menit, ekspor/PDF) dijalankan setelah seed ulang akhir; hasilnya dicatat pada berkas `E-load-*.json` terbaru.
+### Diagnosis beban pada build rilis `85feaa9`
+
+| Uji                                               | Hasil                                                                                              | Kesimpulan                          |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| Tahap 1, 50 VU/5m (`...13-50-18-420Z.json`)       | 22,5 rps, p50 1.826 ms, p95 **4.021 ms**, p99 6.086 ms, error 0, 5xx 0                             | Gagal ambang; tanpa galat 5xx       |
+| Diagnostik 20 VU                                  | `/client` p50 4.706 ms; DB aktif 1–2 dari 21 koneksi saat beban                                    | Basis data tidak jenuh              |
+| Probe 5 VU/60s (`...14-10-33-728Z.json`)          | 0,5 rps, p50 **7.505 ms**, p95 **17.739 ms**, error 0, 5xx 0                                       | 5 VU jauh di bawah kapasitas        |
+| Jaringan (`E-env-network-2026-11-01T14-12Z.json`) | RTT TCP 790 ms ke Neon us-east-1, 333 ms ke 1.1.1.1, 572 ms ke Google; `SELECT 1` idle 1,7–4,3 dtk | Uplink lokal sedang memburuk        |
+| Log server saat restart                           | 1.427 `timeout exceeded when trying to connect`                                                    | Akuisisi koneksi Neon gagal/timeout |
+
+Karena probe 5 VU (jauh di bawah kapasitas satu instans) juga gagal SLO sementara tidak ada 5xx dan DB menganggur, penyebabnya adalah latensi/ketidakstabilan jalur jaringan staging saat pengujian, bukan regresi kode rilis. Beban 200/500/1.000 VU, soak 30 menit, dan ekspor tidak dijalankan karena tahap 1 belum dapat diukur secara sah pada kondisi ini; G6 dinyatakan **belum lulus**.
+
+Kapasitas terukur dari run yang lulus (45 rps pada satu proses `next start`) juga menunjukkan tahap 2–3 pada satu instans lokal tidak dapat mencapai p95 ≤2.000 ms tanpa penskalaan horizontal; angka kapasitas platform produksi tetap **NOT VERIFIED** (tidak ada stress produksi).
+
+Untuk mengulang saat jaringan normal:
+
+```bash
+DB_POOL_MAX=20 npm run start:verify
+node scripts/load-test.mjs --base-url=http://localhost:3400 --profile=read --vus=50 --duration=5m --ramp=1m --max-p95=2000 --max-p99=4000 --max-error-rate=0.01
+```
+
+Jika tahap 1 lulus kembali, lanjutkan tahap 2–3 dan soak pada instans yang diskalakan (bukan satu proses lokal) agar hasil mewakili platform, lalu perbarui tabel ini dengan angka sebenarnya.
 
 ## Pelaporan
 

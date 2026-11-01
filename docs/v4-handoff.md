@@ -329,3 +329,34 @@ Smoke produksi setelah deploy:
 
 Tidak ada environment variable, migrasi, seed, atau sinkronisasi target yang
 diubah selama publikasi ini.
+
+## 13. Kandidat rilis v1.1 (2026-11-01) — belum dideploy
+
+Commit `85feaa9` (`feat(release): deliver v1.1 SLA, Kinerja, activation, and
+DB resilience`) memuat seluruh paket S0–S7 dan siap dari sisi kode. Status
+gerbang:
+
+| Gerbang | Isi                                  | Status                                                                               |
+| ------- | ------------------------------------ | ------------------------------------------------------------------------------------ |
+| G1      | Lint, typecheck, format, build       | PASS                                                                                 |
+| G2      | Unit/integration                     | PASS — 111/111                                                                       |
+| G3      | E2E Playwright                       | PARTIAL — 53/54 pada build rilis; sisa kegagalan transien jaringan, lulus terisolasi |
+| G4      | A11y axe                             | PASS                                                                                 |
+| G5      | Performa 100k (14 rute)              | PASS — `E-perf-100k-2026-11-01T18-08-44.log`                                         |
+| G6      | Beban 50/200/500 VU + soak           | **BELUM LULUS** — tahap 1 gagal karena degradasi jaringan staging                    |
+| G7      | Rekonsiliasi angka                   | PASS (E2E rekonsiliasi + smoke sebelumnya)                                           |
+| G8      | Keamanan (`npm audit`, RBAC negatif) | PASS — 0 kerentanan produksi                                                         |
+| G9      | Migrasi aditif + rehearsal           | PASS — 30 DDL tanpa DROP/TRUNCATE/DELETE                                             |
+| G10     | Deploy produksi                      | **WITHHELD** — menunggu G6                                                           |
+
+Bukti G6: run 50 VU pada `85feaa9` menghasilkan p95 4.021 ms (ambang 2.000 ms)
+tanpa satu pun 5xx, sementara basis data hanya 1–2 koneksi aktif dari 21. Probe
+5 VU pun gagal (p95 17,7 dtk) dan pengukuran jaringan mencatat RTT TCP 790 ms
+ke Neon us-east-1 serta `SELECT 1` 1,7–4,3 dtk saat idle. Lihat
+`docs/audit/evidence/E-env-network-2026-11-01T14-12Z.json`.
+
+Sesuai gerbang yang disetujui, **tidak ada deploy, migrasi, backfill, seed,
+atau perubahan environment variable produksi** yang dijalankan. Untuk
+melanjutkan: tunggu jalur jaringan normal, jalankan ulang tahap beban 1–3 dan
+soak (idealnya pada instans yang diskalakan agar mewakili Vercel), lalu deploy
+dengan prosedur §11.3 bila seluruh gerbang lulus.

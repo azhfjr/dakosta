@@ -1,0 +1,154 @@
+{
+  "profile": "read",
+  "vus": 50,
+  "durationSeconds": 300,
+  "rampSeconds": 60,
+  "period": "2026-11",
+  "baseUrl": "http://localhost:3400",
+  "totalRequests": 6837,
+  "throughputRps": 22.5,
+  "p50Ms": 1825.7,
+  "p95Ms": 4020.8,
+  "p99Ms": 6085.7,
+  "maxMs": 17406.5,
+  "errors": 0,
+  "errorRate": 0,
+  "clientErrors": 0,
+  "expectedClientResponses": 0,
+  "fiveXx": 0,
+  "networkErrors": 0,
+  "pdfFailures": 0,
+  "statusCounts": {
+    "200": 6837
+  },
+  "thresholds": {
+    "maxP95": 2000,
+    "maxP99": 4000,
+    "maxErrorRate": 0.01,
+    "max5xx": null
+  },
+  "routes": [
+    {
+      "route": "GET /client",
+      "count": 495,
+      "errors": 0,
+      "p50Ms": 3406.4,
+      "p95Ms": 5217.6,
+      "p99Ms": 9718.3,
+      "maxMs": 12444.7
+    },
+    {
+      "route": "GET /wilayah/dashboard",
+      "count": 474,
+      "errors": 0,
+      "p50Ms": 2310.8,
+      "p95Ms": 4354.5,
+      "p99Ms": 6382.5,
+      "maxMs": 11387.4
+    },
+    {
+      "route": "GET /cabang/dashboard",
+      "count": 487,
+      "errors": 0,
+      "p50Ms": 2162.3,
+      "p95Ms": 4140.6,
+      "p99Ms": 5706,
+      "maxMs": 7349.2
+    },
+    {
+      "route": "GET /admin",
+      "count": 504,
+      "errors": 0,
+      "p50Ms": 2415.2,
+      "p95Ms": 4118.7,
+      "p99Ms": 7241.6,
+      "maxMs": 12024.5
+    },
+    {
+      "route": "GET /cabang/kinerja",
+      "count": 498,
+      "errors": 0,
+      "p50Ms": 2295.3,
+      "p95Ms": 4078.7,
+      "p99Ms": 5587.3,
+      "maxMs": 8654.1
+    },
+    {
+      "route": "GET /wilayah/kinerja",
+      "count": 491,
+      "errors": 0,
+      "p50Ms": 2358.3,
+      "p95Ms": 3937.5,
+      "p99Ms": 5850.1,
+      "maxMs": 7553.4
+    },
+    {
+      "route": "GET /wilayah",
+      "count": 459,
+      "errors": 0,
+      "p50Ms": 2114.2,
+      "p95Ms": 3656.8,
+      "p99Ms": 5049.7,
+      "maxMs": 6347.6
+    },
+    {
+      "route": "GET /cabang",
+      "count": 500,
+      "errors": 0,
+      "p50Ms": 2060.2,
+      "p95Ms": 3521.5,
+      "p99Ms": 5340.8,
+      "maxMs": 8187.3
+    },
+    {
+      "route": "GET /api/v1/dashboard/admin",
+      "count": 458,
+      "errors": 0,
+      "p50Ms": 1133.3,
+      "p95Ms": 3324,
+      "p99Ms": 7460.9,
+      "maxMs": 17406.5
+    },
+    {
+      "route": "GET /api/v1/admin/reviews",
+      "count": 499,
+      "errors": 0,
+      "p50Ms": 1094.1,
+      "p95Ms": 3296.4,
+      "p99Ms": 5933.2,
+      "maxMs": 7765.1
+    },
+    {
+      "route": "GET /api/v1/dashboard/client",
+      "count": 507,
+      "errors": 0,
+      "p50Ms": 1103.4,
+      "p95Ms": 3228.7,
+      "p99Ms": 5077.8,
+      "maxMs": 7786.9
+    },
+    {
+      "route": "GET /api/v1/analytics/series",
+      "count": 479,
+      "errors": 0,
+      "p50Ms": 1096,
+      "p95Ms": 3067.5,
+      "p99Ms": 5914.5,
+      "maxMs": 7415
+    },
+    {
+      "route": "GET /api/v1/map",
+      "count": 986,
+      "errors": 0,
+      "p50Ms": 1103.6,
+      "p95Ms": 2852.3,
+      "p99Ms": 5501.1,
+      "maxMs": 7192.5
+    }
+  ],
+  "passed": false,
+  "failures": [
+    "p95 4020.8ms > 2000ms",
+    "p99 6085.7ms > 4000ms"
+  ]
+}
