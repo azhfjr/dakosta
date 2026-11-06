@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 
 import { getDb, schema } from "@/db";
+import { readJson } from "@/lib/api";
 import { getAuth } from "@/lib/auth";
+import { assertSameOrigin } from "@/lib/authz/guards";
 import { DEMO_ACCOUNTS, DEMO_ROLE_APP_ROLE, isDemoRole } from "@/lib/demo";
 import { isDemoMode } from "@/lib/env";
 import {
@@ -36,7 +38,21 @@ export async function POST(request: Request) {
     );
   }
 
-  const body = (await request.json().catch(() => null)) as {
+  try {
+    assertSameOrigin(request);
+  } catch {
+    return NextResponse.json(
+      {
+        error: {
+          code: "FORBIDDEN",
+          message: "Permintaan tanpa asal ditolak.",
+        },
+      },
+      { status: 403 },
+    );
+  }
+
+  const body = (await readJson(request).catch(() => null)) as {
     role?: unknown;
   } | null;
 

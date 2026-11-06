@@ -27,9 +27,9 @@ describe("filter query parsers", () => {
   });
 
   it("accepts only UUID organization identifiers", () => {
-    expect(
-      parseFilterUuid("2f1c9a1e-7a5b-4c6d-8e9f-0a1b2c3d4e5f"),
-    ).toBe("2f1c9a1e-7a5b-4c6d-8e9f-0a1b2c3d4e5f");
+    expect(parseFilterUuid("2f1c9a1e-7a5b-4c6d-8e9f-0a1b2c3d4e5f")).toBe(
+      "2f1c9a1e-7a5b-4c6d-8e9f-0a1b2c3d4e5f",
+    );
     expect(parseFilterUuid("not-a-uuid")).toBeNull();
     expect(parseFilterUuid(undefined)).toBeNull();
   });

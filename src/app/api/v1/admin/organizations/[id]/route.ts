@@ -5,6 +5,7 @@ import {
   updateOrganization,
   updateOrganizationInputSchema,
 } from "@/lib/hierarchy-admin";
+import { guardRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,6 +19,7 @@ export async function PATCH(
     assertSameOrigin(request);
     const master = await requireMasterApi();
     const { id } = await context.params;
+    await guardRateLimit(request, "mutation", "org-update");
     const body = updateOrganizationInputSchema.parse(await readJson(request));
     await updateOrganization(id, body);
 

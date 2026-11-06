@@ -9,6 +9,8 @@ import { getAuthContext, hasCapability } from "./context";
 import { hasRecentStepUp } from "./step-up";
 import type { AppRole, AuthContext, Capability } from "./types";
 
+export { assertSameOrigin } from "./same-origin";
+
 type PageOptions = {
   allowPasswordChangePending?: boolean;
   allowPendingLocation?: boolean;
@@ -160,26 +162,4 @@ export async function requireStepUp(): Promise<AuthContext> {
     );
   }
   return ctx;
-}
-
-/**
- * CSRF defence for cookie-authenticated mutations. Browsers send Origin on
- * cross-site writes; a mismatch is rejected. Non-browser clients without an
- * Origin header still rely on SameSite cookies and bearer-free session rules.
- */
-export function assertSameOrigin(request: Request): void {
-  const origin = request.headers.get("origin");
-  if (!origin) return;
-  const host =
-    request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-  if (!host) throw errors.forbidden("Permintaan lintas asal ditolak.");
-  try {
-    const originHost = new URL(origin).host;
-    if (originHost !== host) {
-      throw errors.forbidden("Permintaan lintas asal ditolak.");
-    }
-  } catch (error) {
-    if (error instanceof AppError) throw error;
-    throw errors.forbidden("Asal permintaan tidak valid.");
-  }
 }

@@ -5,8 +5,10 @@ import { z } from "zod";
 import { getDb, schema } from "@/db";
 import { getRequestId, jsonError, jsonOk, readJson } from "@/lib/api";
 import { recordAudit } from "@/lib/audit";
+import { assertSameOrigin } from "@/lib/authz/guards";
 import { getAuth } from "@/lib/auth";
 import { AppError } from "@/lib/errors";
+import { guardRateLimit } from "@/lib/rate-limit";
 import { getApiUser } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -20,7 +22,9 @@ const bodySchema = z.object({
 export async function POST(request: Request) {
   const requestId = getRequestId(request);
   try {
+    assertSameOrigin(request);
     const user = await getApiUser({ allowPasswordChangePending: true });
+    await guardRateLimit(request, "mutation", "password-change");
     const body = bodySchema.parse(await readJson(request));
 
     if (body.currentPassword === body.newPassword) {

@@ -129,9 +129,7 @@ export function FilterBar({
               Atur ulang
             </Link>
           </Button>
-          {summary ? (
-            <p className="text-xs text-ink-muted">{summary}</p>
-          ) : null}
+          {summary ? <p className="text-xs text-ink-muted">{summary}</p> : null}
         </div>
       </AutoSubmitForm>
     </section>

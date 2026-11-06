@@ -1,5 +1,6 @@
 import { getRequestId, jsonError, jsonOk, readJson } from "@/lib/api";
 import { recordAudit } from "@/lib/audit";
+import { assertNotDemoActor } from "@/lib/authz/demo-guard";
 import {
   assertSameOrigin,
   requireMasterApi,
@@ -7,6 +8,7 @@ import {
 } from "@/lib/authz/guards";
 import { errors } from "@/lib/errors";
 import { deleteTarget, findTarget, updateTarget } from "@/lib/targets";
+import { parseUuidParam } from "@/lib/validation/params";
 import { targetUpdateSchema } from "@/lib/validation/target";
 
 export const runtime = "nodejs";
@@ -20,15 +22,17 @@ export async function PATCH(
   try {
     assertSameOrigin(request);
     const master = await requireMasterApi();
+    assertNotDemoActor(master);
     await requireStepUp();
     const { id } = await context.params;
+    const targetId = parseUuidParam(id, "ID target");
 
-    const before = await findTarget(id);
+    const before = await findTarget(targetId);
     if (!before) throw errors.notFound("Target tidak ditemukan.");
 
     const body = targetUpdateSchema.parse(await readJson(request));
     await updateTarget(
-      id,
+      targetId,
       {
         ...(body.stakeholderId !== undefined
           ? { stakeholderId: body.stakeholderId ?? null }
@@ -51,7 +55,7 @@ export async function PATCH(
       actorRole: master.role,
       action: "TARGET_UPDATED",
       recordType: "KPI_TARGET",
-      recordId: id,
+      recordId: targetId,
       before: {
         stakeholderId: before.stakeholderId,
         subTheme: before.subTheme,
@@ -63,7 +67,7 @@ export async function PATCH(
       source: "APP",
     });
 
-    return jsonOk({ id }, { requestId });
+    return jsonOk({ id: targetId }, { requestId });
   } catch (error) {
     return jsonError(error, requestId);
   }
@@ -77,20 +81,22 @@ export async function DELETE(
   try {
     assertSameOrigin(request);
     const master = await requireMasterApi();
+    assertNotDemoActor(master);
     await requireStepUp();
     const { id } = await context.params;
+    const targetId = parseUuidParam(id, "ID target");
 
-    const before = await findTarget(id);
+    const before = await findTarget(targetId);
     if (!before) throw errors.notFound("Target tidak ditemukan.");
 
-    await deleteTarget(id, master.userId);
+    await deleteTarget(targetId, master.userId);
 
     await recordAudit({
       actorId: master.userId,
       actorRole: master.role,
       action: "TARGET_DELETED",
       recordType: "KPI_TARGET",
-      recordId: id,
+      recordId: targetId,
       before: {
         stakeholderId: before.stakeholderId,
         subTheme: before.subTheme,
@@ -102,7 +108,7 @@ export async function DELETE(
       source: "APP",
     });
 
-    return jsonOk({ id }, { requestId });
+    return jsonOk({ id: targetId }, { requestId });
   } catch (error) {
     return jsonError(error, requestId);
   }

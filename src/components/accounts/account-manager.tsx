@@ -30,7 +30,7 @@ import { Label } from "@/components/ui/label";
 import type { AccountRow, ScopeOptions } from "@/lib/accounts";
 import { APP_ROLES, ROLE_LABELS, type AppRole } from "@/lib/authz/types";
 
-type Credential = { name: string; email: string; tempPassword: string };
+type Credential = { name: string; email: string; activationUrl: string };
 
 const PAGE_SIZE = 25;
 
@@ -158,10 +158,10 @@ export function AccountManager({
         setCredential({
           name,
           email: body.data.email,
-          tempPassword: body.data.tempPassword,
+          activationUrl: body.data.activationUrl,
         });
         toast.success(
-          "Akun dibuat. Serahkan kata sandi sementara secara langsung.",
+          "Akun dibuat. Salin tautan aktivasi dan kirimkan kepada pengguna.",
         );
         setName("");
         setEmail("");
@@ -247,7 +247,7 @@ export function AccountManager({
           }),
         });
         const body = (await response.json()) as {
-          data?: { tempPassword?: string };
+          data?: { activationUrl?: string };
           error?: { code?: string; message?: string };
         };
         if (isStepUpRequired(response, body)) {
@@ -258,13 +258,13 @@ export function AccountManager({
           toast.error(body.error?.message ?? "Tindakan gagal.");
           return;
         }
-        if (kind === "reset" && body.data?.tempPassword) {
+        if (kind === "reset" && body.data?.activationUrl) {
           setCredential({
             name: account.name,
             email: account.email,
-            tempPassword: body.data.tempPassword,
+            activationUrl: body.data.activationUrl,
           });
-          toast.success("Kata sandi sementara dibuat dan sesi dicabut.");
+          toast.success("Tautan aktivasi dibuat dan sesi dicabut.");
         } else {
           toast.success("Seluruh sesi akun dicabut.");
         }
@@ -322,18 +322,18 @@ export function AccountManager({
           className="rounded-xl border border-status-revision/40 bg-status-revision/5 p-4"
         >
           <h2 className="text-sm font-semibold text-foreground">
-            Kata sandi sementara untuk {credential.name}
+            Tautan aktivasi untuk {credential.name}
           </h2>
           <p className="mt-1 text-xs text-ink-muted">
-            Tampil satu kali. Serahkan langsung kepada pengguna; mereka wajib
-            mengganti kata sandi saat masuk pertama.
+            Tautan berlaku 48 jam dan hanya dapat dipakai sekali. Kirimkan
+            kepada pengguna; mereka membuat kata sandi sendiri saat aktivasi.
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <code className="rounded-lg border border-border bg-surface px-3 py-2 font-mono text-sm">
               {credential.email}
             </code>
-            <code className="rounded-lg border border-border bg-surface px-3 py-2 font-mono text-sm">
-              {credential.tempPassword}
+            <code className="max-w-full min-w-0 rounded-lg border border-border bg-surface px-3 py-2 font-mono text-xs break-all">
+              {credential.activationUrl}
             </code>
             <Button
               type="button"
@@ -342,13 +342,13 @@ export function AccountManager({
               className="h-9"
               onClick={async () => {
                 await navigator.clipboard
-                  .writeText(`${credential.email} / ${credential.tempPassword}`)
+                  .writeText(credential.activationUrl)
                   .catch(() => undefined);
-                toast.success("Kredensial disalin.");
+                toast.success("Tautan aktivasi disalin.");
               }}
             >
               <Copy className="mr-1.5 size-4" aria-hidden />
-              Salin
+              Salin tautan
             </Button>
             <Button
               type="button"

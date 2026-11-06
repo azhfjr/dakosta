@@ -80,7 +80,7 @@ export function UserManagement({
 
   const [credentials, setCredentials] = useState<{
     email: string;
-    tempPassword: string;
+    activationUrl: string;
   } | null>(null);
 
   const [manageUser, setManageUser] = useState<UserRow | null>(null);
@@ -131,7 +131,7 @@ export function UserManagement({
         }),
       });
       const payload = (await response.json()) as ApiError & {
-        data?: { email: string; tempPassword: string };
+        data?: { email: string; activationUrl: string };
       };
 
       if (!response.ok || !payload.data) {
@@ -145,7 +145,7 @@ export function UserManagement({
       resetCreateForm();
       setCredentials({
         email: payload.data.email,
-        tempPassword: payload.data.tempPassword,
+        activationUrl: payload.data.activationUrl,
       });
       startTransition(() => router.refresh());
     } catch {
@@ -459,19 +459,22 @@ export function UserManagement({
 
               <div className="rounded-lg border border-brand-blue-100 bg-brand-blue-100/50 p-3">
                 <p className="text-xs font-medium text-brand-blue-800">
-                  Kata sandi sementara
+                  Tautan aktivasi
                 </p>
                 <div className="mt-1 flex items-center justify-between gap-2">
-                  <code className="text-sm font-semibold break-all text-brand-blue-900">
-                    {credentials.tempPassword}
+                  <code className="text-xs break-all text-brand-blue-900">
+                    {credentials.activationUrl}
                   </code>
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon-sm"
-                    aria-label="Salin kata sandi sementara"
+                    aria-label="Salin tautan aktivasi"
                     onClick={() =>
-                      copyToClipboard(credentials.tempPassword, "Kata sandi")
+                      copyToClipboard(
+                        credentials.activationUrl,
+                        "Tautan aktivasi",
+                      )
                     }
                   >
                     <Copy className="size-3.5" aria-hidden />
@@ -481,7 +484,8 @@ export function UserManagement({
 
               <p className="flex items-start gap-2 text-xs leading-relaxed text-ink-muted">
                 <KeyRound className="mt-0.5 size-4 shrink-0" aria-hidden />
-                Pengguna wajib mengganti kata sandi ini saat pertama masuk.
+                Tautan berlaku 48 jam dan hanya sekali pakai. Pengguna membuat
+                kata sandi sendiri saat aktivasi.
               </p>
             </div>
           ) : null}

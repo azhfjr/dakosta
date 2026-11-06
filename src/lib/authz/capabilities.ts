@@ -59,6 +59,11 @@ const DEMO_BLOCKED: readonly Capability[] = [
   "account:manage",
   "account:reset",
   "import:manage",
+  "content:override",
+  "content:revoke",
+  "policy:manage",
+  "target:manage",
+  "demo:reset",
 ];
 
 export function capabilitiesForRole(role: AppRole): readonly Capability[] {

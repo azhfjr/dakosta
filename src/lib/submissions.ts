@@ -990,7 +990,7 @@ export async function saveSubmission(
             firstSubmittedAt: input.action === "SUBMIT" ? now : null,
             submittedAt: input.action === "SUBMIT" ? now : null,
             archived: false,
-            isDemo: false,
+            isDemo: user.isDemo,
             createdAt: now,
             updatedAt: now,
           })

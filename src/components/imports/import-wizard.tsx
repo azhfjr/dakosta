@@ -19,9 +19,30 @@ type CommitResult = {
     rowNumber: number;
     name: string;
     email: string;
-    tempPassword: string;
+    activationUrl: string;
   }>;
 };
+
+function downloadActivationCsv(result: CommitResult) {
+  const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
+  const rows = [
+    ["nama", "email", "tautan_aktivasi"],
+    ...result.credentials.map((row) => [
+      row.name,
+      row.email,
+      row.activationUrl,
+    ]),
+  ];
+  const csv = rows.map((row) => row.map(escape).join(",")).join("\n");
+  const url = URL.createObjectURL(
+    new Blob([csv], { type: "text/csv;charset=utf-8" }),
+  );
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "tautan-aktivasi.csv";
+  link.click();
+  URL.revokeObjectURL(url);
+}
 
 function CopyAll({ result }: { result: CommitResult }) {
   return (
@@ -32,14 +53,14 @@ function CopyAll({ result }: { result: CommitResult }) {
       className="h-9"
       onClick={async () => {
         const text = result.credentials
-          .map((row) => `${row.name}\t${row.email}\t${row.tempPassword}`)
+          .map((row) => `${row.name}\t${row.email}\t${row.activationUrl}`)
           .join("\n");
         await navigator.clipboard.writeText(text).catch(() => undefined);
-        toast.success("Kredensial disalin. Serahkan secara langsung.");
+        toast.success("Tautan aktivasi disalin.");
       }}
     >
       <CheckCircle2 className="mr-1.5 size-4" aria-hidden />
-      Salin kredensial
+      Salin tautan
     </Button>
   );
 }
@@ -284,12 +305,20 @@ export function ImportWizard({ readOnly = false }: { readOnly?: boolean }) {
               </p>
             </div>
             <CopyAll result={result} />
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-9"
+              onClick={() => downloadActivationCsv(result)}
+            >
+              <Upload className="mr-1.5 size-4" aria-hidden />
+              Unduh CSV tautan
+            </Button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[44rem] border-collapse text-sm">
-              <caption className="sr-only">
-                Kredensial sementara akun baru
-              </caption>
+              <caption className="sr-only">Tautan aktivasi akun baru</caption>
               <thead>
                 <tr className="border-b border-border text-left text-xs font-medium tracking-wide text-ink-muted uppercase">
                   <th scope="col" className="px-4 py-3">
@@ -299,7 +328,7 @@ export function ImportWizard({ readOnly = false }: { readOnly?: boolean }) {
                     Email
                   </th>
                   <th scope="col" className="px-4 py-3">
-                    Kata sandi sementara
+                    Tautan aktivasi
                   </th>
                 </tr>
               </thead>
@@ -311,8 +340,8 @@ export function ImportWizard({ readOnly = false }: { readOnly?: boolean }) {
                   >
                     <td className="px-4 py-3 text-foreground">{row.name}</td>
                     <td className="px-4 py-3 text-ink-muted">{row.email}</td>
-                    <td className="px-4 py-3 font-mono text-xs">
-                      {row.tempPassword}
+                    <td className="px-4 py-3 font-mono text-xs break-all">
+                      {row.activationUrl}
                     </td>
                   </tr>
                 ))}
@@ -320,8 +349,8 @@ export function ImportWizard({ readOnly = false }: { readOnly?: boolean }) {
             </table>
           </div>
           <p className="px-4 py-3 text-xs text-ink-muted">
-            Tampil satu kali. Kredensial tidak dicatat pada audit, log, atau CSV
-            hasil impor.
+            Tautan berlaku 48 jam dan hanya sekali pakai. Tautan tidak dicatat
+            pada audit, log, atau CSV hasil impor.
           </p>
         </section>
       ) : null}

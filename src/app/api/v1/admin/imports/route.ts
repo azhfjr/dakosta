@@ -1,5 +1,3 @@
-import { NextResponse } from "next/server";
-
 import { getRequestId, jsonError, jsonOk } from "@/lib/api";
 import { requireMasterApi } from "@/lib/authz/guards";
 import { listImports } from "@/lib/imports/accounts";
@@ -16,8 +14,4 @@ export async function GET(request: Request) {
   } catch (error) {
     return jsonError(error, requestId);
   }
-}
-
-export async function HEAD() {
-  return new NextResponse(null, { status: 204 });
 }

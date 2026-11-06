@@ -1,13 +1,16 @@
 import { z } from "zod";
 
 import { getRequestId, jsonError, jsonOk, readJson } from "@/lib/api";
+import { assertNotDemoActor } from "@/lib/authz/demo-guard";
 import {
   assertSameOrigin,
   requireMasterApi,
   requireStepUp,
 } from "@/lib/authz/guards";
 import { revokeSubmission } from "@/lib/review";
+import { guardRateLimit } from "@/lib/rate-limit";
 import { toSessionUser } from "@/lib/session";
+import { parseUuidParam } from "@/lib/validation/params";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,8 +27,11 @@ export async function POST(
   try {
     assertSameOrigin(request);
     const master = toSessionUser(await requireMasterApi());
+    assertNotDemoActor(master);
     await requireStepUp();
     const { id } = await context.params;
+    parseUuidParam(id, "ID konten");
+    await guardRateLimit(request, "mutation", "content-revoke");
     const input = inputSchema.parse(await readJson(request));
     const result = await revokeSubmission(
       master,

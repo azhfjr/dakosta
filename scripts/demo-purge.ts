@@ -138,7 +138,15 @@ export async function purgeDemoOnly(
     tx,
     scope.submissionIds,
     (ids) =>
-      sql`delete from content_submissions where id in (${uuidList(ids)})`,
+      sql`delete from content_submissions where is_demo = true or id in (${uuidList(ids)})`,
+  );
+  await remove(
+    tx,
+    sql`delete from content_reviews where submission_id in (select id from content_submissions where is_demo = true)`,
+  );
+  await remove(
+    tx,
+    sql`delete from content_revisions where submission_id in (select id from content_submissions where is_demo = true)`,
   );
   await removeInChunks(
     tx,

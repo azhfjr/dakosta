@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     }
 
     const body = createAccountInputSchema.parse(await readJson(request));
-    const account = await createAccount(body);
+    const account = await createAccount(body, { createdBy: master.userId });
 
     await recordAudit({
       actorId: master.userId,

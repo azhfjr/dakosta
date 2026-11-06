@@ -16,7 +16,7 @@ export default async function ChangePasswordPage() {
   if (!user) redirect("/masuk");
 
   const redirectTo = user.homePath;
-  if (!user.mustChangePassword) redirect(redirectTo);
+  const forced = user.mustChangePassword;
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-muted/60">
@@ -41,11 +41,16 @@ export default async function ChangePasswordPage() {
               Ganti kata sandi
             </h1>
             <p className="text-sm leading-relaxed text-ink-muted">
-              Akun ini memakai kata sandi sementara dari Master Admin. Buat kata
-              sandi pribadi sebelum melanjutkan.
+              {forced
+                ? "Akun ini memakai kata sandi sementara. Buat kata sandi pribadi sebelum melanjutkan."
+                : "Perbarui kata sandi akun Anda. Sesi lain akan diakhiri setelah kata sandi tersimpan."}
             </p>
           </div>
-          <ChangePasswordForm email={user.email} redirectTo={redirectTo} />
+          <ChangePasswordForm
+            email={user.email}
+            redirectTo={redirectTo}
+            forced={forced}
+          />
         </div>
       </main>
 

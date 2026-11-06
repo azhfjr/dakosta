@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { getRequestId, jsonError, jsonOk, readJson } from "@/lib/api";
 import { recordAudit } from "@/lib/audit";
+import { assertNotDemoActor } from "@/lib/authz/demo-guard";
 import { assertSameOrigin, requireMasterApi } from "@/lib/authz/guards";
 import {
   ensurePolicyInput,
@@ -40,6 +41,7 @@ export async function POST(request: Request) {
   try {
     assertSameOrigin(request);
     const master = await requireMasterApi();
+    assertNotDemoActor(master);
 
     const limit = await consumeRateLimit({
       key: `policy:save:${master.userId}:${getClientIp(request)}`,

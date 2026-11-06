@@ -6,6 +6,7 @@ import {
   ChevronDown,
   CircleHelp,
   Info,
+  KeyRound,
   LogOut,
   ShieldCheck,
 } from "lucide-react";
@@ -114,6 +115,12 @@ export function UserMenu({
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <a href="/ganti-password">
+            <KeyRound className="size-4" aria-hidden />
+            Ganti kata sandi
+          </a>
+        </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <a href="/bantuan">
             <CircleHelp className="size-4" aria-hidden />

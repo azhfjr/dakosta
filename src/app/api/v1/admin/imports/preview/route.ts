@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { getRequestId, jsonError, jsonOk, readJson } from "@/lib/api";
+import { assertNotDemoActor } from "@/lib/authz/demo-guard";
 import { assertSameOrigin, requireMasterApi } from "@/lib/authz/guards";
 import { previewImport } from "@/lib/imports/accounts";
 import { consumeRateLimit, getClientIp } from "@/lib/rate-limit";
@@ -19,6 +20,7 @@ export async function POST(request: Request) {
   try {
     assertSameOrigin(request);
     const master = await requireMasterApi();
+    assertNotDemoActor(master);
 
     const limit = await consumeRateLimit({
       key: `import:preview:${master.userId}:${getClientIp(request)}`,

@@ -1,15 +1,23 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 
-import { AppError } from "@/lib/errors";
+import { AppError, errors } from "@/lib/errors";
 
 export type ApiMeta = {
   requestId: string;
   [key: string]: unknown;
 };
 
+export const MAX_JSON_BODY_BYTES = 1_048_576;
+
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export function getRequestId(request: Request): string {
-  return request.headers.get("x-request-id") ?? crypto.randomUUID();
+  const supplied = request.headers.get("x-request-id")?.trim();
+  return supplied && UUID_PATTERN.test(supplied)
+    ? supplied
+    : crypto.randomUUID();
 }
 
 export function jsonOk<T>(
@@ -80,14 +88,25 @@ export function jsonError(
     statusCode?: unknown;
     message?: unknown;
   };
-  const authStatus = Number(authLike?.status ?? authLike?.statusCode);
+  const rawStatus = authLike?.status ?? authLike?.statusCode;
+  const authStatus = typeof rawStatus === "number" ? rawStatus : Number.NaN;
   if (Number.isInteger(authStatus) && authStatus >= 400 && authStatus < 500) {
+    const code =
+      authStatus === 400
+        ? "VALIDATION_ERROR"
+        : authStatus === 401
+          ? "UNAUTHORIZED"
+          : authStatus === 403
+            ? "FORBIDDEN"
+            : authStatus === 429
+              ? "RATE_LIMITED"
+              : "REQUEST_REJECTED";
     return NextResponse.json(
       {
         data: null,
         meta: { requestId },
         error: {
-          code: authStatus === 401 ? "UNAUTHORIZED" : "REQUEST_REJECTED",
+          code,
           message:
             typeof authLike.message === "string" && authLike.message.length > 0
               ? authLike.message
@@ -113,8 +132,28 @@ export function jsonError(
 }
 
 export async function readJson<T>(request: Request): Promise<T> {
+  const declaredLength = Number(request.headers.get("content-length") ?? "");
+  if (Number.isFinite(declaredLength) && declaredLength > MAX_JSON_BODY_BYTES) {
+    throw errors.payloadTooLarge();
+  }
+
+  let body: string;
   try {
-    return (await request.json()) as T;
+    body = await request.text();
+  } catch {
+    throw new AppError(
+      "INVALID_BODY",
+      "Isi permintaan tidak dapat dibaca.",
+      400,
+    );
+  }
+
+  if (new TextEncoder().encode(body).byteLength > MAX_JSON_BODY_BYTES) {
+    throw errors.payloadTooLarge();
+  }
+
+  try {
+    return JSON.parse(body) as T;
   } catch {
     throw new AppError(
       "INVALID_JSON",

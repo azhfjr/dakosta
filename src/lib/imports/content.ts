@@ -280,7 +280,7 @@ async function buildPreview(input: {
   db?: ContentDb;
 }): Promise<{ preview: ContentImportPreview; parsed: ParsedRow[] }> {
   const db = input.db ?? getDb();
-  if (input.content.length > CONTENT_IMPORT_MAX_BYTES) {
+  if (Buffer.byteLength(input.content, "utf8") > CONTENT_IMPORT_MAX_BYTES) {
     throw errors.validation(
       "Berkas melebihi 1 MB. Pecah menjadi beberapa berkas.",
     );

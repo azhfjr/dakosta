@@ -485,7 +485,7 @@ export type ImportCommitResult = {
     rowNumber: number;
     name: string;
     email: string;
-    tempPassword: string;
+    activationUrl: string;
   }>;
 };
 
@@ -532,22 +532,25 @@ export async function commitImport(input: {
 
     const normalized = row.normalized as Record<string, string>;
     try {
-      const account = await createAccount({
-        name: normalized.name!,
-        email: normalized.email!,
-        role: normalized.role as
-          "REGIONAL_ADMIN" | "BRANCH_ADMIN" | "STAKEHOLDER",
-        regionalOfficeId: normalized.regionalOfficeId ?? null,
-        branchOfficeId: normalized.branchOfficeId ?? null,
-        organizationId: normalized.organizationId ?? null,
-        displayTitle: normalized.displayTitle || undefined,
-      });
+      const account = await createAccount(
+        {
+          name: normalized.name!,
+          email: normalized.email!,
+          role: normalized.role as
+            "REGIONAL_ADMIN" | "BRANCH_ADMIN" | "STAKEHOLDER",
+          regionalOfficeId: normalized.regionalOfficeId ?? null,
+          branchOfficeId: normalized.branchOfficeId ?? null,
+          organizationId: normalized.organizationId ?? null,
+          displayTitle: normalized.displayTitle || undefined,
+        },
+        { createdBy: input.actorId },
+      );
       created += 1;
       credentials.push({
         rowNumber: row.rowNumber,
         name: normalized.name!,
         email: normalized.email!,
-        tempPassword: account.tempPassword,
+        activationUrl: account.activationUrl,
       });
       await db
         .update(schema.accountImportRows)

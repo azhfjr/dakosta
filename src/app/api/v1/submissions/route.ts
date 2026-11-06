@@ -1,7 +1,9 @@
 import { z } from "zod";
 
 import { getRequestId, jsonError, jsonOk, readJson } from "@/lib/api";
+import { assertSameOrigin } from "@/lib/authz/guards";
 import { CONTENT_STATUSES, type ContentStatus } from "@/lib/content-status";
+import { guardRateLimit } from "@/lib/rate-limit";
 import { getApiUser, getApiUserWithRole } from "@/lib/session";
 import { listSubmissions, saveSubmission } from "@/lib/submissions";
 import { submissionInputSchema } from "@/lib/validation/content";
@@ -43,7 +45,9 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const requestId = getRequestId(request);
   try {
+    assertSameOrigin(request);
     const user = await getApiUserWithRole("CLIENT");
+    await guardRateLimit(request, "mutation", "submissions");
     const input = submissionInputSchema.parse(await readJson(request));
     const saved = await saveSubmission(user, input, requestId);
 

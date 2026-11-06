@@ -1,8 +1,5 @@
 import { isOrgSource, type OrgSource } from "@/lib/analytics/org-source";
-import {
-  CONTENT_STATUSES,
-  type ContentStatus,
-} from "@/lib/content-status";
+import { CONTENT_STATUSES, type ContentStatus } from "@/lib/content-status";
 import {
   isContentType,
   isMainTheme,
@@ -57,7 +54,10 @@ export function isFilterParamKey(key: string): key is FilterParamKey {
 }
 
 /** Reporting period accepts `YYYY-MM`; `ALL` means the full history. */
-export function parseFilterPeriod(params: FilterParams, fallback = "ALL"): string {
+export function parseFilterPeriod(
+  params: FilterParams,
+  fallback = "ALL",
+): string {
   const raw = firstParam(params, "period") ?? firstParam(params, "month");
   if (!raw) return fallback;
   if (raw.toUpperCase() === "ALL") return "ALL";
@@ -86,9 +86,7 @@ export function parseFilterContentType(
   return isContentType(value) ? value : null;
 }
 
-export function parseFilterSource(
-  value: string | undefined,
-): OrgSource | null {
+export function parseFilterSource(value: string | undefined): OrgSource | null {
   if (!value) return null;
   const upper = value.trim().toUpperCase();
   return isOrgSource(upper) ? upper : null;
@@ -145,7 +143,11 @@ export function buildFilterHref(
   for (const [key, value] of Object.entries(overrides)) {
     merged.set(
       key,
-      value === undefined ? null : typeof value === "number" ? String(value) : value,
+      value === undefined
+        ? null
+        : typeof value === "number"
+          ? String(value)
+          : value,
     );
   }
 

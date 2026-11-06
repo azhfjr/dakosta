@@ -3,6 +3,10 @@ import "server-only";
 import { sql } from "drizzle-orm";
 
 import { getDb } from "@/db";
+import { AppError } from "@/lib/errors";
+import { getClientIp } from "@/lib/request-ip";
+
+export { getClientIp } from "@/lib/request-ip";
 
 export type RateLimitResult = {
   allowed: boolean;
@@ -67,10 +71,47 @@ function isTransientConnectionError(error: unknown): boolean {
   );
 }
 
-export function getClientIp(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0]!.trim();
-  return request.headers.get("x-real-ip")?.trim() || "unknown";
+export const RATE_LIMIT_PRESETS = {
+  auth: { limit: 30, envKey: "RATE_LIMIT_AUTH_PER_MINUTE" },
+  mutation: { limit: 120, envKey: "RATE_LIMIT_MUTATION_PER_MINUTE" },
+  activation: { limit: 10, envKey: "RATE_LIMIT_ACTIVATION_PER_MINUTE" },
+  demoLogin: { limit: 20, envKey: "RATE_LIMIT_DEMO_LOGIN_PER_MINUTE" },
+} as const;
+
+export type RateLimitPreset = keyof typeof RATE_LIMIT_PRESETS;
+
+function limitFor(preset: RateLimitPreset): number {
+  const { limit, envKey } = RATE_LIMIT_PRESETS[preset];
+  const override = Number(process.env[envKey]);
+  return Number.isFinite(override) && override >= 0
+    ? Math.floor(override)
+    : limit;
+}
+
+/**
+ * Throws a 429 when the caller exceeds its bucket. `scope` separates buckets
+ * (auth, submissions, etc.) while the key is always IP-bound.
+ */
+export async function guardRateLimit(
+  request: Request,
+  preset: RateLimitPreset,
+  scope: string,
+): Promise<void> {
+  const limit = limitFor(preset);
+  if (limit === 0) return;
+  const result = await consumeRateLimit({
+    key: `${scope}:${getClientIp(request)}`,
+    limit,
+    windowSeconds: 60,
+  });
+  if (!result.allowed) {
+    throw new AppError(
+      "RATE_LIMITED",
+      "Terlalu banyak permintaan. Coba lagi.",
+      429,
+      { retryAfterSeconds: result.retryAfterSeconds },
+    );
+  }
 }
 
 export async function getRateLimitHeaders(

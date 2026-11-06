@@ -2,6 +2,7 @@ import { getRequestId, jsonError, jsonOk, readJson } from "@/lib/api";
 import { recordAudit } from "@/lib/audit";
 import { assertSameOrigin, requireMasterApi } from "@/lib/authz/guards";
 import { updateRegion, updateRegionInputSchema } from "@/lib/hierarchy-admin";
+import { guardRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,6 +16,7 @@ export async function PATCH(
     assertSameOrigin(request);
     const master = await requireMasterApi();
     const { id } = await context.params;
+    await guardRateLimit(request, "mutation", "region-update");
     const body = updateRegionInputSchema.parse(await readJson(request));
     await updateRegion(id, body);
 

@@ -30,6 +30,12 @@ export const errors = {
     new AppError("VALIDATION_ERROR", message, 400, details),
   rateLimited: () =>
     new AppError("RATE_LIMITED", "Terlalu banyak permintaan. Coba lagi.", 429),
+  payloadTooLarge: () =>
+    new AppError(
+      "PAYLOAD_TOO_LARGE",
+      "Isi permintaan melebihi batas 1 MB.",
+      413,
+    ),
   server: (message = "Terjadi kesalahan pada server.") =>
     new AppError("INTERNAL_ERROR", message, 500),
 };

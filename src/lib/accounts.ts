@@ -7,6 +7,7 @@ import { headers } from "next/headers";
 import { z } from "zod";
 
 import { getDb, schema } from "@/db";
+import { issueInvitation } from "@/lib/accounts/invitations";
 import { getAuth } from "@/lib/auth";
 import { assertDemoCannotManageAccounts } from "@/lib/authz/demo-guard";
 import type { AppRole } from "@/lib/authz/types";
@@ -195,9 +196,9 @@ export type CreateAccountInput = z.infer<typeof accountInputSchema>;
 
 export const createAccountInputSchema = accountInputSchema;
 
-function generateTempPassword(): string {
-  // 12+ characters, mixed classes, shown exactly once. Never logged.
-  return `${randomBytes(9).toString("base64url")}Aa1!`;
+function generateInitialPassword(): string {
+  // Never shown or returned; the account is activated through a one-time link.
+  return randomBytes(32).toString("base64url");
 }
 
 async function assertScopeCombination(input: {
@@ -312,18 +313,21 @@ async function countActiveMasters(excludeUserId?: string): Promise<number> {
   return Number(row?.total ?? 0);
 }
 
-export async function createAccount(input: CreateAccountInput): Promise<{
+export async function createAccount(
+  input: CreateAccountInput,
+  options: { createdBy?: string | null } = {},
+): Promise<{
   userId: string;
   email: string;
-  tempPassword: string;
-  mustChangePassword: boolean;
+  activationUrl: string;
+  activationExpiresAt: string;
 }> {
   await assertDemoCannotManageAccounts();
   const parsed = accountInputSchema.parse(input);
   await assertScopeCombination(parsed);
 
   const db = getDb();
-  const tempPassword = generateTempPassword();
+  const initialPassword = generateInitialPassword();
   const displayTitle = parsed.displayTitle?.trim() || ROLE_LABELS[parsed.role];
 
   let createdUserId: string | null = null;
@@ -332,7 +336,7 @@ export async function createAccount(input: CreateAccountInput): Promise<{
       body: {
         email: parsed.email,
         name: parsed.name,
-        password: tempPassword,
+        password: initialPassword,
         role: parsed.role === "MASTER_ADMIN" ? "admin" : "user",
       },
       headers: await headers(),
@@ -386,11 +390,17 @@ export async function createAccount(input: CreateAccountInput): Promise<{
     );
   }
 
+  const invitation = await issueInvitation({
+    userId: createdUserId!,
+    purpose: "ACTIVATION",
+    createdBy: options.createdBy ?? null,
+  });
+
   return {
     userId: createdUserId!,
     email: parsed.email,
-    tempPassword,
-    mustChangePassword: true,
+    activationUrl: invitation.url,
+    activationExpiresAt: invitation.expiresAt,
   };
 }
 
@@ -573,20 +583,15 @@ export async function revokeUserSessions(userId: string): Promise<number> {
   return result.length;
 }
 
-export async function resetAccountPassword(userId: string): Promise<{
-  tempPassword: string;
+export async function resetAccountPassword(
+  userId: string,
+  actorId: string | null = null,
+): Promise<{
+  activationUrl: string;
+  activationExpiresAt: string;
   mustChangePassword: boolean;
 }> {
   await assertDemoCannotManageAccounts();
-  const tempPassword = generateTempPassword();
-  await getAuth()
-    .api.setUserPassword({
-      body: { userId, newPassword: tempPassword },
-      headers: await headers(),
-    })
-    .catch(() => {
-      throw errors.server("Kata sandi sementara tidak dapat dibuat.");
-    });
 
   await getDb()
     .update(schema.userProfiles)
@@ -594,7 +599,18 @@ export async function resetAccountPassword(userId: string): Promise<{
     .where(eq(schema.userProfiles.userId, userId));
 
   await revokeUserSessions(userId);
-  return { tempPassword, mustChangePassword: true };
+
+  const invitation = await issueInvitation({
+    userId,
+    purpose: "RESET",
+    createdBy: actorId,
+  });
+
+  return {
+    activationUrl: invitation.url,
+    activationExpiresAt: invitation.expiresAt,
+    mustChangePassword: true,
+  };
 }
 
 export async function findAccount(userId: string): Promise<AccountRow | null> {

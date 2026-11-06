@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { getRequestId, jsonError, jsonOk, readJson } from "@/lib/api";
+import { assertSameOrigin } from "@/lib/authz/guards";
 import {
   drainOutbox,
   getUnreadNotificationCount,
@@ -63,6 +64,7 @@ export async function GET(request: Request) {
 export async function PATCH(request: Request) {
   const requestId = getRequestId(request);
   try {
+    assertSameOrigin(request);
     const user = await getApiUser();
     const input = updateSchema.parse(await readJson(request));
 

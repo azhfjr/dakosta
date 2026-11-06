@@ -12,9 +12,11 @@ import { Label } from "@/components/ui/label";
 export function ChangePasswordForm({
   email,
   redirectTo,
+  forced = false,
 }: {
   email: string;
   redirectTo: string;
+  forced?: boolean;
 }) {
   const router = useRouter();
   const [currentPassword, setCurrentPassword] = useState("");
@@ -176,8 +178,10 @@ export function ChangePasswordForm({
           className="mt-0.5 size-4 shrink-0 text-brand-blue-700"
           aria-hidden
         />
-        Setelah tersimpan, sesi lain akan diakhiri dan Anda dapat melanjutkan ke
-        ruang kerja.
+        Setelah tersimpan, sesi lain akan diakhiri.{" "}
+        {forced
+          ? "Anda dapat langsung melanjutkan ke ruang kerja."
+          : "Anda tetap berada di halaman ini dan dapat kembali ke ruang kerja."}
       </p>
     </form>
   );

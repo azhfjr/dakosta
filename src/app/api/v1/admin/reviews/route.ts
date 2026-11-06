@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { getRequestId, jsonError, jsonOk, readJson } from "@/lib/api";
+import { assertNotDemoActor } from "@/lib/authz/demo-guard";
 import { assertSameOrigin, requireApiRole } from "@/lib/authz/guards";
 import { toSessionUser } from "@/lib/session";
 import { consumeRateLimit, getClientIp } from "@/lib/rate-limit";
@@ -62,6 +63,7 @@ export async function POST(request: Request) {
     const reviewer = toSessionUser(
       await requireApiRole("MASTER_ADMIN", "BRANCH_ADMIN"),
     );
+    assertNotDemoActor(reviewer);
 
     const limit = await consumeRateLimit({
       key: `review:${reviewer.id}:${getClientIp(request)}`,

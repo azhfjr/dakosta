@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getRequestId, jsonError, jsonOk, readJson } from "@/lib/api";
 import { recordAudit } from "@/lib/audit";
+import { assertNotDemoActor } from "@/lib/authz/demo-guard";
 import {
   assertSameOrigin,
   requireMasterApi,
@@ -55,6 +56,7 @@ export async function POST(request: Request) {
   try {
     assertSameOrigin(request);
     const master = await requireMasterApi();
+    assertNotDemoActor(master);
     await requireStepUp();
     const limit = await consumeRateLimit({
       key: `target:create:${master.userId}:${getClientIp(request)}`,

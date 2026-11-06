@@ -13,6 +13,8 @@ import {
   updateAccountInputSchema,
 } from "@/lib/accounts";
 import { errors } from "@/lib/errors";
+import { guardRateLimit } from "@/lib/rate-limit";
+import { parseUuidParam } from "@/lib/validation/params";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,20 +29,22 @@ export async function PATCH(
     const master = await requireMasterApi();
     await requireStepUp();
     const { id } = await context.params;
-    const before = await findAccount(id);
+    await guardRateLimit(request, "mutation", "user-update");
+    const accountId = parseUuidParam(id, "ID pengguna");
+    const before = await findAccount(accountId);
     if (!before) {
       throw errors.notFound("Akun tidak ditemukan.");
     }
 
     const body = updateAccountInputSchema.parse(await readJson(request));
-    await updateAccount(master.userId, id, body);
+    await updateAccount(master.userId, accountId, body);
 
     await recordAudit({
       actorId: master.userId,
       actorRole: master.role,
       action: "ACCOUNT_UPDATED",
       recordType: "USER",
-      recordId: id,
+      recordId: accountId,
       before: {
         role: before.role,
         status: before.status,
@@ -52,7 +56,7 @@ export async function PATCH(
       requestId,
     });
 
-    return jsonOk({ id }, { requestId });
+    return jsonOk({ id: accountId }, { requestId });
   } catch (error) {
     return jsonError(error, requestId);
   }
@@ -68,18 +72,20 @@ export async function POST(
     const master = await requireMasterApi();
     await requireStepUp();
     const { id } = await context.params;
+    await guardRateLimit(request, "mutation", "user-actions");
+    const accountId = parseUuidParam(id, "ID pengguna");
     const body = (await readJson(request).catch(() => ({}))) as {
       action?: string;
     };
 
     if (body.action === "reset-password") {
-      const result = await resetAccountPassword(id);
+      const result = await resetAccountPassword(accountId, master.userId);
       await recordAudit({
         actorId: master.userId,
         actorRole: master.role,
         action: "ACCOUNT_PASSWORD_RESET",
         recordType: "USER",
-        recordId: id,
+        recordId: accountId,
         after: { mustChangePassword: true, sessionsRevoked: true },
         requestId,
       });
@@ -87,13 +93,13 @@ export async function POST(
     }
 
     if (body.action === "revoke-sessions") {
-      const revoked = await revokeUserSessions(id);
+      const revoked = await revokeUserSessions(accountId);
       await recordAudit({
         actorId: master.userId,
         actorRole: master.role,
         action: "ACCOUNT_SESSIONS_REVOKED",
         recordType: "USER",
-        recordId: id,
+        recordId: accountId,
         after: { revoked },
         requestId,
       });
