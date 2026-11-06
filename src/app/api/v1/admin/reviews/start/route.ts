@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { getRequestId, jsonError, jsonOk, readJson } from "@/lib/api";
-import { assertNotDemoActor } from "@/lib/authz/demo-guard";
+import { assertNotDemoMaster } from "@/lib/authz/demo-guard";
 import { assertSameOrigin, requireApiRole } from "@/lib/authz/guards";
 import { guardRateLimit } from "@/lib/rate-limit";
 import { toSessionUser } from "@/lib/session";
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     const reviewer = toSessionUser(
       await requireApiRole("MASTER_ADMIN", "BRANCH_ADMIN"),
     );
-    assertNotDemoActor(reviewer);
+    assertNotDemoMaster(reviewer);
     await guardRateLimit(request, "mutation", "review-start");
     const input = inputSchema.parse(await readJson(request));
     const result = await startReview(reviewer, input.submissionId, requestId);

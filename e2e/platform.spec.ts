@@ -13,6 +13,7 @@ import {
   CLIENT_STATE,
   REGIONAL_STATE,
   baseURL,
+  sameOriginHeaders,
 } from "./support";
 
 type ApiEnvelope<T> = {
@@ -29,16 +30,7 @@ type Policy = {
   subThemes: string[];
 };
 
-type ImportPreview = {
-  importId: string;
-  rowCount: number;
-  validCount: number;
-  errorCount: number;
-  rows: Array<{ rowNumber: number; status: string; errors: string[] | null }>;
-};
-
 type SubmissionSummary = { id: string; status: string; version: number };
-
 async function call<T = unknown>(
   context: APIRequestContext,
   path: string,
@@ -47,6 +39,7 @@ async function call<T = unknown>(
   const response = await context.fetch(path, {
     method: init?.method ?? "GET",
     data: init?.data,
+    headers: sameOriginHeaders,
   });
   const text = await response.text();
   let body: ApiEnvelope<T> = {};
@@ -119,7 +112,7 @@ function submissionPayload(
 }
 
 test.describe("Kebijakan EDUFAST", () => {
-  test("Master menerbitkan kebijakan periode baru dan tercatat terbit", async () => {
+  test("demo Master tidak dapat menerbitkan kebijakan periode", async () => {
     const master = await apiContext(ADMIN_STATE);
     try {
       const { year, month } = shiftMonth(todayJakarta(), 3);
@@ -133,20 +126,13 @@ test.describe("Kebijakan EDUFAST", () => {
           data: {
             period,
             subThemes: ["MOBILE_JKN", "TESTIMONI_PESERTA"],
-            explanation: "Uji terbit kebijakan tiga bulan ke depan.",
+            explanation: "Uji containment demo pada kebijakan EDUFAST.",
           },
         },
       );
-      expect(draft.status, draft.text).toBe(200);
-      expect(draft.body.data?.status).toBe("DRAFT");
-
-      const published = await call<Policy>(
-        master,
-        "/api/v1/admin/edufast/policies/publish",
-        { method: "POST", data: { policyId: draft.body.data!.id } },
-      );
-      expect(published.status, published.text).toBe(200);
-      expect(published.body.data?.status).toBe("PUBLISHED");
+      expect(draft.status, draft.text).toBe(403);
+      expect(draft.body.error?.code).toBe("FORBIDDEN");
+      expect(draft.body.error?.message).toContain("Akun demo tidak dapat");
 
       const list = await call<{ policies: Policy[] }>(
         master,
@@ -156,11 +142,7 @@ test.describe("Kebijakan EDUFAST", () => {
       const stored = list.body.data?.policies.find(
         (item) => item.period === period,
       );
-      expect(stored?.status).toBe("PUBLISHED");
-      expect(stored?.subThemes.sort()).toEqual([
-        "MOBILE_JKN",
-        "TESTIMONI_PESERTA",
-      ]);
+      expect(stored).toBeUndefined();
     } finally {
       await master.dispose();
     }
@@ -255,7 +237,7 @@ test.describe("Impor akun CSV", () => {
     }
   });
 
-  test("pratinjau memisahkan baris valid dan tidak valid", async () => {
+  test("pratinjau impor akun ditolak untuk akun demo", async () => {
     const master = await apiContext(ADMIN_STATE);
     try {
       const csv = [
@@ -266,23 +248,13 @@ test.describe("Impor akun CSV", () => {
         "Uji Master,uji.master@e2e.example,master,,,,Master",
       ].join("\n");
 
-      const preview = await call<ImportPreview>(
-        master,
-        "/api/v1/admin/imports/preview",
-        {
-          method: "POST",
-          data: { filename: "uji-impor.csv", content: csv },
-        },
-      );
-      expect(preview.status, preview.text).toBe(200);
-
-      const data = preview.body.data!;
-      expect(data.rowCount).toBe(4);
-      expect(data.validCount).toBe(2);
-      expect(data.errorCount).toBe(2);
-      const messages = data.rows.flatMap((row) => row.errors ?? []).join(" ");
-      expect(messages).toMatch(/organisasi/i);
-      expect(messages).toMatch(/Master Admin tidak boleh/i);
+      const preview = await call(master, "/api/v1/admin/imports/preview", {
+        method: "POST",
+        data: { filename: "uji-impor.csv", content: csv },
+      });
+      expect(preview.status, preview.text).toBe(403);
+      expect(preview.body.error?.code).toBe("FORBIDDEN");
+      expect(preview.body.error?.message).toContain("Akun demo tidak dapat");
     } finally {
       await master.dispose();
     }

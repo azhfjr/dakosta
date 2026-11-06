@@ -14,6 +14,7 @@ import {
   CLIENT_STATE,
   REGIONAL_STATE,
   baseURL,
+  sameOriginHeaders,
 } from "./support";
 
 type ApiError = { code?: string; message?: string; details?: unknown } | null;
@@ -79,6 +80,7 @@ async function call<T = unknown>(
   const response = await context.fetch(path, {
     method: init?.method ?? "GET",
     data: init?.data,
+    headers: sameOriginHeaders,
   });
   const text = await response.text();
   let body: ApiEnvelope<T> = {};

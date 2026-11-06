@@ -13,6 +13,7 @@ import {
   REGIONAL_B_STATE,
   REGIONAL_STATE,
   baseURL,
+  sameOriginHeaders,
 } from "./support";
 
 type ApiEnvelope<T> = {
@@ -33,6 +34,7 @@ async function call<T = unknown>(
   const response = await context.fetch(path, {
     method: init?.method ?? "GET",
     data: init?.data,
+    headers: sameOriginHeaders,
   });
   const text = await response.text();
   let body: ApiEnvelope<T> = {};
@@ -235,7 +237,7 @@ test.describe("Guard rute UI per peran", () => {
 });
 
 test.describe("Step-up Master dan pencabutan", () => {
-  test("tindakan sensitif menuntut konfirmasi kata sandi", async () => {
+  test("demo Master ditolak sebelum step-up pada pencabutan", async () => {
     const master = await apiContext(ADMIN_STATE);
     try {
       const createAccount = await call(master, "/api/v1/admin/users", {
@@ -264,7 +266,9 @@ test.describe("Step-up Master dan pencabutan", () => {
         },
       );
       expect(revoke.status).toBe(403);
-      expect(revoke.body.error?.code).toBe("STEP_UP_REQUIRED");
+      // Containment demo berjalan sebelum pemeriksaan step-up.
+      expect(revoke.body.error?.code).toBe("FORBIDDEN");
+      expect(revoke.body.error?.message).toContain("Akun demo tidak dapat");
 
       const stillApproved = await call<{ status: string }>(
         master,

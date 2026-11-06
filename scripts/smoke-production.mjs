@@ -230,7 +230,12 @@ async function main() {
   // RBAC negatives
   const regionalReview = await fetch(`${baseUrl}/api/v1/admin/reviews`, {
     method: "POST",
-    headers: { cookie: cookie.regional, "content-type": "application/json" },
+    headers: {
+      cookie: cookie.regional,
+      "content-type": "application/json",
+      origin: baseUrl,
+      referer: `${baseUrl}/`,
+    },
     body: JSON.stringify({
       submissionId: "00000000-0000-4000-8000-000000000000",
       expectedVersion: 1,
@@ -254,7 +259,12 @@ async function main() {
   // (400) even for a master, so a 403 here proves the RBAC guard runs first.
   const branchAdminApi = await fetch(`${baseUrl}/api/v1/admin/branches`, {
     method: "POST",
-    headers: { cookie: cookie.branch, "content-type": "application/json" },
+    headers: {
+      cookie: cookie.branch,
+      "content-type": "application/json",
+      origin: baseUrl,
+      referer: `${baseUrl}/`,
+    },
     body: JSON.stringify({}),
   });
   record(

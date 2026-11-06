@@ -131,6 +131,35 @@ export function jsonError(
   );
 }
 
+async function readBodyWithLimit(request: Request): Promise<string> {
+  if (!request.body) return "";
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value) continue;
+      total += value.byteLength;
+      if (total > MAX_JSON_BODY_BYTES) {
+        await reader.cancel().catch(() => undefined);
+        throw errors.payloadTooLarge();
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const merged = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    merged.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(merged);
+}
+
 export async function readJson<T>(request: Request): Promise<T> {
   const declaredLength = Number(request.headers.get("content-length") ?? "");
   if (Number.isFinite(declaredLength) && declaredLength > MAX_JSON_BODY_BYTES) {
@@ -139,17 +168,14 @@ export async function readJson<T>(request: Request): Promise<T> {
 
   let body: string;
   try {
-    body = await request.text();
-  } catch {
+    body = await readBodyWithLimit(request);
+  } catch (error) {
+    if (error instanceof AppError) throw error;
     throw new AppError(
       "INVALID_BODY",
       "Isi permintaan tidak dapat dibaca.",
       400,
     );
-  }
-
-  if (new TextEncoder().encode(body).byteLength > MAX_JSON_BODY_BYTES) {
-    throw errors.payloadTooLarge();
   }
 
   try {

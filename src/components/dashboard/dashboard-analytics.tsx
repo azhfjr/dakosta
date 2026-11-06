@@ -416,8 +416,8 @@ export function AllContentCharts({
       </ChartFrame>
 
       <ChartFrame
-        title="SLA keputusan"
-        description="Hari dari dikirim sampai disetujui · hanya konten yang disetujui pada periode."
+        title="SLA keputusan (operasional)"
+        description="Indikator operasional, bukan capaian · hari dari dikirim sampai disetujui · hanya konten yang disetujui pada periode."
         empty={slaRows.length === 0}
         legend={
           <>
@@ -439,7 +439,7 @@ export function AllContentCharts({
             <XAxis
               type="number"
               tick={{ fill: CHART_AXIS, fontSize: 12 }}
-              unit=" hr"
+              unit=" hari"
             />
             <YAxis
               type="category"
@@ -801,7 +801,7 @@ export function ApprovedCharts({
               <XAxis
                 type="number"
                 tick={{ fill: CHART_AXIS, fontSize: 12 }}
-                unit=" hr"
+                unit=" hari"
               />
               <YAxis
                 type="category"

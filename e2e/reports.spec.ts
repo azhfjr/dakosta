@@ -5,7 +5,6 @@ import {
   type APIRequestContext,
 } from "@playwright/test";
 
-import { demoPassword } from "./demo-password";
 import {
   ADMIN_STATE,
   BRANCH_STATE,
@@ -63,14 +62,6 @@ async function postJson<T>(
     body = {};
   }
   return { status: response.status(), body, text };
-}
-
-async function confirmStepUp(context: APIRequestContext): Promise<void> {
-  const response = await context.post("/api/v1/me/step-up", {
-    data: { password: demoPassword() },
-    headers: sameOriginHeaders,
-  });
-  expect(response.status(), await response.text()).toBe(200);
 }
 
 test.describe("Laporan Kinerja PDF", () => {
@@ -153,9 +144,7 @@ test.describe("Laporan Kinerja PDF", () => {
 test.describe("Sinkronisasi target Master", () => {
   test.use({ storageState: ADMIN_STATE });
 
-  test("panel sinkronisasi menerapkan target ke seluruh organisasi aktif", async ({
-    page,
-  }) => {
+  test("panel sinkronisasi dinonaktifkan pada mode demo", async ({ page }) => {
     const month = jakartaMonth(-5);
     await page.goto(`/admin/target?month=${month}`);
     await expect(
@@ -164,32 +153,17 @@ test.describe("Sinkronisasi target Master", () => {
         level: 2,
       }),
     ).toBeVisible();
-
-    const inputs = page.locator('input[id^="sync-"]');
-    await expect(inputs.first()).toBeVisible();
-    await inputs.first().fill("2");
-
-    await page.getByRole("button", { name: "Sinkronkan target" }).click();
-    const confirm = page.getByRole("alertdialog", {
-      name: "Sinkronkan target periode ini?",
-    });
-    await expect(confirm).toBeVisible();
-    await confirm.getByRole("button", { name: "Sinkronkan sekarang" }).click();
-
-    const dialog = page.getByRole("dialog", { name: "Konfirmasi kata sandi" });
-    await expect(dialog).toBeVisible();
-    await dialog.locator("#step-up-password").fill(demoPassword());
-    await dialog.getByRole("button", { name: "Konfirmasi" }).click();
-    await expect(dialog).toBeHidden();
-
     await expect(
-      page
-        .getByRole("status")
-        .filter({ hasText: `Hasil sinkronisasi ${month}` }),
+      page.getByText(
+        "Mode demo: sinkronisasi target dinonaktifkan agar data demo tetap terkendali.",
+      ),
     ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Sinkronkan target" }),
+    ).toHaveCount(0);
   });
 
-  test("API memerlukan step-up dan idempoten saat diulang", async () => {
+  test("API menolak sinkronisasi dari Master demo", async () => {
     const admin = await playwrightRequest.newContext({
       baseURL,
       storageState: ADMIN_STATE,
@@ -209,27 +183,9 @@ test.describe("Sinkronisasi target Master", () => {
         { month, entries },
       );
       expect(denied.status, denied.text).toBe(403);
-      expect(denied.body.error?.code).toBe("STEP_UP_REQUIRED");
-
-      await confirmStepUp(admin);
-
-      const first = await postJson<SyncResult>(
-        admin,
-        "/api/v1/admin/targets/sync",
-        { month, entries },
-      );
-      expect(first.status, first.text).toBe(200);
-      expect(first.body.data?.perSource.length).toBeGreaterThan(0);
-
-      const second = await postJson<SyncResult>(
-        admin,
-        "/api/v1/admin/targets/sync",
-        { month, entries },
-      );
-      expect(second.status, second.text).toBe(200);
-      expect(second.body.data?.created).toBe(0);
-      expect(second.body.data?.updated).toBe(
-        first.body.data!.created + first.body.data!.updated,
+      expect(denied.body.error?.code).toBe("FORBIDDEN");
+      expect(denied.body.error?.message).toContain(
+        "Akun demo tidak dapat menjalankan tindakan ini",
       );
     } finally {
       await admin.dispose();

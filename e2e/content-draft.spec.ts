@@ -7,7 +7,7 @@ import {
   type Page,
 } from "@playwright/test";
 
-import { CLIENT_STATE, baseURL } from "./support";
+import { CLIENT_STATE, baseURL, sameOriginHeaders } from "./support";
 
 type Envelope<T> = {
   data?: T;
@@ -31,6 +31,7 @@ async function call<T>(
   const response = await context.fetch(path, {
     method: init?.method ?? "GET",
     data: init?.data,
+    headers: sameOriginHeaders,
   });
   const text = await response.text();
   let body: Envelope<T> = {};

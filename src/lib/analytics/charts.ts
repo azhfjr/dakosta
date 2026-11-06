@@ -808,6 +808,7 @@ export async function getDashboardAnalytics(
   const key = readCacheKey(user, [
     "dashboard-analytics",
     period.key,
+    filters.attribution,
     filters.stakeholderId,
     filters.subTheme,
     filters.sources,

@@ -1,6 +1,6 @@
 import { expect, request as playwrightRequest, test } from "@playwright/test";
 
-import { ADMIN_STATE, baseURL } from "./support";
+import { ADMIN_STATE, baseURL, sameOriginHeaders } from "./support";
 
 test.describe("Impor konten massal (Master Admin)", () => {
   test.use({ storageState: ADMIN_STATE });
@@ -46,6 +46,7 @@ test.describe("Impor konten massal (Master Admin)", () => {
         {
           method: "POST",
           data: { filename: "demo.csv", content: "organisasi,judul\n" },
+          headers: sameOriginHeaders,
         },
       );
       expect(preview.status()).toBe(403);

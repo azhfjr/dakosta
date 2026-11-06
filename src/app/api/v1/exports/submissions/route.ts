@@ -112,6 +112,10 @@ export async function GET(request: Request) {
         : null;
     const rawMonth = url.searchParams.get("month");
     const month = rawMonth && MONTH_PATTERN.test(rawMonth) ? rawMonth : null;
+    const attribution =
+      url.searchParams.get("attribution") === "date_created"
+        ? "date_created"
+        : "approved_at";
 
     if (stakeholderId && user.scope.kind !== "GLOBAL") {
       const [organization] = await getDb()
@@ -164,7 +168,7 @@ export async function GET(request: Request) {
     );
     if (sourcePredicate) conditions.push(sourcePredicate);
     if (period) {
-      if (status === "APPROVED") {
+      if (status === "APPROVED" && attribution === "approved_at") {
         conditions.push(eq(schema.stakeholders.status, "ACTIVE"));
         conditions.push(
           gte(schema.contentSubmissions.approvedAt, period.start),
@@ -238,6 +242,7 @@ export async function GET(request: Request) {
         stakeholderId,
         subTheme,
         sources,
+        attribution,
         period: period?.key ?? month,
         requestId,
       },

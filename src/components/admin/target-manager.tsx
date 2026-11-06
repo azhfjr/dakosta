@@ -74,9 +74,11 @@ const EMPTY_FORM: FormState = {
 export function TargetManager({
   month,
   rows,
+  demo,
 }: {
   month: string;
   rows: TargetScopeRow[];
+  demo: boolean;
 }) {
   const router = useRouter();
   const { prompt: promptStepUp, dialog: stepUpDialog } = useStepUp();
@@ -238,11 +240,20 @@ export function TargetManager({
             Nilai capaian dihitung ulang dari data konten.
           </p>
         </div>
-        <Button type="button" className="h-10" onClick={openCreate}>
-          <Plus className="size-4" aria-hidden />
-          Tambah target
-        </Button>
+        {demo ? null : (
+          <Button type="button" className="h-10" onClick={openCreate}>
+            <Plus className="size-4" aria-hidden />
+            Tambah target
+          </Button>
+        )}
       </div>
+
+      {demo ? (
+        <p className="border-b border-border bg-brand-blue-100/40 px-5 py-3 text-sm text-brand-blue-900">
+          Mode demo: penetapan dan perubahan target dinonaktifkan. Nilai capaian
+          tetap dihitung dari data demo.
+        </p>
+      ) : null}
 
       {rows.length === 0 ? (
         <div className="px-5 py-14 text-center">
@@ -254,10 +265,12 @@ export function TargetManager({
             Tetapkan target global atau per cakupan agar capaian periode ini
             dapat dipantau pada dasbor dan peta.
           </p>
-          <Button type="button" className="mt-4 h-10" onClick={openCreate}>
-            <Plus className="size-4" aria-hidden />
-            Tetapkan target pertama
-          </Button>
+          {demo ? null : (
+            <Button type="button" className="mt-4 h-10" onClick={openCreate}>
+              <Plus className="size-4" aria-hidden />
+              Tetapkan target pertama
+            </Button>
+          )}
         </div>
       ) : (
         <div className="relative overflow-x-auto">
@@ -342,24 +355,28 @@ export function TargetManager({
                         >
                           <Link href={achievementHref}>Lihat capaian</Link>
                         </Button>
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="ghost"
-                          aria-label={`Ubah target ${label}`}
-                          onClick={() => openEdit(row)}
-                        >
-                          <Pencil className="size-4" aria-hidden />
-                        </Button>
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="ghost"
-                          aria-label={`Hapus target ${label}`}
-                          onClick={() => setDeleting(row)}
-                        >
-                          <Trash2 className="size-4" aria-hidden />
-                        </Button>
+                        {demo ? null : (
+                          <>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              aria-label={`Ubah target ${label}`}
+                              onClick={() => openEdit(row)}
+                            >
+                              <Pencil className="size-4" aria-hidden />
+                            </Button>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              aria-label={`Hapus target ${label}`}
+                              onClick={() => setDeleting(row)}
+                            >
+                              <Trash2 className="size-4" aria-hidden />
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>

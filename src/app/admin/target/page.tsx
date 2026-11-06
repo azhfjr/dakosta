@@ -128,9 +128,13 @@ export default async function AdminTargetPage({
         />
       </section>
 
-      <TargetSyncPanel month={month} sources={syncPreview.sources} />
+      <TargetSyncPanel
+        month={month}
+        sources={syncPreview.sources}
+        demo={admin.isDemo}
+      />
 
-      <TargetManager month={month} rows={rows} />
+      <TargetManager month={month} rows={rows} demo={admin.isDemo} />
 
       {pageCount > 1 ? (
         <nav

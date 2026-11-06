@@ -4,7 +4,11 @@ import { errors } from "@/lib/errors";
 
 import { getApiAuth } from "./guards";
 
-export { assertNotDemoActor, DEMO_MUTATION_MESSAGE } from "./demo-policy";
+export {
+  assertNotDemoActor,
+  assertNotDemoMaster,
+  DEMO_MUTATION_MESSAGE,
+} from "./demo-policy";
 
 export {
   PROTECTED_ACCOUNT_EMAILS,

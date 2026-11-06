@@ -334,6 +334,7 @@ export function KpiDashboard({
   if (overview.filters.subTheme) {
     csvParams.set("subTheme", overview.filters.subTheme);
   }
+  csvParams.set("attribution", overview.filters.attribution);
   const csvHref = `/api/v1/exports/submissions?${csvParams.toString()}`;
 
   const filterFields: FilterField[] = [

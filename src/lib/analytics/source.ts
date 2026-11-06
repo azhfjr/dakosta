@@ -7,6 +7,7 @@ import {
   eq,
   inArray,
   isNotNull,
+  isNull,
   or,
   sql,
   type SQL,
@@ -34,22 +35,28 @@ export {
   type OrgSource,
 };
 
-function sourceValues(sources: readonly OrgSource[]): Array<{
-  organizationType: string;
-  faskesClass: string | null;
-}> {
-  return sources.map((source) => {
-    switch (source) {
-      case "FASKES_FKTP":
-        return { organizationType: "FASKES", faskesClass: "FKTP" };
-      case "FASKES_FKRTL":
-        return { organizationType: "FASKES", faskesClass: "FKRTL" };
-      case "PEMDA":
-        return { organizationType: "PEMDA", faskesClass: null };
-      case "OTHER":
-        return { organizationType: "OTHER", faskesClass: null };
-    }
-  });
+function sourcePredicate(source: OrgSource): SQL {
+  switch (source) {
+    case "FASKES_FKTP":
+      // Faskes tanpa kelas tercatat dihitung sebagai FKTP oleh
+      // sourceOfOrganization, jadi filter harus menyertakannya juga.
+      return and(
+        eq(schema.stakeholders.organizationType, "FASKES"),
+        or(
+          eq(schema.stakeholders.faskesClass, "FKTP"),
+          isNull(schema.stakeholders.faskesClass),
+        ),
+      )!;
+    case "FASKES_FKRTL":
+      return and(
+        eq(schema.stakeholders.organizationType, "FASKES"),
+        eq(schema.stakeholders.faskesClass, "FKRTL"),
+      )!;
+    case "PEMDA":
+      return eq(schema.stakeholders.organizationType, "PEMDA");
+    case "OTHER":
+      return eq(schema.stakeholders.organizationType, "OTHER");
+  }
 }
 
 /**
@@ -62,14 +69,7 @@ export function orgSourceCondition(
 ): SQL | undefined {
   if (sources.length === 0) return undefined;
   const db = getDb();
-  const matching = sourceValues(sources).map((value) =>
-    value.faskesClass
-      ? and(
-          eq(schema.stakeholders.organizationType, value.organizationType),
-          eq(schema.stakeholders.faskesClass, value.faskesClass),
-        )
-      : eq(schema.stakeholders.organizationType, value.organizationType),
-  );
+  const matching = sources.map(sourcePredicate);
   const predicate = matching.length === 1 ? matching[0] : or(...matching);
   return inArray(
     organizationIdColumn,

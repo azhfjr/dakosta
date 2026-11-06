@@ -37,9 +37,11 @@ type SyncResult = {
 export function TargetSyncPanel({
   month,
   sources,
+  demo,
 }: {
   month: string;
   sources: TargetSyncSourcePreview[];
+  demo: boolean;
 }) {
   const router = useRouter();
   const { prompt: promptStepUp, dialog: stepUpDialog } = useStepUp();
@@ -208,20 +210,23 @@ export function TargetSyncPanel({
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-5 py-3">
         <p className="text-xs text-ink-muted">
-          Kosongkan kolom untuk melewati sumber tersebut. Target per tema dan
-          target manual tidak diubah.
+          {demo
+            ? "Mode demo: sinkronisasi target dinonaktifkan agar data demo tetap terkendali."
+            : "Kosongkan kolom untuk melewati sumber tersebut. Target per tema dan target manual tidak diubah."}
         </p>
-        <Button
-          type="button"
-          className="h-10"
-          onClick={requestSync}
-          disabled={busy}
-        >
-          {busy ? (
-            <Loader2 className="size-4 animate-spin" aria-hidden />
-          ) : null}
-          Sinkronkan target
-        </Button>
+        {demo ? null : (
+          <Button
+            type="button"
+            className="h-10"
+            onClick={requestSync}
+            disabled={busy}
+          >
+            {busy ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden />
+            ) : null}
+            Sinkronkan target
+          </Button>
+        )}
       </div>
 
       {result ? (
