@@ -1,0 +1,1133 @@
+{
+  "base": "https://dakosta-dakosta.vercel.app",
+  "timestamp": "2026-11-06T02:17:46.064Z",
+  "credentialSource": ".secrets\\demo-accounts-2026-11-01T22-37-43-427Z.txt",
+  "cookieAttributes": {
+    "MASTER_ADMIN": [
+      {
+        "httpOnly": true,
+        "secure": true,
+        "sameSite": "Lax",
+        "path": "/"
+      }
+    ],
+    "REGIONAL_ADMIN": [
+      {
+        "httpOnly": true,
+        "secure": true,
+        "sameSite": "Lax",
+        "path": "/"
+      }
+    ],
+    "BRANCH_ADMIN": [
+      {
+        "httpOnly": true,
+        "secure": true,
+        "sameSite": "Lax",
+        "path": "/"
+      }
+    ],
+    "STAKEHOLDER": [
+      {
+        "httpOnly": true,
+        "secure": true,
+        "sameSite": "Lax",
+        "path": "/"
+      }
+    ]
+  },
+  "total": 54,
+  "passed": 48,
+  "failed": 6,
+  "results": [
+    {
+      "id": "P-001",
+      "category": "auth",
+      "role": "anon",
+      "method": "GET",
+      "path": "/api/v1/me",
+      "origin": "none",
+      "status": 401,
+      "expected": [401],
+      "pass": true,
+      "errorCode": "UNAUTHORIZED",
+      "message": "Sesi tidak ditemukan. Silakan masuk.",
+      "redirectTo": null,
+      "echoedRequestId": "49e91bb3-5397-46be-81db-06b3c4957ba0",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 283,
+      "note": "Unauth API harus 401"
+    },
+    {
+      "id": "P-002",
+      "category": "auth",
+      "role": "anon",
+      "method": "GET",
+      "path": "/api/v1/admin/users",
+      "origin": "none",
+      "status": 401,
+      "expected": [401],
+      "pass": true,
+      "errorCode": "UNAUTHORIZED",
+      "message": "Sesi tidak ditemukan. Silakan masuk.",
+      "redirectTo": null,
+      "echoedRequestId": "1cf9fda3-4ccb-45f0-896d-0fcaddf133d3",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 296,
+      "note": ""
+    },
+    {
+      "id": "P-003",
+      "category": "auth",
+      "role": "anon",
+      "method": "GET",
+      "path": "/api/v1/submissions",
+      "origin": "none",
+      "status": 401,
+      "expected": [401],
+      "pass": true,
+      "errorCode": "UNAUTHORIZED",
+      "message": "Sesi tidak ditemukan. Silakan masuk.",
+      "redirectTo": null,
+      "echoedRequestId": "21fb382c-1455-41b0-8608-95c1aeccf191",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 265,
+      "note": ""
+    },
+    {
+      "id": "P-004",
+      "category": "auth",
+      "role": "anon",
+      "method": "GET",
+      "path": "/api/v1/map",
+      "origin": "none",
+      "status": 401,
+      "expected": [401],
+      "pass": true,
+      "errorCode": "UNAUTHORIZED",
+      "message": "Sesi tidak ditemukan. Silakan masuk.",
+      "redirectTo": null,
+      "echoedRequestId": "b2e553ae-3494-4180-b958-ecbaecc198bc",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 283,
+      "note": ""
+    },
+    {
+      "id": "P-005",
+      "category": "auth",
+      "role": "anon",
+      "method": "GET",
+      "path": "/api/v1/analytics/series",
+      "origin": "none",
+      "status": 401,
+      "expected": [401],
+      "pass": true,
+      "errorCode": "UNAUTHORIZED",
+      "message": "Sesi tidak ditemukan. Silakan masuk.",
+      "redirectTo": null,
+      "echoedRequestId": "fc0d5902-c309-4e06-9cc7-ad741471a391",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 309,
+      "note": ""
+    },
+    {
+      "id": "P-006",
+      "category": "auth",
+      "role": "anon",
+      "method": "GET",
+      "path": "/api/v1/reports/performance",
+      "origin": "none",
+      "status": 401,
+      "expected": [401],
+      "pass": true,
+      "errorCode": "UNAUTHORIZED",
+      "message": "Sesi tidak ditemukan. Silakan masuk.",
+      "redirectTo": null,
+      "echoedRequestId": "3c2359ec-8b74-4143-860b-1e0b32bedae6",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 291,
+      "note": ""
+    },
+    {
+      "id": "P-007",
+      "category": "auth",
+      "role": "anon",
+      "method": "GET",
+      "path": "/api/v1/exports/submissions",
+      "origin": "none",
+      "status": 401,
+      "expected": [401],
+      "pass": true,
+      "errorCode": "UNAUTHORIZED",
+      "message": "Sesi tidak ditemukan. Silakan masuk.",
+      "redirectTo": null,
+      "echoedRequestId": "4ecb8701-9736-46f4-8f24-9017cf108650",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 310,
+      "note": ""
+    },
+    {
+      "id": "P-008",
+      "category": "auth",
+      "role": "anon",
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "origin": "none",
+      "status": 401,
+      "expected": [401],
+      "pass": true,
+      "errorCode": "UNAUTHORIZED",
+      "message": "Sesi tidak ditemukan. Silakan masuk.",
+      "redirectTo": null,
+      "echoedRequestId": "f95c1c04-d00c-4ffe-a47e-13b0c116fb2f",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 306,
+      "note": ""
+    },
+    {
+      "id": "P-009",
+      "category": "auth",
+      "role": "anon",
+      "method": "HEAD",
+      "path": "/api/v1/admin/imports",
+      "origin": "none",
+      "status": 204,
+      "expected": [401, 405],
+      "pass": false,
+      "errorCode": null,
+      "message": null,
+      "redirectTo": null,
+      "echoedRequestId": null,
+      "headers": {},
+      "durationMs": 303,
+      "note": "HARAPAN AMAN: 401/405. 204 berarti endpoint terbuka tanpa auth."
+    },
+    {
+      "id": "P-010",
+      "category": "auth",
+      "role": "anon",
+      "method": "GET",
+      "path": "/api/v1/admin/imports",
+      "origin": "none",
+      "status": 401,
+      "expected": [401],
+      "pass": true,
+      "errorCode": "UNAUTHORIZED",
+      "message": "Sesi tidak ditemukan. Silakan masuk.",
+      "redirectTo": null,
+      "echoedRequestId": "bd240851-281f-491c-aeb3-87576a3a04f9",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 332,
+      "note": ""
+    },
+    {
+      "id": "P-011",
+      "category": "page-guard",
+      "role": "anon",
+      "method": "GET",
+      "path": "/admin",
+      "origin": "none",
+      "status": 307,
+      "expected": [307],
+      "pass": true,
+      "errorCode": null,
+      "message": null,
+      "redirectTo": "/masuk",
+      "echoedRequestId": null,
+      "headers": {
+        "content-type": "text/plain"
+      },
+      "durationMs": 67,
+      "note": "Redirect ke /masuk tanpa sesi"
+    },
+    {
+      "id": "P-012",
+      "category": "page-guard",
+      "role": "anon",
+      "method": "GET",
+      "path": "/wilayah",
+      "origin": "none",
+      "status": 307,
+      "expected": [307],
+      "pass": true,
+      "errorCode": null,
+      "message": null,
+      "redirectTo": "/masuk",
+      "echoedRequestId": null,
+      "headers": {
+        "content-type": "text/plain"
+      },
+      "durationMs": 51,
+      "note": "Redirect ke /masuk tanpa sesi"
+    },
+    {
+      "id": "P-013",
+      "category": "page-guard",
+      "role": "anon",
+      "method": "GET",
+      "path": "/cabang",
+      "origin": "none",
+      "status": 307,
+      "expected": [307],
+      "pass": true,
+      "errorCode": null,
+      "message": null,
+      "redirectTo": "/masuk",
+      "echoedRequestId": null,
+      "headers": {
+        "content-type": "text/plain"
+      },
+      "durationMs": 67,
+      "note": "Redirect ke /masuk tanpa sesi"
+    },
+    {
+      "id": "P-014",
+      "category": "page-guard",
+      "role": "anon",
+      "method": "GET",
+      "path": "/client",
+      "origin": "none",
+      "status": 307,
+      "expected": [307],
+      "pass": true,
+      "errorCode": null,
+      "message": null,
+      "redirectTo": "/masuk",
+      "echoedRequestId": null,
+      "headers": {
+        "content-type": "text/plain"
+      },
+      "durationMs": 65,
+      "note": "Redirect ke /masuk tanpa sesi"
+    },
+    {
+      "id": "P-015",
+      "category": "page-guard",
+      "role": "anon",
+      "method": "GET",
+      "path": "/ganti-password",
+      "origin": "none",
+      "status": 307,
+      "expected": [307],
+      "pass": true,
+      "errorCode": null,
+      "message": null,
+      "redirectTo": "/masuk",
+      "echoedRequestId": null,
+      "headers": {
+        "content-type": "text/plain"
+      },
+      "durationMs": 73,
+      "note": "Redirect ke /masuk tanpa sesi"
+    },
+    {
+      "id": "P-016",
+      "category": "page-guard",
+      "role": "anon",
+      "method": "GET",
+      "path": "/aktivasi-lokasi",
+      "origin": "none",
+      "status": 307,
+      "expected": [307],
+      "pass": true,
+      "errorCode": null,
+      "message": null,
+      "redirectTo": "/masuk",
+      "echoedRequestId": null,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "durationMs": 450,
+      "note": ""
+    },
+    {
+      "id": "P-017",
+      "category": "headers",
+      "role": "anon",
+      "method": "GET",
+      "path": "/",
+      "origin": "none",
+      "status": 200,
+      "expected": [200],
+      "pass": true,
+      "errorCode": null,
+      "message": null,
+      "redirectTo": null,
+      "echoedRequestId": null,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "content-disposition": "inline",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tiles.openfreemap.org; font-src 'self' data:; connect-src 'self' https://tiles.openfreemap.org; worker-src 'self' blob:; child-src 'self' blob:; media-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "x-frame-options": "DENY",
+        "x-content-type-options": "nosniff",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "permissions-policy": "geolocation=(self), camera=(), microphone=(), payment=(), usb=()",
+        "cross-origin-opener-policy": "same-origin",
+        "cross-origin-resource-policy": "same-origin",
+        "x-powered-by": "(absent)"
+      },
+      "durationMs": 344,
+      "note": ""
+    },
+    {
+      "id": "P-018",
+      "category": "headers",
+      "role": "anon",
+      "method": "GET",
+      "path": "/api/health",
+      "origin": "none",
+      "status": 200,
+      "expected": [200],
+      "pass": true,
+      "errorCode": null,
+      "message": null,
+      "redirectTo": null,
+      "echoedRequestId": null,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 310,
+      "note": ""
+    },
+    {
+      "id": "P-019",
+      "category": "method",
+      "role": "anon",
+      "method": "POST",
+      "path": "/api/health",
+      "origin": "none",
+      "status": 405,
+      "expected": [405],
+      "pass": true,
+      "errorCode": null,
+      "message": null,
+      "redirectTo": null,
+      "echoedRequestId": null,
+      "headers": {},
+      "durationMs": 287,
+      "note": ""
+    },
+    {
+      "id": "P-020",
+      "category": "method",
+      "role": "anon",
+      "method": "DELETE",
+      "path": "/api/v1/me",
+      "origin": "none",
+      "status": 405,
+      "expected": [405],
+      "pass": true,
+      "errorCode": null,
+      "message": null,
+      "redirectTo": null,
+      "echoedRequestId": null,
+      "headers": {},
+      "durationMs": 278,
+      "note": ""
+    },
+    {
+      "id": "P-021",
+      "category": "bfla-get",
+      "role": "STAKEHOLDER",
+      "method": "GET",
+      "path": "/api/v1/admin/users",
+      "origin": "none",
+      "status": 403,
+      "expected": [403],
+      "pass": true,
+      "errorCode": "FORBIDDEN",
+      "message": "Anda tidak memiliki akses ke sumber daya ini.",
+      "redirectTo": null,
+      "echoedRequestId": "1198159b-cfad-422b-ba39-31241bc68412",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 292,
+      "note": ""
+    },
+    {
+      "id": "P-022",
+      "category": "bfla-get",
+      "role": "STAKEHOLDER",
+      "method": "GET",
+      "path": "/api/v1/dashboard/admin",
+      "origin": "none",
+      "status": 403,
+      "expected": [403],
+      "pass": true,
+      "errorCode": "FORBIDDEN",
+      "message": "Anda tidak memiliki akses ke sumber daya ini.",
+      "redirectTo": null,
+      "echoedRequestId": "01abc9cc-427b-4b34-8680-29018e0cbd06",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 278,
+      "note": ""
+    },
+    {
+      "id": "P-023",
+      "category": "bfla-get",
+      "role": "STAKEHOLDER",
+      "method": "GET",
+      "path": "/api/v1/admin/targets",
+      "origin": "none",
+      "status": 403,
+      "expected": [403],
+      "pass": true,
+      "errorCode": "FORBIDDEN",
+      "message": "Anda tidak memiliki akses ke sumber daya ini.",
+      "redirectTo": null,
+      "echoedRequestId": "2e768f6c-a917-421d-bc35-056c52774c48",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 300,
+      "note": ""
+    },
+    {
+      "id": "P-024",
+      "category": "bfla-get",
+      "role": "STAKEHOLDER",
+      "method": "GET",
+      "path": "/api/v1/admin/edufast/policies",
+      "origin": "none",
+      "status": 403,
+      "expected": [403],
+      "pass": true,
+      "errorCode": "FORBIDDEN",
+      "message": "Anda tidak memiliki akses ke sumber daya ini.",
+      "redirectTo": null,
+      "echoedRequestId": "4055a3b0-fa36-45f7-b97a-9fe42d2fd320",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 331,
+      "note": ""
+    },
+    {
+      "id": "P-025",
+      "category": "bfla-get",
+      "role": "STAKEHOLDER",
+      "method": "GET",
+      "path": "/api/v1/admin/reviews",
+      "origin": "none",
+      "status": 403,
+      "expected": [403],
+      "pass": true,
+      "errorCode": "FORBIDDEN",
+      "message": "Anda tidak memiliki akses ke sumber daya ini.",
+      "redirectTo": null,
+      "echoedRequestId": "9864be84-6b49-491a-b807-83269aeced51",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 291,
+      "note": ""
+    },
+    {
+      "id": "P-026",
+      "category": "bfla-get",
+      "role": "REGIONAL_ADMIN",
+      "method": "GET",
+      "path": "/api/v1/admin/users",
+      "origin": "none",
+      "status": 403,
+      "expected": [403],
+      "pass": true,
+      "errorCode": "FORBIDDEN",
+      "message": "Anda tidak memiliki akses ke sumber daya ini.",
+      "redirectTo": null,
+      "echoedRequestId": "88114f1d-acdd-43c0-aab4-2316ee48c708",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 315,
+      "note": ""
+    },
+    {
+      "id": "P-027",
+      "category": "bfla-get",
+      "role": "REGIONAL_ADMIN",
+      "method": "GET",
+      "path": "/api/v1/admin/reviews",
+      "origin": "none",
+      "status": 403,
+      "expected": [403],
+      "pass": true,
+      "errorCode": "FORBIDDEN",
+      "message": "Anda tidak memiliki akses ke sumber daya ini.",
+      "redirectTo": null,
+      "echoedRequestId": "58f5082f-f0a7-4f6e-8f42-f0552c534432",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 328,
+      "note": ""
+    },
+    {
+      "id": "P-028",
+      "category": "bfla-get",
+      "role": "REGIONAL_ADMIN",
+      "method": "GET",
+      "path": "/api/v1/dashboard/admin",
+      "origin": "none",
+      "status": 403,
+      "expected": [403],
+      "pass": true,
+      "errorCode": "FORBIDDEN",
+      "message": "Anda tidak memiliki akses ke sumber daya ini.",
+      "redirectTo": null,
+      "echoedRequestId": "6d05b9ff-e56e-4b9a-a527-3edde144c501",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 273,
+      "note": ""
+    },
+    {
+      "id": "P-029",
+      "category": "bfla-get",
+      "role": "BRANCH_ADMIN",
+      "method": "GET",
+      "path": "/api/v1/admin/users",
+      "origin": "none",
+      "status": 403,
+      "expected": [403],
+      "pass": true,
+      "errorCode": "FORBIDDEN",
+      "message": "Anda tidak memiliki akses ke sumber daya ini.",
+      "redirectTo": null,
+      "echoedRequestId": "78c6bc0a-d5a6-4a24-97be-313ae495fdb0",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 287,
+      "note": ""
+    },
+    {
+      "id": "P-030",
+      "category": "bfla-get",
+      "role": "BRANCH_ADMIN",
+      "method": "GET",
+      "path": "/api/v1/admin/edufast/policies",
+      "origin": "none",
+      "status": 403,
+      "expected": [403],
+      "pass": true,
+      "errorCode": "FORBIDDEN",
+      "message": "Anda tidak memiliki akses ke sumber daya ini.",
+      "redirectTo": null,
+      "echoedRequestId": "7202f947-de33-4f51-a1f2-e2990d2d9ffc",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 319,
+      "note": ""
+    },
+    {
+      "id": "P-031",
+      "category": "scope-get",
+      "role": "STAKEHOLDER",
+      "method": "GET",
+      "path": "/api/v1/submissions?limit=1",
+      "origin": "none",
+      "status": 200,
+      "expected": [200],
+      "pass": true,
+      "errorCode": null,
+      "message": null,
+      "redirectTo": null,
+      "echoedRequestId": "ec80bf04-6c59-4f43-979b-9fa6d022071b",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 378,
+      "note": ""
+    },
+    {
+      "id": "P-032",
+      "category": "scope-get",
+      "role": "REGIONAL_ADMIN",
+      "method": "GET",
+      "path": "/api/v1/submissions?limit=1",
+      "origin": "none",
+      "status": 200,
+      "expected": [200],
+      "pass": true,
+      "errorCode": null,
+      "message": null,
+      "redirectTo": null,
+      "echoedRequestId": "229d0a36-68bd-4105-b59f-b6dc5f604b08",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 274,
+      "note": ""
+    },
+    {
+      "id": "P-033",
+      "category": "scope-get",
+      "role": "BRANCH_ADMIN",
+      "method": "GET",
+      "path": "/api/v1/submissions?limit=1",
+      "origin": "none",
+      "status": 200,
+      "expected": [200],
+      "pass": true,
+      "errorCode": null,
+      "message": null,
+      "redirectTo": null,
+      "echoedRequestId": "5ad10ed8-c63d-4218-8dab-afbc83069052",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 315,
+      "note": ""
+    },
+    {
+      "id": "P-034",
+      "category": "scope-get",
+      "role": "MASTER_ADMIN",
+      "method": "GET",
+      "path": "/api/v1/submissions?limit=1",
+      "origin": "none",
+      "status": 200,
+      "expected": [200],
+      "pass": true,
+      "errorCode": null,
+      "message": null,
+      "redirectTo": null,
+      "echoedRequestId": "cbe32099-fc3f-4943-9f55-2716f717a687",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 285,
+      "note": ""
+    },
+    {
+      "id": "P-035",
+      "category": "bola-get",
+      "role": "STAKEHOLDER",
+      "method": "GET",
+      "path": "/api/v1/submissions/00000000-0000-4000-8000-000000000000",
+      "origin": "none",
+      "status": 404,
+      "expected": [403, 404],
+      "pass": true,
+      "errorCode": "NOT_FOUND",
+      "message": "Konten tidak ditemukan.",
+      "redirectTo": null,
+      "echoedRequestId": "18262c38-9eb7-42b2-9de6-ba1eb27491f9",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 541,
+      "note": ""
+    },
+    {
+      "id": "P-036",
+      "category": "bola-get",
+      "role": "REGIONAL_ADMIN",
+      "method": "GET",
+      "path": "/api/v1/submissions/00000000-0000-4000-8000-000000000000",
+      "origin": "none",
+      "status": 404,
+      "expected": [403, 404],
+      "pass": true,
+      "errorCode": "NOT_FOUND",
+      "message": "Konten tidak ditemukan.",
+      "redirectTo": null,
+      "echoedRequestId": "563b7564-96fe-47c1-8593-bc86b04fc05f",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 271,
+      "note": ""
+    },
+    {
+      "id": "P-037",
+      "category": "bola-get",
+      "role": "MASTER_ADMIN",
+      "method": "GET",
+      "path": "/api/v1/submissions/00000000-0000-4000-8000-000000000000",
+      "origin": "none",
+      "status": 404,
+      "expected": [403, 404],
+      "pass": true,
+      "errorCode": "NOT_FOUND",
+      "message": "Konten tidak ditemukan.",
+      "redirectTo": null,
+      "echoedRequestId": "069d8864-320f-4c24-a73a-7c295316fb71",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 297,
+      "note": ""
+    },
+    {
+      "id": "P-038",
+      "category": "input",
+      "role": "MASTER_ADMIN",
+      "method": "GET",
+      "path": "/api/v1/submissions/not-a-uuid",
+      "origin": "none",
+      "status": 500,
+      "expected": [400, 404],
+      "pass": false,
+      "errorCode": "INTERNAL_ERROR",
+      "message": "Terjadi kesalahan pada server.",
+      "redirectTo": null,
+      "echoedRequestId": "5ecbe40e-789c-4bba-9327-11e97eaced49",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 329,
+      "note": "Path param non-UUID tidak boleh 500"
+    },
+    {
+      "id": "P-039",
+      "category": "bfla-get",
+      "role": "BRANCH_ADMIN",
+      "method": "GET",
+      "path": "/api/v1/admin/reviews?limit=1",
+      "origin": "none",
+      "status": 200,
+      "expected": [200],
+      "pass": true,
+      "errorCode": null,
+      "message": null,
+      "redirectTo": null,
+      "echoedRequestId": "38af5dd2-f585-4808-88fb-f142b56b5ede",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 358,
+      "note": "BRANCH_ADMIN memang boleh review"
+    },
+    {
+      "id": "P-040",
+      "category": "csrf",
+      "role": "MASTER_ADMIN",
+      "method": "POST",
+      "path": "/api/v1/admin/branches",
+      "origin": "evil",
+      "status": 403,
+      "expected": [403],
+      "pass": true,
+      "errorCode": "FORBIDDEN",
+      "message": "Permintaan lintas asal ditolak.",
+      "redirectTo": null,
+      "echoedRequestId": "912ea3e4-b89a-457c-b00c-56ab9def639e",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 268,
+      "note": "Origin asing harus ditolak sebelum validasi"
+    },
+    {
+      "id": "P-041",
+      "category": "csrf",
+      "role": "MASTER_ADMIN",
+      "method": "POST",
+      "path": "/api/v1/admin/branches",
+      "origin": "none",
+      "status": 400,
+      "expected": [400],
+      "pass": true,
+      "errorCode": "VALIDATION_ERROR",
+      "message": "Data yang dikirim belum lengkap atau tidak valid.",
+      "redirectTo": null,
+      "echoedRequestId": "f838e140-fbca-491e-b81d-ab0cad59afa3",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 290,
+      "note": "Tanpa Origin: guard short-circuit lalu validasi 400"
+    },
+    {
+      "id": "P-042",
+      "category": "csrf",
+      "role": "STAKEHOLDER",
+      "method": "POST",
+      "path": "/api/v1/submissions",
+      "origin": "evil",
+      "status": 400,
+      "expected": [403],
+      "pass": false,
+      "errorCode": "VALIDATION_ERROR",
+      "message": "Data yang dikirim belum lengkap atau tidak valid.",
+      "redirectTo": null,
+      "echoedRequestId": "483e53af-c470-4b9b-857c-be987db0e41b",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 314,
+      "note": "HARAPAN AMAN: 403. 400 berarti assertSameOrigin tidak ada."
+    },
+    {
+      "id": "P-043",
+      "category": "csrf",
+      "role": "STAKEHOLDER",
+      "method": "PATCH",
+      "path": "/api/v1/notifications",
+      "origin": "evil",
+      "status": 400,
+      "expected": [403],
+      "pass": false,
+      "errorCode": "VALIDATION_ERROR",
+      "message": "Data yang dikirim belum lengkap atau tidak valid.",
+      "redirectTo": null,
+      "echoedRequestId": "1a597ce9-b5c5-4152-bdd2-4734fbc7c14e",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 341,
+      "note": ""
+    },
+    {
+      "id": "P-044",
+      "category": "csrf",
+      "role": "STAKEHOLDER",
+      "method": "POST",
+      "path": "/api/v1/me/password",
+      "origin": "evil",
+      "status": 500,
+      "expected": [403],
+      "pass": false,
+      "errorCode": "INTERNAL_ERROR",
+      "message": "Terjadi kesalahan pada server.",
+      "redirectTo": null,
+      "echoedRequestId": "91bcd692-d610-4ce7-9491-5701c5f88a10",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 571,
+      "note": "Password salah; tidak ada perubahan. HARAPAN AMAN: 403."
+    },
+    {
+      "id": "P-045",
+      "category": "demo-containment",
+      "role": "MASTER_ADMIN",
+      "method": "POST",
+      "path": "/api/v1/admin/edufast/policies/publish",
+      "origin": "same",
+      "status": 404,
+      "expected": [403],
+      "pass": false,
+      "errorCode": "NOT_FOUND",
+      "message": "Kebijakan tidak ditemukan.",
+      "redirectTo": null,
+      "echoedRequestId": "2edd2283-121e-4f45-89ed-ec067d258c2a",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 296,
+      "note": "HARAPAN AMAN: 403 demo. 404 berarti guard demo tidak ada."
+    },
+    {
+      "id": "P-046",
+      "category": "demo-containment",
+      "role": "MASTER_ADMIN",
+      "method": "POST",
+      "path": "/api/v1/admin/contents/00000000-0000-4000-8000-000000000000/revoke",
+      "origin": "same",
+      "status": 403,
+      "expected": [403],
+      "pass": true,
+      "errorCode": "STEP_UP_REQUIRED",
+      "message": "Konfirmasi kata sandi diperlukan untuk tindakan sensitif ini.",
+      "redirectTo": null,
+      "echoedRequestId": "27175c06-8b9e-4a4b-b7da-f0bb73f83115",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 293,
+      "note": "Step-up diharapkan 403 lebih dulu"
+    },
+    {
+      "id": "P-047",
+      "category": "demo-containment",
+      "role": "MASTER_ADMIN",
+      "method": "POST",
+      "path": "/api/v1/admin/targets",
+      "origin": "same",
+      "status": 403,
+      "expected": [403],
+      "pass": true,
+      "errorCode": "STEP_UP_REQUIRED",
+      "message": "Konfirmasi kata sandi diperlukan untuk tindakan sensitif ini.",
+      "redirectTo": null,
+      "echoedRequestId": "7a49e6bb-5a27-4738-8243-8bee4f734e28",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 281,
+      "note": "Step-up diharapkan 403 lebih dulu"
+    },
+    {
+      "id": "P-048",
+      "category": "demo-containment",
+      "role": "MASTER_ADMIN",
+      "method": "POST",
+      "path": "/api/v1/admin/imports/content/preview",
+      "origin": "same",
+      "status": 403,
+      "expected": [403],
+      "pass": true,
+      "errorCode": "FORBIDDEN",
+      "message": "Akun demo tidak dapat mengimpor konten.",
+      "redirectTo": null,
+      "echoedRequestId": "c6cd8ad9-e422-4fbc-b4b3-f667e6edc861",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 334,
+      "note": "Kontrol positif: guard demo import konten harus 403"
+    },
+    {
+      "id": "P-049",
+      "category": "bfla-post",
+      "role": "REGIONAL_ADMIN",
+      "method": "POST",
+      "path": "/api/v1/admin/reviews",
+      "origin": "same",
+      "status": 403,
+      "expected": [403],
+      "pass": true,
+      "errorCode": "FORBIDDEN",
+      "message": "Anda tidak memiliki akses ke sumber daya ini.",
+      "redirectTo": null,
+      "echoedRequestId": "b54fd7de-e112-412f-b48c-096dcde773de",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 266,
+      "note": ""
+    },
+    {
+      "id": "P-050",
+      "category": "bfla-post",
+      "role": "BRANCH_ADMIN",
+      "method": "POST",
+      "path": "/api/v1/admin/reviews",
+      "origin": "same",
+      "status": 404,
+      "expected": [400, 403, 404],
+      "pass": true,
+      "errorCode": "NOT_FOUND",
+      "message": "Konten tidak ditemukan.",
+      "redirectTo": null,
+      "echoedRequestId": "2356164b-65f3-41bb-80cd-dadcfd381600",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 299,
+      "note": "ID tidak ada; tidak ada mutasi. Rate-limit row insidental."
+    },
+    {
+      "id": "P-051",
+      "category": "requestid",
+      "role": "anon",
+      "method": "GET",
+      "path": "/api/v1/me",
+      "origin": "none",
+      "status": 401,
+      "expected": [401],
+      "pass": true,
+      "errorCode": "UNAUTHORIZED",
+      "message": "Sesi tidak ditemukan. Silakan masuk.",
+      "redirectTo": null,
+      "echoedRequestId": "audit-probe-echo-001",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 258,
+      "note": "Cek apakah x-request-id klien diterima apa adanya"
+    },
+    {
+      "id": "P-052",
+      "category": "body-limit",
+      "role": "STAKEHOLDER",
+      "method": "POST",
+      "path": "/api/v1/submissions",
+      "origin": "same",
+      "status": 400,
+      "expected": [400],
+      "pass": true,
+      "errorCode": "VALIDATION_ERROR",
+      "message": "Data yang dikirim belum lengkap atau tidak valid.",
+      "redirectTo": null,
+      "echoedRequestId": "2be7742a-6f09-412c-b54a-eb9e586ac335",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 2200,
+      "note": "2 MB JSON invalid schema; 413 berarti ada cap"
+    },
+    {
+      "id": "P-053",
+      "category": "export",
+      "role": "MASTER_ADMIN",
+      "method": "GET",
+      "path": "/api/v1/exports/performance?period=2026-10",
+      "origin": "none",
+      "status": 200,
+      "expected": [200],
+      "pass": true,
+      "errorCode": null,
+      "message": null,
+      "redirectTo": null,
+      "echoedRequestId": null,
+      "headers": {
+        "ratelimit-limit": "10",
+        "ratelimit-remaining": "9",
+        "ratelimit-reset": "60",
+        "content-type": "text/csv; charset=utf-8",
+        "content-disposition": "attachment; filename=\"kinerja-2026-10.csv\"",
+        "x-request-id": "c7bc154c-a25f-4d3c-b60b-8daca95e51ac"
+      },
+      "durationMs": 332,
+      "note": ""
+    },
+    {
+      "id": "P-054",
+      "category": "imports",
+      "role": "MASTER_ADMIN",
+      "method": "GET",
+      "path": "/api/v1/admin/imports",
+      "origin": "none",
+      "status": 200,
+      "expected": [200],
+      "pass": true,
+      "errorCode": null,
+      "message": null,
+      "redirectTo": null,
+      "echoedRequestId": "347c52fc-52e8-496c-aaba-2dad95073ce3",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "durationMs": 371,
+      "note": ""
+    }
+  ]
+}

@@ -1,0 +1,189 @@
+{
+  "base": "https://dakosta-dakosta.vercel.app",
+  "runTimestamp": "2026-11-06T02-37-45-447Z",
+  "kind": "single-request-ttfb",
+  "disclaimer": "Bukan load test; hanya 3 permintaan serial per rute dari satu klien.",
+  "generatedAt": "2026-11-06T02:38:08.706Z",
+  "results": [
+    {
+      "route": "/",
+      "role": "anon",
+      "samples": [
+        {
+          "route": "/",
+          "status": 200,
+          "ttfbMs": 59,
+          "totalMs": 61,
+          "bytes": 51955,
+          "cache": "HIT",
+          "cacheControl": "public, max-age=0, must-revalidate"
+        },
+        {
+          "route": "/",
+          "status": 200,
+          "ttfbMs": 55,
+          "totalMs": 57,
+          "bytes": 51955,
+          "cache": "HIT",
+          "cacheControl": "public, max-age=0, must-revalidate"
+        },
+        {
+          "route": "/",
+          "status": 200,
+          "ttfbMs": 65,
+          "totalMs": 66,
+          "bytes": 51955,
+          "cache": "HIT",
+          "cacheControl": "public, max-age=0, must-revalidate"
+        }
+      ],
+      "medianTtfbMs": 59,
+      "minTtfbMs": 55,
+      "maxTtfbMs": 65
+    },
+    {
+      "route": "/masuk",
+      "role": "anon",
+      "samples": [
+        {
+          "route": "/masuk",
+          "status": 200,
+          "ttfbMs": 313,
+          "totalMs": 316,
+          "bytes": 27191,
+          "cache": "MISS",
+          "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate"
+        },
+        {
+          "route": "/masuk",
+          "status": 200,
+          "ttfbMs": 302,
+          "totalMs": 309,
+          "bytes": 27191,
+          "cache": "MISS",
+          "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate"
+        },
+        {
+          "route": "/masuk",
+          "status": 200,
+          "ttfbMs": 279,
+          "totalMs": 283,
+          "bytes": 27191,
+          "cache": "MISS",
+          "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate"
+        }
+      ],
+      "medianTtfbMs": 302,
+      "minTtfbMs": 279,
+      "maxTtfbMs": 313
+    },
+    {
+      "route": "/admin",
+      "role": "MASTER_ADMIN",
+      "samples": [
+        {
+          "route": "/admin",
+          "status": 200,
+          "ttfbMs": 416,
+          "totalMs": 654,
+          "bytes": 234985,
+          "cache": "MISS",
+          "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate"
+        },
+        {
+          "route": "/admin",
+          "status": 200,
+          "ttfbMs": 336,
+          "totalMs": 546,
+          "bytes": 230534,
+          "cache": "MISS",
+          "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate"
+        },
+        {
+          "route": "/admin",
+          "status": 200,
+          "ttfbMs": 347,
+          "totalMs": 608,
+          "bytes": 230534,
+          "cache": "MISS",
+          "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate"
+        }
+      ],
+      "medianTtfbMs": 347,
+      "minTtfbMs": 336,
+      "maxTtfbMs": 416
+    },
+    {
+      "route": "/wilayah/dashboard",
+      "role": "REGIONAL_ADMIN",
+      "samples": [
+        {
+          "route": "/wilayah/dashboard",
+          "status": 200,
+          "ttfbMs": 402,
+          "totalMs": 665,
+          "bytes": 170249,
+          "cache": "MISS",
+          "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate"
+        },
+        {
+          "route": "/wilayah/dashboard",
+          "status": 200,
+          "ttfbMs": 407,
+          "totalMs": 415,
+          "bytes": 168562,
+          "cache": "MISS",
+          "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate"
+        },
+        {
+          "route": "/wilayah/dashboard",
+          "status": 200,
+          "ttfbMs": 402,
+          "totalMs": 655,
+          "bytes": 168562,
+          "cache": "MISS",
+          "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate"
+        }
+      ],
+      "medianTtfbMs": 402,
+      "minTtfbMs": 402,
+      "maxTtfbMs": 407
+    },
+    {
+      "route": "/client",
+      "role": "STAKEHOLDER",
+      "samples": [
+        {
+          "route": "/client",
+          "status": 200,
+          "ttfbMs": 365,
+          "totalMs": 582,
+          "bytes": 142504,
+          "cache": "MISS",
+          "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate"
+        },
+        {
+          "route": "/client",
+          "status": 200,
+          "ttfbMs": 592,
+          "totalMs": 603,
+          "bytes": 142504,
+          "cache": "MISS",
+          "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate"
+        },
+        {
+          "route": "/client",
+          "status": 200,
+          "ttfbMs": 343,
+          "totalMs": 361,
+          "bytes": 142504,
+          "cache": "MISS",
+          "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate"
+        }
+      ],
+      "medianTtfbMs": 365,
+      "minTtfbMs": 343,
+      "maxTtfbMs": 592
+    }
+  ]
+}

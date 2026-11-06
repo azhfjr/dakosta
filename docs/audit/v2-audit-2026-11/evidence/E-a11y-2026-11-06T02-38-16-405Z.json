@@ -1,0 +1,1669 @@
+{
+  "base": "https://dakosta-dakosta.vercel.app",
+  "runTimestamp": "2026-11-06T02-38-16-405Z",
+  "tags": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"],
+  "browser": "chromium",
+  "engineVersion": "playwright-1.64.1/axe-core-4.14.0",
+  "summary": {
+    "total": 127,
+    "axePages": 46,
+    "axePagesWithViolations": 4,
+    "axePagesWithSeriousCritical": 4,
+    "reflowFailures": 2,
+    "outcomes": {
+      "axe:OK": 45,
+      "axe:REDIRECTED": 1,
+      "keyboard:TAB_FIRST": 2,
+      "dialog:PASS": 1,
+      "reflow:PASS": 76,
+      "reflow:OVERFLOW": 2
+    }
+  },
+  "records": [
+    {
+      "kind": "axe",
+      "role": "public",
+      "route": "/",
+      "status": 200,
+      "finalPath": "/",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:38:18.264Z"
+    },
+    {
+      "kind": "axe",
+      "role": "public",
+      "route": "/masuk",
+      "status": 200,
+      "finalPath": "/masuk",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:38:19.824Z"
+    },
+    {
+      "kind": "axe",
+      "role": "public",
+      "route": "/tentang",
+      "status": 200,
+      "finalPath": "/tentang",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:38:21.050Z"
+    },
+    {
+      "kind": "axe",
+      "role": "public",
+      "route": "/bantuan",
+      "status": 200,
+      "finalPath": "/bantuan",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:38:22.282Z"
+    },
+    {
+      "kind": "axe",
+      "role": "public",
+      "route": "/akses-ditolak",
+      "status": 200,
+      "finalPath": "/akses-ditolak",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:38:23.707Z"
+    },
+    {
+      "kind": "axe",
+      "role": "master",
+      "route": "/admin",
+      "status": 200,
+      "finalPath": "/admin",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:38:26.944Z"
+    },
+    {
+      "kind": "axe",
+      "role": "master",
+      "route": "/admin/analitik",
+      "status": 200,
+      "finalPath": "/admin/analitik",
+      "outcome": "OK",
+      "seriousCritical": 1,
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "help": "Elements must meet minimum color contrast ratio thresholds",
+          "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright",
+          "tags": ["wcag2aa", "wcag143"],
+          "nodes": 8,
+          "samples": [
+            {
+              "target": "section[aria-label=\"Filter analitik\"] > form > fieldset > label:nth-child(2) > .text-ink-muted\\/70",
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.04 (foreground color: #8394a0, background color: #fbfcfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": "section[aria-label=\"Filter analitik\"] > form > fieldset > label:nth-child(3) > .text-ink-muted\\/70",
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.04 (foreground color: #8394a0, background color: #fbfcfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": "section[aria-label=\"Filter analitik\"] > form > fieldset > label:nth-child(4) > .text-ink-muted\\/70",
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.04 (foreground color: #8394a0, background color: #fbfcfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ],
+      "timestamp": "2026-11-06T02:38:29.673Z"
+    },
+    {
+      "kind": "axe",
+      "role": "master",
+      "route": "/admin/audit",
+      "status": 200,
+      "finalPath": "/admin/audit",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:38:31.976Z"
+    },
+    {
+      "kind": "axe",
+      "role": "master",
+      "route": "/admin/akun",
+      "status": 200,
+      "finalPath": "/admin/akun",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:38:33.899Z"
+    },
+    {
+      "kind": "axe",
+      "role": "master",
+      "route": "/admin/cabang",
+      "status": 200,
+      "finalPath": "/admin/cabang",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:38:35.619Z"
+    },
+    {
+      "kind": "axe",
+      "role": "master",
+      "route": "/admin/edufast",
+      "status": 200,
+      "finalPath": "/admin/edufast",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:38:37.802Z"
+    },
+    {
+      "kind": "axe",
+      "role": "master",
+      "route": "/admin/impor",
+      "status": 200,
+      "finalPath": "/admin/impor",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:38:39.462Z"
+    },
+    {
+      "kind": "axe",
+      "role": "master",
+      "route": "/admin/konten",
+      "status": 200,
+      "finalPath": "/admin/konten",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:38:42.636Z"
+    },
+    {
+      "kind": "axe",
+      "role": "master",
+      "route": "/admin/konten/impor",
+      "status": 200,
+      "finalPath": "/admin/konten/impor",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:38:44.533Z"
+    },
+    {
+      "kind": "axe",
+      "role": "master",
+      "route": "/admin/notifikasi",
+      "status": 200,
+      "finalPath": "/admin/notifikasi",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:38:46.356Z"
+    },
+    {
+      "kind": "axe",
+      "role": "master",
+      "route": "/admin/organisasi",
+      "status": 200,
+      "finalPath": "/admin/organisasi",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:38:48.222Z"
+    },
+    {
+      "kind": "axe",
+      "role": "master",
+      "route": "/admin/peta",
+      "status": 200,
+      "finalPath": "/admin/peta",
+      "outcome": "OK",
+      "seriousCritical": 1,
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "help": "Elements must meet minimum color contrast ratio thresholds",
+          "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright",
+          "tags": ["wcag2aa", "wcag143"],
+          "nodes": 21,
+          "samples": [
+            {
+              "target": ".border-status-revision\\/30",
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.21 (foreground color: #b45309, background color: #f1eae2, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": ".border-border\\/70.align-top.last\\:border-0:nth-child(82) > td:nth-child(5) > .border-status-revision\\/25.bg-status-revision\\/10.text-status-revision",
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.39 (foreground color: #b45309, background color: #f8eee6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": ".border-border\\/70.align-top.last\\:border-0:nth-child(84) > td:nth-child(5) > .border-status-revision\\/25.bg-status-revision\\/10.text-status-revision",
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.39 (foreground color: #b45309, background color: #f8eee6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ],
+      "timestamp": "2026-11-06T02:38:58.030Z"
+    },
+    {
+      "kind": "axe",
+      "role": "master",
+      "route": "/admin/red-notice",
+      "status": 200,
+      "finalPath": "/admin/red-notice",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:38:59.961Z"
+    },
+    {
+      "kind": "axe",
+      "role": "master",
+      "route": "/admin/target",
+      "status": 200,
+      "finalPath": "/admin/target",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:02.601Z"
+    },
+    {
+      "kind": "axe",
+      "role": "master",
+      "route": "/admin/validasi",
+      "status": 200,
+      "finalPath": "/admin/validasi",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:04.922Z"
+    },
+    {
+      "kind": "axe",
+      "role": "master",
+      "route": "/admin/wilayah",
+      "status": 200,
+      "finalPath": "/admin/wilayah",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:06.712Z"
+    },
+    {
+      "kind": "axe",
+      "role": "master",
+      "route": "/admin/validasi/20000000-0000-4000-8000-000000000153",
+      "status": 200,
+      "finalPath": "/admin/validasi/20000000-0000-4000-8000-000000000153",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:09.840Z"
+    },
+    {
+      "kind": "axe",
+      "role": "regional",
+      "route": "/wilayah",
+      "status": 200,
+      "finalPath": "/wilayah",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:13.011Z"
+    },
+    {
+      "kind": "axe",
+      "role": "regional",
+      "route": "/wilayah/dashboard",
+      "status": 200,
+      "finalPath": "/wilayah/dashboard",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:15.371Z"
+    },
+    {
+      "kind": "axe",
+      "role": "regional",
+      "route": "/wilayah/kinerja",
+      "status": 200,
+      "finalPath": "/wilayah/kinerja",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:17.313Z"
+    },
+    {
+      "kind": "axe",
+      "role": "regional",
+      "route": "/wilayah/red-notice",
+      "status": 200,
+      "finalPath": "/wilayah/red-notice",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:18.882Z"
+    },
+    {
+      "kind": "axe",
+      "role": "regional",
+      "route": "/wilayah/cabang",
+      "status": 200,
+      "finalPath": "/wilayah/cabang",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:20.760Z"
+    },
+    {
+      "kind": "axe",
+      "role": "regional",
+      "route": "/wilayah/organisasi",
+      "status": 200,
+      "finalPath": "/wilayah/organisasi",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:22.573Z"
+    },
+    {
+      "kind": "axe",
+      "role": "regional",
+      "route": "/wilayah/notifikasi",
+      "status": 200,
+      "finalPath": "/wilayah/notifikasi",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:24.327Z"
+    },
+    {
+      "kind": "axe",
+      "role": "regional",
+      "route": "/wilayah/konten/20000000-0000-4000-8000-000000000001",
+      "status": 200,
+      "finalPath": "/wilayah/konten/20000000-0000-4000-8000-000000000001",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:27.145Z"
+    },
+    {
+      "kind": "axe",
+      "role": "branch",
+      "route": "/cabang",
+      "status": 200,
+      "finalPath": "/cabang",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:30.039Z"
+    },
+    {
+      "kind": "axe",
+      "role": "branch",
+      "route": "/cabang/dashboard",
+      "status": 200,
+      "finalPath": "/cabang/dashboard",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:31.869Z"
+    },
+    {
+      "kind": "axe",
+      "role": "branch",
+      "route": "/cabang/kinerja",
+      "status": 200,
+      "finalPath": "/cabang/kinerja",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:34.019Z"
+    },
+    {
+      "kind": "axe",
+      "role": "branch",
+      "route": "/cabang/red-notice",
+      "status": 200,
+      "finalPath": "/cabang/red-notice",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:35.692Z"
+    },
+    {
+      "kind": "axe",
+      "role": "branch",
+      "route": "/cabang/organisasi",
+      "status": 200,
+      "finalPath": "/cabang/organisasi",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:37.557Z"
+    },
+    {
+      "kind": "axe",
+      "role": "branch",
+      "route": "/cabang/notifikasi",
+      "status": 200,
+      "finalPath": "/cabang/notifikasi",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:39.249Z"
+    },
+    {
+      "kind": "axe",
+      "role": "branch",
+      "route": "/cabang/review/20000000-0000-4000-8000-000000000113",
+      "status": 200,
+      "finalPath": "/cabang/review/20000000-0000-4000-8000-000000000113",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:41.861Z"
+    },
+    {
+      "kind": "axe",
+      "role": "branch",
+      "route": "/cabang/konten/20000000-0000-4000-8000-000000000001",
+      "status": 200,
+      "finalPath": "/cabang/konten/20000000-0000-4000-8000-000000000001",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:44.643Z"
+    },
+    {
+      "kind": "axe",
+      "role": "client",
+      "route": "/client",
+      "status": 200,
+      "finalPath": "/client",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:47.626Z"
+    },
+    {
+      "kind": "axe",
+      "role": "client",
+      "route": "/client/analitik",
+      "status": 200,
+      "finalPath": "/client/analitik",
+      "outcome": "OK",
+      "seriousCritical": 1,
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "help": "Elements must meet minimum color contrast ratio thresholds",
+          "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright",
+          "tags": ["wcag2aa", "wcag143"],
+          "nodes": 3,
+          "samples": [
+            {
+              "target": "section[aria-label=\"Filter analitik\"] > form > fieldset > label:nth-child(2) > .text-ink-muted\\/70",
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.04 (foreground color: #8394a0, background color: #fbfcfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": ".bg-surface-muted\\/30 > fieldset > label:nth-child(2) > .text-ink-muted\\/70",
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.06 (foreground color: #8394a1, background color: #fcfdfd, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": ".border-status-revision\\/25",
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.39 (foreground color: #b45309, background color: #f8eee6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ],
+      "timestamp": "2026-11-06T02:39:50.241Z"
+    },
+    {
+      "kind": "axe",
+      "role": "client",
+      "route": "/client/konten",
+      "status": 200,
+      "finalPath": "/client/konten",
+      "outcome": "OK",
+      "seriousCritical": 1,
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "help": "Elements must meet minimum color contrast ratio thresholds",
+          "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright",
+          "tags": ["wcag2aa", "wcag143"],
+          "nodes": 1,
+          "samples": [
+            {
+              "target": ".border-status-revision\\/25",
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.39 (foreground color: #b45309, background color: #f8eee6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ],
+      "timestamp": "2026-11-06T02:39:53.025Z"
+    },
+    {
+      "kind": "axe",
+      "role": "client",
+      "route": "/client/lapor",
+      "status": 200,
+      "finalPath": "/client/lapor",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:54.756Z"
+    },
+    {
+      "kind": "axe",
+      "role": "client",
+      "route": "/client/profil",
+      "status": 200,
+      "finalPath": "/client/profil",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:56.355Z"
+    },
+    {
+      "kind": "axe",
+      "role": "client",
+      "route": "/client/notifikasi",
+      "status": 200,
+      "finalPath": "/client/notifikasi",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:39:58.589Z"
+    },
+    {
+      "kind": "axe",
+      "role": "client",
+      "route": "/client/konten/20000000-0000-4000-8000-000000000001",
+      "status": 200,
+      "finalPath": "/client/konten/20000000-0000-4000-8000-000000000001",
+      "outcome": "OK",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:40:01.220Z"
+    },
+    {
+      "kind": "axe",
+      "role": "client",
+      "route": "/ganti-password",
+      "status": 200,
+      "finalPath": "/client",
+      "outcome": "REDIRECTED",
+      "seriousCritical": 0,
+      "violations": [],
+      "timestamp": "2026-11-06T02:40:04.825Z"
+    },
+    {
+      "kind": "keyboard",
+      "role": "master",
+      "route": "/admin",
+      "outcome": "TAB_FIRST",
+      "detail": {
+        "tag": "A",
+        "text": "Lewati ke konten utama",
+        "href": "#konten",
+        "outline": "solid 2px",
+        "boxShadow": false,
+        "visible": true
+      },
+      "timestamp": "2026-11-06T02:41:12.137Z"
+    },
+    {
+      "kind": "keyboard",
+      "role": "public",
+      "route": "/masuk",
+      "outcome": "TAB_FIRST",
+      "detail": {
+        "tag": "A",
+        "type": null,
+        "name": null,
+        "outline": "solid 2px",
+        "boxShadow": false
+      },
+      "timestamp": "2026-11-06T02:41:13.583Z"
+    },
+    {
+      "kind": "dialog",
+      "role": "master",
+      "route": "/admin/target",
+      "outcome": "PASS",
+      "detail": {
+        "focusInside": true,
+        "focusReturned": true,
+        "violations": []
+      },
+      "timestamp": "2026-11-06T02:41:16.071Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "public",
+      "route": "/",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "320",
+        "width": 320,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:16.874Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "public",
+      "route": "/masuk",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "320",
+        "width": 320,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:17.909Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "public",
+      "route": "/",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "360",
+        "width": 360,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:18.865Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "public",
+      "route": "/masuk",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "360",
+        "width": 360,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:19.970Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "public",
+      "route": "/",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "768",
+        "width": 768,
+        "height": 1024,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:20.942Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "public",
+      "route": "/masuk",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "768",
+        "width": 768,
+        "height": 1024,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:22.047Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "public",
+      "route": "/",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "1440",
+        "width": 1440,
+        "height": 900,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:23.043Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "public",
+      "route": "/masuk",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "1440",
+        "width": 1440,
+        "height": 900,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:24.215Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "public",
+      "route": "/",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom200",
+        "width": 640,
+        "height": 360,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:25.136Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "public",
+      "route": "/masuk",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom200",
+        "width": 640,
+        "height": 360,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:26.199Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "public",
+      "route": "/",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom400",
+        "width": 320,
+        "height": 180,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:27.153Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "public",
+      "route": "/masuk",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom400",
+        "width": 320,
+        "height": 180,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:28.198Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "320",
+        "width": 320,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:30.181Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin/analitik",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "320",
+        "width": 320,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:31.283Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin/target",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "320",
+        "width": 320,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:32.404Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin/impor",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "320",
+        "width": 320,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:33.526Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "360",
+        "width": 360,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:34.812Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin/analitik",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "360",
+        "width": 360,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:35.942Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin/target",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "360",
+        "width": 360,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:37.128Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin/impor",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "360",
+        "width": 360,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:38.245Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "768",
+        "width": 768,
+        "height": 1024,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:39.501Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin/analitik",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "768",
+        "width": 768,
+        "height": 1024,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:40.802Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin/target",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "768",
+        "width": 768,
+        "height": 1024,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:41.916Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin/impor",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "768",
+        "width": 768,
+        "height": 1024,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:43.249Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "1440",
+        "width": 1440,
+        "height": 900,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:44.549Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin/analitik",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "1440",
+        "width": 1440,
+        "height": 900,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:45.874Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin/target",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "1440",
+        "width": 1440,
+        "height": 900,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:47.019Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin/impor",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "1440",
+        "width": 1440,
+        "height": 900,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:48.303Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom200",
+        "width": 640,
+        "height": 360,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:49.740Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin/analitik",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom200",
+        "width": 640,
+        "height": 360,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:50.883Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin/target",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom200",
+        "width": 640,
+        "height": 360,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:52.200Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin/impor",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom200",
+        "width": 640,
+        "height": 360,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:53.533Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom400",
+        "width": 320,
+        "height": 180,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:54.806Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin/analitik",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom400",
+        "width": 320,
+        "height": 180,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:56.085Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin/target",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom400",
+        "width": 320,
+        "height": 180,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:57.178Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "master",
+      "route": "/admin/impor",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom400",
+        "width": 320,
+        "height": 180,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:41:58.293Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "regional",
+      "route": "/wilayah/dashboard",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "320",
+        "width": 320,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:00.267Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "regional",
+      "route": "/wilayah/kinerja",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "320",
+        "width": 320,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:01.367Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "regional",
+      "route": "/wilayah/dashboard",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "360",
+        "width": 360,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:02.864Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "regional",
+      "route": "/wilayah/kinerja",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "360",
+        "width": 360,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:04.216Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "regional",
+      "route": "/wilayah/dashboard",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "768",
+        "width": 768,
+        "height": 1024,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:05.682Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "regional",
+      "route": "/wilayah/kinerja",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "768",
+        "width": 768,
+        "height": 1024,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:06.800Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "regional",
+      "route": "/wilayah/dashboard",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "1440",
+        "width": 1440,
+        "height": 900,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:08.174Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "regional",
+      "route": "/wilayah/kinerja",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "1440",
+        "width": 1440,
+        "height": 900,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:09.308Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "regional",
+      "route": "/wilayah/dashboard",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom200",
+        "width": 640,
+        "height": 360,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:10.667Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "regional",
+      "route": "/wilayah/kinerja",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom200",
+        "width": 640,
+        "height": 360,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:12.104Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "regional",
+      "route": "/wilayah/dashboard",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom400",
+        "width": 320,
+        "height": 180,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:13.352Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "regional",
+      "route": "/wilayah/kinerja",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom400",
+        "width": 320,
+        "height": 180,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:14.430Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "branch",
+      "route": "/cabang",
+      "outcome": "OVERFLOW",
+      "detail": {
+        "viewport": "320",
+        "width": 320,
+        "height": 800,
+        "overflow": 9
+      },
+      "timestamp": "2026-11-06T02:42:16.336Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "branch",
+      "route": "/cabang/dashboard",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "320",
+        "width": 320,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:17.505Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "branch",
+      "route": "/cabang",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "360",
+        "width": 360,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:18.749Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "branch",
+      "route": "/cabang/dashboard",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "360",
+        "width": 360,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:20.034Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "branch",
+      "route": "/cabang",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "768",
+        "width": 768,
+        "height": 1024,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:21.233Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "branch",
+      "route": "/cabang/dashboard",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "768",
+        "width": 768,
+        "height": 1024,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:22.402Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "branch",
+      "route": "/cabang",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "1440",
+        "width": 1440,
+        "height": 900,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:23.782Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "branch",
+      "route": "/cabang/dashboard",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "1440",
+        "width": 1440,
+        "height": 900,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:24.975Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "branch",
+      "route": "/cabang",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom200",
+        "width": 640,
+        "height": 360,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:26.230Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "branch",
+      "route": "/cabang/dashboard",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom200",
+        "width": 640,
+        "height": 360,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:27.364Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "branch",
+      "route": "/cabang",
+      "outcome": "OVERFLOW",
+      "detail": {
+        "viewport": "zoom400",
+        "width": 320,
+        "height": 180,
+        "overflow": 9
+      },
+      "timestamp": "2026-11-06T02:42:28.594Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "branch",
+      "route": "/cabang/dashboard",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom400",
+        "width": 320,
+        "height": 180,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:29.983Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "client",
+      "route": "/client",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "320",
+        "width": 320,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:31.961Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "client",
+      "route": "/client/lapor",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "320",
+        "width": 320,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:33.052Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "client",
+      "route": "/client/konten",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "320",
+        "width": 320,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:34.402Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "client",
+      "route": "/client",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "360",
+        "width": 360,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:35.829Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "client",
+      "route": "/client/lapor",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "360",
+        "width": 360,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:37.056Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "client",
+      "route": "/client/konten",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "360",
+        "width": 360,
+        "height": 800,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:38.370Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "client",
+      "route": "/client",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "768",
+        "width": 768,
+        "height": 1024,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:39.627Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "client",
+      "route": "/client/lapor",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "768",
+        "width": 768,
+        "height": 1024,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:40.765Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "client",
+      "route": "/client/konten",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "768",
+        "width": 768,
+        "height": 1024,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:41.888Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "client",
+      "route": "/client",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "1440",
+        "width": 1440,
+        "height": 900,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:43.129Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "client",
+      "route": "/client/lapor",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "1440",
+        "width": 1440,
+        "height": 900,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:44.311Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "client",
+      "route": "/client/konten",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "1440",
+        "width": 1440,
+        "height": 900,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:45.514Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "client",
+      "route": "/client",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom200",
+        "width": 640,
+        "height": 360,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:46.959Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "client",
+      "route": "/client/lapor",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom200",
+        "width": 640,
+        "height": 360,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:48.067Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "client",
+      "route": "/client/konten",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom200",
+        "width": 640,
+        "height": 360,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:49.406Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "client",
+      "route": "/client",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom400",
+        "width": 320,
+        "height": 180,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:50.666Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "client",
+      "route": "/client/lapor",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom400",
+        "width": 320,
+        "height": 180,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:52.042Z"
+    },
+    {
+      "kind": "reflow",
+      "role": "client",
+      "route": "/client/konten",
+      "outcome": "PASS",
+      "detail": {
+        "viewport": "zoom400",
+        "width": 320,
+        "height": 180,
+        "overflow": 0
+      },
+      "timestamp": "2026-11-06T02:42:53.358Z"
+    }
+  ]
+}

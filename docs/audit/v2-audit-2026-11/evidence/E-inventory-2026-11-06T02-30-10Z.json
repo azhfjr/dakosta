@@ -1,0 +1,53 @@
+{
+  "output": "docs\\audit\\v2-audit-2026-11\\03-feature-coverage-matrix.csv",
+  "pages": 59,
+  "redirectPages": 12,
+  "apiRouteFiles": 46,
+  "apiHandlers": 56,
+  "publicHandlers": 4,
+  "masterHandlers": 32,
+  "reviewHandlers": 3,
+  "scopeDependentHandlers": 16,
+  "mutationHandlers": 32,
+  "mutationsWithoutSameOrigin": [
+    "POST /api/auth/[...all]",
+    "POST /api/v1/admin/outbox/drain",
+    "POST /api/v1/demo/login",
+    "POST /api/v1/me/password",
+    "PATCH /api/v1/notifications",
+    "POST /api/v1/submissions"
+  ],
+  "mutationsWithoutRateLimit": [
+    "POST /api/auth/[...all]",
+    "POST /api/v1/activation/location",
+    "PATCH /api/v1/admin/branches/[id]",
+    "POST /api/v1/admin/contents/[id]/revoke",
+    "POST /api/v1/admin/edufast/policies/archive",
+    "POST /api/v1/admin/edufast/policies/copy",
+    "POST /api/v1/admin/edufast/policies/publish",
+    "PATCH /api/v1/admin/organizations/[id]",
+    "POST /api/v1/admin/outbox/drain",
+    "PATCH /api/v1/admin/regions/[id]",
+    "POST /api/v1/admin/reviews/start",
+    "PATCH /api/v1/admin/targets/[id]",
+    "DELETE /api/v1/admin/targets/[id]",
+    "PATCH /api/v1/admin/users/[id]",
+    "POST /api/v1/admin/users/[id]",
+    "POST /api/v1/me/password",
+    "PATCH /api/v1/notifications",
+    "POST /api/v1/submissions"
+  ],
+  "masterMutationsWithoutDemoGuard": [
+    "POST /api/v1/admin/contents/[id]/revoke",
+    "POST /api/v1/admin/edufast/policies/archive",
+    "POST /api/v1/admin/edufast/policies/copy",
+    "POST /api/v1/admin/edufast/policies/publish",
+    "POST /api/v1/admin/edufast/policies",
+    "POST /api/v1/admin/imports/preview",
+    "POST /api/v1/admin/outbox/drain",
+    "POST /api/v1/admin/targets",
+    "POST /api/v1/admin/targets/sync",
+    "PATCH /api/v1/admin/targets/[id]",
+    "DELETE /api/v1/admin/targets/[id]"
+  ]
+}

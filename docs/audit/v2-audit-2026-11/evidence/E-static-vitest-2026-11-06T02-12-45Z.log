@@ -1,0 +1,129 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv5.0.5 [39m[90mC:/Users/PLN/Documents/Qoder/2026-10-30/b8cd74b6[39m
+
+ [32m✓[39m tests/demo-chunk.test.ts[2m > [22mchunk[2m > [22msplits rows and keeps the remainder[32m 6[2mms[22m[39m
+ [32m✓[39m tests/demo-chunk.test.ts[2m > [22mchunk[2m > [22mhandles empty and exactly-sized inputs[32m 1[2mms[22m[39m
+ [32m✓[39m tests/demo-chunk.test.ts[2m > [22mchunk[2m > [22mrejects invalid sizes[32m 1[2mms[22m[39m
+ [32m✓[39m tests/demo-chunk.test.ts[2m > [22mchunk[2m > [22mkeeps the default chunk well below the bind parameter limit[32m 1[2mms[22m[39m
+ [32m✓[39m tests/csv.test.ts[2m > [22mCSV export[2m > [22mstarts with a UTF-8 BOM and uses CRLF line endings[32m 2[2mms[22m[39m
+ [32m✓[39m tests/csv.test.ts[2m > [22mCSV export[2m > [22mquotes cells containing commas, quotes, or newlines[32m 0[2mms[22m[39m
+ [32m✓[39m tests/csv.test.ts[2m > [22mCSV export[2m > [22mneutralizes spreadsheet formula injection[32m 1[2mms[22m[39m
+ [32m✓[39m tests/csv.test.ts[2m > [22mCSV export[2m > [22mrenders empty values as empty cells[32m 0[2mms[22m[39m
+ [32m✓[39m tests/csv.test.ts[2m > [22mCSV export[2m > [22mbuilds a Jakarta-dated file name[32m 19[2mms[22m[39m
+ [32m✓[39m tests/csv.test.ts[2m > [22mCSV export[2m > [22muses the reporting period in the export file name when provided[32m 0[2mms[22m[39m
+ [32m✓[39m tests/taxonomy.test.ts[2m > [22mtaxonomy[2m > [22mhas exactly six sub-themes and two main themes[32m 4[2mms[22m[39m
+ [32m✓[39m tests/taxonomy.test.ts[2m > [22mtaxonomy[2m > [22mguards unknown enum values[32m 1[2mms[22m[39m
+ [32m✓[39m tests/taxonomy.test.ts[2m > [22mtaxonomy[2m > [22mderives the period from the content date, not the approval date[32m 0[2mms[22m[39m
+ [32m✓[39m tests/taxonomy.test.ts[2m > [22mtaxonomy[2m > [22mlabels and shifts periods across year boundaries[32m 21[2mms[22m[39m
+ [32m✓[39m tests/taxonomy.test.ts[2m > [22mtaxonomy[2m > [22mvalidates the YYYY-MM period format[32m 1[2mms[22m[39m
+ [32m✓[39m tests/taxonomy.test.ts[2m > [22mtaxonomy[2m > [22mmaps every legacy theme slug to a canonical sub-theme[32m 2[2mms[22m[39m
+ [32m✓[39m tests/periods.test.ts[2m > [22mperiods (Asia/Jakarta)[2m > [22mbuilds a month with correct inclusive/exclusive instants[32m 3[2mms[22m[39m
+ [32m✓[39m tests/periods.test.ts[2m > [22mperiods (Asia/Jakarta)[2m > [22mtreats the Jakarta midnight boundary as the period edge[32m 1[2mms[22m[39m
+ [32m✓[39m tests/periods.test.ts[2m > [22mperiods (Asia/Jakarta)[2m > [22mrolls quarters and years across the calendar boundary[32m 3[2mms[22m[39m
+ [32m✓[39m tests/periods.test.ts[2m > [22mperiods (Asia/Jakarta)[2m > [22mkeeps 31-day, 30-day, and February month lengths[32m 1[2mms[22m[39m
+ [32m✓[39m tests/periods.test.ts[2m > [22mperiods (Asia/Jakarta)[2m > [22mparses month, quarter, and year keys[32m 1[2mms[22m[39m
+ [32m✓[39m tests/periods.test.ts[2m > [22mperiods (Asia/Jakarta)[2m > [22mfalls back to the Jakarta current month for invalid input[32m 21[2mms[22m[39m
+ [32m✓[39m tests/periods.test.ts[2m > [22mperiods (Asia/Jakarta)[2m > [22muses WIB when the UTC clock is still on the previous day[32m 1[2mms[22m[39m
+ [32m✓[39m tests/periods.test.ts[2m > [22mperiods (Asia/Jakarta)[2m > [22mlists selectable options newest first[32m 1[2mms[22m[39m
+ [32m✓[39m tests/db-retry.test.ts[2m > [22misTransientConnectionError[2m > [22mmengenali WebSocket ErrorEvent tanpa message[32m 3[2mms[22m[39m
+ [32m✓[39m tests/db-retry.test.ts[2m > [22misTransientConnectionError[2m > [22mmengenali cause berantai dari Drizzle[32m 1[2mms[22m[39m
+ [32m✓[39m tests/db-retry.test.ts[2m > [22misTransientConnectionError[2m > [22mmengabaikan galat SQL non-transien[32m 0[2mms[22m[39m
+ [32m✓[39m tests/db-retry.test.ts[2m > [22misRetriableRead[2m > [22mmengizinkan SELECT dan CTE baca[32m 1[2mms[22m[39m
+ [32m✓[39m tests/db-retry.test.ts[2m > [22misRetriableRead[2m > [22mmenolak SELECT dengan row lock dan semua penulisan[32m 1[2mms[22m[39m
+ [32m✓[39m tests/db-retry.test.ts[2m > [22mstatementText[2m > [22mmendukung string dan objek query[32m 2[2mms[22m[39m
+ [32m✓[39m tests/capabilities.test.ts[2m > [22mrole capability matrix[2m > [22mgives every role at least one capability[32m 4[2mms[22m[39m
+ [32m✓[39m tests/capabilities.test.ts[2m > [22mrole capability matrix[2m > [22mkeeps regional admins strictly read-only[32m 1[2mms[22m[39m
+ [32m✓[39m tests/capabilities.test.ts[2m > [22mrole capability matrix[2m > [22mlets branch admins review but not override or revoke[32m 0[2mms[22m[39m
+ [32m✓[39m tests/capabilities.test.ts[2m > [22mrole capability matrix[2m > [22mkeeps stakeholders inside their own organization[32m 0[2mms[22m[39m
+ [32m✓[39m tests/capabilities.test.ts[2m > [22mrole capability matrix[2m > [22mgrants master the full administrative surface[32m 0[2mms[22m[39m
+ [32m✓[39m tests/privacy.test.ts[2m > [22mduplicate URL privacy[2m > [22mreturns no identity when no duplicate exists[32m 3[2mms[22m[39m
+ [32m✓[39m tests/privacy.test.ts[2m > [22mduplicate URL privacy[2m > [22mnever leaks identity for duplicates outside the reporter scope[32m 1[2mms[22m[39m
+ [32m✓[39m tests/privacy.test.ts[2m > [22mduplicate URL privacy[2m > [22mreturns identifying detail only inside the reporter scope[32m 0[2mms[22m[39m
+ [32m✓[39m tests/submission-draft.test.ts[2m > [22mdraftKey[2m > [22mscopes keys per account so drafts never leak across accounts[32m 6[2mms[22m[39m
+ [32m✓[39m tests/submission-draft.test.ts[2m > [22mdraftKey[2m > [22muses the submission id for revision drafts[32m 0[2mms[22m[39m
+ [32m✓[39m tests/submission-draft.test.ts[2m > [22mdraftKey[2m > [22mkeeps the legacy key distinct from scoped keys[32m 1[2mms[22m[39m
+ [32m✓[39m tests/submission-draft.test.ts[2m > [22mhydrateDraft[2m > [22mfalls back to the single organization when the draft has no valid org[32m 1[2mms[22m[39m
+ [32m✓[39m tests/submission-draft.test.ts[2m > [22mhydrateDraft[2m > [22mrejects an organization outside the account membership[32m 0[2mms[22m[39m
+ [32m✓[39m tests/submission-draft.test.ts[2m > [22mhydrateDraft[2m > [22mkeeps a valid organization for multi-org accounts[32m 0[2mms[22m[39m
+ [32m✓[39m tests/submission-draft.test.ts[2m > [22mhydrateDraft[2m > [22mleaves multi-org accounts unselected when the draft is empty[32m 0[2mms[22m[39m
+ [32m✓[39m tests/submission-draft.test.ts[2m > [22mhydrateDraft[2m > [22mdrops unknown taxonomy values, invalid dates, and per-content locations[32m 1[2mms[22m[39m
+ [32m✓[39m tests/submission-draft.test.ts[2m > [22mhydrateDraft[2m > [22mrestores its own submission id and idempotency key[32m 1[2mms[22m[39m
+ [32m✓[39m tests/submission-draft.test.ts[2m > [22mhydrateDraft[2m > [22mignores a non-uuid submission id from a tampered draft[32m 0[2mms[22m[39m
+ [32m✓[39m tests/submission-draft.test.ts[2m > [22mhydrateDraft[2m > [22mround-trips a serialized draft without losing fields[32m 1[2mms[22m[39m
+ [32m✓[39m tests/content-validation.test.ts[2m > [22mPII guard[2m > [22mdetects NIK-like and JKN-like numbers[32m 4[2mms[22m[39m
+ [32m✓[39m tests/content-validation.test.ts[2m > [22mPII guard[2m > [22maccepts ordinary narrative text[32m 1[2mms[22m[39m
+ [32m✓[39m tests/content-validation.test.ts[2m > [22mPII guard[2m > [22mrejects a submission whose narrative embeds identity numbers[32m 9[2mms[22m[39m
+ [32m✓[39m tests/content-validation.test.ts[2m > [22msubmission contract[2m > [22maccepts a complete Non-EDUFAST submission[32m 4[2mms[22m[39m
+ [32m✓[39m tests/content-validation.test.ts[2m > [22msubmission contract[2m > [22mrequires content type, main theme, and sub-theme on submit[32m 1[2mms[22m[39m
+ [32m✓[39m tests/content-validation.test.ts[2m > [22msubmission contract[2m > [22mrejects future content dates[32m 1[2mms[22m[39m
+ [32m✓[39m tests/content-validation.test.ts[2m > [22msubmission contract[2m > [22mrequires a privacy attestation on submit[32m 1[2mms[22m[39m
+ [32m✓[39m tests/scope.test.ts[2m > [22morganization scope predicate[2m > [22mglobal scope matches everything[32m 4[2mms[22m[39m
+ [32m✓[39m tests/scope.test.ts[2m > [22morganization scope predicate[2m > [22morganization scope matches only its own organization[32m 0[2mms[22m[39m
+ [32m✓[39m tests/scope.test.ts[2m > [22morganization scope predicate[2m > [22mbranch scope matches organizations inside the branch only[32m 0[2mms[22m[39m
+ [32m✓[39m tests/scope.test.ts[2m > [22morganization scope predicate[2m > [22mregion scope enumerates branches and never leaks unassigned organizations[32m 1[2mms[22m[39m
+ [32m✓[39m tests/scope.test.ts[2m > [22morganization scope predicate[2m > [22man empty region branch list matches nothing[32m 0[2mms[22m[39m
+ [32m✓[39m tests/edufast.test.ts[2m > [22mEDUFAST policy window[2m > [22mblocks EDUFAST when the content period has no published policy[32m 24[2mms[22m[39m
+ [32m✓[39m tests/edufast.test.ts[2m > [22mEDUFAST policy window[2m > [22mresolves the policy for the content month, not the submission date[32m 1[2mms[22m[39m
+ [32m✓[39m tests/edufast.test.ts[2m > [22mEDUFAST policy window[2m > [22mrejects a sub-theme outside the published window[32m 3[2mms[22m[39m
+ [32m✓[39m tests/edufast.test.ts[2m > [22mEDUFAST policy window[2m > [22mrecords the policy id and version for an allowed selection[32m 1[2mms[22m[39m
+ [32m✓[39m tests/edufast.test.ts[2m > [22mEDUFAST policy window[2m > [22mdoes not consult the policy for Non-EDUFAST content[32m 1[2mms[22m[39m
+ [32m✓[39m tests/targets.test.ts[2m > [22mtarget resolver[2m > [22mprefers stakeholder + sub-theme over every broader scope[32m 4[2mms[22m[39m
+ [32m✓[39m tests/targets.test.ts[2m > [22mtarget resolver[2m > [22mfalls back to stakeholder, then sub-theme, then global[32m 1[2mms[22m[39m
+ [32m✓[39m tests/targets.test.ts[2m > [22mtarget resolver[2m > [22mmaps legacy theme rows to their canonical sub-theme[32m 0[2mms[22m[39m
+ [32m✓[39m tests/targets.test.ts[2m > [22mtarget resolver[2m > [22mrequires every owned stakeholder to have a target[32m 1[2mms[22m[39m
+ [32m✓[39m tests/targets.test.ts[2m > [22mtarget validation[2m > [22maccepts a global target and normalizes optional scope[32m 2[2mms[22m[39m
+ [32m✓[39m tests/targets.test.ts[2m > [22mtarget validation[2m > [22maccepts stakeholder and sub-theme scopes[32m 1[2mms[22m[39m
+ [32m✓[39m tests/targets.test.ts[2m > [22mtarget validation[2m > [22mrejects invalid months, negative targets, and unknown sub-themes[32m 1[2mms[22m[39m
+ [32m✓[39m tests/targets.test.ts[2m > [22mtarget validation[2m > [22mrequires at least one field when updating[32m 1[2mms[22m[39m
+ [32m✓[39m tests/targets.test.ts[2m > [22mtarget validation[2m > [22maccepts one sync entry per input source[32m 4[2mms[22m[39m
+ [32m✓[39m tests/targets.test.ts[2m > [22mtarget validation[2m > [22mrejects duplicate sources, empty entries, and negative counts[32m 1[2mms[22m[39m
+ [32m✓[39m tests/submission-status.test.ts[2m > [22msubmission edit gate[2m > [22mallows drafts and revision requests[32m 2[2mms[22m[39m
+ [32m✓[39m tests/submission-status.test.ts[2m > [22msubmission edit gate[2m > [22mrejects terminal and in-flight statuses with an actionable conflict[32m 1[2mms[22m[39m
+ [32m✓[39m tests/submission-status.test.ts[2m > [22mreview gate[2m > [22mkeeps every status that a reviewer may decide[32m 1[2mms[22m[39m
+ [32m✓[39m tests/performance.test.ts[2m > [22mperformance filters[2m > [22mapplies safe defaults for an empty query[32m 26[2mms[22m[39m
+ [32m✓[39m tests/performance.test.ts[2m > [22mperformance filters[2m > [22mparses period, branch, source, status, and numeric ranges[32m 1[2mms[22m[39m
+ [32m✓[39m tests/performance.test.ts[2m > [22mperformance filters[2m > [22mrejects unknown values instead of trusting the query string[32m 1[2mms[22m[39m
+ [32m✓[39m tests/performance.test.ts[2m > [22mperformance filters[2m > [22mcaps the search term at 80 characters[32m 2[2mms[22m[39m
+ [32m✓[39m tests/performance.test.ts[2m > [22mperformance filters[2m > [22mround-trips through the query builder without leaking empty params[32m 1[2mms[22m[39m
+ [32m✓[39m tests/performance.test.ts[2m > [22mperformance filters[2m > [22mapplies pagination overrides for sort headers[32m 1[2mms[22m[39m
+ [32m✓[39m tests/performance.test.ts[2m > [22mperformance filters[2m > [22mlabels periods and sources for print and export[32m 2[2mms[22m[39m
+ [32m✓[39m tests/demo-fixtures.test.ts[2m > [22mdemo volume constants[2m > [22mkeeps the production volume at 2,400 submissions and 648 targets[32m 3[2mms[22m[39m
+ [32m✓[39m tests/demo-fixtures.test.ts[2m > [22mdemo fixtures (compact volume) at Sat Oct 31 2026 12:00:00 GMT+0700 (Indochina Time)[2m > [22mpasses integrity checks and derives every relational count[32m 60[2mms[22m[39m
+ [32m✓[39m tests/demo-fixtures.test.ts[2m > [22mdemo fixtures (compact volume) at Sat Oct 31 2026 12:00:00 GMT+0700 (Indochina Time)[2m > [22mkeeps dates inside the configured periods and never in the future[32m 39[2mms[22m[39m
+ [32m✓[39m tests/demo-fixtures.test.ts[2m > [22mdemo fixtures (compact volume) at Sat Oct 31 2026 12:00:00 GMT+0700 (Indochina Time)[2m > [22mcovers all six EDUFAST sub-themes in every period[32m 10[2mms[22m[39m
+ [32m✓[39m tests/demo-fixtures.test.ts[2m > [22mdemo fixtures (compact volume) at Sat Oct 31 2026 12:00:00 GMT+0700 (Indochina Time)[2m > [22mmaps content to the 20 stakeholders without gaps[32m 11[2mms[22m[39m
+ [32m✓[39m tests/demo-fixtures.test.ts[2m > [22mdemo fixtures (compact volume) at Sat Oct 31 2026 12:00:00 GMT+0700 (Indochina Time)[2m > [22mcreates 27 targets with a global row for every period[32m 12[2mms[22m[39m
+ [32m✓[39m tests/demo-fixtures.test.ts[2m > [22mdemo fixtures (compact volume) at Thu Jan 15 2026 12:00:00 GMT+0700 (Indochina Time)[2m > [22mpasses integrity checks and derives every relational count[32m 36[2mms[22m[39m
+ [32m✓[39m tests/demo-fixtures.test.ts[2m > [22mdemo fixtures (compact volume) at Thu Jan 15 2026 12:00:00 GMT+0700 (Indochina Time)[2m > [22mkeeps dates inside the configured periods and never in the future[32m 29[2mms[22m[39m
+ [32m✓[39m tests/demo-fixtures.test.ts[2m > [22mdemo fixtures (compact volume) at Thu Jan 15 2026 12:00:00 GMT+0700 (Indochina Time)[2m > [22mcovers all six EDUFAST sub-themes in every period[32m 5[2mms[22m[39m
+ [32m✓[39m tests/demo-fixtures.test.ts[2m > [22mdemo fixtures (compact volume) at Thu Jan 15 2026 12:00:00 GMT+0700 (Indochina Time)[2m > [22mmaps content to the 20 stakeholders without gaps[32m 7[2mms[22m[39m
+ [32m✓[39m tests/demo-fixtures.test.ts[2m > [22mdemo fixtures (compact volume) at Thu Jan 15 2026 12:00:00 GMT+0700 (Indochina Time)[2m > [22mcreates 27 targets with a global row for every period[32m 4[2mms[22m[39m
+ [32m✓[39m tests/demo-fixtures.test.ts[2m > [22mdemo fixtures at production volume[2m > [22mbuilds 2,400 deterministic submissions over 24 months[32m 194[2mms[22m[39m
+ [32m✓[39m tests/demo-fixtures.test.ts[2m > [22mdemo fixtures at production volume[2m > [22mbuilds the same dataset twice for the same instant[32m 206[2mms[22m[39m
+ [32m✓[39m tests/demo-fixtures.test.ts[2m > [22mdemo scope and account identity[2m > [22muses only demo-domain emails and never a protected account[32m 32[2mms[22m[39m
+ [32m✓[39m tests/demo-fixtures.test.ts[2m > [22mdemo scope and account identity[2m > [22mproduces stable, unique identifiers for every table[32m 85[2mms[22m[39m
+ [32m✓[39m tests/demo-fixtures.test.ts[2m > [22mdemo scope and account identity[2m > [22mhas three regions with eight branches and unique codes[32m 1[2mms[22m[39m
+ [32m✓[39m tests/target-sync.test.ts[2m > [22mtarget synchronization[2m > [22mcounts only active organizations per source[32m 33[2mms[22m[39m
+ [32m✓[39m tests/target-sync.test.ts[2m > [22mtarget synchronization[2m > [22mcreates one target per active organization and skips inactive ones[32m 31[2mms[22m[39m
+ [32m✓[39m tests/target-sync.test.ts[2m > [22mtarget synchronization[2m > [22mis idempotent and updates in place without duplicating rows[32m 14[2mms[22m[39m
+ [32m✓[39m tests/target-sync.test.ts[2m > [22mtarget synchronization[2m > [22mleaves sub-theme and branch-scoped manual targets untouched[32m 11[2mms[22m[39m
+ [32m✓[39m tests/target-sync.test.ts[2m > [22mtarget synchronization[2m > [22mrecords an append-only history for every synchronized target[32m 2[2mms[22m[39m
+ [32m✓[39m tests/hierarchy.test.ts[2m > [22morganization input[2m > [22maccepts a Faskes with class and code[32m 4[2mms[22m[39m
+ [32m✓[39m tests/hierarchy.test.ts[2m > [22morganization input[2m > [22mrejects Faskes without a class[32m 1[2mms[22m[39m
+ [32m✓[39m tests/hierarchy.test.ts[2m > [22morganization input[2m > [22mrejects Faskes without a code[32m 0[2mms[22m[39m
+ [32m✓[39m tests/hierarchy.test.ts[2m > [22morganization input[2m > [22mrejects PEMDA carrying Faskes fields[32m 0[2mms[22m[39m
+ [32m✓[39m tests/hierarchy.test.ts[2m > [22morganization input[2m > [22mrejects coordinates outside the valid range[32m 0[2mms[22m[39m
+ [32m✓[39m tests/hierarchy.test.ts[2m > [22mfaskes code normalization[2m > [22mtrims and uppercases without dropping leading zeros[32m 0[2mms[22m[39m
+ [32m✓[39m tests/content-import.test.ts[2m > [22mcontent import template[2m > [22mexports every supported column in a stable order[32m 6[2mms[22m[39m
+ [32m✓[39m tests/content-import.test.ts[2m > [22mcontent import preview[2m > [22maccepts valid rows resolved by code and by organization name[32m 15[2mms[22m[39m
+ [32m✓[39m tests/content-import.test.ts[2m > [22mcontent import preview[2m > [22mreports invalid organizations, platform, taxonomy, narrative, and dates[32m 3[2mms[22m[39m
+ [32m✓[39m tests/content-import.test.ts[2m > [22mcontent import preview[2m > [22mrejects duplicate links inside the file and against existing content[32m 5[2mms[22m[39m
+ [32m✓[39m tests/content-import.test.ts[2m > [22mcontent import preview[2m > [22mproduces a stable digest for the same file content[32m 6[2mms[22m[39m
+ [32m✓[39m tests/content-import.test.ts[2m > [22mcontent import preview[2m > [22mrejects files that are missing required columns[32m 2[2mms[22m[39m
+ [32m✓[39m tests/demo-seed.test.ts[2m > [22mproduction demo seed against Postgres semantics[2m > [22minserts the configured dataset, preserves real data, and is idempotent[33m 7617[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m19 passed[39m[22m[90m (19)[39m
+[2m      Tests [22m [1m[32m120 passed[39m[22m[90m (120)[39m
+[2m   Start at [22m 09:12:48
+[2m   Duration [22m 10.02s[2m (import 60%, tests 33%, transform 6%, worker 1%)[22m
+

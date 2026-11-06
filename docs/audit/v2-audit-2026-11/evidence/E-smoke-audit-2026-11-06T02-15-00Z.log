@@ -1,0 +1,23 @@
+PASS /api/health 200 — status 200
+PASS header keamanan — X-Frame-Options/CSP/X-Content-Type-Options
+PASS unauth /admin diarahkan ke /masuk — status 307
+PASS unauth API 401 — status 401
+PASS login 4 peran — sesi dibuat tanpa mencetak kredensial
+PASS admin /admin 200 — status 200
+PASS regional /wilayah 200 — status 200
+PASS regional /wilayah/dashboard?period=2026-11 200 — status 200
+PASS regional /wilayah/kinerja?period=2026-11 200 — status 200
+PASS branch /cabang 200 — status 200
+PASS branch /cabang/dashboard?period=2026-11 200 — status 200
+PASS branch /cabang/kinerja?period=2026-11 200 — status 200
+PASS client /client 200 — status 200
+PASS regional tidak boleh approve — status 403
+PASS cabang tidak boleh mengelola cabang — status 403
+PASS PDF Kinerja valid — status 200, 4702 byte
+PASS PDF Kinerja diberi nama periode — Content-Disposition
+PASS PDF lama tidak tersedia — status 404
+PASS CSV Kinerja dapat diunduh — status 200, 9 baris
+PASS rekonsiliasi Dashboard = Kinerja = CSV — dashboard 40, csv admin 40, kinerja wilayah 18, csv wilayah 18
+PASS CSV konten terunduh — status 200
+Evidence: docs\audit\evidence\E-smoke-production-2026-11-06T02-15-15-181Z.json
+LULUS: 21 pemeriksaan produksi.

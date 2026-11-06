@@ -1,0 +1,51 @@
+# E-preflight — Audit Website Menyeluruh DAKOSTA v2
+Timestamp (UTC): 2026-11-06T02-04-08Z
+Auditor: Principal Engineer / AppSec / QA / SRE / UX (single auditor, read-only)
+Metode: inspeksi repo + satu probe HTTP GET ke /api/health
+
+## Baseline repo
+branch: fix/all-features-hardening
+HEAD: 01c237b0f3549547dcc9c1de0ef027f6caccfb6c
+HEAD date: 2026-11-02 05:42:47 +0700
+HEAD subject: docs(demo): record 2,400-content production seed evidence
+git status --porcelain: (kosong / clean)
+
+## Toolchain
+node: v22.22.3
+npm: 10.9.8
+playwright: Version 1.64.1
+chromium builds terpasang: chromium-1223, chromium-1248, chromium_headless_shell-1223, chromium_headless_shell-1248
+Catatan: environment descriptor sesi menyebut Node v24.18.0; versi aktual yang dijalankan adalah v22.22.3 (dicatat sebagai fakta runtime).
+
+## Dependency utama (dari package.json)
+next 16.4.3
+react 19.3.0 / react-dom 19.3.0
+typescript ^5
+tailwindcss ^4
+drizzle-orm ^0.45.4
+@neondatabase/serverless ^1.2.0
+better-auth ^1.7.14
+zod ^4.6.7
+maplibre-gl ^6.16.0
+recharts ^3.10.1
+vitest ^5.0.5
+@playwright/test ^1.64.1
+@axe-core/playwright ^4.14.0
+
+## Target produksi
+url: https://dakosta-dakosta.vercel.app
+GET /api/health -> HTTP 200 | TTFB 1.941430s | total 1.944005s
+body: {"status":"ok","db":"ok"}
+
+## Higiene kredensial
+.gitignore memuat: .env* (baris 41, 59), !.env.example (42), /.secrets (56)
+Direktori .secrets ada; nama file (timestamp dimasking):
+- bootstrap-master-<timestamp>.txt
+- demo-accounts-<timestamp>.txt
+Isi kredensial TIDAK dibaca ke output/laporan.
+
+## Batasan audit (berlaku sepanjang eksekusi)
+- Produksi read-only/low-impact; tanpa uji destruktif, brute force, enumerasi masif, scanning, DoS, atau perubahan data/izin.
+- Tidak ada perubahan kode/konfigurasi/DB/deployment pada audit ini.
+- Firefox/WebKit/screen reader: NOT TESTED.
+- Load/stress: NOT TESTED (hanya bukti historis).

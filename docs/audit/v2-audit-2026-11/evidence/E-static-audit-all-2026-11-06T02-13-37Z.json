@@ -1,0 +1,599 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "@better-auth/cli": {
+      "name": "@better-auth/cli",
+      "severity": "high",
+      "isDirect": true,
+      "via": ["@mrleebo/prisma-ast", "better-auth", "drizzle-orm"],
+      "effects": [],
+      "range": "*",
+      "nodes": ["node_modules/@better-auth/cli"],
+      "fixAvailable": false
+    },
+    "@chevrotain/cst-dts-gen": {
+      "name": "@chevrotain/cst-dts-gen",
+      "severity": "high",
+      "isDirect": false,
+      "via": ["@chevrotain/gast", "lodash"],
+      "effects": [],
+      "range": "10.0.0 - 10.5.0",
+      "nodes": ["node_modules/@chevrotain/cst-dts-gen"],
+      "fixAvailable": true
+    },
+    "@chevrotain/gast": {
+      "name": "@chevrotain/gast",
+      "severity": "high",
+      "isDirect": false,
+      "via": ["lodash"],
+      "effects": [],
+      "range": "<=10.5.0",
+      "nodes": ["node_modules/@chevrotain/gast"],
+      "fixAvailable": true
+    },
+    "@esbuild-kit/core-utils": {
+      "name": "@esbuild-kit/core-utils",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": ["esbuild"],
+      "effects": ["@esbuild-kit/esm-loader"],
+      "range": "*",
+      "nodes": ["node_modules/@esbuild-kit/core-utils"],
+      "fixAvailable": {
+        "name": "drizzle-kit",
+        "version": "0.18.1",
+        "isSemVerMajor": true
+      }
+    },
+    "@esbuild-kit/esm-loader": {
+      "name": "@esbuild-kit/esm-loader",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": ["@esbuild-kit/core-utils"],
+      "effects": ["drizzle-kit"],
+      "range": "*",
+      "nodes": ["node_modules/@esbuild-kit/esm-loader"],
+      "fixAvailable": {
+        "name": "drizzle-kit",
+        "version": "0.18.1",
+        "isSemVerMajor": true
+      }
+    },
+    "@mrleebo/prisma-ast": {
+      "name": "@mrleebo/prisma-ast",
+      "severity": "high",
+      "isDirect": false,
+      "via": ["chevrotain"],
+      "effects": [],
+      "range": "0.4.2 - 0.13.1",
+      "nodes": ["node_modules/@mrleebo/prisma-ast"],
+      "fixAvailable": true
+    },
+    "@shadcn/registry": {
+      "name": "@shadcn/registry",
+      "severity": "low",
+      "isDirect": false,
+      "via": ["deepmerge"],
+      "effects": ["shadcn"],
+      "range": "<=0.0.0-rc-20261007105214 || >=0.1.0",
+      "nodes": ["node_modules/@shadcn/registry"],
+      "fixAvailable": {
+        "name": "shadcn",
+        "version": "1.0.0",
+        "isSemVerMajor": true
+      }
+    },
+    "@ts-morph/common": {
+      "name": "@ts-morph/common",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": ["minimatch"],
+      "effects": ["ts-morph"],
+      "range": ">=0.19.0",
+      "nodes": ["node_modules/@ts-morph/common"],
+      "fixAvailable": true
+    },
+    "@typescript-eslint/eslint-plugin": {
+      "name": "@typescript-eslint/eslint-plugin",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": ["@typescript-eslint/type-utils", "@typescript-eslint/utils"],
+      "effects": [],
+      "range": ">=6.16.0",
+      "nodes": ["node_modules/@typescript-eslint/eslint-plugin"],
+      "fixAvailable": true
+    },
+    "@typescript-eslint/parser": {
+      "name": "@typescript-eslint/parser",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": ["@typescript-eslint/typescript-estree"],
+      "effects": ["typescript-eslint"],
+      "range": ">=6.16.0",
+      "nodes": ["node_modules/@typescript-eslint/parser"],
+      "fixAvailable": {
+        "name": "eslint-config-next",
+        "version": "15.5.29",
+        "isSemVerMajor": true
+      }
+    },
+    "@typescript-eslint/type-utils": {
+      "name": "@typescript-eslint/type-utils",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@typescript-eslint/typescript-estree",
+        "@typescript-eslint/utils"
+      ],
+      "effects": [],
+      "range": ">=6.16.0",
+      "nodes": ["node_modules/@typescript-eslint/type-utils"],
+      "fixAvailable": true
+    },
+    "@typescript-eslint/typescript-estree": {
+      "name": "@typescript-eslint/typescript-estree",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": ["minimatch"],
+      "effects": [
+        "@typescript-eslint/parser",
+        "@typescript-eslint/type-utils",
+        "@typescript-eslint/utils",
+        "typescript-eslint"
+      ],
+      "range": ">=6.16.0",
+      "nodes": ["node_modules/@typescript-eslint/typescript-estree"],
+      "fixAvailable": {
+        "name": "eslint-config-next",
+        "version": "15.5.29",
+        "isSemVerMajor": true
+      }
+    },
+    "@typescript-eslint/utils": {
+      "name": "@typescript-eslint/utils",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": ["@typescript-eslint/typescript-estree"],
+      "effects": ["@typescript-eslint/eslint-plugin", "typescript-eslint"],
+      "range": ">=6.16.0",
+      "nodes": ["node_modules/@typescript-eslint/utils"],
+      "fixAvailable": {
+        "name": "eslint-config-next",
+        "version": "15.5.29",
+        "isSemVerMajor": true
+      }
+    },
+    "better-auth": {
+      "name": "better-auth",
+      "severity": "critical",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1119052,
+          "name": "better-auth",
+          "dependency": "better-auth",
+          "title": "Better Auth: OAuth callback accepts mismatched `state` when cookie-backed state storage is used without PKCE",
+          "url": "https://github.com/advisories/GHSA-wxw3-q3m9-c3jr",
+          "severity": "moderate",
+          "cwe": ["CWE-287", "CWE-345", "CWE-352"],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:N/I:H/A:N"
+          },
+          "range": "<1.6.2"
+        },
+        {
+          "source": 1122756,
+          "name": "better-auth",
+          "dependency": "better-auth",
+          "title": "Better Auth: Stale sessions persist after user deletion across admin, anonymous, and SCIM flows",
+          "url": "https://github.com/advisories/GHSA-2vg6-77g8-24mp",
+          "severity": "low",
+          "cwe": ["CWE-459", "CWE-613", "CWE-672"],
+          "cvss": {
+            "score": 3.8,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:L/I:L/A:N"
+          },
+          "range": ">=0.3.4 <1.6.11"
+        },
+        {
+          "source": 1122762,
+          "name": "better-auth",
+          "dependency": "better-auth",
+          "title": "Better Auth has insecure cryptographic defaults in oidcProvider: alg=none advertised and plain PKCE accepted by default",
+          "url": "https://github.com/advisories/GHSA-9h47-pqcx-hjr4",
+          "severity": "high",
+          "cwe": ["CWE-327", "CWE-757", "CWE-1188"],
+          "cvss": {
+            "score": 8.7,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:H/I:H/A:N"
+          },
+          "range": "<1.6.11"
+        },
+        {
+          "source": 1122764,
+          "name": "better-auth",
+          "dependency": "better-auth",
+          "title": "Better Auth has stored XSS in the auth-server origin via javascript: redirect_uri in oidc-provider and mcp",
+          "url": "https://github.com/advisories/GHSA-86j7-9j95-vpqj",
+          "severity": "high",
+          "cwe": ["CWE-79", "CWE-601"],
+          "cvss": {
+            "score": 7.7,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:L/UI:R/S:C/C:H/I:H/A:N"
+          },
+          "range": "<1.6.13"
+        },
+        {
+          "source": 1123887,
+          "name": "better-auth",
+          "dependency": "better-auth",
+          "title": "@better-auth/oauth-provider's OAuth authorization-code grant allows concurrent redemption when two token requests race the find-then-delete primitive",
+          "url": "https://github.com/advisories/GHSA-7w99-5wm4-3g79",
+          "severity": "high",
+          "cwe": ["CWE-294", "CWE-362", "CWE-367"],
+          "cvss": {
+            "score": 8.1,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:N"
+          },
+          "range": "<1.6.11"
+        },
+        {
+          "source": 1123890,
+          "name": "better-auth",
+          "dependency": "better-auth",
+          "title": "Better Auth: OAuth refresh-token rotation forks the token family on concurrent redemption",
+          "url": "https://github.com/advisories/GHSA-392p-2q2v-4372",
+          "severity": "high",
+          "cwe": ["CWE-294", "CWE-362", "CWE-367", "CWE-613"],
+          "cvss": {
+            "score": 8.1,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N"
+          },
+          "range": ">=1.4.8-beta.7 <1.6.0"
+        },
+        {
+          "source": 1123892,
+          "name": "better-auth",
+          "dependency": "better-auth",
+          "title": "Better Auth has an account takeover issue via OAuth auto-link to unverified pre-registered email",
+          "url": "https://github.com/advisories/GHSA-g38m-r43w-p2q7",
+          "severity": "high",
+          "cwe": ["CWE-287", "CWE-345"],
+          "cvss": {
+            "score": 8.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:L"
+          },
+          "range": "<1.6.11"
+        },
+        {
+          "source": 1123893,
+          "name": "better-auth",
+          "dependency": "better-auth",
+          "title": "Better Auth vulnerable to unauthorized invitation acceptance via unverified email match in organization plugin",
+          "url": "https://github.com/advisories/GHSA-fmh4-wcc4-5jm3",
+          "severity": "high",
+          "cwe": ["CWE-287", "CWE-345", "CWE-441", "CWE-862"],
+          "cvss": {
+            "score": 7.7,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:L/UI:R/S:C/C:H/I:H/A:N"
+          },
+          "range": "<1.6.11"
+        },
+        {
+          "source": 1123894,
+          "name": "better-auth",
+          "dependency": "better-auth",
+          "title": "Better Auth: OAuth refresh-token replay via missing client authentication on oidc-provider and mcp plugins",
+          "url": "https://github.com/advisories/GHSA-pw9m-5jxm-xr6h",
+          "severity": "critical",
+          "cwe": ["CWE-287", "CWE-306", "CWE-345", "CWE-863"],
+          "cvss": {
+            "score": 9.1,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N"
+          },
+          "range": "<1.6.11"
+        },
+        {
+          "source": 1124303,
+          "name": "better-auth",
+          "dependency": "better-auth",
+          "title": "Better Auth: Account takeover via pre-account hijacking on magic-link and email-OTP sign-in",
+          "url": "https://github.com/advisories/GHSA-qq9h-g4jm-xgf3",
+          "severity": "high",
+          "cwe": ["CWE-287", "CWE-345"],
+          "cvss": {
+            "score": 8.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:L"
+          },
+          "range": ">=1.1.3 <1.6.22"
+        },
+        {
+          "source": 1243435,
+          "name": "better-auth",
+          "dependency": "better-auth",
+          "title": "better-auth: Device login approval does not show the requesting client or permissions",
+          "url": "https://github.com/advisories/GHSA-q84f-53jg-9ppm",
+          "severity": "high",
+          "cwe": ["CWE-451"],
+          "cvss": {
+            "score": 8.1,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:N"
+          },
+          "range": ">=1.3.8-beta.3 <1.7.0-rc.3"
+        },
+        {
+          "source": 1243467,
+          "name": "better-auth",
+          "dependency": "better-auth",
+          "title": "better-auth: OAuth state can be used as a Magic Link to sign in as another user",
+          "url": "https://github.com/advisories/GHSA-965c-763c-88jm",
+          "severity": "critical",
+          "cwe": ["CWE-287"],
+          "cvss": {
+            "score": 9.1,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N"
+          },
+          "range": ">=1.4.0-beta.18 <1.7.7"
+        }
+      ],
+      "effects": ["@better-auth/cli"],
+      "range": "<=1.7.6",
+      "nodes": ["node_modules/@better-auth/cli/node_modules/better-auth"],
+      "fixAvailable": false
+    },
+    "chevrotain": {
+      "name": "chevrotain",
+      "severity": "high",
+      "isDirect": false,
+      "via": ["@chevrotain/cst-dts-gen", "@chevrotain/gast", "lodash"],
+      "effects": ["@mrleebo/prisma-ast"],
+      "range": "10.0.0 - 10.5.0",
+      "nodes": ["node_modules/chevrotain"],
+      "fixAvailable": true
+    },
+    "deepmerge": {
+      "name": "deepmerge",
+      "severity": "low",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1243505,
+          "name": "deepmerge",
+          "dependency": "deepmerge",
+          "title": "deepmerge mergeObject() allows prototype poisoning of returned objects",
+          "url": "https://github.com/advisories/GHSA-gcqx-w48m-w2h4",
+          "severity": "low",
+          "cwe": ["CWE-1321"],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:N"
+          },
+          "range": ">=4.2.0 <=4.3.1"
+        }
+      ],
+      "effects": ["@shadcn/registry", "shadcn"],
+      "range": ">=4.2.0",
+      "nodes": ["node_modules/deepmerge"],
+      "fixAvailable": {
+        "name": "shadcn",
+        "version": "1.0.0",
+        "isSemVerMajor": true
+      }
+    },
+    "drizzle-kit": {
+      "name": "drizzle-kit",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": ["@esbuild-kit/esm-loader"],
+      "effects": [],
+      "range": "0.19.0 - 1.0.0-beta.1-fd8bfcc",
+      "nodes": ["node_modules/drizzle-kit"],
+      "fixAvailable": {
+        "name": "drizzle-kit",
+        "version": "0.18.1",
+        "isSemVerMajor": true
+      }
+    },
+    "drizzle-orm": {
+      "name": "drizzle-orm",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1116251,
+          "name": "drizzle-orm",
+          "dependency": "drizzle-orm",
+          "title": "Drizzle ORM has SQL injection via improperly escaped SQL identifiers",
+          "url": "https://github.com/advisories/GHSA-gpj5-g38j-94v9",
+          "severity": "high",
+          "cwe": ["CWE-89"],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+          },
+          "range": "<0.45.2"
+        }
+      ],
+      "effects": ["@better-auth/cli"],
+      "range": "<0.45.2",
+      "nodes": ["node_modules/@better-auth/cli/node_modules/drizzle-orm"],
+      "fixAvailable": false
+    },
+    "esbuild": {
+      "name": "esbuild",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1102341,
+          "name": "esbuild",
+          "dependency": "esbuild",
+          "title": "esbuild enables any website to send any requests to the development server and read the response",
+          "url": "https://github.com/advisories/GHSA-67mh-4wv8-2f99",
+          "severity": "moderate",
+          "cwe": ["CWE-346"],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:N"
+          },
+          "range": "<=0.24.2"
+        }
+      ],
+      "effects": ["@esbuild-kit/core-utils"],
+      "range": "<=0.24.2",
+      "nodes": ["node_modules/@esbuild-kit/core-utils/node_modules/esbuild"],
+      "fixAvailable": {
+        "name": "drizzle-kit",
+        "version": "0.18.1",
+        "isSemVerMajor": true
+      }
+    },
+    "eslint-config-next": {
+      "name": "eslint-config-next",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": ["typescript-eslint"],
+      "effects": [],
+      "range": ">=15.6.0-canary.0",
+      "nodes": ["node_modules/eslint-config-next"],
+      "fixAvailable": {
+        "name": "eslint-config-next",
+        "version": "15.5.29",
+        "isSemVerMajor": true
+      }
+    },
+    "lodash": {
+      "name": "lodash",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1115806,
+          "name": "lodash",
+          "dependency": "lodash",
+          "title": "lodash vulnerable to Code Injection via `_.template` imports key names",
+          "url": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc",
+          "severity": "high",
+          "cwe": ["CWE-94"],
+          "cvss": {
+            "score": 8.1,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H"
+          },
+          "range": ">=4.0.0 <=4.17.23"
+        },
+        {
+          "source": 1244531,
+          "name": "lodash",
+          "dependency": "lodash",
+          "title": "Lodash has Prototype Pollution Vulnerability in `_.unset`, `_.omit`, and `_.pullAt` functions",
+          "url": "https://github.com/advisories/GHSA-xxjr-mmjv-4gpg",
+          "severity": "moderate",
+          "cwe": ["CWE-1321"],
+          "cvss": {
+            "score": 6.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:L"
+          },
+          "range": ">=4.0.0 <=4.17.22"
+        }
+      ],
+      "effects": ["@chevrotain/cst-dts-gen", "@chevrotain/gast", "chevrotain"],
+      "range": "4.0.0 - 4.17.23",
+      "nodes": ["node_modules/lodash"],
+      "fixAvailable": true
+    },
+    "minimatch": {
+      "name": "minimatch",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1244623,
+          "name": "minimatch",
+          "dependency": "minimatch",
+          "title": "minimatch has potential denial of service via globparts amplification",
+          "url": "https://github.com/advisories/GHSA-g3hv-75wg-m249",
+          "severity": "moderate",
+          "cwe": ["CWE-405"],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=7.0.0 <11.0.1"
+        }
+      ],
+      "effects": ["@ts-morph/common", "@typescript-eslint/typescript-estree"],
+      "range": "7.0.0 - 11.0.0",
+      "nodes": [
+        "node_modules/@ts-morph/common/node_modules/minimatch",
+        "node_modules/@typescript-eslint/typescript-estree/node_modules/minimatch"
+      ],
+      "fixAvailable": {
+        "name": "eslint-config-next",
+        "version": "15.5.29",
+        "isSemVerMajor": true
+      }
+    },
+    "shadcn": {
+      "name": "shadcn",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": ["@shadcn/registry", "deepmerge", "ts-morph"],
+      "effects": [],
+      "range": "<=0.0.0-rc-20261007105214 || >=2.0.0",
+      "nodes": ["node_modules/shadcn"],
+      "fixAvailable": {
+        "name": "shadcn",
+        "version": "1.0.0",
+        "isSemVerMajor": true
+      }
+    },
+    "ts-morph": {
+      "name": "ts-morph",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": ["@ts-morph/common"],
+      "effects": [],
+      "range": ">=18.0.0",
+      "nodes": ["node_modules/ts-morph"],
+      "fixAvailable": true
+    },
+    "typescript-eslint": {
+      "name": "typescript-eslint",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@typescript-eslint/eslint-plugin",
+        "@typescript-eslint/parser",
+        "@typescript-eslint/typescript-estree",
+        "@typescript-eslint/utils"
+      ],
+      "effects": ["eslint-config-next"],
+      "range": "*",
+      "nodes": ["node_modules/typescript-eslint"],
+      "fixAvailable": {
+        "name": "eslint-config-next",
+        "version": "15.5.29",
+        "isSemVerMajor": true
+      }
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 2,
+      "moderate": 15,
+      "high": 7,
+      "critical": 1,
+      "total": 25
+    },
+    "dependencies": {
+      "prod": 194,
+      "dev": 841,
+      "optional": 190,
+      "peer": 0,
+      "peerOptional": 0,
+      "total": 1072
+    }
+  }
+}

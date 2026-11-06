@@ -1,0 +1,16 @@
+[ttfb] / #1 status=200 ttfb=59ms total=61ms bytes=51955
+[ttfb] / #2 status=200 ttfb=55ms total=57ms bytes=51955
+[ttfb] / #3 status=200 ttfb=65ms total=66ms bytes=51955
+[ttfb] /masuk #1 status=200 ttfb=313ms total=316ms bytes=27191
+[ttfb] /masuk #2 status=200 ttfb=302ms total=309ms bytes=27191
+[ttfb] /masuk #3 status=200 ttfb=279ms total=283ms bytes=27191
+[ttfb] /admin #1 status=200 ttfb=416ms total=654ms bytes=234985
+[ttfb] /admin #2 status=200 ttfb=336ms total=546ms bytes=230534
+[ttfb] /admin #3 status=200 ttfb=347ms total=608ms bytes=230534
+[ttfb] /wilayah/dashboard #1 status=200 ttfb=402ms total=665ms bytes=170249
+[ttfb] /wilayah/dashboard #2 status=200 ttfb=407ms total=415ms bytes=168562
+[ttfb] /wilayah/dashboard #3 status=200 ttfb=402ms total=655ms bytes=168562
+[ttfb] /client #1 status=200 ttfb=365ms total=582ms bytes=142504
+[ttfb] /client #2 status=200 ttfb=592ms total=603ms bytes=142504
+[ttfb] /client #3 status=200 ttfb=343ms total=361ms bytes=142504
+[ttfb] evidence: C:\Users\PLN\Documents\Qoder\2026-10-30\b8cd74b6\docs\audit\v2-audit-2026-11\evidence\E-ttfb-2026-11-06T02-37-45-447Z.json

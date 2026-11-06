@@ -1,0 +1,65 @@
+
+Running 9 tests using 1 worker
+
+[axe] public / -> / status=200 violations=0 seriousCritical=0
+[axe] public /masuk -> /masuk status=200 violations=0 seriousCritical=0
+[axe] public /tentang -> /tentang status=200 violations=0 seriousCritical=0
+[axe] public /bantuan -> /bantuan status=200 violations=0 seriousCritical=0
+[axe] public /akses-ditolak -> /akses-ditolak status=200 violations=0 seriousCritical=0
+  ok 1 docs\audit\v2-audit-2026-11\harness\a11y-wcag22.spec.ts:343:5 › aksesibilitas halaman publik (7.4s)
+[axe] master /admin -> /admin status=200 violations=0 seriousCritical=0
+[axe] master /admin/analitik -> /admin/analitik status=200 violations=1 seriousCritical=1 ids=color-contrast
+[axe] master /admin/audit -> /admin/audit status=200 violations=0 seriousCritical=0
+[axe] master /admin/akun -> /admin/akun status=200 violations=0 seriousCritical=0
+[axe] master /admin/cabang -> /admin/cabang status=200 violations=0 seriousCritical=0
+[axe] master /admin/edufast -> /admin/edufast status=200 violations=0 seriousCritical=0
+[axe] master /admin/impor -> /admin/impor status=200 violations=0 seriousCritical=0
+[axe] master /admin/konten -> /admin/konten status=200 violations=0 seriousCritical=0
+[axe] master /admin/konten/impor -> /admin/konten/impor status=200 violations=0 seriousCritical=0
+[axe] master /admin/notifikasi -> /admin/notifikasi status=200 violations=0 seriousCritical=0
+[axe] master /admin/organisasi -> /admin/organisasi status=200 violations=0 seriousCritical=0
+[axe] master /admin/peta -> /admin/peta status=200 violations=1 seriousCritical=1 ids=color-contrast
+[axe] master /admin/red-notice -> /admin/red-notice status=200 violations=0 seriousCritical=0
+[axe] master /admin/target -> /admin/target status=200 violations=0 seriousCritical=0
+[axe] master /admin/validasi -> /admin/validasi status=200 violations=0 seriousCritical=0
+[axe] master /admin/wilayah -> /admin/wilayah status=200 violations=0 seriousCritical=0
+[axe] master /admin/validasi/20000000-0000-4000-8000-000000000153 -> /admin/validasi/20000000-0000-4000-8000-000000000153 status=200 violations=0 seriousCritical=0
+  ok 2 docs\audit\v2-audit-2026-11\harness\a11y-wcag22.spec.ts:356:5 › aksesibilitas Master Admin (46.1s)
+[axe] regional /wilayah -> /wilayah status=200 violations=0 seriousCritical=0
+[axe] regional /wilayah/dashboard -> /wilayah/dashboard status=200 violations=0 seriousCritical=0
+[axe] regional /wilayah/kinerja -> /wilayah/kinerja status=200 violations=0 seriousCritical=0
+[axe] regional /wilayah/red-notice -> /wilayah/red-notice status=200 violations=0 seriousCritical=0
+[axe] regional /wilayah/cabang -> /wilayah/cabang status=200 violations=0 seriousCritical=0
+[axe] regional /wilayah/organisasi -> /wilayah/organisasi status=200 violations=0 seriousCritical=0
+[axe] regional /wilayah/notifikasi -> /wilayah/notifikasi status=200 violations=0 seriousCritical=0
+[axe] regional /wilayah/konten/20000000-0000-4000-8000-000000000001 -> /wilayah/konten/20000000-0000-4000-8000-000000000001 status=200 violations=0 seriousCritical=0
+  ok 3 docs\audit\v2-audit-2026-11\harness\a11y-wcag22.spec.ts:362:5 › aksesibilitas Regional Admin (17.3s)
+[axe] branch /cabang -> /cabang status=200 violations=0 seriousCritical=0
+[axe] branch /cabang/dashboard -> /cabang/dashboard status=200 violations=0 seriousCritical=0
+[axe] branch /cabang/kinerja -> /cabang/kinerja status=200 violations=0 seriousCritical=0
+[axe] branch /cabang/red-notice -> /cabang/red-notice status=200 violations=0 seriousCritical=0
+[axe] branch /cabang/organisasi -> /cabang/organisasi status=200 violations=0 seriousCritical=0
+[axe] branch /cabang/notifikasi -> /cabang/notifikasi status=200 violations=0 seriousCritical=0
+[axe] branch /cabang/review/20000000-0000-4000-8000-000000000113 -> /cabang/review/20000000-0000-4000-8000-000000000113 status=200 violations=0 seriousCritical=0
+[axe] branch /cabang/konten/20000000-0000-4000-8000-000000000001 -> /cabang/konten/20000000-0000-4000-8000-000000000001 status=200 violations=0 seriousCritical=0
+  ok 4 docs\audit\v2-audit-2026-11\harness\a11y-wcag22.spec.ts:372:5 › aksesibilitas Branch Admin (17.5s)
+[axe] client /client -> /client status=200 violations=0 seriousCritical=0
+[axe] client /client/analitik -> /client/analitik status=200 violations=1 seriousCritical=1 ids=color-contrast
+[axe] client /client/konten -> /client/konten status=200 violations=1 seriousCritical=1 ids=color-contrast
+[axe] client /client/lapor -> /client/lapor status=200 violations=0 seriousCritical=0
+[axe] client /client/profil -> /client/profil status=200 violations=0 seriousCritical=0
+[axe] client /client/notifikasi -> /client/notifikasi status=200 violations=0 seriousCritical=0
+[axe] client /client/konten/20000000-0000-4000-8000-000000000001 -> /client/konten/20000000-0000-4000-8000-000000000001 status=200 violations=0 seriousCritical=0
+  ok 5 docs\audit\v2-audit-2026-11\harness\a11y-wcag22.spec.ts:387:5 › aksesibilitas Stakeholder (16.6s)
+[axe] client /ganti-password -> /client status=200 violations=0 seriousCritical=0
+  ok 6 docs\audit\v2-audit-2026-11\harness\a11y-wcag22.spec.ts:393:5 › halaman ganti password sukarela (3.3s)
+  ok 7 docs\audit\v2-audit-2026-11\harness\a11y-wcag22.spec.ts:403:5 › keyboard dan indikator fokus (1.1m)
+[dialog] /admin/target focusInside=true focusReturned=true violations=0
+  ok 8 docs\audit\v2-audit-2026-11\harness\a11y-wcag22.spec.ts:460:5 › dialog target dapat diakses dan mengembalikan fokus (2.5s)
+[reflow] branch /cabang @320 overflow=9px
+[reflow] branch /cabang @zoom400 overflow=9px
+[a11y] evidence: C:\Users\PLN\Documents\Qoder\2026-10-30\b8cd74b6\docs\audit\v2-audit-2026-11\evidence\E-a11y-2026-11-06T02-38-16-405Z.json
+[a11y] summary: {"total":127,"axePages":46,"axePagesWithViolations":4,"axePagesWithSeriousCritical":4,"reflowFailures":2,"outcomes":{"axe:OK":45,"axe:REDIRECTED":1,"keyboard:TAB_FIRST":2,"dialog:PASS":1,"reflow:PASS":76,"reflow:OVERFLOW":2}}
+  ok 9 docs\audit\v2-audit-2026-11\harness\a11y-wcag22.spec.ts:513:5 › reflow 200% dan 400% serta viewport 320/360/768/1440 (1.6m)
+
+  9 passed (4.6m)
