@@ -10,6 +10,7 @@ backups
 e2e/.auth
 test-results
 playwright-report
+docs/audit/v2-audit-2026-11/harness/.results
 .tmp-*
 .dev-server.log
 .dev-demo-off.log
