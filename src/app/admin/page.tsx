@@ -6,6 +6,7 @@ import { KpiDashboard } from "@/components/dashboard/kpi-dashboard";
 import { PageHeader } from "@/components/shell/page-header";
 import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { Button } from "@/components/ui/button";
+import { getDashboardAnalytics } from "@/lib/analytics/charts";
 import { redirectDashboardView } from "@/lib/dashboard/view";
 import { formatDateTimeId } from "@/lib/dates";
 import { getFilterOptions } from "@/lib/filters/options";
@@ -56,14 +57,20 @@ async function AdminHomeBody({
   user: DashboardUser;
   filters: ReturnType<typeof parseKpiFiltersFromParams>;
 }) {
-  const [overview, options] = await Promise.all([
+  const [overview, options, analytics] = await Promise.all([
     getDashboardOverview(user, filters),
     getFilterOptions(user),
+    getDashboardAnalytics(
+      user,
+      { ...filters, sources: [] },
+      { rankingLevel: "branch" },
+    ),
   ]);
 
   return (
     <KpiDashboard
       overview={overview}
+      analytics={analytics}
       role={user.role}
       options={{
         stakeholders: options.stakeholders,
@@ -73,7 +80,6 @@ async function AdminHomeBody({
       title="Ringkasan"
       description="Capaian periode yang hanya dihitung dari konten disetujui, antrean validasi, dan kualitas keputusan admin."
       contentDetailBase="/admin/validasi"
-      stakeholderChartTitle="Peringkat stakeholder"
       hideHeader
     />
   );

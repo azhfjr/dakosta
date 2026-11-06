@@ -14,10 +14,7 @@ import {
 import { z } from "zod";
 
 import { getDb, schema } from "@/db";
-import {
-  contentScopePredicate,
-  organizationScopePredicate,
-} from "@/lib/authz/predicates";
+import { contentScopePredicate } from "@/lib/authz/predicates";
 import type { ContentStatus } from "@/lib/content-status";
 import { PENDING_STATUSES } from "@/lib/content-status";
 import { errors } from "@/lib/errors";
@@ -29,7 +26,7 @@ import {
 } from "@/lib/read-cache";
 import { assertCan, assertCapability } from "@/lib/rbac";
 import type { SessionUser } from "@/lib/session";
-import { isSubTheme, SUB_THEMES, SUB_THEME_LABELS } from "@/lib/taxonomy";
+import { isSubTheme, SUB_THEME_LABELS } from "@/lib/taxonomy";
 
 type Database = ReturnType<typeof getDb>;
 type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
@@ -326,49 +323,6 @@ async function loadReviewQueue(
     oldestSubmittedAt: oldestRow[0]?.submittedAt ?? null,
     generatedAt: now,
   };
-}
-
-export type ReviewQueueOptions = {
-  stakeholders: Array<{ id: string; name: string }>;
-  themes: Array<{ id: string; name: string }>;
-};
-
-export async function listReviewQueueOptions(
-  user: SessionUser,
-): Promise<ReviewQueueOptions> {
-  return cachedRead(
-    readCacheKey(user, ["review-queue-options"]),
-    () => loadReviewQueueOptions(user),
-    { ttlMs: 300_000, maxStaleMs: 300_000 },
-  );
-}
-
-async function loadReviewQueueOptions(
-  user: SessionUser,
-): Promise<ReviewQueueOptions> {
-  const db = getDb();
-  const organizationPredicate = organizationScopePredicate(user.scope, {
-    id: schema.stakeholders.id,
-    branchId: schema.stakeholders.branchOfficeId,
-  });
-  const organizationWhere = organizationPredicate
-    ? and(eq(schema.stakeholders.status, "ACTIVE"), organizationPredicate)
-    : eq(schema.stakeholders.status, "ACTIVE");
-
-  const [stakeholders, themes] = await Promise.all([
-    db
-      .select({ id: schema.stakeholders.id, name: schema.stakeholders.name })
-      .from(schema.stakeholders)
-      .where(organizationWhere)
-      .orderBy(asc(schema.stakeholders.name)),
-    Promise.resolve(
-      SUB_THEMES.map((subTheme) => ({
-        id: subTheme,
-        name: SUB_THEME_LABELS[subTheme],
-      })),
-    ),
-  ]);
-  return { stakeholders, themes };
 }
 
 export type ReviewDecisionResult = {

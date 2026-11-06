@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { KpiDashboard } from "@/components/dashboard/kpi-dashboard";
 import { Button } from "@/components/ui/button";
+import { getDashboardAnalytics } from "@/lib/analytics/charts";
 import { getDashboardMap } from "@/lib/dashboard-map";
 import { redirectDashboardView } from "@/lib/dashboard/view";
 import { getFilterOptions } from "@/lib/filters/options";
@@ -33,23 +34,30 @@ export default async function BranchHomePage({
 
   const period = kpiPeriod(filters);
   const alignmentAllowed = !filters.stakeholderId && !filters.subTheme;
-  const [overview, options, pendingCount, summary, map] = await Promise.all([
-    getDashboardOverview(user, filters),
-    getFilterOptions(user),
-    countReviewQueue(user),
-    alignmentAllowed
-      ? getPerformanceSummary(user, period)
-      : Promise.resolve(null),
-    getDashboardMap(user, {
-      period,
-      stakeholderId: filters.stakeholderId,
-      subTheme: filters.subTheme,
-    }),
-  ]);
+  const [overview, options, pendingCount, analytics, summary, map] =
+    await Promise.all([
+      getDashboardOverview(user, filters),
+      getFilterOptions(user),
+      countReviewQueue(user),
+      getDashboardAnalytics(
+        user,
+        { ...filters, sources: [] },
+        { rankingLevel: "organization" },
+      ),
+      alignmentAllowed
+        ? getPerformanceSummary(user, period)
+        : Promise.resolve(null),
+      getDashboardMap(user, {
+        period,
+        stakeholderId: filters.stakeholderId,
+        subTheme: filters.subTheme,
+      }),
+    ]);
 
   return (
     <KpiDashboard
       overview={overview}
+      analytics={analytics}
       role={user.role}
       options={{
         stakeholders: options.stakeholders,
@@ -59,7 +67,6 @@ export default async function BranchHomePage({
       title="Dashboard cabang"
       description={`Capaian dan antrean validasi untuk ${user.scopeLabel}. Anda hanya melihat konten organisasi pada cabang ini.`}
       contentDetailBase="/cabang/konten"
-      stakeholderChartTitle="Peringkat organisasi cabang"
       alignment={
         summary
           ? {

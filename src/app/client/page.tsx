@@ -5,17 +5,12 @@ import { Suspense } from "react";
 import { and, count, eq } from "drizzle-orm";
 import { Info, PlusCircle, RotateCcw } from "lucide-react";
 
-import { DistributionCard } from "@/components/analytics/distribution-card";
 import { KpiDashboard } from "@/components/dashboard/kpi-dashboard";
 import { PageHeader } from "@/components/shell/page-header";
 import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { Button } from "@/components/ui/button";
 import { getDb, schema } from "@/db";
-import {
-  getContentTypeDistribution,
-  getEdufastCompliance,
-  getMainThemeDistribution,
-} from "@/lib/analytics/distribution";
+import { getDashboardAnalytics } from "@/lib/analytics/charts";
 import { recordAudit } from "@/lib/audit";
 import { contentScopePredicate } from "@/lib/authz/predicates";
 import { redirectDashboardView } from "@/lib/dashboard/view";
@@ -86,30 +81,31 @@ async function ClientHomeBody({
   user: DashboardUser;
   filters: ReturnType<typeof parseKpiFiltersFromParams>;
 }) {
-  const [overview, options, contentType, mainTheme, compliance, revisionCount] =
-    await Promise.all([
-      getDashboardOverview(user, filters),
-      getFilterOptions(user),
-      getContentTypeDistribution(user),
-      getMainThemeDistribution(user),
-      getEdufastCompliance(user),
-      (async () => {
-        const scope = contentScopePredicate(
-          user,
-          schema.contentSubmissions.stakeholderId,
+  const [overview, options, analytics, revisionCount] = await Promise.all([
+    getDashboardOverview(user, filters),
+    getFilterOptions(user),
+    getDashboardAnalytics(
+      user,
+      { ...filters, sources: [] },
+      { rankingLevel: null },
+    ),
+    (async () => {
+      const scope = contentScopePredicate(
+        user,
+        schema.contentSubmissions.stakeholderId,
+      );
+      const [row] = await getDb()
+        .select({ total: count() })
+        .from(schema.contentSubmissions)
+        .where(
+          and(
+            eq(schema.contentSubmissions.status, "REVISION_REQUIRED"),
+            ...(scope ? [scope] : []),
+          ),
         );
-        const [row] = await getDb()
-          .select({ total: count() })
-          .from(schema.contentSubmissions)
-          .where(
-            and(
-              eq(schema.contentSubmissions.status, "REVISION_REQUIRED"),
-              ...(scope ? [scope] : []),
-            ),
-          );
-        return Number(row?.total ?? 0);
-      })(),
-    ]);
+      return Number(row?.total ?? 0);
+    })(),
+  ]);
 
   const notice =
     user.stakeholderIds.length === 0 ? (
@@ -159,6 +155,7 @@ async function ClientHomeBody({
 
       <KpiDashboard
         overview={overview}
+        analytics={analytics}
         role={user.role}
         options={{
           stakeholders: options.stakeholders,
@@ -168,31 +165,9 @@ async function ClientHomeBody({
         title={`Beranda ${user.name}`}
         description="Capaian konten organisasi Anda, dihitung hanya dari konten yang telah disetujui reviewer cabang. Dasar tanggal default adalah tanggal konten."
         contentDetailBase="/client/konten"
-        stakeholderChartTitle="Organisasi Anda"
         notice={notice}
         hideHeader
       />
-
-      <section
-        aria-label="Komposisi konten"
-        className="grid gap-6 xl:grid-cols-3"
-      >
-        <DistributionCard
-          title="Jenis konten"
-          description="Video dan infografis yang disetujui."
-          rows={contentType}
-        />
-        <DistributionCard
-          title="Tema utama"
-          description="EDUFAST dan Non-EDUFAST."
-          rows={mainTheme}
-        />
-        <DistributionCard
-          title="Sub-tema EDUFAST"
-          description={`EDUFAST ${formatNumberId(compliance.edufastApproved)} · Non-EDUFAST ${formatNumberId(compliance.nonEdufastApproved)}`}
-          rows={compliance.subThemes}
-        />
-      </section>
     </div>
   );
 }

@@ -17,11 +17,15 @@ import {
 
 import { ContentTypeBadge } from "@/components/content/content-type-badge";
 import { StatusBadge } from "@/components/content/status-badge";
+import {
+  DeferredAllContentCharts,
+  DeferredApprovedCharts,
+} from "@/components/dashboard/dashboard-analytics-lazy";
 import { DashboardMapSection } from "@/components/dashboard/dashboard-map";
-import { DeferredKpiCharts } from "@/components/dashboard/kpi-charts-lazy";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { FilterBar, type FilterField } from "@/components/filters/filter-bar";
 import { Button } from "@/components/ui/button";
+import type { DashboardAnalytics } from "@/lib/analytics/charts";
 import { PLATFORM_LABEL } from "@/lib/content-status";
 import type { DashboardMap } from "@/lib/dashboard-map";
 import { formatDateId, formatDateTimeId, formatNumberId } from "@/lib/dates";
@@ -127,6 +131,14 @@ function MiniStat({
       </p>
       {hint ? <p className="text-[11px] text-ink-muted">{hint}</p> : null}
     </div>
+  );
+}
+
+function SectionBadge({ children }: { children: ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-2.5 py-1 text-xs font-medium text-ink-muted">
+      {children}
+    </span>
   );
 }
 
@@ -249,6 +261,7 @@ function ContentTable({
 
 export function KpiDashboard({
   overview,
+  analytics,
   role,
   options,
   basePath,
@@ -257,12 +270,12 @@ export function KpiDashboard({
   headerActions,
   notice,
   contentDetailBase,
-  stakeholderChartTitle,
   hideHeader,
   alignment,
   map,
 }: {
   overview: DashboardOverview;
+  analytics: DashboardAnalytics;
   role: AppRole;
   options: {
     stakeholders: FilterOption[];
@@ -274,7 +287,6 @@ export function KpiDashboard({
   headerActions?: ReactNode;
   notice?: ReactNode;
   contentDetailBase: string;
-  stakeholderChartTitle: string;
   /** Header dirender oleh page agar bisa streaming sebelum data siap. */
   hideHeader?: boolean;
   /** Ringkasan target per instansi dari menu Kinerja agar angka dasbor identik. */
@@ -426,7 +438,7 @@ export function KpiDashboard({
 
       <section
         aria-label="Capaian utama"
-        className="rounded-xl border border-border bg-surface p-5 shadow-sm"
+        className="rounded-xl border border-border bg-surface p-4 shadow-sm sm:p-5"
       >
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]">
           <div>
@@ -618,16 +630,64 @@ export function KpiDashboard({
         </a>
       </nav>
 
-      <div id="semua-konten" className="scroll-mt-24">
-        <DeferredKpiCharts
-          trend={overview.trend}
-          statusCounts={overview.statusCounts}
-          themes={overview.themes}
-          stakeholders={overview.stakeholders}
-          attributionLabel={overview.period.attributionLabel}
-          stakeholderTitle={stakeholderChartTitle}
-        />
-      </div>
+      <section
+        id="semua-konten"
+        aria-labelledby="semua-konten-heading"
+        className="scroll-mt-24 overflow-hidden rounded-2xl border border-border bg-surface shadow-sm"
+      >
+        <header className="border-b border-border bg-surface-muted/50 px-4 py-4 sm:px-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2
+              id="semua-konten-heading"
+              className="text-lg font-semibold text-foreground"
+            >
+              Semua konten
+            </h2>
+            <SectionBadge>Semua status</SectionBadge>
+            <SectionBadge>Basis tanggal dibuat</SectionBadge>
+          </div>
+          <p className="mt-1 max-w-3xl text-sm text-ink-muted">
+            Draf, menunggu validasi, perlu revisi, ditolak, dicabut, dan
+            disetujui dihitung dengan basis tanggal konten dibuat agar volume
+            pengajuan terlihat utuh.
+          </p>
+        </header>
+        <div className="p-4 sm:p-5">
+          <DeferredAllContentCharts data={analytics.allContent} />
+        </div>
+      </section>
+
+      <section
+        id="konten-disetujui"
+        aria-labelledby="konten-disetujui-heading"
+        className="scroll-mt-24 overflow-hidden rounded-2xl border border-brand-teal-200 bg-surface shadow-sm"
+      >
+        <header className="border-b border-brand-teal-200 bg-brand-teal-100/40 px-4 py-4 sm:px-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2
+              id="konten-disetujui-heading"
+              className="text-lg font-semibold text-foreground"
+            >
+              Konten disetujui
+            </h2>
+            <span className="inline-flex items-center gap-1 rounded-full bg-brand-teal-100 px-2.5 py-1 text-xs font-medium text-brand-teal-700">
+              <CheckCircle2 className="size-3.5" aria-hidden />
+              Hanya status Disetujui
+            </span>
+            <SectionBadge>Basis tanggal disetujui</SectionBadge>
+          </div>
+          <p className="mt-1 max-w-3xl text-sm text-ink-muted">
+            Capaian, peringkat, dan kepatuhan EDUFAST hanya menghitung konten
+            yang benar-benar disetujui pada periode, bukan seluruh kiriman.
+          </p>
+        </header>
+        <div className="p-4 sm:p-5">
+          <DeferredApprovedCharts
+            data={analytics.approved}
+            target={{ approved: headlineApproved, target: headlineTarget }}
+          />
+        </div>
+      </section>
 
       {map ? (
         <div id="peta" className="scroll-mt-24">
@@ -636,19 +696,17 @@ export function KpiDashboard({
       ) : null}
 
       <div id="tabel" className="scroll-mt-24 space-y-6">
-        <div id="konten-disetujui" className="scroll-mt-24">
-          <ContentTable
-            items={overview.approvedItems}
-            detailBase={contentDetailBase}
-            title="Konten disetujui pada periode"
-            subtitle={`Maksimal 100 konten terbaru berdasarkan ${overview.period.attributionLabel}.`}
-            actionHref={contentListHref}
-            actionLabel="Lihat semua konten"
-            emptyTitle="Belum ada konten disetujui"
-            emptyBody="Konten yang disetujui pada filter ini akan muncul di sini."
-            showStatus={false}
-          />
-        </div>
+        <ContentTable
+          items={overview.approvedItems}
+          detailBase={contentDetailBase}
+          title="Konten disetujui pada periode"
+          subtitle={`Maksimal 100 konten terbaru berdasarkan ${overview.period.attributionLabel}.`}
+          actionHref={contentListHref}
+          actionLabel="Lihat semua konten"
+          emptyTitle="Belum ada konten disetujui"
+          emptyBody="Konten yang disetujui pada filter ini akan muncul di sini."
+          showStatus={false}
+        />
 
         <ContentTable
           items={overview.pendingItems}
@@ -684,8 +742,9 @@ export function KpiDashboard({
       <div className="flex items-start gap-2 rounded-xl border border-brand-blue-100 bg-brand-blue-100/40 p-4 text-sm leading-relaxed text-brand-blue-800">
         <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
         <p>
-          Angka capaian dihitung ulang dari database pada setiap permintaan dan
-          hanya memakai konten berstatus <strong>Disetujui</strong>. Konten
+          Bagian <strong>Semua konten</strong> menghitung setiap status dengan
+          basis tanggal dibuat. Bagian <strong>Konten disetujui</strong> hanya
+          menghitung status Disetujui dengan basis tanggal disetujui; konten
           ditolak, perlu revisi, dicabut, atau diarsipkan tidak menambah
           capaian.
         </p>

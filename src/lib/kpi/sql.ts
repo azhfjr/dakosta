@@ -21,7 +21,6 @@ import { recordAudit } from "@/lib/audit";
 import {
   contentScopePredicate,
   isOrganizationInScope,
-  organizationScopePredicate,
 } from "@/lib/authz/predicates";
 import { getAccessibleStakeholderIds } from "@/lib/rbac";
 import {
@@ -41,7 +40,6 @@ import {
   monthRange,
   percentChange,
   ratioPercent,
-  recentMonthKeys,
   shortDayLabel,
   type AttributionMode,
   type DashboardOverview,
@@ -154,12 +152,6 @@ function rangeFor(period: Period): MonthRange {
       (period.endExclusive.getTime() - period.start.getTime()) / 86_400_000,
     ),
   };
-}
-
-export function monthOptions(selected: string, count = 6) {
-  const keys = recentMonthKeys(new Date(), count);
-  if (!keys.includes(selected)) keys.push(selected);
-  return keys.map((key) => ({ key, label: monthRange(key).label }));
 }
 
 function whereAll(...parts: Array<SQL | undefined>): SQL | undefined {
@@ -676,151 +668,4 @@ async function loadDashboardOverview(
     recentItems: mapItems(recentItems),
     generatedAt: new Date(),
   };
-}
-
-export type MonthlyTrendPoint = {
-  month: string;
-  label: string;
-  approved: number;
-  submitted: number;
-};
-
-export async function getMonthlyTrend(
-  user: SessionUser,
-  filters: KpiFilters,
-  months = 6,
-): Promise<MonthlyTrendPoint[]> {
-  await assertClientScope(user, filters, "/client");
-
-  const keys = recentMonthKeys(new Date(), months).reverse();
-  const firstRange = monthRange(keys[0]!);
-  const lastRange = monthRange(keys[keys.length - 1]!);
-  const scope = whereAll(...scopeConditions(user, filters));
-
-  const approvedMonth =
-    filters.attribution === "approved_at"
-      ? sql<string>`to_char(${schema.contentSubmissions.approvedAt} at time zone 'Asia/Jakarta', 'YYYY-MM')`
-      : sql<string>`to_char(${schema.contentSubmissions.dateCreated}, 'YYYY-MM')`;
-
-  const approvedWhere = whereAll(
-    scope,
-    eq(schema.contentSubmissions.status, "APPROVED"),
-    filters.attribution === "approved_at"
-      ? and(
-          gte(schema.contentSubmissions.approvedAt, firstRange.startInstant),
-          lt(schema.contentSubmissions.approvedAt, lastRange.endInstant),
-        )
-      : and(
-          gte(schema.contentSubmissions.dateCreated, firstRange.startLocal),
-          lte(schema.contentSubmissions.dateCreated, lastRange.endLocal),
-        ),
-  );
-
-  const submittedMonth = sql<string>`to_char(${schema.contentSubmissions.submittedAt} at time zone 'Asia/Jakarta', 'YYYY-MM')`;
-
-  const submittedWhere = whereAll(
-    scope,
-    gte(schema.contentSubmissions.submittedAt, firstRange.startInstant),
-    lt(schema.contentSubmissions.submittedAt, lastRange.endInstant),
-  );
-
-  const db = getDb();
-  const [approvedRows, submittedRows] = await Promise.all([
-    db
-      .select({ month: approvedMonth, total: count() })
-      .from(schema.contentSubmissions)
-      .where(approvedWhere)
-      .groupBy(approvedMonth),
-    db
-      .select({ month: submittedMonth, total: count() })
-      .from(schema.contentSubmissions)
-      .where(submittedWhere)
-      .groupBy(submittedMonth),
-  ]);
-
-  const approvedMap = new Map(
-    approvedRows.map((row) => [row.month, Number(row.total)]),
-  );
-  const submittedMap = new Map(
-    submittedRows.map((row) => [row.month, Number(row.total)]),
-  );
-
-  return keys.map((key) => ({
-    month: key,
-    label: monthRange(key).shortLabel,
-    approved: approvedMap.get(key) ?? 0,
-    submitted: submittedMap.get(key) ?? 0,
-  }));
-}
-
-export async function getTopStakeholderTotals(
-  user: SessionUser,
-  filters: KpiFilters,
-  limit = 10,
-): Promise<NamedTotal[]> {
-  await assertClientScope(user, filters, "/client");
-
-  const range = monthRange(filters.month);
-  const rows = await getDb()
-    .select({
-      id: schema.stakeholders.id,
-      name: schema.stakeholders.name,
-      total: count(),
-    })
-    .from(schema.contentSubmissions)
-    .innerJoin(
-      schema.stakeholders,
-      eq(schema.stakeholders.id, schema.contentSubmissions.stakeholderId),
-    )
-    .where(
-      whereAll(
-        ...scopeConditions(user, filters),
-        eq(schema.contentSubmissions.status, "APPROVED"),
-        attributionCondition(range, filters.attribution),
-      ),
-    )
-    .groupBy(schema.stakeholders.id, schema.stakeholders.name)
-    .orderBy(desc(count()))
-    .limit(Math.min(Math.max(limit, 1), 50));
-
-  return rows.map((row) => ({
-    id: row.id,
-    name: row.name,
-    total: Number(row.total),
-  }));
-}
-
-export async function getKpiFilterOptions(user: SessionUser): Promise<{
-  stakeholders: Array<{ id: string; name: string }>;
-  themes: Array<{ id: string; name: string }>;
-}> {
-  return cachedRead(
-    readCacheKey(user, ["kpi-filter-options"]),
-    () => loadKpiFilterOptions(user),
-    { ttlMs: 300_000, maxStaleMs: 300_000 },
-  );
-}
-
-async function loadKpiFilterOptions(user: SessionUser): Promise<{
-  stakeholders: Array<{ id: string; name: string }>;
-  themes: Array<{ id: string; name: string }>;
-}> {
-  const db = getDb();
-  const stakeholderScope = organizationScopePredicate(user.scope, {
-    id: schema.stakeholders.id,
-    branchId: schema.stakeholders.branchOfficeId,
-  });
-
-  const stakeholders = await db
-    .select({ id: schema.stakeholders.id, name: schema.stakeholders.name })
-    .from(schema.stakeholders)
-    .where(whereAll(eq(schema.stakeholders.status, "ACTIVE"), stakeholderScope))
-    .orderBy(asc(schema.stakeholders.name));
-
-  const themes = SUB_THEMES.map((subTheme) => ({
-    id: subTheme,
-    name: SUB_THEME_LABELS[subTheme],
-  }));
-
-  return { stakeholders, themes };
 }

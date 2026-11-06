@@ -6,6 +6,7 @@ import { KpiDashboard } from "@/components/dashboard/kpi-dashboard";
 import { PageHeader } from "@/components/shell/page-header";
 import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { Button } from "@/components/ui/button";
+import { getDashboardAnalytics } from "@/lib/analytics/charts";
 import { getDashboardMap } from "@/lib/dashboard-map";
 import { redirectDashboardView } from "@/lib/dashboard/view";
 import { formatDateTimeId } from "@/lib/dates";
@@ -71,9 +72,14 @@ async function RegionalHomeBody({
 }) {
   const period = kpiPeriod(filters);
   const alignmentAllowed = !filters.stakeholderId && !filters.subTheme;
-  const [overview, options, summary, map] = await Promise.all([
+  const [overview, options, analytics, summary, map] = await Promise.all([
     getDashboardOverview(user, filters),
     getFilterOptions(user),
+    getDashboardAnalytics(
+      user,
+      { ...filters, sources: [] },
+      { rankingLevel: "branch" },
+    ),
     alignmentAllowed
       ? getPerformanceSummary(user, period)
       : Promise.resolve(null),
@@ -87,6 +93,7 @@ async function RegionalHomeBody({
   return (
     <KpiDashboard
       overview={overview}
+      analytics={analytics}
       role={user.role}
       options={{
         stakeholders: options.stakeholders,
@@ -96,7 +103,6 @@ async function RegionalHomeBody({
       title="Dashboard wilayah"
       description={description}
       contentDetailBase="/wilayah/konten"
-      stakeholderChartTitle="Peringkat organisasi"
       alignment={
         summary
           ? {
