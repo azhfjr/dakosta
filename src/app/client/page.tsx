@@ -18,6 +18,7 @@ import {
 } from "@/lib/analytics/distribution";
 import { recordAudit } from "@/lib/audit";
 import { contentScopePredicate } from "@/lib/authz/predicates";
+import { redirectDashboardView } from "@/lib/dashboard/view";
 import { formatDateTimeId, formatNumberId } from "@/lib/dates";
 import {
   getDashboardOverview,
@@ -43,6 +44,7 @@ export default async function ClientHomePage({
   const user = await requireRole("CLIENT");
   const params = await searchParams;
   const filters = parseKpiFiltersFromParams(params);
+  redirectDashboardView("/client", params);
 
   if (
     filters.stakeholderId &&

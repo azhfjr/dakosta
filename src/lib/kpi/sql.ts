@@ -690,7 +690,7 @@ export async function getMonthlyTrend(
   filters: KpiFilters,
   months = 6,
 ): Promise<MonthlyTrendPoint[]> {
-  await assertClientScope(user, filters, "/analitik");
+  await assertClientScope(user, filters, "/client");
 
   const keys = recentMonthKeys(new Date(), months).reverse();
   const firstRange = monthRange(keys[0]!);
@@ -758,7 +758,7 @@ export async function getTopStakeholderTotals(
   filters: KpiFilters,
   limit = 10,
 ): Promise<NamedTotal[]> {
-  await assertClientScope(user, filters, "/analitik");
+  await assertClientScope(user, filters, "/client");
 
   const range = monthRange(filters.month);
   const rows = await getDb()

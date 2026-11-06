@@ -8,6 +8,7 @@ import {
   eq,
   gte,
   ilike,
+  lt,
   lte,
   or,
   sql,
@@ -26,16 +27,29 @@ import {
   type OrgSource,
 } from "@/lib/analytics/source";
 import type { SessionUser } from "@/lib/session";
+import type { ContentType, SubTheme } from "@/lib/taxonomy";
 
 export const ANALYTICS_TABLE_PAGE_SIZE = 25;
 
 export type AnalyticsSort =
-  "recent" | "oldest" | "title" | "decision" | "status";
+  | "recent"
+  | "oldest"
+  | "title"
+  | "decision"
+  | "status"
+  | "approved_recent"
+  | "approved_oldest"
+  | "organization";
 
 export type AnalyticsContentFilters = {
   period: string;
+  /** `created` filters `date_created`; `approved` filters `approved_at`. */
+  periodBasis?: "created" | "approved";
   status: ContentStatus | "ALL";
   sources: OrgSource[];
+  stakeholderId?: string | null;
+  subTheme?: SubTheme | null;
+  contentType?: ContentType | null;
   decidedBy: "ANY" | "BRANCH" | "MASTER";
   sort: AnalyticsSort;
   search: string;
@@ -48,6 +62,9 @@ const SORTS: readonly AnalyticsSort[] = [
   "title",
   "decision",
   "status",
+  "approved_recent",
+  "approved_oldest",
+  "organization",
 ];
 
 function firstValue(
@@ -158,12 +175,32 @@ export async function listAnalyticsContents(
     filters.sources,
   );
   if (sourceCondition) conditions.push(sourceCondition);
+  if (filters.stakeholderId) {
+    conditions.push(
+      eq(schema.contentSubmissions.stakeholderId, filters.stakeholderId),
+    );
+  }
+  if (filters.subTheme) {
+    conditions.push(eq(schema.contentSubmissions.subTheme, filters.subTheme));
+  }
+  if (filters.contentType) {
+    conditions.push(
+      eq(schema.contentSubmissions.contentType, filters.contentType),
+    );
+  }
   if (filters.period !== "ALL") {
     const range = monthRange(filters.period);
-    conditions.push(
-      gte(schema.contentSubmissions.dateCreated, range.startLocal),
-      lte(schema.contentSubmissions.dateCreated, range.endLocal),
-    );
+    if (filters.periodBasis === "approved") {
+      conditions.push(
+        gte(schema.contentSubmissions.approvedAt, range.startInstant),
+        lt(schema.contentSubmissions.approvedAt, range.endInstant),
+      );
+    } else {
+      conditions.push(
+        gte(schema.contentSubmissions.dateCreated, range.startLocal),
+        lte(schema.contentSubmissions.dateCreated, range.endLocal),
+      );
+    }
   }
   if (filters.search) {
     const pattern = `%${escapeLike(filters.search)}%`;
@@ -222,6 +259,22 @@ export async function listAnalyticsContents(
         return [
           asc(schema.contentSubmissions.status),
           desc(schema.contentSubmissions.dateCreated),
+        ];
+      case "approved_recent":
+        return [
+          sql`${schema.contentSubmissions.approvedAt} desc nulls last`,
+          desc(schema.contentSubmissions.id),
+        ];
+      case "approved_oldest":
+        return [
+          sql`${schema.contentSubmissions.approvedAt} asc nulls last`,
+          asc(schema.contentSubmissions.id),
+        ];
+      case "organization":
+        return [
+          asc(schema.stakeholders.name),
+          asc(schema.contentSubmissions.title),
+          asc(schema.contentSubmissions.id),
         ];
       default:
         return [
@@ -313,6 +366,9 @@ export const ANALYTICS_SORT_LABELS: Record<AnalyticsSort, string> = {
   title: "Judul A–Z",
   decision: "Keputusan terbaru",
   status: "Status",
+  approved_recent: "Terbaru disetujui",
+  approved_oldest: "Terlama disetujui",
+  organization: "Organisasi A–Z",
 };
 
 export const ANALYTICS_PERIOD_LABEL = "Semua periode";

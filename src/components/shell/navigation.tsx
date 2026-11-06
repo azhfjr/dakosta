@@ -1,12 +1,10 @@
 "use client";
 
 import {
-  BarChart3,
   Bell,
   Building2,
   ClipboardCheck,
   FileText,
-  Home,
   LayoutDashboard,
   Map,
   Network,
@@ -33,7 +31,7 @@ export type NavItem = {
 const ADMIN_NAV: NavItem[] = [
   {
     href: "/admin",
-    label: "Ringkasan",
+    label: "Dashboard",
     icon: LayoutDashboard,
     exact: true,
     ready: true,
@@ -69,9 +67,7 @@ const ADMIN_NAV: NavItem[] = [
   },
   { href: "/admin/akun", label: "Akun", icon: Users, ready: true },
   { href: "/admin/peta", label: "Peta", icon: Map, ready: true },
-  { href: "/admin/analitik", label: "Analitik", icon: BarChart3, ready: true },
   { href: "/admin/target", label: "Target", icon: Target, ready: true },
-  { href: "/admin/laporan", label: "Laporan", icon: ScrollText, ready: true },
   { href: "/admin/notifikasi", label: "Notifikasi", icon: Bell, ready: true },
   { href: "/admin/audit", label: "Audit", icon: ScrollText, ready: true },
 ];
@@ -90,6 +86,7 @@ const REGIONAL_NAV: NavItem[] = [
     icon: LayoutDashboard,
     ready: true,
   },
+  { href: "/wilayah/konten", label: "Konten", icon: FileText, ready: true },
   { href: "/wilayah/kinerja", label: "Kinerja", icon: Target, ready: true },
   { href: "/wilayah/cabang", label: "Cabang", icon: Building2, ready: true },
   {
@@ -121,6 +118,7 @@ const BRANCH_NAV: NavItem[] = [
     icon: LayoutDashboard,
     ready: true,
   },
+  { href: "/cabang/konten", label: "Konten", icon: FileText, ready: true },
   { href: "/cabang/kinerja", label: "Kinerja", icon: Target, ready: true },
   {
     href: "/cabang/organisasi",
@@ -138,7 +136,13 @@ const BRANCH_NAV: NavItem[] = [
 ];
 
 const CLIENT_NAV: NavItem[] = [
-  { href: "/client", label: "Beranda", icon: Home, exact: true, ready: true },
+  {
+    href: "/client",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    exact: true,
+    ready: true,
+  },
   {
     href: "/client/lapor",
     label: "Lapor konten",
@@ -146,7 +150,6 @@ const CLIENT_NAV: NavItem[] = [
     ready: true,
   },
   { href: "/client/konten", label: "Konten saya", icon: FileText, ready: true },
-  { href: "/client/analitik", label: "Analitik", icon: BarChart3, ready: true },
   { href: "/client/notifikasi", label: "Notifikasi", icon: Bell, ready: true },
   { href: "/client/profil", label: "Profil", icon: UserRound, ready: true },
 ];

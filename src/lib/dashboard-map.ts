@@ -64,7 +64,7 @@ function hrefFor(
     user.role === "BRANCH_ADMIN"
       ? "/cabang/kinerja"
       : user.role === "MASTER_ADMIN"
-        ? "/admin/analitik"
+        ? "/admin"
         : "/wilayah/kinerja";
   const params = new URLSearchParams({ period: period.key });
   if (user.role === "BRANCH_ADMIN") {
@@ -72,7 +72,8 @@ function hrefFor(
   } else if (user.role === "REGIONAL_ADMIN") {
     params.set("branch", point.id);
   }
-  return `${base}?${params.toString()}`;
+  const hash = user.role === "MASTER_ADMIN" ? "#semua-konten" : "";
+  return `${base}?${params.toString()}${hash}`;
 }
 
 export async function getDashboardMap(

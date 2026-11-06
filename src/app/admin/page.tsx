@@ -6,6 +6,7 @@ import { KpiDashboard } from "@/components/dashboard/kpi-dashboard";
 import { PageHeader } from "@/components/shell/page-header";
 import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { Button } from "@/components/ui/button";
+import { redirectDashboardView } from "@/lib/dashboard/view";
 import { formatDateTimeId } from "@/lib/dates";
 import {
   getDashboardOverview,
@@ -31,6 +32,7 @@ export default async function AdminHomePage({
   const user = await requireRole("ADMIN");
   const params = await searchParams;
   const filters = parseKpiFiltersFromParams(params);
+  redirectDashboardView("/admin", params);
 
   return (
     <div className="space-y-6">

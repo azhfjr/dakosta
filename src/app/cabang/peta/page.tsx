@@ -1,5 +1,10 @@
-import { redirect } from "next/navigation";
+import { redirectToAnchor } from "@/lib/filters/redirect";
 
-export default function BranchMapRedirect() {
-  redirect("/cabang/dashboard?view=peta");
+export default async function BranchMapRedirect({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  redirectToAnchor("/cabang/dashboard", params, "peta");
 }

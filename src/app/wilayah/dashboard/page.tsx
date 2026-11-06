@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/shell/page-header";
 import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { Button } from "@/components/ui/button";
 import { getDashboardMap } from "@/lib/dashboard-map";
+import { redirectDashboardView } from "@/lib/dashboard/view";
 import { formatDateTimeId } from "@/lib/dates";
 import {
   getDashboardOverview,
@@ -34,6 +35,7 @@ export default async function RegionalHomePage({
   const user = await requireRole("REGIONAL_ADMIN");
   const params = await searchParams;
   const filters = parseKpiFiltersFromParams(params);
+  redirectDashboardView("/wilayah/dashboard", params);
   const description = `Capaian konten disetujui dan antrean validasi untuk ${user.scopeLabel}. Wilayah bersifat baca-saja: keputusan tetap dilakukan admin cabang.`;
 
   return (

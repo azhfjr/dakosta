@@ -638,58 +638,100 @@ export function KpiDashboard({
         )}
       </section>
 
-      <DeferredKpiCharts
-        trend={overview.trend}
-        statusCounts={overview.statusCounts}
-        themes={overview.themes}
-        stakeholders={overview.stakeholders}
-        attributionLabel={overview.period.attributionLabel}
-        stakeholderTitle={stakeholderChartTitle}
-      />
+      <nav
+        aria-label="Bagian dashboard"
+        className="flex flex-wrap items-center gap-2 text-sm"
+      >
+        <a
+          href="#semua-konten"
+          className="rounded-full border border-border bg-surface px-3 py-1.5 font-medium text-foreground transition hover:border-brand-blue-300 hover:text-brand-blue-700"
+        >
+          Semua konten
+        </a>
+        <a
+          href="#konten-disetujui"
+          className="rounded-full border border-border bg-surface px-3 py-1.5 font-medium text-foreground transition hover:border-brand-blue-300 hover:text-brand-blue-700"
+        >
+          Konten disetujui
+        </a>
+        {map ? (
+          <a
+            href="#peta"
+            className="rounded-full border border-border bg-surface px-3 py-1.5 font-medium text-foreground transition hover:border-brand-blue-300 hover:text-brand-blue-700"
+          >
+            Peta
+          </a>
+        ) : null}
+        <a
+          href="#tabel"
+          className="rounded-full border border-border bg-surface px-3 py-1.5 font-medium text-foreground transition hover:border-brand-blue-300 hover:text-brand-blue-700"
+        >
+          Tabel
+        </a>
+      </nav>
 
-      {map ? <DashboardMapSection map={map} styleUrl={MAP_STYLE_URL} /> : null}
+      <div id="semua-konten" className="scroll-mt-24">
+        <DeferredKpiCharts
+          trend={overview.trend}
+          statusCounts={overview.statusCounts}
+          themes={overview.themes}
+          stakeholders={overview.stakeholders}
+          attributionLabel={overview.period.attributionLabel}
+          stakeholderTitle={stakeholderChartTitle}
+        />
+      </div>
 
-      <ContentTable
-        items={overview.approvedItems}
-        detailBase={contentDetailBase}
-        title="Konten disetujui pada periode"
-        subtitle={`Maksimal 100 konten terbaru berdasarkan ${overview.period.attributionLabel}.`}
-        actionHref={contentListHref}
-        actionLabel="Lihat semua konten"
-        emptyTitle="Belum ada konten disetujui"
-        emptyBody="Konten yang disetujui pada filter ini akan muncul di sini."
-        showStatus={false}
-      />
+      {map ? (
+        <div id="peta" className="scroll-mt-24">
+          <DashboardMapSection map={map} styleUrl={MAP_STYLE_URL} />
+        </div>
+      ) : null}
 
-      <ContentTable
-        items={overview.pendingItems}
-        detailBase={contentDetailBase}
-        title={
-          isStakeholder
-            ? "Konten Anda menunggu validasi"
-            : "Menunggu validasi pada periode"
-        }
-        subtitle="Lima kiriman paling lama yang belum diputuskan."
-        actionHref={reviewQueueHref}
-        actionLabel={isStakeholder ? "Lihat konten saya" : "Buka antrean"}
-        emptyTitle="Antrean periode ini kosong"
-        emptyBody="Semua kiriman pada periode ini sudah diputuskan."
-        showStatus
-      />
+      <div id="tabel" className="scroll-mt-24 space-y-6">
+        <div id="konten-disetujui" className="scroll-mt-24">
+          <ContentTable
+            items={overview.approvedItems}
+            detailBase={contentDetailBase}
+            title="Konten disetujui pada periode"
+            subtitle={`Maksimal 100 konten terbaru berdasarkan ${overview.period.attributionLabel}.`}
+            actionHref={contentListHref}
+            actionLabel="Lihat semua konten"
+            emptyTitle="Belum ada konten disetujui"
+            emptyBody="Konten yang disetujui pada filter ini akan muncul di sini."
+            showStatus={false}
+          />
+        </div>
 
-      {isStakeholder ? (
         <ContentTable
-          items={overview.recentItems}
-          detailBase="/client/konten"
-          title="Konten terbaru Anda"
-          subtitle="Lima konten dengan pembaruan terakhir."
-          actionHref="/client/konten"
-          actionLabel="Lihat semua"
-          emptyTitle="Belum ada konten"
-          emptyBody="Konten yang Anda kirim akan muncul di sini."
+          items={overview.pendingItems}
+          detailBase={contentDetailBase}
+          title={
+            isStakeholder
+              ? "Konten Anda menunggu validasi"
+              : "Menunggu validasi pada periode"
+          }
+          subtitle="Lima kiriman paling lama yang belum diputuskan."
+          actionHref={reviewQueueHref}
+          actionLabel={isStakeholder ? "Lihat konten saya" : "Buka antrean"}
+          emptyTitle="Antrean periode ini kosong"
+          emptyBody="Semua kiriman pada periode ini sudah diputuskan."
           showStatus
         />
-      ) : null}
+
+        {isStakeholder ? (
+          <ContentTable
+            items={overview.recentItems}
+            detailBase="/client/konten"
+            title="Konten terbaru Anda"
+            subtitle="Lima konten dengan pembaruan terakhir."
+            actionHref="/client/konten"
+            actionLabel="Lihat semua"
+            emptyTitle="Belum ada konten"
+            emptyBody="Konten yang Anda kirim akan muncul di sini."
+            showStatus
+          />
+        ) : null}
+      </div>
 
       <div className="flex items-start gap-2 rounded-xl border border-brand-blue-100 bg-brand-blue-100/40 p-4 text-sm leading-relaxed text-brand-blue-800">
         <Info className="mt-0.5 size-4 shrink-0" aria-hidden />

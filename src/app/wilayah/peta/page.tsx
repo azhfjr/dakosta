@@ -1,5 +1,10 @@
-import { redirect } from "next/navigation";
+import { redirectToAnchor } from "@/lib/filters/redirect";
 
-export default function RegionalMapRedirect() {
-  redirect("/wilayah/dashboard?view=peta");
+export default async function RegionalMapRedirect({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  redirectToAnchor("/wilayah/dashboard", params, "peta");
 }

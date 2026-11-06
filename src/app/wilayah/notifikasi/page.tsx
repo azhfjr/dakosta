@@ -4,6 +4,14 @@ import { NotificationList } from "@/components/notifications/notification-list";
 import { listNotifications } from "@/lib/notifications";
 import { requireRole } from "@/lib/session";
 
+function regionalHref(href: string | null): string | null {
+  if (!href?.startsWith("/admin/validasi")) return href;
+  if (href.startsWith("/admin/validasi/")) {
+    return href.replace("/admin/validasi/", "/wilayah/konten/");
+  }
+  return href.replace("/admin/validasi", "/wilayah");
+}
+
 export const metadata: Metadata = {
   title: "Notifikasi wilayah",
 };
@@ -16,9 +24,7 @@ export default async function RegionalNotificationsPage() {
 
   const scoped = items.map((item) => ({
     ...item,
-    href: item.href?.startsWith("/admin/validasi")
-      ? item.href.replace("/admin/validasi", "/wilayah/konten")
-      : item.href,
+    href: regionalHref(item.href),
   }));
 
   return (

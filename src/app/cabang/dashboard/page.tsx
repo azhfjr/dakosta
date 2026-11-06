@@ -4,6 +4,7 @@ import Link from "next/link";
 import { KpiDashboard } from "@/components/dashboard/kpi-dashboard";
 import { Button } from "@/components/ui/button";
 import { getDashboardMap } from "@/lib/dashboard-map";
+import { redirectDashboardView } from "@/lib/dashboard/view";
 import {
   getDashboardOverview,
   getKpiFilterOptions,
@@ -29,6 +30,7 @@ export default async function BranchHomePage({
   const user = await requireRole("BRANCH_ADMIN");
   const params = await searchParams;
   const filters = parseKpiFiltersFromParams(params);
+  redirectDashboardView("/cabang/dashboard", params);
 
   const period = kpiPeriod(filters);
   const alignmentAllowed = !filters.stakeholderId && !filters.subTheme;
