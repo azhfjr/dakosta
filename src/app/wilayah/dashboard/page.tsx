@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { KpiDashboard } from "@/components/dashboard/kpi-dashboard";
+import { PageContainer } from "@/components/shell/page-container";
 import { PageHeader } from "@/components/shell/page-header";
 import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { Button } from "@/components/ui/button";
@@ -39,7 +40,7 @@ export default async function RegionalHomePage({
   const description = `Capaian konten disetujui dan antrean validasi untuk ${user.scopeLabel}. Wilayah bersifat baca-saja: keputusan tetap dilakukan admin cabang.`;
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         title="Dashboard wilayah"
         description={description}
@@ -57,7 +58,7 @@ export default async function RegionalHomePage({
           description={description}
         />
       </Suspense>
-    </div>
+    </PageContainer>
   );
 }
 

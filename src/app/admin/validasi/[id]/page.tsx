@@ -13,6 +13,7 @@ import {
 import { ReviewPanel } from "@/components/admin/review-panel";
 import { RevokePanel } from "@/components/admin/revoke-panel";
 import { StatusBadge } from "@/components/content/status-badge";
+import { PageContainer } from "@/components/shell/page-container";
 import { Button } from "@/components/ui/button";
 import { AppError } from "@/lib/errors";
 import {
@@ -79,7 +80,7 @@ export default async function ReviewDetailPage({
     : null;
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
+    <PageContainer>
       <div className="flex items-center gap-2 text-sm text-ink-muted">
         <Button asChild variant="ghost" size="sm" className="h-8 -ml-2">
           <Link href="/admin/validasi">
@@ -371,6 +372,6 @@ export default async function ReviewDetailPage({
           ) : null}
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }

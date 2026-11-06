@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { demoPassword } from "./demo-password";
-import { ADMIN_STATE } from "./support";
+import { ADMIN_STATE, sameOriginHeaders } from "./support";
 
 const DEMO_ACCOUNT_MESSAGE = "Akun demo tidak dapat mengubah akun";
 
@@ -48,7 +48,10 @@ test.describe("Direktori akun Master", () => {
     ).toBeVisible();
     await expect(page.locator("#acct-name")).toBeHidden();
 
-    const create = await page.request.post("/api/v1/admin/users", { data: {} });
+    const create = await page.request.post("/api/v1/admin/users", {
+      data: {},
+      headers: sameOriginHeaders,
+    });
     expect(create.status()).toBe(403);
     const body = (await create.json()) as { error?: { message?: string } };
     expect(body.error?.message).toContain(DEMO_ACCOUNT_MESSAGE);
@@ -70,12 +73,13 @@ test.describe("Pengaman Master terakhir", () => {
 
     const stepUp = await page.request.post("/api/v1/me/step-up", {
       data: { password: demoPassword() },
+      headers: sameOriginHeaders,
     });
     expect(stepUp.ok()).toBe(true);
 
     const demote = await page.request.patch(
       `/api/v1/admin/users/${identity.data.id}`,
-      { data: { role: "STAKEHOLDER" } },
+      { data: { role: "STAKEHOLDER" }, headers: sameOriginHeaders },
     );
     expect(demote.status()).toBe(403);
     const demoteBody = (await demote.json()) as {
@@ -85,7 +89,7 @@ test.describe("Pengaman Master terakhir", () => {
 
     const suspend = await page.request.patch(
       `/api/v1/admin/users/${identity.data.id}`,
-      { data: { status: "SUSPENDED" } },
+      { data: { status: "SUSPENDED" }, headers: sameOriginHeaders },
     );
     expect(suspend.status()).toBe(403);
     const suspendBody = (await suspend.json()) as {

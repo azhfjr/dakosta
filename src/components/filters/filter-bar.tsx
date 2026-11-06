@@ -124,6 +124,12 @@ export function FilterBar({
 }) {
   if (fields.length === 0) return null;
 
+  // Uncontrolled inputs keep their DOM value across same-route client
+  // navigations, so remount whenever the URL-derived filter state changes.
+  const formKey = [...fields, ...advancedFields]
+    .map((field) => `${field.name}:${field.value}`)
+    .join("|");
+
   return (
     <section
       aria-label={label}
@@ -132,7 +138,7 @@ export function FilterBar({
         className,
       )}
     >
-      <AutoSubmitForm action={action} className="space-y-3">
+      <AutoSubmitForm key={formKey} action={action} className="space-y-3">
         <p className="flex items-center gap-2 text-sm font-medium text-foreground">
           <SlidersHorizontal
             className="size-4 text-brand-green-700"

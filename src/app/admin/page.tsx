@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { KpiDashboard } from "@/components/dashboard/kpi-dashboard";
+import { PageContainer } from "@/components/shell/page-container";
 import { PageHeader } from "@/components/shell/page-header";
 import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { Button } from "@/components/ui/button";
@@ -32,7 +33,7 @@ export default async function AdminHomePage({
   redirectDashboardView("/admin", params);
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         title="Ringkasan"
         description="Capaian periode yang hanya dihitung dari konten disetujui, antrean validasi, dan kualitas keputusan admin."
@@ -46,7 +47,7 @@ export default async function AdminHomePage({
       <Suspense fallback={<PageSkeleton label="Memuat dasbor…" />}>
         <AdminHomeBody user={user} filters={filters} />
       </Suspense>
-    </div>
+    </PageContainer>
   );
 }
 

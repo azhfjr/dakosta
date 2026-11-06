@@ -12,6 +12,7 @@ import {
   CLIENT_STATE,
   REGIONAL_STATE,
   baseURL,
+  sameOriginHeaders,
 } from "./support";
 
 type ApiEnvelope<T> = {
@@ -50,7 +51,10 @@ async function postJson<T>(
   path: string,
   data: unknown,
 ): Promise<{ status: number; body: ApiEnvelope<T>; text: string }> {
-  const response = await context.post(path, { data });
+  const response = await context.post(path, {
+    data,
+    headers: sameOriginHeaders,
+  });
   const text = await response.text();
   let body: ApiEnvelope<T> = {};
   try {
@@ -64,6 +68,7 @@ async function postJson<T>(
 async function confirmStepUp(context: APIRequestContext): Promise<void> {
   const response = await context.post("/api/v1/me/step-up", {
     data: { password: demoPassword() },
+    headers: sameOriginHeaders,
   });
   expect(response.status(), await response.text()).toBe(200);
 }

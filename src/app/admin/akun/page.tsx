@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 
 import { AccountManager } from "@/components/accounts/account-manager";
+import { PageContainer } from "@/components/shell/page-container";
+import { PageHeader } from "@/components/shell/page-header";
 import { listAccounts, listScopeOptions } from "@/lib/accounts";
 import { requireRole } from "@/lib/session";
 
@@ -18,17 +20,11 @@ export default async function AdminAccountsPage() {
   ]);
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Akun & akses
-        </h1>
-        <p className="mt-1 max-w-2xl text-sm text-ink-muted">
-          Kelola akun empat peran, lingkup akses, reset kata sandi, dan
-          pencabutan sesi. Perubahan lingkup berlaku segera dan mencabut sesi
-          lama.
-        </p>
-      </header>
+    <PageContainer>
+      <PageHeader
+        title="Akun & akses"
+        description="Kelola akun empat peran, lingkup akses, reset kata sandi, dan pencabutan sesi. Perubahan lingkup berlaku segera dan mencabut sesi lama."
+      />
 
       <AccountManager
         accounts={accounts}
@@ -36,6 +32,6 @@ export default async function AdminAccountsPage() {
         currentUserId={admin.id}
         readOnly={admin.isDemo}
       />
-    </div>
+    </PageContainer>
   );
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { PageContainer } from "@/components/shell/page-container";
 import { PageHeader } from "@/components/shell/page-header";
 import { SlaQueue, type SlaTabKey } from "@/components/sla/sla-queue";
 import { Button } from "@/components/ui/button";
@@ -58,7 +59,7 @@ export default async function BranchSlaPage({
   ]);
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
+    <PageContainer>
       <PageHeader
         title="SLA Check cabang"
         description={`Antrean konten dari instansi di ${user.scopeLabel}. Anda dapat meninjau dan memutuskan konten cabang sendiri; SLA berakhir pada approval final.`}
@@ -91,6 +92,6 @@ export default async function BranchSlaPage({
         }}
         scopeLabel={user.scopeLabel}
       />
-    </div>
+    </PageContainer>
   );
 }

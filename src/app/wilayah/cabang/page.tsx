@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 
 import { BranchTable } from "@/components/hierarchy/branch-table";
+import { PageContainer } from "@/components/shell/page-container";
+import { PageHeader } from "@/components/shell/page-header";
 import { listBranches } from "@/lib/hierarchy";
 import { requireRole } from "@/lib/session";
 
@@ -15,21 +17,16 @@ export default async function RegionalBranchesPage() {
   const branches = await listBranches(user.scope);
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Cabang
-        </h1>
-        <p className="mt-1 max-w-2xl text-sm text-ink-muted">
-          Daftar cabang pada {user.scopeLabel} beserta jumlah organisasi,
-          Faskes, konten, dan reviewer cabang.
-        </p>
-      </header>
+    <PageContainer>
+      <PageHeader
+        title="Cabang"
+        description={`Daftar cabang pada ${user.scopeLabel} beserta jumlah organisasi, Faskes, konten, dan reviewer cabang.`}
+      />
       <BranchTable
         branches={branches}
         organizationBase="/wilayah/organisasi"
         showRegion={false}
       />
-    </div>
+    </PageContainer>
   );
 }

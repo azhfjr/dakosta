@@ -5,6 +5,8 @@ import { Download, FileText, PlusCircle } from "lucide-react";
 import { ContentTypeBadge } from "@/components/content/content-type-badge";
 import { StatusBadge } from "@/components/content/status-badge";
 import { FilterBar, type FilterField } from "@/components/filters/filter-bar";
+import { PageContainer } from "@/components/shell/page-container";
+import { PageHeader } from "@/components/shell/page-header";
 import { Button } from "@/components/ui/button";
 import { PLATFORM_LABEL, STATUS_LABEL } from "@/lib/content-status";
 import { formatDateId } from "@/lib/dates";
@@ -89,37 +91,32 @@ export default async function ClientContentListPage({
   ];
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Konten saya
-          </h1>
-          <p className="mt-1 text-sm text-ink-muted">
-            Seluruh konten stakeholder Anda, termasuk draf dan riwayat
-            keputusan.
-          </p>
-        </div>
-        <div className="flex flex-col items-start gap-2 sm:items-end">
-          <div className="flex flex-wrap gap-2">
-            <Button asChild variant="outline" className="h-11">
-              <a href={exportHref}>
-                <Download className="size-4" aria-hidden />
-                Ekspor CSV
-              </a>
-            </Button>
-            <Button asChild className="h-11">
-              <Link href="/client/lapor">
-                <PlusCircle className="size-4" aria-hidden />
-                Lapor konten
-              </Link>
-            </Button>
+    <PageContainer>
+      <PageHeader
+        title="Konten saya"
+        description="Seluruh konten stakeholder Anda, termasuk draf dan riwayat keputusan."
+        actions={
+          <div className="flex flex-col items-start gap-2 sm:items-end">
+            <div className="flex flex-wrap gap-2">
+              <Button asChild variant="outline" className="h-11">
+                <a href={exportHref}>
+                  <Download className="size-4" aria-hidden />
+                  Ekspor CSV
+                </a>
+              </Button>
+              <Button asChild className="h-11">
+                <Link href="/client/lapor">
+                  <PlusCircle className="size-4" aria-hidden />
+                  Lapor konten
+                </Link>
+              </Button>
+            </div>
+            <p className="text-xs text-ink-muted">
+              Ekspor mengikuti filter status dan sub-tema aktif.
+            </p>
           </div>
-          <p className="text-xs text-ink-muted">
-            Ekspor mengikuti filter status dan sub-tema aktif.
-          </p>
-        </div>
-      </header>
+        }
+      />
 
       <FilterBar
         action="/client/konten"
@@ -224,6 +221,6 @@ export default async function ClientContentListPage({
         capaian. Draf, konten yang ditolak, perlu revisi, dicabut, atau
         diarsipkan tidak menambah angka.
       </p>
-    </div>
+    </PageContainer>
   );
 }

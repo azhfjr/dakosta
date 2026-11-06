@@ -6,6 +6,7 @@ import { and, count, eq } from "drizzle-orm";
 import { Info, PlusCircle, RotateCcw } from "lucide-react";
 
 import { KpiDashboard } from "@/components/dashboard/kpi-dashboard";
+import { PageContainer } from "@/components/shell/page-container";
 import { PageHeader } from "@/components/shell/page-header";
 import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { Button } from "@/components/ui/button";
@@ -53,7 +54,7 @@ export default async function ClientHomePage({
   }
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         title={`Beranda ${user.name}`}
         description="Capaian konten organisasi Anda, dihitung hanya dari konten yang telah disetujui reviewer cabang. Dasar tanggal default adalah tanggal konten."
@@ -70,7 +71,7 @@ export default async function ClientHomePage({
       <Suspense fallback={<PageSkeleton label="Memuat dasbor…" />}>
         <ClientHomeBody user={user} filters={filters} />
       </Suspense>
-    </div>
+    </PageContainer>
   );
 }
 

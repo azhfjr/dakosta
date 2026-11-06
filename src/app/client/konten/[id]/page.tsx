@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { StatusBadge } from "@/components/content/status-badge";
+import { PageContainer } from "@/components/shell/page-container";
 import { Button } from "@/components/ui/button";
 import { PLATFORM_LABEL } from "@/lib/content-status";
 import { formatDateId, formatDateTimeId } from "@/lib/dates";
@@ -48,7 +49,7 @@ export default async function ClientContentDetailPage({
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6">
+    <PageContainer>
       <div>
         <Link
           href="/client/konten"
@@ -301,6 +302,6 @@ export default async function ClientContentDetailPage({
           ) : null}
         </aside>
       </div>
-    </div>
+    </PageContainer>
   );
 }

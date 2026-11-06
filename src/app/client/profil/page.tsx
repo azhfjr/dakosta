@@ -3,6 +3,8 @@ import Link from "next/link";
 import { KeyRound, Mail, ShieldCheck, UserRound } from "lucide-react";
 import { inArray } from "drizzle-orm";
 
+import { PageContainer } from "@/components/shell/page-container";
+import { PageHeader } from "@/components/shell/page-header";
 import { Button } from "@/components/ui/button";
 import { getDb, schema } from "@/db";
 import { STATUS_TONE } from "@/lib/content-status";
@@ -37,15 +39,11 @@ export default async function ClientProfilePage() {
       : [];
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Profil
-        </h1>
-        <p className="mt-1 text-sm text-ink-muted">
-          Identitas akun, stakeholder yang Anda wakili, dan pengaturan keamanan.
-        </p>
-      </header>
+    <PageContainer width="narrow">
+      <PageHeader
+        title="Profil"
+        description="Identitas akun, stakeholder yang Anda wakili, dan pengaturan keamanan."
+      />
 
       <section
         aria-labelledby="akun-title"
@@ -184,6 +182,6 @@ export default async function ClientProfilePage() {
         Akun ini tidak menyimpan data pasien, NIK, atau nomor JKN. DAKOSTA
         adalah proyek independen.
       </p>
-    </div>
+    </PageContainer>
   );
 }

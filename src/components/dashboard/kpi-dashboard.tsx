@@ -24,6 +24,7 @@ import {
 import { DashboardMapSection } from "@/components/dashboard/dashboard-map";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { FilterBar, type FilterField } from "@/components/filters/filter-bar";
+import { PageHeader } from "@/components/shell/page-header";
 import { Button } from "@/components/ui/button";
 import type { DashboardAnalytics } from "@/lib/analytics/charts";
 import { PLATFORM_LABEL } from "@/lib/content-status";
@@ -397,24 +398,20 @@ export function KpiDashboard({
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
+    <div className="space-y-6">
       {hideHeader ? null : (
-        <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-              {title}
-            </h1>
-            <p className="mt-1 max-w-2xl text-sm text-ink-muted">
-              {description}
-            </p>
-          </div>
-          <div className="flex flex-col items-start gap-2 sm:items-end">
-            {headerActions}
-            <p className="text-xs text-ink-muted">
-              Diperbarui {formatDateTimeId(overview.generatedAt)} WIB
-            </p>
-          </div>
-        </header>
+        <PageHeader
+          title={title}
+          description={description}
+          actions={
+            <div className="flex flex-col items-start gap-2 sm:items-end">
+              {headerActions}
+              <p className="text-xs text-ink-muted">
+                Diperbarui {formatDateTimeId(overview.generatedAt)} WIB
+              </p>
+            </div>
+          }
+        />
       )}
 
       {notice}

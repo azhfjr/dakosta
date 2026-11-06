@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 import { OrganizationTable } from "@/components/hierarchy/organization-table";
 import { FilterBar, type FilterField } from "@/components/filters/filter-bar";
+import { PageContainer } from "@/components/shell/page-container";
+import { PageHeader } from "@/components/shell/page-header";
 import { getFilterOptions } from "@/lib/filters/options";
 import { firstParam, parseFilterUuid } from "@/lib/filters/query";
 import { listOrganizations } from "@/lib/hierarchy";
@@ -39,16 +41,11 @@ export default async function RegionalOrganizationsPage({
   ];
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Organisasi
-        </h1>
-        <p className="mt-1 max-w-2xl text-sm text-ink-muted">
-          Direktori Faskes, pemerintah daerah, dan organisasi lain pada{" "}
-          {user.scopeLabel}. Kode Faskes ternormalisasi dan unik per jenis.
-        </p>
-      </header>
+    <PageContainer>
+      <PageHeader
+        title="Organisasi"
+        description={`Direktori Faskes, pemerintah daerah, dan organisasi lain pada ${user.scopeLabel}. Kode Faskes ternormalisasi dan unik per jenis.`}
+      />
       <FilterBar
         action="/wilayah/organisasi"
         label="Filter organisasi"
@@ -62,6 +59,6 @@ export default async function RegionalOrganizationsPage({
         organizations={organizations}
         contentBase="/wilayah/konten"
       />
-    </div>
+    </PageContainer>
   );
 }

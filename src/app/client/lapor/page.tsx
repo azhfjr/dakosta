@@ -7,6 +7,8 @@ import {
   SubmissionWizard,
   type SubmissionWizardInitial,
 } from "@/components/forms/submission-wizard";
+import { PageContainer } from "@/components/shell/page-container";
+import { PageHeader } from "@/components/shell/page-header";
 import { Button } from "@/components/ui/button";
 import { getDb, schema } from "@/db";
 import { jakartaToday } from "@/lib/dates";
@@ -139,23 +141,22 @@ export default async function ReportContentPage({
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-6">
-      <header className="space-y-2">
-        <p className="text-sm text-ink-muted">
-          <Link href="/client" className="underline-offset-4 hover:underline">
-            Beranda
-          </Link>{" "}
-          / {initial ? "Perbaiki konten" : "Lapor konten"}
-        </p>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          {initial ? "Perbaiki konten" : "Lapor konten kolaborasi"}
-        </h1>
-        <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">
-          {initial
+    <PageContainer width="narrow">
+      <p className="text-sm text-ink-muted">
+        <Link href="/client" className="underline-offset-4 hover:underline">
+          Beranda
+        </Link>{" "}
+        / {initial ? "Perbaiki konten" : "Lapor konten"}
+      </p>
+
+      <PageHeader
+        title={initial ? "Perbaiki konten" : "Lapor konten kolaborasi"}
+        description={
+          initial
             ? "Perbarui konten sesuai catatan reviewer, lalu kirim ulang untuk validasi. Capaian belum dihitung sampai konten disetujui."
-            : "Lengkapi tautan, narasi, dan tema konten. Reviewer cabang akan memvalidasi sebelum konten dihitung sebagai capaian. Jangan memuat data pribadi, nomor identitas, atau rekam medis."}
-        </p>
-      </header>
+            : "Lengkapi tautan, narasi, dan tema konten. Reviewer cabang akan memvalidasi sebelum konten dihitung sebagai capaian. Jangan memuat data pribadi, nomor identitas, atau rekam medis."
+        }
+      />
 
       {initialError ? (
         <div className="rounded-xl border border-status-rejected/30 bg-status-rejected/5 p-5">
@@ -229,6 +230,6 @@ export default async function ReportContentPage({
           <li>Konten yang ditolak atau perlu revisi tidak menambah capaian.</li>
         </ul>
       </section>
-    </div>
+    </PageContainer>
   );
 }

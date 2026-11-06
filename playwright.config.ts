@@ -8,7 +8,9 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   retries: 0,
-  timeout: 90_000,
+  // Turbopack compiles routes on first request in dev mode; the first visit
+  // to a page can exceed a tight per-test limit on slow CI machines.
+  timeout: 180_000,
   expect: { timeout: 10_000 },
   reporter: [["list"]],
   globalSetup: "./e2e/global-setup.ts",

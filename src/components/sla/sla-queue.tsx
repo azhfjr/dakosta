@@ -122,12 +122,12 @@ export function SlaQueue({
         className="rounded-xl border border-border bg-surface p-4 shadow-sm"
       >
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex items-start gap-3">
+          <div className="flex min-w-0 items-start gap-3">
             <ShieldCheck
               className="mt-0.5 size-5 shrink-0 text-brand-teal-700"
               aria-hidden
             />
-            <div>
+            <div className="min-w-0">
               <h2 className="text-sm font-semibold text-foreground">
                 Kebijakan SLA aktif
               </h2>
@@ -345,7 +345,7 @@ export function SlaQueue({
         )}
 
         {queue.pageCount > 1 ? (
-          <div className="flex items-center justify-between border-t border-border px-4 py-3">
+          <div className="flex flex-col gap-3 border-t border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-ink-muted">
               Menampilkan{" "}
               {formatNumberId((queue.page - 1) * queue.pageSize + 1)}–
@@ -354,7 +354,7 @@ export function SlaQueue({
               )}{" "}
               dari {formatNumberId(queue.total)}
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {queue.page > 1 ? (
                 <Button asChild variant="outline" size="sm">
                   <Link

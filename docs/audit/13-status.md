@@ -1,15 +1,39 @@
 # D13 — Status Jujur
 
-**Diperbarui:** 2026-11-02 (deploy produksi v1.1 + perluasan dataset demo). Baseline `51c92be`, branch `fix/all-features-hardening`.
+**Diperbarui:** 2026-11-07 (remediasi audit v2, branch `fix/all-features-hardening`, HEAD `599502c` + perubahan F5). Dokumen ini memisahkan **status terkini pasca-remediasi** dari **baseline rilis v1.1 (historis)**. Setiap angka menyebut artefak dan waktunya; angka tanpa artefak tidak dipakai.
 
 Label: DONE (bukti lulus), PARTIAL (sebagian), BLOCKED, NOT RUN.
+
+## Status terkini — remediasi audit v2 (2026-11-07)
+
+Fase F0–F4 sudah di-commit (`4607b9f`, `b57a7ce`, `edcba20`, `dde0234`, `599502c`); F5 (desain, spacing, a11y) diverifikasi di bawah ini. Seluruh perintah dijalankan lokal pada **staging** (`dakosta_staging`), bukan produksi.
+
+| Area                       | Status                    | Angka terverifikasi                                                                                              | Artefak / waktu                                 |
+| -------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| Lint                       | DONE (PASS)               | exit 0                                                                                                           | `npm run lint`, 2026-11-07 02:48                |
+| Typecheck                  | DONE (PASS)               | exit 0                                                                                                           | `npm run typecheck`, 2026-11-07 02:48           |
+| Unit/integration           | DONE (171/171 PASS)       | 27 berkas, 171 tes, 8,65 dtk                                                                                     | `npm test`, 2026-11-07 02:48                    |
+| Build produksi             | DONE (PASS)               | exit 0, `.next-verify` (staging env)                                                                             | `npm run build:verify`, 2026-11-07 02:43        |
+| E2E terfokus F5            | DONE (39/39 PASS)         | 5 spec: a11y, dashboard, konten, filters, navigation; 4,1 mnt; DB staging direset sebelum & sesudah run          | `.tmp-e2e-f5.log`, 2026-11-07 02:44–02:48       |
+| Axe WCAG 2.2 AA            | DONE (0 serious/critical) | 16 kunjungan axe (`wcag2a/2aa/21a/21aa/22aa`) di 4 peran: publik 2, Master 4, Wilayah 4, Cabang 4, Stakeholder 2 | `e2e/a11y.spec.ts` (test 1–5) pada run di atas  |
+| Reflow & overflow          | DONE (0 overflow)         | 320px: 11 kunjungan; matriks 640/768/1440: 24 kunjungan; ambang `scrollWidth - innerWidth ≤ 1`                   | `e2e/a11y.spec.ts` (test 6–13) pada run di atas |
+| Navigasi seluler           | DONE (PASS)               | 360px, menu Cabang terbuka                                                                                       | `e2e/a11y.spec.ts` (test 14) pada run di atas   |
+| Inventaris rute (terkini)  | DONE (dihitung ulang)     | 47 `route.ts` API, 56 handler, 33 handler mutasi                                                                 | hitung statis `find`/`grep`, 2026-11-07 02:37   |
+| Unit & E2E (jumlah berkas) | DONE (dihitung ulang)     | 27 berkas unit, 13 spec E2E                                                                                      | hitung statis, 2026-11-07 02:37                 |
+| Deploy produksi v2         | NOT RUN                   | Menunggu F6 (gate penuh + smoke) dan konfirmasi terpisah untuk backfill `is_demo` produksi                       | —                                               |
+
+Catatan metode: E2E F5 dijalankan terhadap **build produksi** (`build:verify` → `start:verify`, port 3400) dengan `PLAYWRIGHT_BASE_URL`. Mode dev Turbopack sempat masuk loop rebuild/HMR setelah proses dev dimatikan paksa (cache `.next-e2e` korup); menghapus cache memulihkannya, tetapi build produksi dipakai agar hasil gate deterministik dan setara rilis.
+
+## Baseline rilis v1.1 (historis, 2026-11-02)
+
+Angka di bawah mendeskripsikan rilis v1.1 dan **tidak** berlaku untuk kondisi pasca-remediasi. Baseline `51c92be`; artefak tersimpan di `docs/audit/v2-audit-2026-11/evidence/` dan `backups/`.
 
 | Area                                 | Status                                 | Bukti                                                                                                                                                                                                                                             |
 | ------------------------------------ | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Audit statis D1–D13                  | DONE                                   | `docs/audit/**`                                                                                                                                                                                                                                   |
 | Lint                                 | DONE (PASS)                            | `npm run lint` → exit 0                                                                                                                                                                                                                           |
 | Typecheck                            | DONE (PASS)                            | `npx tsc --noEmit` → exit 0                                                                                                                                                                                                                       |
-| Unit/integration                     | DONE (120/120 PASS)                    | `npm test` → 19 berkas, 120 tes (termasuk fixture 2.400 konten dan seed PGlite)                                                                                                                                                                   |
+| Unit/integration                     | DONE (120/120 PASS)                    | `npm test` → 19 berkas, 120 tes (termasuk fixture 2.400 konten dan seed PGlite); register `E-05`                                                                                                                                                  |
 | Dataset demo produksi (2.400 konten) | DONE (produksi terverifikasi)          | Seed `E-seed-demo-production-2026-11-01T22-36-40Z.log`; verify DB+HTTP `E-verify-demo-production-2026-11-01T22-38-04Z.log`; smoke 21/21 `E-smoke-production-2026-11-01T22-38-54-291Z.json`; spot-check G7 `E-spot-check-2026-11-01T22-40-37Z.log` |
 | Format                               | DONE (PASS)                            | `npm run format:check` → semua berkas sesuai                                                                                                                                                                                                      |
 | Build produksi                       | DONE (PASS)                            | `npm run build:verify` → `.next-verify`                                                                                                                                                                                                           |
@@ -19,7 +43,7 @@ Label: DONE (bukti lulus), PARTIAL (sebagian), BLOCKED, NOT RUN.
 | Load 50 VU/5m (100k)                 | GAGAL pada build rilis `85feaa9`       | `E-load-read-2026-11-01T13-50-18-420Z.json` → p95 4.021 ms; lulus 09:33 pada build pra-rilis (p95 1.867 ms)                                                                                                                                       |
 | Load 200/500 VU, soak                | GAGAL — dijalankan pada jaringan rusak | `E-load-soak-2026-11-01T15-23-52-009Z.json` (200 VU, p95 14,9 dtk, 78.111 error, 0 5xx); `E-load-export-2026-11-01T15-29-54-279Z.json`                                                                                                            |
 | Query plan (4 skenario)              | DONE (PASS)                            | `E-explain-*-2026-11-01T11-12-*.json`                                                                                                                                                                                                             |
-| Rekonsiliasi angka                   | DONE (PASS)                            | `platform.spec.ts` rekonsiliasi + smoke produksi                                                                                                                                                                                                  |
+| Rekonsiliasi angka                   | DONE (PASS)                            | `platform.spec.ts` rekonsiliasi + smoke produksi; register `E-19`                                                                                                                                                                                 |
 | `npm audit --omit=dev`               | DONE (0 kerentanan)                    | `npm audit --omit=dev` → found 0 vulnerabilities                                                                                                                                                                                                  |
 | Migrasi aditif 0004/0005             | DONE (PASS)                            | 30 DDL tanpa DROP/TRUNCATE/DELETE; reheasal staging tercatat                                                                                                                                                                                      |
 | Deploy produksi                      | DONE (di-override pengguna)            | `dpl_ub12np1amRNyc5V5Np7LePXG4wqt`; smoke 21/21 `E-smoke-production-2026-11-01T17-37-35-067Z.json`                                                                                                                                                |
@@ -97,6 +121,19 @@ Karena probe **5 VU** pun gagal sementara tidak ada 5xx dan basis data menganggu
 - Smoke produksi 21/21 `E-smoke-production-2026-11-01T22-38-54-291Z.json`, termasuk rekonsiliasi dashboard = Kinerja = CSV.
 - Spot-check G7 `E-spot-check-2026-11-01T22-40-37Z.log`: master 40/60, 40/40, 60/59; target 27 baris; CSV regional 9 baris, cabang 3 baris; stakeholder 2/3, 2/3, 3/2; semua halaman 200.
 - Tidak ada perubahan kode runtime aplikasi, deploy, atau variabel environment.
+
+## Temuan ditunda (keputusan pengguna, 2026-11-07)
+
+Enam temuan audit v2 sengaja tidak dikerjakan pada remediasi ini dan tetap tercatat di roadmap:
+
+| Temuan  | Alasan penundaan                                      | Rujukan roadmap                 |
+| ------- | ----------------------------------------------------- | ------------------------------- |
+| FND-006 | Enkripsi backup butuh manajemen kunci terpisah        | `06-remediation-roadmap.md` R14 |
+| FND-008 | CI/SAST/SBOM/observability di luar repo tanpa remote  | `06-remediation-roadmap.md` R16 |
+| FND-015 | CSP nonce mengubah header global                      | `06-remediation-roadmap.md` R20 |
+| FND-017 | Redesain SSE/kuota butuh arsitektur worker            | `06-remediation-roadmap.md` R18 |
+| FND-018 | Penghapusan API tanpa konsumen perlu keputusan produk | `06-remediation-roadmap.md` R21 |
+| FND-019 | Retensi data butuh kebijakan retensi                  | `06-remediation-roadmap.md` R19 |
 
 ## Risiko tersisa
 

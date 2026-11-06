@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { RegionEditor } from "@/components/hierarchy/hierarchy-editors";
+import { PageContainer } from "@/components/shell/page-container";
+import { PageHeader } from "@/components/shell/page-header";
 import { formatNumberId } from "@/lib/dates";
 import { listRegions } from "@/lib/hierarchy";
 import { requireRole } from "@/lib/session";
@@ -17,20 +19,12 @@ export default async function AdminRegionsPage() {
   const regions = await listRegions(admin.scope);
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Wilayah
-          </h1>
-          <p className="mt-1 max-w-2xl text-sm text-ink-muted">
-            Struktur wilayah DAKOSTA beserta jumlah cabang, organisasi, dan
-            capaian kontennya. Data mengikuti hierarki region → branch →
-            organization.
-          </p>
-        </div>
-        <RegionEditor readOnly={admin.isDemo} />
-      </header>
+    <PageContainer>
+      <PageHeader
+        title="Wilayah"
+        description="Struktur wilayah DAKOSTA beserta jumlah cabang, organisasi, dan capaian kontennya. Data mengikuti hierarki region → branch → organization."
+        actions={<RegionEditor readOnly={admin.isDemo} />}
+      />
 
       {admin.isDemo ? (
         <p className="rounded-xl border border-brand-blue-500/25 bg-brand-blue-100/40 px-4 py-3 text-sm text-brand-blue-900">
@@ -135,6 +129,6 @@ export default async function AdminRegionsPage() {
           </table>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

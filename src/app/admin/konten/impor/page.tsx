@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { BookOpen, FileSpreadsheet, ShieldCheck } from "lucide-react";
 
 import { ContentImportWizard } from "@/components/imports/content-import-wizard";
+import { PageContainer } from "@/components/shell/page-container";
 import { PageHeader } from "@/components/shell/page-header";
 import {
   CONTENT_IMPORT_MAX_ROWS,
@@ -99,7 +100,7 @@ export default async function AdminContentImportPage() {
   const admin = await requireRole("ADMIN");
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6">
+    <PageContainer>
       <PageHeader
         eyebrow="Master Admin"
         title="Impor konten massal"
@@ -221,6 +222,6 @@ export default async function AdminContentImportPage() {
           duplikasi.
         </p>
       </section>
-    </div>
+    </PageContainer>
   );
 }

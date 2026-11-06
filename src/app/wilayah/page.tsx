@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { PageContainer } from "@/components/shell/page-container";
 import { PageHeader } from "@/components/shell/page-header";
 import { SlaQueue, type SlaTabKey } from "@/components/sla/sla-queue";
 import { Button } from "@/components/ui/button";
@@ -58,7 +59,7 @@ export default async function RegionalSlaPage({
   ]);
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
+    <PageContainer>
       <PageHeader
         title="SLA Check wilayah"
         description={`Pantau antrean, usia, dan status keputusan konten di ${user.scopeLabel}. Kedeputian bersifat baca-saja: keputusan tetap dilakukan Admin Cabang.`}
@@ -92,6 +93,6 @@ export default async function RegionalSlaPage({
         scopeLabel={user.scopeLabel}
         readOnlyNote="Mode pantau: tindakan approval/revisi hanya untuk Admin Cabang."
       />
-    </div>
+    </PageContainer>
   );
 }

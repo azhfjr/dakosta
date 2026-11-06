@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { ApprovedContentTable } from "@/components/content/approved-content-table";
+import { PageContainer } from "@/components/shell/page-container";
 import { PageHeader } from "@/components/shell/page-header";
 import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { listAnalyticsContents } from "@/lib/analytics/content-table";
@@ -29,7 +30,7 @@ export default async function RegionalContentPage({
   const filters = parseKontenFilters(params);
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
+    <PageContainer>
       <PageHeader
         title="Konten disetujui"
         eyebrow="Admin Wilayah"
@@ -39,7 +40,7 @@ export default async function RegionalContentPage({
       <Suspense fallback={<PageSkeleton label="Memuat konten disetujui…" />}>
         <RegionalContentBody user={user} filters={filters} />
       </Suspense>
-    </div>
+    </PageContainer>
   );
 }
 

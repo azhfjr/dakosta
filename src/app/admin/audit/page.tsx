@@ -3,6 +3,8 @@ import Link from "next/link";
 import { ScrollText } from "lucide-react";
 
 import { FilterBar, type FilterField } from "@/components/filters/filter-bar";
+import { PageContainer } from "@/components/shell/page-container";
+import { PageHeader } from "@/components/shell/page-header";
 import { Button } from "@/components/ui/button";
 import { formatDateTimeId, formatNumberId } from "@/lib/dates";
 import { buildFilterHref, firstParam } from "@/lib/filters/query";
@@ -68,16 +70,11 @@ export default async function AdminAuditPage({
   ];
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Jejak audit
-        </h1>
-        <p className="mt-1 max-w-2xl text-sm text-ink-muted">
-          Catatan tindakan administratif dan keputusan validasi. Metadata
-          disimpan tanpa kredensial atau data pribadi.
-        </p>
-      </header>
+    <PageContainer>
+      <PageHeader
+        title="Jejak audit"
+        description="Catatan tindakan administratif dan keputusan validasi. Metadata disimpan tanpa kredensial atau data pribadi."
+      />
 
       <FilterBar
         action="/admin/audit"
@@ -251,6 +248,6 @@ export default async function AdminAuditPage({
           </div>
         ) : null}
       </section>
-    </div>
+    </PageContainer>
   );
 }

@@ -6,6 +6,8 @@ import { TargetManager } from "@/components/admin/target-manager";
 import { TargetSyncPanel } from "@/components/admin/target-sync-panel";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { FilterBar, type FilterField } from "@/components/filters/filter-bar";
+import { PageContainer } from "@/components/shell/page-container";
+import { PageHeader } from "@/components/shell/page-header";
 import { Button } from "@/components/ui/button";
 import { formatDateTimeId, formatNumberId } from "@/lib/dates";
 import { getFilterOptions } from "@/lib/filters/options";
@@ -73,21 +75,12 @@ export default async function AdminTargetPage({
   ];
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Target periode
-          </h1>
-          <p className="mt-1 max-w-2xl text-sm text-ink-muted">
-            Target capaian yang ditetapkan per periode. Capaian hanya dihitung
-            dari konten disetujui berdasarkan tanggal disetujui.
-          </p>
-        </div>
-        <p className="text-xs text-ink-muted">
-          Diperbarui {formatDateTimeId(new Date())} WIB
-        </p>
-      </header>
+    <PageContainer>
+      <PageHeader
+        title="Target periode"
+        description="Target capaian yang ditetapkan per periode. Capaian hanya dihitung dari konten disetujui berdasarkan tanggal disetujui."
+        meta={`Diperbarui ${formatDateTimeId(new Date())} WIB`}
+      />
 
       <FilterBar
         action="/admin/target"
@@ -177,6 +170,6 @@ export default async function AdminTargetPage({
           </div>
         </nav>
       ) : null}
-    </div>
+    </PageContainer>
   );
 }

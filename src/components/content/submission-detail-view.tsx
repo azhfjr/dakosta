@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { StatusBadge } from "@/components/content/status-badge";
+import { PageContainer } from "@/components/shell/page-container";
 import { Button } from "@/components/ui/button";
 import { STATUS_LABEL, PLATFORM_LABEL } from "@/lib/content-status";
 import { formatDateId, formatDateTimeId } from "@/lib/dates";
@@ -77,7 +78,7 @@ export function SubmissionDetailView({
     : null;
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
+    <PageContainer>
       <div className="flex items-center gap-2 text-sm text-ink-muted">
         <Button asChild variant="ghost" size="sm" className="-ml-2 h-8">
           <Link href={backHref}>
@@ -366,7 +367,7 @@ export function SubmissionDetailView({
 
         {aside ?? null}
       </div>
-    </div>
+    </PageContainer>
   );
 }
 

@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { OrganizationEditor } from "@/components/hierarchy/hierarchy-editors";
 import { OrganizationTable } from "@/components/hierarchy/organization-table";
 import { FilterBar, type FilterField } from "@/components/filters/filter-bar";
+import { PageContainer } from "@/components/shell/page-container";
+import { PageHeader } from "@/components/shell/page-header";
 import { getFilterOptions } from "@/lib/filters/options";
 import { firstParam, parseFilterUuid } from "@/lib/filters/query";
 import { listOrganizations } from "@/lib/hierarchy";
@@ -42,22 +44,17 @@ export default async function AdminOrganizationsPage({
   ];
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Organisasi
-          </h1>
-          <p className="mt-1 max-w-2xl text-sm text-ink-muted">
-            Direktori Faskes FKTP/FKRTL, pemerintah daerah, dan organisasi lain.
-            Kode Faskes ternormalisasi dan unik untuk organisasi aktif.
-          </p>
-        </div>
-        <OrganizationEditor
-          branches={hierarchy.branches}
-          readOnly={admin.isDemo}
-        />
-      </header>
+    <PageContainer>
+      <PageHeader
+        title="Organisasi"
+        description="Direktori Faskes FKTP/FKRTL, pemerintah daerah, dan organisasi lain. Kode Faskes ternormalisasi dan unik untuk organisasi aktif."
+        actions={
+          <OrganizationEditor
+            branches={hierarchy.branches}
+            readOnly={admin.isDemo}
+          />
+        }
+      />
 
       {admin.isDemo ? (
         <p className="rounded-xl border border-brand-blue-500/25 bg-brand-blue-100/40 px-4 py-3 text-sm text-brand-blue-900">
@@ -81,6 +78,6 @@ export default async function AdminOrganizationsPage({
         editorBranches={hierarchy.branches}
         readOnly={admin.isDemo}
       />
-    </div>
+    </PageContainer>
   );
 }

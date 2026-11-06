@@ -5,6 +5,8 @@ import { FileText } from "lucide-react";
 import { ContentTypeBadge } from "@/components/content/content-type-badge";
 import { StatusBadge } from "@/components/content/status-badge";
 import { FilterBar, type FilterField } from "@/components/filters/filter-bar";
+import { PageContainer } from "@/components/shell/page-container";
+import { PageHeader } from "@/components/shell/page-header";
 import { Button } from "@/components/ui/button";
 import { formatDateId, formatDateTimeId, formatNumberId } from "@/lib/dates";
 import {
@@ -129,23 +131,12 @@ export default async function AdminContentPage({
   ];
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Semua konten
-          </h1>
-          <p className="mt-1 max-w-2xl text-sm text-ink-muted">
-            Arsip seluruh konten lintas stakeholder beserta status dan versi
-            terakhirnya. Hanya status Disetujui yang dihitung dalam capaian.
-          </p>
-        </div>
-        <div className="flex flex-col items-start gap-2 sm:items-end">
-          <p className="text-xs text-ink-muted">
-            {formatNumberId(total)} konten tersimpan
-          </p>
-        </div>
-      </header>
+    <PageContainer>
+      <PageHeader
+        title="Semua konten"
+        description="Arsip seluruh konten lintas stakeholder beserta status dan versi terakhirnya. Hanya status Disetujui yang dihitung dalam capaian."
+        meta={`${formatNumberId(total)} konten tersimpan`}
+      />
 
       <FilterBar
         action="/admin/konten"
@@ -287,6 +278,6 @@ export default async function AdminContentPage({
           </div>
         )}
       </section>
-    </div>
+    </PageContainer>
   );
 }

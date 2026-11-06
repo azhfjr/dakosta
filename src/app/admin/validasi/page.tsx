@@ -12,6 +12,8 @@ import { ContentTypeBadge } from "@/components/content/content-type-badge";
 import { StatusBadge } from "@/components/content/status-badge";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { FilterBar, type FilterField } from "@/components/filters/filter-bar";
+import { PageContainer } from "@/components/shell/page-container";
+import { PageHeader } from "@/components/shell/page-header";
 import { Button } from "@/components/ui/button";
 import { formatDateTimeId, formatNumberId } from "@/lib/dates";
 import { PLATFORM_LABEL } from "@/lib/content-status";
@@ -154,22 +156,12 @@ export default async function ReviewQueuePage({
   ];
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Antrean validasi
-          </h1>
-          <p className="mt-1 max-w-2xl text-sm text-ink-muted">
-            Tinjau konten yang dikirim stakeholder. Antrean diurutkan dari
-            pengiriman paling lama. Hanya konten yang disetujui yang dihitung
-            dalam capaian.
-          </p>
-        </div>
-        <p className="text-xs text-ink-muted">
-          Diperbarui {formatDateTimeId(queue.generatedAt)} WIB
-        </p>
-      </header>
+    <PageContainer>
+      <PageHeader
+        title="Antrean validasi"
+        description="Tinjau konten yang dikirim stakeholder. Antrean diurutkan dari pengiriman paling lama. Hanya konten yang disetujui yang dihitung dalam capaian."
+        meta={`Diperbarui ${formatDateTimeId(queue.generatedAt)} WIB`}
+      />
 
       <section
         aria-label="Ringkasan antrean"
@@ -386,6 +378,6 @@ export default async function ReviewQueuePage({
           </div>
         ) : null}
       </section>
-    </div>
+    </PageContainer>
   );
 }

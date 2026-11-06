@@ -6,6 +6,8 @@ import { MapExplorer } from "@/components/map/map-explorer";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { StatusBadge } from "@/components/content/status-badge";
 import { FilterBar, type FilterField } from "@/components/filters/filter-bar";
+import { PageContainer } from "@/components/shell/page-container";
+import { PageHeader } from "@/components/shell/page-header";
 import { Button } from "@/components/ui/button";
 import { formatDateTimeId, formatNumberId } from "@/lib/dates";
 import { getFilterOptions } from "@/lib/filters/options";
@@ -72,22 +74,12 @@ export default async function AdminMapPage({
   ];
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Peta sebaran konten
-          </h1>
-          <p className="mt-1 max-w-2xl text-sm text-ink-muted">
-            Bandingkan lokasi konten yang dilaporkan dengan lokasi stakeholder
-            terdaftar. Lokasi berpresisi rendah ditampilkan sebagai cincin untuk
-            menandakan perkiraan.
-          </p>
-        </div>
-        <p className="text-xs text-ink-muted">
-          Diperbarui {formatDateTimeId(overview.generatedAt)} WIB
-        </p>
-      </header>
+    <PageContainer>
+      <PageHeader
+        title="Peta sebaran konten"
+        description="Bandingkan lokasi konten yang dilaporkan dengan lokasi stakeholder terdaftar. Lokasi berpresisi rendah ditampilkan sebagai cincin untuk menandakan perkiraan."
+        meta={`Diperbarui ${formatDateTimeId(overview.generatedAt)} WIB`}
+      />
 
       <section
         aria-label="Ringkasan sebaran"
@@ -272,6 +264,6 @@ export default async function AdminMapPage({
         </code>
         ). Koordinat menandai lokasi organisasi, bukan lokasi pribadi.
       </p>
-    </div>
+    </PageContainer>
   );
 }

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { History } from "lucide-react";
 
 import { ImportWizard } from "@/components/imports/import-wizard";
+import { PageContainer } from "@/components/shell/page-container";
+import { PageHeader } from "@/components/shell/page-header";
 import { formatDateTimeId, formatNumberId } from "@/lib/dates";
 import { listImports } from "@/lib/imports/accounts";
 import { requireRole } from "@/lib/session";
@@ -17,16 +19,11 @@ export default async function AdminImportPage() {
   const history = await listImports(10);
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Impor akun massal
-        </h1>
-        <p className="mt-1 max-w-2xl text-sm text-ink-muted">
-          Pratinjau, validasi, lalu buat akun dalam satu langkah. Setiap baris
-          menghasilkan kata sandi sementara yang hanya ditampilkan sekali.
-        </p>
-      </header>
+    <PageContainer>
+      <PageHeader
+        title="Impor akun massal"
+        description="Pratinjau, validasi, lalu buat akun dalam satu langkah. Setiap baris menghasilkan kata sandi sementara yang hanya ditampilkan sekali."
+      />
 
       <ImportWizard readOnly={admin.isDemo} />
 
@@ -96,6 +93,6 @@ export default async function AdminImportPage() {
           </div>
         )}
       </section>
-    </div>
+    </PageContainer>
   );
 }

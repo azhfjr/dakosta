@@ -6,6 +6,7 @@ import {
   baseURL,
   databaseTarget,
   DEMO_ROLES,
+  sameOriginHeaders,
   shouldResetDatabase,
   stateFor,
 } from "./support";
@@ -35,6 +36,7 @@ export default async function globalSetup(): Promise<void> {
     try {
       const response = await context.post("/api/v1/demo/login", {
         data: { role },
+        headers: sameOriginHeaders,
       });
       if (!response.ok()) {
         throw new Error(

@@ -3,15 +3,15 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 const widthClass = {
-  narrow: "max-w-3xl",
-  default: "max-w-6xl",
-  wide: "max-w-7xl",
+  narrow: "max-w-4xl",
+  default: "max-w-7xl",
+  wide: "max-w-[90rem]",
   full: "max-w-none",
 } as const;
 
 /**
- * Single page-width contract. `default` matches the reading width used by the
- * existing dashboards; `wide` is for tables and analytics grids.
+ * Single page-width contract: `default` for dashboards, tables, and forms;
+ * `narrow` for reading and settings pages; `wide` for dense full-width tables.
  */
 export function PageContainer({
   width = "default",

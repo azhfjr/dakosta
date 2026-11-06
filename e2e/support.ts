@@ -58,3 +58,12 @@ export const shouldResetDatabase =
   isLocalTarget(baseURL) && process.env.E2E_ALLOW_DB_RESET === "yes";
 
 export const databaseTarget = process.env.E2E_DB_TARGET ?? "staging";
+
+/**
+ * Browser mutations always carry Origin; Playwright's APIRequestContext does
+ * not, so same-origin guarded endpoints need these headers in tests.
+ */
+export const sameOriginHeaders = {
+  Origin: baseURL,
+  Referer: `${baseURL}/`,
+} as const;

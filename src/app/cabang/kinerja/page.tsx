@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { PerformanceTable } from "@/components/performance/performance-table";
+import { PageContainer } from "@/components/shell/page-container";
 import { PageHeader } from "@/components/shell/page-header";
 import { formatDateTimeId } from "@/lib/dates";
 import {
@@ -27,7 +28,7 @@ export default async function BranchPerformancePage({
   const table = await getPerformanceTable(user, filters);
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         title="Kinerja cabang"
         description={`Pencapaian approved per instansi di ${user.scopeLabel}. Target mengikuti kebijakan Master Admin; tabel, cetak, PDF, dan CSV memakai data, filter, serta otorisasi yang sama.`}
@@ -40,6 +41,6 @@ export default async function BranchPerformancePage({
         canExport={canCapability(user, "performance:export")}
         showBranchFilter={false}
       />
-    </div>
+    </PageContainer>
   );
 }

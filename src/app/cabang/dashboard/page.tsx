@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { KpiDashboard } from "@/components/dashboard/kpi-dashboard";
+import { PageContainer } from "@/components/shell/page-container";
 import { Button } from "@/components/ui/button";
 import { getDashboardAnalytics } from "@/lib/analytics/charts";
 import { getDashboardMap } from "@/lib/dashboard-map";
@@ -55,36 +56,38 @@ export default async function BranchHomePage({
     ]);
 
   return (
-    <KpiDashboard
-      overview={overview}
-      analytics={analytics}
-      role={user.role}
-      options={{
-        stakeholders: options.stakeholders,
-        subThemes: options.subThemes,
-      }}
-      basePath="/cabang/dashboard"
-      title="Dashboard cabang"
-      description={`Capaian dan antrean validasi untuk ${user.scopeLabel}. Anda hanya melihat konten organisasi pada cabang ini.`}
-      contentDetailBase="/cabang/konten"
-      alignment={
-        summary
-          ? {
-              ...summary,
-              periodKey: period.key,
-              periodLabel: period.label,
-            }
-          : null
-      }
-      map={map}
-      headerActions={
-        <Button asChild className="h-9">
-          <Link href="/cabang">
-            Buka SLA Check
-            {pendingCount > 0 ? ` (${pendingCount})` : ""}
-          </Link>
-        </Button>
-      }
-    />
+    <PageContainer>
+      <KpiDashboard
+        overview={overview}
+        analytics={analytics}
+        role={user.role}
+        options={{
+          stakeholders: options.stakeholders,
+          subThemes: options.subThemes,
+        }}
+        basePath="/cabang/dashboard"
+        title="Dashboard cabang"
+        description={`Capaian dan antrean validasi untuk ${user.scopeLabel}. Anda hanya melihat konten organisasi pada cabang ini.`}
+        contentDetailBase="/cabang/konten"
+        alignment={
+          summary
+            ? {
+                ...summary,
+                periodKey: period.key,
+                periodLabel: period.label,
+              }
+            : null
+        }
+        map={map}
+        headerActions={
+          <Button asChild className="h-9">
+            <Link href="/cabang">
+              Buka SLA Check
+              {pendingCount > 0 ? ` (${pendingCount})` : ""}
+            </Link>
+          </Button>
+        }
+      />
+    </PageContainer>
   );
 }

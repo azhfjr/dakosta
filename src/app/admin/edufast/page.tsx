@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 
 import { PolicyManager } from "@/components/edufast/policy-manager";
+import { PageContainer } from "@/components/shell/page-container";
+import { PageHeader } from "@/components/shell/page-header";
 import { formatDateTimeId } from "@/lib/dates";
 import { listPolicies, listPolicyEvents } from "@/lib/edufast/policy";
 import { requireRole } from "@/lib/session";
@@ -19,17 +21,11 @@ export default async function AdminEdufastPage() {
   ]);
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Kebijakan EDUFAST bulanan
-        </h1>
-        <p className="mt-1 max-w-2xl text-sm text-ink-muted">
-          Tetapkan sub-tema EDUFAST yang diizinkan per periode. Konten EDUFAST
-          hanya dapat dikirim bila kebijakan periode tanggal konten sudah
-          terbit. Non-EDUFAST tetap tersedia dengan enam sub-tema.
-        </p>
-      </header>
+    <PageContainer>
+      <PageHeader
+        title="Kebijakan EDUFAST bulanan"
+        description="Tetapkan sub-tema EDUFAST yang diizinkan per periode. Konten EDUFAST hanya dapat dikirim bila kebijakan periode tanggal konten sudah terbit. Non-EDUFAST tetap tersedia dengan enam sub-tema."
+      />
 
       <PolicyManager
         policies={policies.map((policy) => ({
@@ -50,6 +46,6 @@ export default async function AdminEdufastPage() {
           createdAtLabel: formatDateTimeId(event.createdAt),
         }))}
       />
-    </div>
+    </PageContainer>
   );
 }
