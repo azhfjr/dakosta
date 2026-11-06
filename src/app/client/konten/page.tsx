@@ -4,14 +4,17 @@ import { Download, FileText, PlusCircle } from "lucide-react";
 
 import { ContentTypeBadge } from "@/components/content/content-type-badge";
 import { StatusBadge } from "@/components/content/status-badge";
+import { FilterBar, type FilterField } from "@/components/filters/filter-bar";
 import { Button } from "@/components/ui/button";
-import {
-  CONTENT_STATUSES,
-  PLATFORM_LABEL,
-  STATUS_LABEL,
-  type ContentStatus,
-} from "@/lib/content-status";
+import { PLATFORM_LABEL, STATUS_LABEL } from "@/lib/content-status";
 import { formatDateId } from "@/lib/dates";
+import { getFilterOptions } from "@/lib/filters/options";
+import {
+  firstParam,
+  parseFilterSort,
+  parseFilterStatus,
+  parseFilterSubTheme,
+} from "@/lib/filters/query";
 import { requireRole } from "@/lib/session";
 import { listSubmissions } from "@/lib/submissions";
 
@@ -21,15 +24,14 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-function parseStatus(
-  value: string | string[] | undefined,
-): ContentStatus | undefined {
-  const raw = Array.isArray(value) ? value[0] : value;
-  if (!raw) return undefined;
-  return (CONTENT_STATUSES as readonly string[]).includes(raw)
-    ? (raw as ContentStatus)
-    : undefined;
-}
+const SORTS = ["updated", "created", "approved", "title"] as const;
+
+const SORT_LABELS: Record<(typeof SORTS)[number], string> = {
+  updated: "Terbaru diperbarui",
+  created: "Terbaru dibuat",
+  approved: "Terbaru disetujui",
+  title: "Judul A–Z",
+};
 
 export default async function ClientContentListPage({
   searchParams,
@@ -38,9 +40,53 @@ export default async function ClientContentListPage({
 }) {
   const user = await requireRole("CLIENT");
   const params = await searchParams;
-  const status = parseStatus(params.status);
-  const submissions = await listSubmissions(user, { status, limit: 100 });
-  const exportHref = `/api/v1/exports/submissions${status ? `?status=${status}` : ""}`;
+  const status = parseFilterStatus(firstParam(params, "status"));
+  const subTheme = parseFilterSubTheme(firstParam(params, "subTheme"));
+  const sort = parseFilterSort(firstParam(params, "sort"), SORTS, "updated");
+
+  const [submissions, options] = await Promise.all([
+    listSubmissions(user, {
+      status: status === "ALL" ? undefined : status,
+      subTheme: subTheme ?? undefined,
+      sort,
+      limit: 100,
+    }),
+    getFilterOptions(user),
+  ]);
+
+  const search = new URLSearchParams();
+  if (status !== "ALL") search.set("status", status);
+  if (subTheme) search.set("subTheme", subTheme);
+  const serialized = search.toString();
+  const exportHref = `/api/v1/exports/submissions${serialized ? `?${serialized}` : ""}`;
+
+  const filterFields: FilterField[] = [
+    {
+      kind: "select",
+      name: "status",
+      label: "Status",
+      value: status === "ALL" ? "" : status,
+      options: options.statuses,
+      allLabel: "Semua status",
+    },
+    {
+      kind: "select",
+      name: "subTheme",
+      label: "Sub-tema",
+      value: subTheme ?? "",
+      options: options.subThemes,
+      allLabel: "Semua sub-tema",
+    },
+    {
+      kind: "select",
+      name: "sort",
+      label: "Urutkan",
+      value: sort,
+      options: SORTS.map((value) => ({ value, label: SORT_LABELS[value] })),
+      allLabel: "",
+      includeEmpty: false,
+    },
+  ];
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6">
@@ -70,34 +116,19 @@ export default async function ClientContentListPage({
             </Button>
           </div>
           <p className="text-xs text-ink-muted">
-            Ekspor mengikuti filter status aktif.
+            Ekspor mengikuti filter status dan sub-tema aktif.
           </p>
         </div>
       </header>
 
-      <nav aria-label="Filter status" className="flex flex-wrap gap-2">
-        <Button
-          asChild
-          size="sm"
-          variant={status ? "outline" : "secondary"}
-          className="h-9"
-        >
-          <Link href="/client/konten">Semua</Link>
-        </Button>
-        {CONTENT_STATUSES.map((item) => (
-          <Button
-            key={item}
-            asChild
-            size="sm"
-            variant={status === item ? "secondary" : "outline"}
-            className="h-9"
-          >
-            <Link href={`/client/konten?status=${item}`}>
-              {STATUS_LABEL[item]}
-            </Link>
-          </Button>
-        ))}
-      </nav>
+      <FilterBar
+        action="/client/konten"
+        label="Filter konten"
+        idPrefix="konten-saya"
+        resetHref="/client/konten"
+        fields={filterFields}
+        summary={`${submissions.length} konten ditampilkan, maksimal 100 terbaru.`}
+      />
 
       <section
         aria-labelledby="daftar-konten-title"
@@ -189,9 +220,9 @@ export default async function ClientContentListPage({
       </section>
 
       <p className="text-xs leading-relaxed text-ink-muted">
-        Hanya konten berstatus disetujui yang dihitung dalam capaian. Draf,
-        konten yang ditolak, perlu revisi, dicabut, atau diarsipkan tidak
-        menambah angka.
+        Hanya konten berstatus {STATUS_LABEL.APPROVED} yang dihitung dalam
+        capaian. Draf, konten yang ditolak, perlu revisi, dicabut, atau
+        diarsipkan tidak menambah angka.
       </p>
     </div>
   );

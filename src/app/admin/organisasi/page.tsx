@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 
 import { OrganizationEditor } from "@/components/hierarchy/hierarchy-editors";
 import { OrganizationTable } from "@/components/hierarchy/organization-table";
+import { FilterBar, type FilterField } from "@/components/filters/filter-bar";
+import { getFilterOptions } from "@/lib/filters/options";
+import { firstParam, parseFilterUuid } from "@/lib/filters/query";
 import { listOrganizations } from "@/lib/hierarchy";
 import { listHierarchyOptions } from "@/lib/hierarchy-admin";
 import { requireRole } from "@/lib/session";
@@ -19,16 +22,24 @@ export default async function AdminOrganizationsPage({
 }) {
   const admin = await requireRole("ADMIN");
   const params = await searchParams;
-  const raw = params.branchId;
-  const branchId = Array.isArray(raw) ? raw[0] : raw;
+  const branchId = parseFilterUuid(firstParam(params, "branchId"));
 
-  const [organizations, hierarchy] = await Promise.all([
-    listOrganizations(admin.scope, {
-      branchId:
-        branchId && /^[0-9a-f-]{36}$/i.test(branchId) ? branchId : undefined,
-    }),
+  const [organizations, hierarchy, options] = await Promise.all([
+    listOrganizations(admin.scope, { branchId: branchId ?? undefined }),
     listHierarchyOptions(),
+    getFilterOptions(admin),
   ]);
+
+  const filterFields: FilterField[] = [
+    {
+      kind: "select",
+      name: "branchId",
+      label: "Cabang",
+      value: branchId ?? "",
+      options: options.branches,
+      allLabel: "Semua cabang",
+    },
+  ];
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
@@ -53,6 +64,16 @@ export default async function AdminOrganizationsPage({
           Mode demo: perubahan wilayah, cabang, dan organisasi dinonaktifkan.
         </p>
       ) : null}
+
+      <FilterBar
+        action="/admin/organisasi"
+        label="Filter organisasi"
+        idPrefix="organisasi"
+        resetHref="/admin/organisasi"
+        fields={filterFields}
+        columns={2}
+        summary={`${organizations.length} organisasi ditampilkan.`}
+      />
 
       <OrganizationTable
         organizations={organizations}

@@ -4,9 +4,19 @@ import { CalendarClock, Inbox, Search, ShieldCheck } from "lucide-react";
 import { ContentTypeBadge } from "@/components/content/content-type-badge";
 import { StatusBadge } from "@/components/content/status-badge";
 import { StatCard } from "@/components/dashboard/stat-card";
+import {
+  FilterBar,
+  type FilterField,
+  type FilterOption,
+} from "@/components/filters/filter-bar";
 import { Button } from "@/components/ui/button";
 import { PLATFORM_LABEL } from "@/lib/content-status";
 import { formatDateId, formatDateTimeId, formatNumberId } from "@/lib/dates";
+import {
+  buildFilterHref,
+  filterResetHref,
+  type FilterParams,
+} from "@/lib/filters/query";
 import type { ReviewQueueResult } from "@/lib/review";
 import {
   calculateSlaClock,
@@ -23,21 +33,6 @@ const TABS = [
 
 export type SlaTabKey = (typeof TABS)[number]["key"];
 
-function queueHref(
-  basePath: string,
-  next: { status?: SlaTabKey; q?: string; page?: number },
-  current: { status: SlaTabKey; q?: string },
-): string {
-  const params = new URLSearchParams();
-  const status = next.status ?? current.status;
-  if (status !== "ALL") params.set("status", status);
-  const q = next.q ?? current.q;
-  if (q) params.set("q", q);
-  if (next.page && next.page > 1) params.set("page", String(next.page));
-  const serialized = params.toString();
-  return `${basePath}${serialized ? `?${serialized}` : ""}`;
-}
-
 export function SlaQueue({
   queue,
   policy,
@@ -46,6 +41,9 @@ export function SlaQueue({
   basePath,
   search,
   status,
+  stakeholderId,
+  subTheme,
+  options,
   scopeLabel,
   readOnlyNote,
 }: {
@@ -56,10 +54,57 @@ export function SlaQueue({
   basePath: string;
   search?: string;
   status: SlaTabKey;
+  stakeholderId?: string;
+  subTheme?: string;
+  options: { stakeholders: FilterOption[]; subThemes: FilterOption[] };
   scopeLabel: string;
   readOnlyNote?: string;
 }) {
   const now = queue.generatedAt;
+  const currentFilters: FilterParams = {
+    status,
+    q: search,
+    stakeholderId,
+    subTheme,
+  };
+  const statusOptions: FilterOption[] = TABS.map((tab) => ({
+    value: tab.key,
+    label: `${tab.label} (${formatNumberId(queue.counts[tab.key])})`,
+  }));
+  const filterFields: FilterField[] = [
+    {
+      kind: "select",
+      name: "status",
+      label: "Status antrean",
+      value: status,
+      options: statusOptions,
+      allLabel: "",
+      includeEmpty: false,
+    },
+    {
+      kind: "select",
+      name: "stakeholderId",
+      label: "Stakeholder",
+      value: stakeholderId ?? "",
+      options: options.stakeholders,
+      allLabel: "Semua stakeholder",
+    },
+    {
+      kind: "select",
+      name: "subTheme",
+      label: "Sub-tema",
+      value: subTheme ?? "",
+      options: options.subThemes,
+      allLabel: "Semua sub-tema",
+    },
+    {
+      kind: "search",
+      name: "q",
+      label: "Cari konten",
+      value: search ?? "",
+      placeholder: "Kode, judul, atau instansi",
+    },
+  ];
   const overdue = queue.items.filter((item) => {
     const clock = calculateSlaClock({
       firstSubmittedAt: item.firstSubmittedAt,
@@ -146,53 +191,14 @@ export function SlaQueue({
         />
       </section>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <nav
-          aria-label="Filter status antrean"
-          className="flex flex-wrap gap-1.5"
-        >
-          {TABS.map((tab) => {
-            const active = status === tab.key;
-            return (
-              <Link
-                key={tab.key}
-                href={queueHref(
-                  basePath,
-                  { status: tab.key, page: 1 },
-                  { status, q: search },
-                )}
-                aria-current={active ? "page" : undefined}
-                className={
-                  active
-                    ? "rounded-full bg-brand-blue-700 px-3 py-1.5 text-xs font-semibold text-white"
-                    : "rounded-full border border-border px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:bg-surface-muted hover:text-foreground"
-                }
-              >
-                {tab.label} ({formatNumberId(queue.counts[tab.key])})
-              </Link>
-            );
-          })}
-        </nav>
-
-        <form action={basePath} method="get" className="flex gap-2">
-          {status !== "ALL" ? (
-            <input type="hidden" name="status" value={status} />
-          ) : null}
-          <label>
-            <span className="sr-only">Cari konten</span>
-            <input
-              type="search"
-              name="q"
-              defaultValue={search ?? ""}
-              placeholder="Cari kode, judul, instansi"
-              className="h-10 w-64 rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-            />
-          </label>
-          <Button type="submit" variant="outline" className="h-10">
-            Cari
-          </Button>
-        </form>
-      </div>
+      <FilterBar
+        action={basePath}
+        label="Filter antrean"
+        idPrefix="sla"
+        resetHref={filterResetHref(basePath)}
+        fields={filterFields}
+        summary="Filter berlaku untuk tabel dan ringkasan antrean di bawah."
+      />
 
       <section className="rounded-xl border border-border bg-surface shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
@@ -352,11 +358,9 @@ export function SlaQueue({
               {queue.page > 1 ? (
                 <Button asChild variant="outline" size="sm">
                   <Link
-                    href={queueHref(
-                      basePath,
-                      { page: queue.page - 1 },
-                      { status, q: search },
-                    )}
+                    href={buildFilterHref(basePath, currentFilters, {
+                      page: queue.page - 1,
+                    })}
                   >
                     Sebelumnya
                   </Link>
@@ -365,11 +369,9 @@ export function SlaQueue({
               {queue.page < queue.pageCount ? (
                 <Button asChild variant="outline" size="sm">
                   <Link
-                    href={queueHref(
-                      basePath,
-                      { page: queue.page + 1 },
-                      { status, q: search },
-                    )}
+                    href={buildFilterHref(basePath, currentFilters, {
+                      page: queue.page + 1,
+                    })}
                   >
                     Berikutnya
                   </Link>

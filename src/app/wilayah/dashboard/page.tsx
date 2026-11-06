@@ -9,11 +9,10 @@ import { Button } from "@/components/ui/button";
 import { getDashboardMap } from "@/lib/dashboard-map";
 import { redirectDashboardView } from "@/lib/dashboard/view";
 import { formatDateTimeId } from "@/lib/dates";
+import { getFilterOptions } from "@/lib/filters/options";
 import {
   getDashboardOverview,
-  getKpiFilterOptions,
   kpiPeriod,
-  monthOptions,
   parseKpiFiltersFromParams,
 } from "@/lib/kpi/sql";
 import { getPerformanceSummary } from "@/lib/performance";
@@ -74,7 +73,7 @@ async function RegionalHomeBody({
   const alignmentAllowed = !filters.stakeholderId && !filters.subTheme;
   const [overview, options, summary, map] = await Promise.all([
     getDashboardOverview(user, filters),
-    getKpiFilterOptions(user),
+    getFilterOptions(user),
     alignmentAllowed
       ? getPerformanceSummary(user, period)
       : Promise.resolve(null),
@@ -89,7 +88,10 @@ async function RegionalHomeBody({
     <KpiDashboard
       overview={overview}
       role={user.role}
-      options={{ ...options, months: monthOptions(filters.month) }}
+      options={{
+        stakeholders: options.stakeholders,
+        subThemes: options.subThemes,
+      }}
       basePath="/wilayah/dashboard"
       title="Dashboard wilayah"
       description={description}

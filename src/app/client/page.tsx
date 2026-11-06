@@ -20,12 +20,8 @@ import { recordAudit } from "@/lib/audit";
 import { contentScopePredicate } from "@/lib/authz/predicates";
 import { redirectDashboardView } from "@/lib/dashboard/view";
 import { formatDateTimeId, formatNumberId } from "@/lib/dates";
-import {
-  getDashboardOverview,
-  getKpiFilterOptions,
-  monthOptions,
-  parseKpiFiltersFromParams,
-} from "@/lib/kpi/sql";
+import { getFilterOptions } from "@/lib/filters/options";
+import { getDashboardOverview, parseKpiFiltersFromParams } from "@/lib/kpi/sql";
 import { requireRole } from "@/lib/session";
 
 export const metadata: Metadata = {
@@ -93,7 +89,7 @@ async function ClientHomeBody({
   const [overview, options, contentType, mainTheme, compliance, revisionCount] =
     await Promise.all([
       getDashboardOverview(user, filters),
-      getKpiFilterOptions(user),
+      getFilterOptions(user),
       getContentTypeDistribution(user),
       getMainThemeDistribution(user),
       getEdufastCompliance(user),
@@ -164,7 +160,10 @@ async function ClientHomeBody({
       <KpiDashboard
         overview={overview}
         role={user.role}
-        options={{ ...options, months: monthOptions(filters.month) }}
+        options={{
+          stakeholders: options.stakeholders,
+          subThemes: options.subThemes,
+        }}
         basePath="/client"
         title={`Beranda ${user.name}`}
         description="Capaian konten organisasi Anda, dihitung hanya dari konten yang telah disetujui reviewer cabang. Dasar tanggal default adalah tanggal konten."

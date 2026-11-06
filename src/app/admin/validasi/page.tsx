@@ -6,28 +6,32 @@ import {
   ClipboardCheck,
   Hourglass,
   Inbox,
-  Search,
 } from "lucide-react";
 
 import { ContentTypeBadge } from "@/components/content/content-type-badge";
 import { StatusBadge } from "@/components/content/status-badge";
 import { StatCard } from "@/components/dashboard/stat-card";
+import { FilterBar, type FilterField } from "@/components/filters/filter-bar";
 import { Button } from "@/components/ui/button";
-import { StakeholderSelect } from "@/components/ui/stakeholder-select";
 import { formatDateTimeId, formatNumberId } from "@/lib/dates";
 import { PLATFORM_LABEL } from "@/lib/content-status";
-import { listReviewQueue, listReviewQueueOptions } from "@/lib/review";
+import { getFilterOptions } from "@/lib/filters/options";
+import {
+  buildFilterHref,
+  filterResetHref,
+  firstParam,
+  parseFilterSubTheme,
+  parseFilterUuid,
+  type FilterParams,
+} from "@/lib/filters/query";
+import { listReviewQueue } from "@/lib/review";
 import { requireRole } from "@/lib/session";
-import { isSubTheme, type SubTheme } from "@/lib/taxonomy";
 
 export const metadata: Metadata = {
   title: "Validasi konten",
 };
 
 export const dynamic = "force-dynamic";
-
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const TABS = [
   { key: "ALL", label: "Semua" },
@@ -38,34 +42,12 @@ const TABS = [
 
 type TabKey = (typeof TABS)[number]["key"];
 
-function firstParam(value: string | string[] | undefined): string | undefined {
-  if (Array.isArray(value)) return value[0];
-  return value;
-}
-
 function parseStatus(value: string | undefined): TabKey {
   return value === "SUBMITTED" ||
     value === "RESUBMITTED" ||
     value === "IN_REVIEW"
     ? value
     : "ALL";
-}
-
-function parseUuid(value: string | undefined): string | undefined {
-  return value && UUID_PATTERN.test(value) ? value : undefined;
-}
-
-function parseSubTheme(value: string | undefined): SubTheme | undefined {
-  return isSubTheme(value) ? value : undefined;
-}
-
-function buildQuery(params: Record<string, string | undefined>): string {
-  const search = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
-    if (value) search.set(key, value);
-  }
-  const serialized = search.toString();
-  return serialized ? `?${serialized}` : "";
 }
 
 function agingBadge(days: number) {
@@ -97,11 +79,13 @@ export default async function ReviewQueuePage({
   const admin = await requireRole("ADMIN");
   const params = await searchParams;
 
-  const status = parseStatus(firstParam(params.status));
-  const stakeholderId = parseUuid(firstParam(params.stakeholderId));
-  const subTheme = parseSubTheme(firstParam(params.subTheme));
-  const search = firstParam(params.q)?.trim().slice(0, 120) || undefined;
-  const page = Math.max(Number(firstParam(params.page) ?? 1) || 1, 1);
+  const status = parseStatus(firstParam(params, "status"));
+  const stakeholderId =
+    parseFilterUuid(firstParam(params, "stakeholderId")) ?? undefined;
+  const subTheme =
+    parseFilterSubTheme(firstParam(params, "subTheme")) ?? undefined;
+  const search = firstParam(params, "q")?.slice(0, 120) || undefined;
+  const page = Math.max(Number(firstParam(params, "page") ?? 1) || 1, 1);
 
   const [queue, options] = await Promise.all([
     listReviewQueue(admin, {
@@ -112,7 +96,7 @@ export default async function ReviewQueuePage({
       page,
       pageSize: 15,
     }),
-    listReviewQueueOptions(admin),
+    getFilterOptions(admin),
   ]);
 
   const oldestDays = queue.oldestSubmittedAt
@@ -125,11 +109,49 @@ export default async function ReviewQueuePage({
       )
     : 0;
 
-  const preserved = {
-    q: search,
+  const currentFilters: FilterParams = {
+    status,
     stakeholderId,
     subTheme,
+    q: search,
   };
+
+  const filterFields: FilterField[] = [
+    {
+      kind: "select",
+      name: "status",
+      label: "Status antrean",
+      value: status,
+      options: TABS.filter((tab) => tab.key !== "ALL").map((tab) => ({
+        value: tab.key,
+        label: `${tab.label} (${formatNumberId(queue.counts[tab.key])})`,
+      })),
+      allLabel: `Semua (${formatNumberId(queue.counts.ALL)})`,
+    },
+    {
+      kind: "select",
+      name: "stakeholderId",
+      label: "Stakeholder",
+      value: stakeholderId ?? "",
+      options: options.stakeholders,
+      allLabel: "Semua stakeholder",
+    },
+    {
+      kind: "select",
+      name: "subTheme",
+      label: "Sub-tema",
+      value: subTheme ?? "",
+      options: options.subThemes,
+      allLabel: "Semua sub-tema",
+    },
+    {
+      kind: "search",
+      name: "q",
+      label: "Cari konten",
+      value: search ?? "",
+      placeholder: "Referensi, judul, atau stakeholder",
+    },
+  ];
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
@@ -187,105 +209,29 @@ export default async function ReviewQueuePage({
         />
       </section>
 
+      <FilterBar
+        action="/admin/validasi"
+        label="Filter antrean"
+        idPrefix="validasi"
+        resetHref={filterResetHref("/admin/validasi")}
+        fields={filterFields}
+        summary="Antrean diurutkan dari pengiriman paling lama. Hanya konten yang disetujui yang dihitung dalam capaian."
+      />
+
       <section
         aria-labelledby="queue-list-title"
         className="rounded-xl border border-border bg-surface shadow-sm"
       >
-        <div className="flex flex-col gap-3 border-b border-border px-4 py-3 sm:px-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2
-                id="queue-list-title"
-                className="text-base font-semibold text-foreground"
-              >
-                Daftar antrean
-              </h2>
-              <p className="text-xs text-ink-muted">
-                {formatNumberId(queue.total)} konten sesuai filter aktif.
-              </p>
-            </div>
-            <nav
-              aria-label="Filter status antrean"
-              className="flex flex-wrap gap-1.5"
-            >
-              {TABS.map((tab) => {
-                const active = status === tab.key;
-                return (
-                  <Link
-                    key={tab.key}
-                    href={`/admin/validasi${buildQuery({ ...preserved, status: tab.key === "ALL" ? undefined : tab.key })}`}
-                    aria-current={active ? "page" : undefined}
-                    className={
-                      active
-                        ? "rounded-full bg-brand-blue-700 px-3 py-1.5 text-xs font-semibold text-white"
-                        : "rounded-full border border-border px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:bg-surface-muted hover:text-foreground"
-                    }
-                  >
-                    {tab.label} ({formatNumberId(queue.counts[tab.key])})
-                  </Link>
-                );
-              })}
-            </nav>
-          </div>
-
-          <form
-            action="/admin/validasi"
-            method="get"
-            className="grid gap-2 md:grid-cols-[minmax(0,1fr)_220px_220px_auto]"
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3 sm:px-5">
+          <h2
+            id="queue-list-title"
+            className="text-base font-semibold text-foreground"
           >
-            {status !== "ALL" ? (
-              <input type="hidden" name="status" value={status} />
-            ) : null}
-            <label className="relative">
-              <span className="sr-only">Cari konten</span>
-              <Search
-                className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-muted"
-                aria-hidden
-              />
-              <input
-                type="search"
-                name="q"
-                defaultValue={search ?? ""}
-                placeholder="Cari referensi, judul, atau stakeholder"
-                className="h-10 w-full rounded-lg border border-input bg-background pr-3 pl-9 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-              />
-            </label>
-            <label>
-              <span className="sr-only">Filter stakeholder</span>
-              <StakeholderSelect
-                options={options.stakeholders}
-                defaultValue={stakeholderId ?? ""}
-                className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-              />
-            </label>
-            <label>
-              <span className="sr-only">Filter tema</span>
-              <select
-                name="subTheme"
-                defaultValue={subTheme ?? ""}
-                className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-              >
-                <option value="">Semua tema</option>
-                {options.themes.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div className="flex gap-2">
-              <Button type="submit" variant="outline" className="h-10">
-                Terapkan
-              </Button>
-              <Button asChild variant="ghost" className="h-10">
-                <Link
-                  href={`/admin/validasi${buildQuery({ status: status === "ALL" ? undefined : status })}`}
-                >
-                  Atur ulang
-                </Link>
-              </Button>
-            </div>
-          </form>
+            Daftar antrean
+          </h2>
+          <p className="text-xs text-ink-muted">
+            {formatNumberId(queue.total)} konten sesuai filter aktif.
+          </p>
         </div>
 
         {queue.items.length === 0 ? (
@@ -414,11 +360,9 @@ export default async function ReviewQueuePage({
                 aria-disabled={queue.page <= 1}
               >
                 <Link
-                  href={`/admin/validasi${buildQuery({
-                    ...preserved,
-                    status: status === "ALL" ? undefined : status,
-                    page: String(Math.max(1, queue.page - 1)),
-                  })}`}
+                  href={buildFilterHref("/admin/validasi", currentFilters, {
+                    page: Math.max(1, queue.page - 1),
+                  })}
                 >
                   Sebelumnya
                 </Link>
@@ -431,11 +375,9 @@ export default async function ReviewQueuePage({
                 aria-disabled={queue.page >= queue.pageCount}
               >
                 <Link
-                  href={`/admin/validasi${buildQuery({
-                    ...preserved,
-                    status: status === "ALL" ? undefined : status,
-                    page: String(Math.min(queue.pageCount, queue.page + 1)),
-                  })}`}
+                  href={buildFilterHref("/admin/validasi", currentFilters, {
+                    page: Math.min(queue.pageCount, queue.page + 1),
+                  })}
                 >
                   Berikutnya
                 </Link>

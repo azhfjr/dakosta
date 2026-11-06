@@ -5,12 +5,12 @@ import { MapPin, MapPinned, Shapes, Target } from "lucide-react";
 import { MapExplorer } from "@/components/map/map-explorer";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { StatusBadge } from "@/components/content/status-badge";
+import { FilterBar, type FilterField } from "@/components/filters/filter-bar";
 import { Button } from "@/components/ui/button";
-import { StakeholderSelect } from "@/components/ui/stakeholder-select";
 import { formatDateTimeId, formatNumberId } from "@/lib/dates";
+import { getFilterOptions } from "@/lib/filters/options";
 import { MAP_STYLE_URL } from "@/lib/geo";
 import { getMapOverview, parseMapFilters, type MapStatus } from "@/lib/map";
-import { getKpiFilterOptions } from "@/lib/kpi/sql";
 import { requireRole } from "@/lib/session";
 
 export const metadata: Metadata = {
@@ -26,15 +26,6 @@ const STATUS_TABS: Array<{ key: MapStatus; label: string }> = [
   { key: "IN_REVIEW", label: "Ditinjau" },
 ];
 
-function buildQuery(params: Record<string, string | undefined>): string {
-  const search = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
-    if (value) search.set(key, value);
-  }
-  const serialized = search.toString();
-  return serialized ? `?${serialized}` : "";
-}
-
 export default async function AdminMapPage({
   searchParams,
 }: {
@@ -46,14 +37,39 @@ export default async function AdminMapPage({
 
   const [overview, options] = await Promise.all([
     getMapOverview(admin, filters),
-    getKpiFilterOptions(admin),
+    getFilterOptions(admin),
   ]);
 
   const mapKey = `${filters.stakeholderId ?? "all"}-${filters.subTheme ?? "all"}-${filters.status}`;
-  const preserved = {
-    stakeholderId: filters.stakeholderId ?? undefined,
-    subTheme: filters.subTheme ?? undefined,
-  };
+  const filterFields: FilterField[] = [
+    {
+      kind: "select",
+      name: "status",
+      label: "Status konten",
+      value: filters.status === "ALL" ? "" : filters.status,
+      options: STATUS_TABS.filter((tab) => tab.key !== "ALL").map((tab) => ({
+        value: tab.key,
+        label: tab.label,
+      })),
+      allLabel: "Semua status",
+    },
+    {
+      kind: "select",
+      name: "stakeholderId",
+      label: "Stakeholder",
+      value: filters.stakeholderId ?? "",
+      options: options.stakeholders,
+      allLabel: "Semua stakeholder",
+    },
+    {
+      kind: "select",
+      name: "subTheme",
+      label: "Sub-tema",
+      value: filters.subTheme ?? "",
+      options: options.subThemes,
+      allLabel: "Semua sub-tema",
+    },
+  ];
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
@@ -107,83 +123,14 @@ export default async function AdminMapPage({
         />
       </section>
 
-      <section className="rounded-xl border border-border bg-surface p-4 shadow-sm sm:p-5">
-        <div className="flex flex-col gap-3">
-          <div>
-            <h2 className="text-base font-semibold text-foreground">
-              Filter sebaran
-            </h2>
-            <p className="text-xs text-ink-muted">
-              Angka pada kartu, peta, dan tabel selalu memakai filter yang sama.
-            </p>
-          </div>
-          <nav
-            aria-label="Filter status peta"
-            className="flex flex-wrap gap-1.5"
-          >
-            {STATUS_TABS.map((tab) => {
-              const active = filters.status === tab.key;
-              return (
-                <Link
-                  key={tab.key}
-                  href={`/admin/peta${buildQuery({
-                    ...preserved,
-                    status: tab.key === "ALL" ? undefined : tab.key,
-                  })}`}
-                  aria-current={active ? "page" : undefined}
-                  className={
-                    active
-                      ? "rounded-full bg-brand-blue-700 px-3 py-1.5 text-xs font-semibold text-white"
-                      : "rounded-full border border-border px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:bg-surface-muted hover:text-foreground"
-                  }
-                >
-                  {tab.label}
-                </Link>
-              );
-            })}
-          </nav>
-          <form
-            action="/admin/peta"
-            method="get"
-            className="grid gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
-          >
-            {filters.status !== "ALL" ? (
-              <input type="hidden" name="status" value={filters.status} />
-            ) : null}
-            <label>
-              <span className="sr-only">Filter stakeholder</span>
-              <StakeholderSelect
-                options={options.stakeholders}
-                defaultValue={filters.stakeholderId ?? ""}
-                className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-              />
-            </label>
-            <label>
-              <span className="sr-only">Filter tema</span>
-              <select
-                name="subTheme"
-                defaultValue={filters.subTheme ?? ""}
-                className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-              >
-                <option value="">Semua tema</option>
-                {options.themes.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div className="flex gap-2">
-              <Button type="submit" variant="outline" className="h-10">
-                Terapkan
-              </Button>
-              <Button asChild variant="ghost" className="h-10">
-                <Link href="/admin/peta">Atur ulang</Link>
-              </Button>
-            </div>
-          </form>
-        </div>
-      </section>
+      <FilterBar
+        action="/admin/peta"
+        label="Filter sebaran"
+        idPrefix="peta"
+        resetHref="/admin/peta"
+        fields={filterFields}
+        summary="Angka pada kartu, peta, dan tabel selalu memakai filter yang sama."
+      />
 
       {overview.truncated ? (
         <p

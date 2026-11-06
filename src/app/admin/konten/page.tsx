@@ -4,15 +4,15 @@ import { FileText } from "lucide-react";
 
 import { ContentTypeBadge } from "@/components/content/content-type-badge";
 import { StatusBadge } from "@/components/content/status-badge";
+import { FilterBar, type FilterField } from "@/components/filters/filter-bar";
 import { Button } from "@/components/ui/button";
-import { StakeholderSelect } from "@/components/ui/stakeholder-select";
 import { formatDateId, formatDateTimeId, formatNumberId } from "@/lib/dates";
 import {
   PLATFORM_LABEL,
   STATUS_LABEL,
   type ContentStatus,
 } from "@/lib/content-status";
-import { getKpiFilterOptions } from "@/lib/kpi/sql";
+import { getFilterOptions } from "@/lib/filters/options";
 import { getSubmissionStatusCounts, listSubmissions } from "@/lib/submissions";
 import { requireRole } from "@/lib/session";
 import { isSubTheme, type SubTheme } from "@/lib/taxonomy";
@@ -23,16 +23,15 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-const TABS: Array<{ key: ContentStatus | "ALL"; label: string }> = [
-  { key: "ALL", label: "Semua" },
-  { key: "APPROVED", label: STATUS_LABEL.APPROVED },
-  { key: "SUBMITTED", label: STATUS_LABEL.SUBMITTED },
-  { key: "IN_REVIEW", label: STATUS_LABEL.IN_REVIEW },
-  { key: "REVISION_REQUIRED", label: STATUS_LABEL.REVISION_REQUIRED },
-  { key: "REJECTED", label: STATUS_LABEL.REJECTED },
-  { key: "DRAFT", label: STATUS_LABEL.DRAFT },
-  { key: "REVOKED", label: STATUS_LABEL.REVOKED },
-  { key: "ARCHIVED", label: STATUS_LABEL.ARCHIVED },
+const STATUS_ORDER: ContentStatus[] = [
+  "APPROVED",
+  "SUBMITTED",
+  "IN_REVIEW",
+  "REVISION_REQUIRED",
+  "REJECTED",
+  "DRAFT",
+  "REVOKED",
+  "ARCHIVED",
 ];
 
 const UUID_PATTERN =
@@ -42,8 +41,7 @@ function parseStatus(
   value: string | string[] | undefined,
 ): ContentStatus | "ALL" {
   const raw = Array.isArray(value) ? value[0] : value;
-  const found = TABS.find((tab) => tab.key === raw);
-  return found ? found.key : "ALL";
+  return STATUS_ORDER.find((key) => key === raw) ?? "ALL";
 }
 
 function parseUuid(value: string | string[] | undefined): string | undefined {
@@ -86,7 +84,7 @@ export default async function AdminContentPage({
       subTheme,
       limit: 100,
     }),
-    getKpiFilterOptions(admin),
+    getFilterOptions(admin),
   ]);
 
   const preserved = {
@@ -99,6 +97,36 @@ export default async function AdminContentPage({
   })}`;
 
   const total = Object.values(counts).reduce((sum, value) => sum + value, 0);
+
+  const filterFields: FilterField[] = [
+    {
+      kind: "select",
+      name: "status",
+      label: "Status konten",
+      value: status === "ALL" ? "" : status,
+      options: STATUS_ORDER.map((key) => ({
+        value: key,
+        label: `${STATUS_LABEL[key]} (${formatNumberId(counts[key])})`,
+      })),
+      allLabel: `Semua (${formatNumberId(total)})`,
+    },
+    {
+      kind: "select",
+      name: "stakeholderId",
+      label: "Stakeholder",
+      value: stakeholderId ?? "",
+      options: options.stakeholders,
+      allLabel: "Semua stakeholder",
+    },
+    {
+      kind: "select",
+      name: "subTheme",
+      label: "Sub-tema",
+      value: subTheme ?? "",
+      options: options.subThemes,
+      allLabel: "Semua sub-tema",
+    },
+  ];
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
@@ -113,85 +141,25 @@ export default async function AdminContentPage({
           </p>
         </div>
         <div className="flex flex-col items-start gap-2 sm:items-end">
-          <Button asChild variant="outline" className="h-10">
-            <a href={exportHref}>Ekspor CSV</a>
-          </Button>
           <p className="text-xs text-ink-muted">
             {formatNumberId(total)} konten tersimpan
           </p>
         </div>
       </header>
 
-      <nav aria-label="Filter status konten" className="flex flex-wrap gap-1.5">
-        {TABS.map((tab) => {
-          const active = status === tab.key;
-          const value = tab.key === "ALL" ? total : counts[tab.key];
-          return (
-            <Link
-              key={tab.key}
-              href={`/admin/konten${buildQuery({
-                ...preserved,
-                status: tab.key === "ALL" ? undefined : tab.key,
-              })}`}
-              aria-current={active ? "page" : undefined}
-              className={
-                active
-                  ? "rounded-full bg-brand-blue-700 px-3 py-1.5 text-xs font-semibold text-white"
-                  : "rounded-full border border-border px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:bg-surface-muted hover:text-foreground"
-              }
-            >
-              {tab.label} ({formatNumberId(value)})
-            </Link>
-          );
-        })}
-      </nav>
-
-      <form
+      <FilterBar
         action="/admin/konten"
-        method="get"
-        className="grid gap-2 rounded-xl border border-border bg-surface p-4 shadow-sm sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:p-5"
-      >
-        {status !== "ALL" ? (
-          <input type="hidden" name="status" value={status} />
-        ) : null}
-        <label>
-          <span className="sr-only">Filter stakeholder</span>
-          <StakeholderSelect
-            options={options.stakeholders}
-            defaultValue={stakeholderId ?? ""}
-            className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-          />
-        </label>
-        <label>
-          <span className="sr-only">Filter tema</span>
-          <select
-            name="subTheme"
-            defaultValue={subTheme ?? ""}
-            className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-          >
-            <option value="">Semua tema</option>
-            {options.themes.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <div className="flex gap-2">
-          <Button type="submit" variant="outline" className="h-10">
-            Terapkan
+        label="Filter konten"
+        idPrefix="konten"
+        resetHref="/admin/konten"
+        fields={filterFields}
+        summary={`${formatNumberId(total)} konten tersimpan. Hanya status Disetujui yang dihitung dalam capaian.`}
+        actions={
+          <Button asChild variant="outline" size="sm" className="h-9">
+            <a href={exportHref}>Ekspor CSV</a>
           </Button>
-          <Button asChild variant="ghost" className="h-10">
-            <Link
-              href={`/admin/konten${buildQuery({
-                status: status === "ALL" ? undefined : status,
-              })}`}
-            >
-              Atur ulang
-            </Link>
-          </Button>
-        </div>
-      </form>
+        }
+      />
 
       <section
         aria-labelledby="konten-daftar"

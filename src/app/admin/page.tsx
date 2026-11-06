@@ -8,12 +8,8 @@ import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { Button } from "@/components/ui/button";
 import { redirectDashboardView } from "@/lib/dashboard/view";
 import { formatDateTimeId } from "@/lib/dates";
-import {
-  getDashboardOverview,
-  getKpiFilterOptions,
-  monthOptions,
-  parseKpiFiltersFromParams,
-} from "@/lib/kpi/sql";
+import { getFilterOptions } from "@/lib/filters/options";
+import { getDashboardOverview, parseKpiFiltersFromParams } from "@/lib/kpi/sql";
 import { requireRole } from "@/lib/session";
 
 export const metadata: Metadata = {
@@ -62,14 +58,17 @@ async function AdminHomeBody({
 }) {
   const [overview, options] = await Promise.all([
     getDashboardOverview(user, filters),
-    getKpiFilterOptions(user),
+    getFilterOptions(user),
   ]);
 
   return (
     <KpiDashboard
       overview={overview}
       role={user.role}
-      options={{ ...options, months: monthOptions(filters.month) }}
+      options={{
+        stakeholders: options.stakeholders,
+        subThemes: options.subThemes,
+      }}
       basePath="/admin"
       title="Ringkasan"
       description="Capaian periode yang hanya dihitung dari konten disetujui, antrean validasi, dan kualitas keputusan admin."

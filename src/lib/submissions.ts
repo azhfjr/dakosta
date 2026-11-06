@@ -50,6 +50,7 @@ export type SubmissionListFilters = {
   limit?: number;
   stakeholderId?: string;
   subTheme?: string;
+  sort?: "updated" | "created" | "approved" | "title";
 };
 
 export type SubmissionListItem = {
@@ -194,6 +195,12 @@ export async function listSubmissions(
   }
 
   const limit = Math.min(Math.max(filters.limit ?? 30, 1), 100);
+  const orderBy = {
+    updated: desc(schema.contentSubmissions.updatedAt),
+    created: desc(schema.contentSubmissions.dateCreated),
+    approved: sql`${schema.contentSubmissions.approvedAt} desc nulls last`,
+    title: sql`${schema.contentSubmissions.title} asc nulls last`,
+  }[filters.sort ?? "updated"];
 
   const rows = await getDb()
     .select({
@@ -223,7 +230,7 @@ export async function listSubmissions(
       eq(schema.stakeholders.id, schema.contentSubmissions.stakeholderId),
     )
     .where(conditions.length > 0 ? and(...conditions) : undefined)
-    .orderBy(desc(schema.contentSubmissions.updatedAt))
+    .orderBy(orderBy)
     .limit(limit);
 
   return rows.map((row) => ({

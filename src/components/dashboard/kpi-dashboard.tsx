@@ -20,12 +20,13 @@ import { StatusBadge } from "@/components/content/status-badge";
 import { DashboardMapSection } from "@/components/dashboard/dashboard-map";
 import { DeferredKpiCharts } from "@/components/dashboard/kpi-charts-lazy";
 import { StatCard } from "@/components/dashboard/stat-card";
+import { FilterBar, type FilterField } from "@/components/filters/filter-bar";
 import { Button } from "@/components/ui/button";
-import { StakeholderSelect } from "@/components/ui/stakeholder-select";
 import { PLATFORM_LABEL } from "@/lib/content-status";
 import type { DashboardMap } from "@/lib/dashboard-map";
 import { formatDateId, formatDateTimeId, formatNumberId } from "@/lib/dates";
 import { MAP_STYLE_URL } from "@/lib/geo";
+import type { FilterOption } from "@/lib/filters/query";
 import {
   achievementPercent,
   targetSourceLabel,
@@ -44,17 +45,15 @@ type Alignment = {
   periodLabel: string;
 };
 
-function periodSelectOptions(selected: string) {
-  const options = periodOptions();
-  const known =
-    options.months.some((option) => option.value === selected) ||
-    options.quarters.some((option) => option.value === selected) ||
-    options.years.some((option) => option.value === selected);
-  return { options, known };
+function dashboardPeriodOptions(
+  selected: string,
+  selectedLabel: string,
+): FilterOption[] {
+  const { months, quarters, years } = periodOptions();
+  const flat = [...months, ...quarters, ...years];
+  if (flat.some((option) => option.value === selected)) return flat;
+  return [{ value: selected, label: selectedLabel }, ...flat];
 }
-
-const selectClass =
-  "h-10 w-full rounded-lg border border-border bg-surface px-3 text-sm text-foreground shadow-xs focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/30 focus-visible:outline-none";
 
 function formatPercent(value: number | null): string {
   if (value === null) return "N/A";
@@ -266,9 +265,8 @@ export function KpiDashboard({
   overview: DashboardOverview;
   role: AppRole;
   options: {
-    stakeholders: Array<{ id: string; name: string }>;
-    themes: Array<{ id: string; name: string }>;
-    months: Array<{ key: string; label: string }>;
+    stakeholders: FilterOption[];
+    subThemes: FilterOption[];
   };
   basePath: string;
   title: string;
@@ -324,7 +322,55 @@ export function KpiDashboard({
     csvParams.set("subTheme", overview.filters.subTheme);
   }
   const csvHref = `/api/v1/exports/submissions?${csvParams.toString()}`;
-  const periodChoice = periodSelectOptions(overview.period.key);
+
+  const filterFields: FilterField[] = [
+    {
+      kind: "select",
+      name: "period",
+      label: "Periode capaian",
+      value: overview.period.key,
+      options: dashboardPeriodOptions(
+        overview.period.key,
+        overview.period.label,
+      ),
+      allLabel: "",
+      includeEmpty: false,
+    },
+    ...(showStakeholderFilter
+      ? [
+          {
+            kind: "select" as const,
+            name: "stakeholderId",
+            label: "Stakeholder",
+            value: overview.filters.stakeholderId ?? "",
+            options: options.stakeholders,
+            allLabel: isStakeholder
+              ? "Semua organisasi saya"
+              : "Semua organisasi",
+          },
+        ]
+      : []),
+    {
+      kind: "select",
+      name: "subTheme",
+      label: "Sub-tema",
+      value: overview.filters.subTheme ?? "",
+      options: options.subThemes,
+      allLabel: "Semua sub-tema",
+    },
+    {
+      kind: "select",
+      name: "attribution",
+      label: "Dasar tanggal capaian",
+      value: overview.filters.attribution,
+      options: [
+        { value: "approved_at", label: "Tanggal disetujui" },
+        { value: "date_created", label: "Tanggal konten dibuat" },
+      ],
+      allLabel: "",
+      includeEmpty: false,
+    },
+  ];
 
   const scopeParts = [overview.period.label];
   if (overview.scope.stakeholderName) {
@@ -361,120 +407,22 @@ export function KpiDashboard({
 
       {notice}
 
-      <section
-        aria-label="Filter dasbor"
-        className="rounded-xl border border-border bg-surface p-4 shadow-sm sm:p-5"
-      >
-        <form method="get" action={basePath} className="space-y-3">
-          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-            <Gauge className="size-4 text-brand-blue-600" aria-hidden />
-            Filter capaian
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="space-y-1.5">
-              <label
-                htmlFor="kpi-period"
-                className="text-xs font-medium text-ink-muted"
-              >
-                Periode capaian
-              </label>
-              <select
-                id="kpi-period"
-                name="period"
-                defaultValue={overview.period.key}
-                className={selectClass}
-              >
-                {periodChoice.known ? null : (
-                  <option value={overview.period.key}>
-                    {overview.period.label}
-                  </option>
-                )}
-                <optgroup label="Bulanan">
-                  {periodChoice.options.months.map((period) => (
-                    <option key={period.value} value={period.value}>
-                      {period.label}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label="Triwulanan">
-                  {periodChoice.options.quarters.map((period) => (
-                    <option key={period.value} value={period.value}>
-                      {period.label}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label="Tahunan">
-                  {periodChoice.options.years.map((period) => (
-                    <option key={period.value} value={period.value}>
-                      {period.label}
-                    </option>
-                  ))}
-                </optgroup>
-              </select>
-            </div>
-
-            {showStakeholderFilter ? (
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="kpi-stakeholder"
-                  className="text-xs font-medium text-ink-muted"
-                >
-                  Stakeholder
-                </label>
-                <StakeholderSelect
-                  id="kpi-stakeholder"
-                  options={options.stakeholders}
-                  defaultValue={overview.filters.stakeholderId ?? ""}
-                  allLabel={
-                    isStakeholder ? "Semua organisasi saya" : "Semua organisasi"
-                  }
-                  className={selectClass}
-                />
-              </div>
-            ) : null}
-
-            <div className="space-y-1.5">
-              <label
-                htmlFor="kpi-theme"
-                className="text-xs font-medium text-ink-muted"
-              >
-                Tema
-              </label>
-              <select
-                id="kpi-theme"
-                name="subTheme"
-                defaultValue={overview.filters.subTheme ?? ""}
-                className={selectClass}
-              >
-                <option value="">Semua tema</option>
-                {options.themes.map((theme) => (
-                  <option key={theme.id} value={theme.id}>
-                    {theme.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button type="submit" size="sm" className="h-9">
-              Terapkan filter
-            </Button>
-            <Button asChild variant="ghost" size="sm" className="h-9">
-              <Link href={basePath}>Atur ulang</Link>
-            </Button>
-            <Button asChild variant="outline" size="sm" className="h-9">
-              <a href={csvHref}>
-                <Download className="size-3.5" aria-hidden />
-                Unduh CSV
-              </a>
-            </Button>
-            <p className="text-xs text-ink-muted">
-              Capaian selalu memakai tanggal approval final. Filter tersimpan di
-              URL sehingga dapat dibagikan dan dimuat ulang.
-            </p>
-          </div>
-        </form>
-      </section>
+      <FilterBar
+        action={basePath}
+        label="Filter dasbor"
+        idPrefix="kpi"
+        resetHref={basePath}
+        fields={filterFields}
+        summary="Filter tersimpan di URL sehingga dapat dibagikan dan dimuat ulang."
+        actions={
+          <Button asChild variant="outline" size="sm" className="h-9">
+            <a href={csvHref}>
+              <Download className="size-3.5" aria-hidden />
+              Unduh CSV
+            </a>
+          </Button>
+        }
+      />
 
       <section
         aria-label="Capaian utama"

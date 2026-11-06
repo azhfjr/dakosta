@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ScrollText } from "lucide-react";
 
+import { FilterBar, type FilterField } from "@/components/filters/filter-bar";
 import { Button } from "@/components/ui/button";
 import { formatDateTimeId, formatNumberId } from "@/lib/dates";
+import { buildFilterHref, firstParam } from "@/lib/filters/query";
 import { listAuditLogs } from "@/lib/audit-log";
 import { requireRole } from "@/lib/session";
 
@@ -39,19 +41,6 @@ function actionLabel(action: string): string {
   return ACTION_LABEL[action] ?? action;
 }
 
-function firstParam(value: string | string[] | undefined): string | undefined {
-  return Array.isArray(value) ? value[0] : value;
-}
-
-function buildQuery(params: Record<string, string | undefined>): string {
-  const search = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
-    if (value) search.set(key, value);
-  }
-  const serialized = search.toString();
-  return serialized ? `?${serialized}` : "";
-}
-
 export default async function AdminAuditPage({
   searchParams,
 }: {
@@ -59,58 +48,46 @@ export default async function AdminAuditPage({
 }) {
   await requireRole("ADMIN");
   const params = await searchParams;
-  const action = firstParam(params.action)?.slice(0, 64) || undefined;
-  const page = Math.max(Number(firstParam(params.page) ?? 1) || 1, 1);
+  const action = firstParam(params, "action")?.slice(0, 64) || undefined;
+  const page = Math.max(Number(firstParam(params, "page") ?? 1) || 1, 1);
 
   const log = await listAuditLogs({ page, pageSize: 40, action });
 
+  const filterFields: FilterField[] = [
+    {
+      kind: "select",
+      name: "action",
+      label: "Aksi audit",
+      value: action ?? "",
+      options: log.actions.map((value) => ({
+        value,
+        label: actionLabel(value),
+      })),
+      allLabel: "Semua aksi",
+    },
+  ];
+
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Jejak audit
-          </h1>
-          <p className="mt-1 max-w-2xl text-sm text-ink-muted">
-            Catatan tindakan administratif dan keputusan validasi. Metadata
-            disimpan tanpa kredensial atau data pribadi.
-          </p>
-        </div>
-        <p className="text-xs text-ink-muted">
-          {formatNumberId(log.total)} catatan
+      <header>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          Jejak audit
+        </h1>
+        <p className="mt-1 max-w-2xl text-sm text-ink-muted">
+          Catatan tindakan administratif dan keputusan validasi. Metadata
+          disimpan tanpa kredensial atau data pribadi.
         </p>
       </header>
 
-      <nav aria-label="Filter aksi audit" className="flex flex-wrap gap-1.5">
-        <Link
-          href="/admin/audit"
-          aria-current={action ? undefined : "page"}
-          className={
-            action
-              ? "rounded-full border border-border px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:bg-surface-muted hover:text-foreground"
-              : "rounded-full bg-brand-blue-700 px-3 py-1.5 text-xs font-semibold text-white"
-          }
-        >
-          Semua aksi
-        </Link>
-        {log.actions.map((value) => {
-          const active = action === value;
-          return (
-            <Link
-              key={value}
-              href={`/admin/audit?action=${encodeURIComponent(value)}`}
-              aria-current={active ? "page" : undefined}
-              className={
-                active
-                  ? "rounded-full bg-brand-blue-700 px-3 py-1.5 text-xs font-semibold text-white"
-                  : "rounded-full border border-border px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:bg-surface-muted hover:text-foreground"
-              }
-            >
-              {actionLabel(value)}
-            </Link>
-          );
-        })}
-      </nav>
+      <FilterBar
+        action="/admin/audit"
+        label="Filter audit"
+        idPrefix="audit"
+        columns={2}
+        resetHref="/admin/audit"
+        fields={filterFields}
+        summary={`${formatNumberId(log.total)} catatan audit tersimpan.`}
+      />
 
       <section
         aria-labelledby="audit-daftar"
@@ -240,10 +217,13 @@ export default async function AdminAuditPage({
                 aria-disabled={log.page <= 1}
               >
                 <Link
-                  href={`/admin/audit${buildQuery({
-                    action,
-                    page: String(Math.max(1, log.page - 1)),
-                  })}`}
+                  href={buildFilterHref(
+                    "/admin/audit",
+                    { action },
+                    {
+                      page: Math.max(1, log.page - 1),
+                    },
+                  )}
                 >
                   Sebelumnya
                 </Link>
@@ -256,10 +236,13 @@ export default async function AdminAuditPage({
                 aria-disabled={log.page >= log.pageCount}
               >
                 <Link
-                  href={`/admin/audit${buildQuery({
-                    action,
-                    page: String(Math.min(log.pageCount, log.page + 1)),
-                  })}`}
+                  href={buildFilterHref(
+                    "/admin/audit",
+                    { action },
+                    {
+                      page: Math.min(log.pageCount, log.page + 1),
+                    },
+                  )}
                 >
                   Berikutnya
                 </Link>

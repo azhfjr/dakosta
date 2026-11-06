@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 
 import { BranchTable } from "@/components/hierarchy/branch-table";
 import { BranchEditor } from "@/components/hierarchy/hierarchy-editors";
+import { FilterBar, type FilterField } from "@/components/filters/filter-bar";
+import { getFilterOptions } from "@/lib/filters/options";
+import { firstParam, parseFilterUuid } from "@/lib/filters/query";
 import { listBranches } from "@/lib/hierarchy";
 import { listHierarchyOptions } from "@/lib/hierarchy-admin";
 import { requireRole } from "@/lib/session";
@@ -19,17 +22,27 @@ export default async function AdminBranchesPage({
 }) {
   const admin = await requireRole("ADMIN");
   const params = await searchParams;
-  const raw = params.regionId;
-  const regionId = Array.isArray(raw) ? raw[0] : raw;
+  const regionId = parseFilterUuid(firstParam(params, "regionId"));
 
-  const [all, hierarchy] = await Promise.all([
+  const [all, hierarchy, options] = await Promise.all([
     listBranches(admin.scope),
     listHierarchyOptions(),
+    getFilterOptions(admin),
   ]);
-  const branches =
-    regionId && /^[0-9a-f-]{36}$/i.test(regionId)
-      ? all.filter((branch) => branch.regionId === regionId)
-      : all;
+  const branches = regionId
+    ? all.filter((branch) => branch.regionId === regionId)
+    : all;
+
+  const filterFields: FilterField[] = [
+    {
+      kind: "select",
+      name: "regionId",
+      label: "Wilayah",
+      value: regionId ?? "",
+      options: options.regions,
+      allLabel: "Semua wilayah",
+    },
+  ];
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
@@ -51,6 +64,16 @@ export default async function AdminBranchesPage({
           Mode demo: perubahan wilayah, cabang, dan organisasi dinonaktifkan.
         </p>
       ) : null}
+
+      <FilterBar
+        action="/admin/cabang"
+        label="Filter cabang"
+        idPrefix="cabang"
+        resetHref="/admin/cabang"
+        fields={filterFields}
+        columns={2}
+        summary={`${branches.length} cabang ditampilkan.`}
+      />
 
       <BranchTable
         branches={branches}

@@ -5,6 +5,12 @@ import { PageHeader } from "@/components/shell/page-header";
 import { SlaQueue, type SlaTabKey } from "@/components/sla/sla-queue";
 import { Button } from "@/components/ui/button";
 import { formatDateTimeId } from "@/lib/dates";
+import { getFilterOptions } from "@/lib/filters/options";
+import {
+  firstParam,
+  parseFilterSubTheme,
+  parseFilterUuid,
+} from "@/lib/filters/query";
 import { listReviewQueue } from "@/lib/review";
 import { requireRole } from "@/lib/session";
 import { getActiveSlaPolicy } from "@/lib/sla";
@@ -14,10 +20,6 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = "force-dynamic";
-
-function firstParam(value: string | string[] | undefined): string | undefined {
-  return Array.isArray(value) ? value[0] : value;
-}
 
 function parseStatus(value: string | undefined): SlaTabKey {
   return value === "SUBMITTED" ||
@@ -34,13 +36,25 @@ export default async function RegionalSlaPage({
 }) {
   const user = await requireRole("REGIONAL_ADMIN");
   const params = await searchParams;
-  const status = parseStatus(firstParam(params.status));
-  const search = firstParam(params.q)?.trim().slice(0, 120) || undefined;
-  const page = Math.max(Number(firstParam(params.page) ?? 1) || 1, 1);
+  const status = parseStatus(firstParam(params, "status"));
+  const search = firstParam(params, "q")?.slice(0, 120) || undefined;
+  const page = Math.max(Number(firstParam(params, "page") ?? 1) || 1, 1);
+  const stakeholderId =
+    parseFilterUuid(firstParam(params, "stakeholderId")) ?? undefined;
+  const subTheme =
+    parseFilterSubTheme(firstParam(params, "subTheme")) ?? undefined;
 
-  const [queue, policy] = await Promise.all([
-    listReviewQueue(user, { status, search, page, pageSize: 15 }),
+  const [queue, policy, options] = await Promise.all([
+    listReviewQueue(user, {
+      status,
+      search,
+      page,
+      pageSize: 15,
+      stakeholderId,
+      subTheme,
+    }),
     getActiveSlaPolicy(),
+    getFilterOptions(user),
   ]);
 
   return (
@@ -69,6 +83,12 @@ export default async function RegionalSlaPage({
         basePath="/wilayah"
         search={search}
         status={status}
+        stakeholderId={stakeholderId}
+        subTheme={subTheme}
+        options={{
+          stakeholders: options.stakeholders,
+          subThemes: options.subThemes,
+        }}
         scopeLabel={user.scopeLabel}
         readOnlyNote="Mode pantau: tindakan approval/revisi hanya untuk Admin Cabang."
       />

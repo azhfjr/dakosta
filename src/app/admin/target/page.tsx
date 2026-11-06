@@ -5,10 +5,16 @@ import { Gauge, Target as TargetIcon, TrendingUp } from "lucide-react";
 import { TargetManager } from "@/components/admin/target-manager";
 import { TargetSyncPanel } from "@/components/admin/target-sync-panel";
 import { StatCard } from "@/components/dashboard/stat-card";
+import { FilterBar, type FilterField } from "@/components/filters/filter-bar";
 import { Button } from "@/components/ui/button";
 import { formatDateTimeId, formatNumberId } from "@/lib/dates";
-import { isMonthKey, monthKeyFor } from "@/lib/kpi/formulas";
-import { monthOptions } from "@/lib/kpi/sql";
+import { getFilterOptions } from "@/lib/filters/options";
+import {
+  buildFilterHref,
+  firstParam,
+  parseFilterPage,
+} from "@/lib/filters/query";
+import { isMonthKey, monthKeyFor, monthRange } from "@/lib/kpi/formulas";
 import { requireRole } from "@/lib/session";
 import { getTargetOverview } from "@/lib/targets";
 import { getTargetSyncPreview } from "@/lib/targets/sync";
@@ -21,12 +27,6 @@ export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 50;
 
-function pageNumber(value: string | string[] | undefined): number {
-  const raw = Array.isArray(value) ? value[0] : value;
-  const parsed = Number(raw);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
-}
-
 function formatPercent(value: number | null): string {
   return value === null ? "N/A" : `${formatNumberId(value)}%`;
 }
@@ -36,24 +36,41 @@ export default async function AdminTargetPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  await requireRole("ADMIN");
+  const admin = await requireRole("ADMIN");
   const params = await searchParams;
-  const rawMonth = Array.isArray(params.month) ? params.month[0] : params.month;
+  const rawMonth = firstParam(params, "month");
   const month = isMonthKey(rawMonth) ? rawMonth : monthKeyFor();
 
-  const [overview, syncPreview] = await Promise.all([
+  const [overview, syncPreview, options] = await Promise.all([
     getTargetOverview(month, {
-      page: pageNumber(params.page),
+      page: parseFilterPage(firstParam(params, "page")),
       pageSize: PAGE_SIZE,
     }),
     getTargetSyncPreview(month),
+    getFilterOptions(admin),
   ]);
 
   const { page, pageCount, total } = overview.pagination;
   const start = (page - 1) * PAGE_SIZE;
   const rows = overview.rows;
   const pageHref = (target: number) =>
-    `/admin/target?month=${month}&page=${target}`;
+    buildFilterHref("/admin/target", { month }, { page: target });
+
+  const periodOptions = options.periods.some((option) => option.value === month)
+    ? options.periods
+    : [{ value: month, label: monthRange(month).label }, ...options.periods];
+
+  const filterFields: FilterField[] = [
+    {
+      kind: "select",
+      name: "month",
+      label: "Periode bulan",
+      value: month,
+      options: periodOptions,
+      allLabel: "",
+      includeEmpty: false,
+    },
+  ];
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
@@ -72,39 +89,20 @@ export default async function AdminTargetPage({
         </p>
       </header>
 
-      <section
-        aria-label="Filter target"
-        className="rounded-xl border border-border bg-surface p-4 shadow-sm sm:p-5"
-      >
-        <form
-          method="get"
-          action="/admin/target"
-          className="flex flex-wrap items-end gap-2"
-        >
-          <label className="flex-1 sm:max-w-xs">
-            <span className="mb-1.5 block text-xs font-medium text-ink-muted">
-              Periode bulan
-            </span>
-            <select
-              name="month"
-              defaultValue={month}
-              className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-            >
-              {monthOptions(month).map((option) => (
-                <option key={option.key} value={option.key}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <Button type="submit" variant="outline" className="h-10">
-            Tampilkan
-          </Button>
-          <Button asChild variant="ghost" className="h-10">
+      <FilterBar
+        action="/admin/target"
+        label="Filter target"
+        idPrefix="target"
+        resetHref="/admin/target"
+        fields={filterFields}
+        columns={2}
+        summary={`${formatNumberId(total)} cakupan target pada ${overview.periodLabel}.`}
+        actions={
+          <Button asChild variant="outline" size="sm" className="h-9">
             <Link href={`/admin?month=${month}`}>Buka ringkasan periode</Link>
           </Button>
-        </form>
-      </section>
+        }
+      />
 
       <section
         aria-label="Ringkasan target"

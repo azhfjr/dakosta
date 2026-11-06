@@ -5,11 +5,10 @@ import { KpiDashboard } from "@/components/dashboard/kpi-dashboard";
 import { Button } from "@/components/ui/button";
 import { getDashboardMap } from "@/lib/dashboard-map";
 import { redirectDashboardView } from "@/lib/dashboard/view";
+import { getFilterOptions } from "@/lib/filters/options";
 import {
   getDashboardOverview,
-  getKpiFilterOptions,
   kpiPeriod,
-  monthOptions,
   parseKpiFiltersFromParams,
 } from "@/lib/kpi/sql";
 import { getPerformanceSummary } from "@/lib/performance";
@@ -36,7 +35,7 @@ export default async function BranchHomePage({
   const alignmentAllowed = !filters.stakeholderId && !filters.subTheme;
   const [overview, options, pendingCount, summary, map] = await Promise.all([
     getDashboardOverview(user, filters),
-    getKpiFilterOptions(user),
+    getFilterOptions(user),
     countReviewQueue(user),
     alignmentAllowed
       ? getPerformanceSummary(user, period)
@@ -52,7 +51,10 @@ export default async function BranchHomePage({
     <KpiDashboard
       overview={overview}
       role={user.role}
-      options={{ ...options, months: monthOptions(filters.month) }}
+      options={{
+        stakeholders: options.stakeholders,
+        subThemes: options.subThemes,
+      }}
       basePath="/cabang/dashboard"
       title="Dashboard cabang"
       description={`Capaian dan antrean validasi untuk ${user.scopeLabel}. Anda hanya melihat konten organisasi pada cabang ini.`}

@@ -8,15 +8,15 @@ import {
   ChevronRight,
   Download,
   FileText,
-  Search,
-  SlidersHorizontal,
   Target,
   TrendingUp,
 } from "lucide-react";
 
 import { PrintButton } from "@/components/performance/print-button";
 import { StatCard } from "@/components/dashboard/stat-card";
+import { FilterBar, type FilterField } from "@/components/filters/filter-bar";
 import { Button } from "@/components/ui/button";
+import { ORG_SOURCES, ORG_SOURCE_LABELS } from "@/lib/analytics/org-source";
 import { formatDateTimeId, formatNumberId } from "@/lib/dates";
 import {
   buildPerformanceQuery,
@@ -28,12 +28,6 @@ import {
   type PerformanceTargetStatus,
 } from "@/lib/performance";
 import { periodOptions } from "@/lib/periods";
-
-const selectClass =
-  "h-10 w-full rounded-lg border border-border bg-surface px-3 text-sm text-foreground shadow-xs focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/30 focus-visible:outline-none";
-
-const inputClass =
-  "h-10 w-full rounded-lg border border-border bg-surface px-3 text-sm text-foreground shadow-xs focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/30 focus-visible:outline-none";
 
 const STATUS_META: Record<
   PerformanceTargetStatus,
@@ -150,6 +144,132 @@ export function PerformanceTable({
     ...(filters.q ? [`Pencarian "${filters.q}"`] : []),
   ].join(" · ");
 
+  const periodChoices = [
+    ...options.months,
+    ...options.quarters,
+    ...options.years,
+  ];
+  const periodSelectOptions = knownPeriod
+    ? periodChoices
+    : [
+        { value: filters.period.key, label: filters.period.label },
+        ...periodChoices,
+      ];
+
+  const filterFields: FilterField[] = [
+    {
+      kind: "select",
+      name: "period",
+      label: "Periode",
+      value: filters.period.key,
+      options: periodSelectOptions,
+      allLabel: "",
+      includeEmpty: false,
+    },
+    ...(showBranchFilter
+      ? [
+          {
+            kind: "select" as const,
+            name: "branch",
+            label: "Cabang",
+            value: filters.branchId ?? "",
+            options: branches.map((branch) => ({
+              value: branch.id,
+              label: `${branch.regionName} · ${branch.name}`,
+            })),
+            allLabel: "Semua cabang",
+          },
+        ]
+      : []),
+    {
+      kind: "select",
+      name: "type",
+      label: "Jenis instansi",
+      value: filters.source ?? "",
+      options: ORG_SOURCES.map((source) => ({
+        value: source,
+        label: ORG_SOURCE_LABELS[source],
+      })),
+      allLabel: "Semua jenis",
+    },
+    {
+      kind: "search",
+      name: "q",
+      label: "Nama / kode instansi",
+      value: filters.q ?? "",
+      placeholder: "Cari nama atau kode",
+    },
+  ];
+
+  const advancedFields: FilterField[] = [
+    {
+      kind: "select",
+      name: "status",
+      label: "Status target",
+      value: filters.status === "ALL" ? "" : filters.status,
+      options: [
+        { value: "MET", label: "Tercapai" },
+        { value: "BELOW", label: "Di bawah target" },
+        { value: "NO_TARGET", label: "Target belum ditetapkan" },
+      ],
+      allLabel: "Semua status",
+    },
+    {
+      kind: "number",
+      name: "pmin",
+      label: "Capaian minimum (%)",
+      value: filters.percentMin === null ? "" : String(filters.percentMin),
+      min: 0,
+      step: 0.1,
+      placeholder: "Min",
+    },
+    {
+      kind: "number",
+      name: "pmax",
+      label: "Capaian maksimum (%)",
+      value: filters.percentMax === null ? "" : String(filters.percentMax),
+      min: 0,
+      step: 0.1,
+      placeholder: "Maks",
+    },
+    {
+      kind: "number",
+      name: "rmin",
+      label: "Realisasi minimum",
+      value: filters.approvedMin === null ? "" : String(filters.approvedMin),
+      min: 0,
+      step: 1,
+      placeholder: "Min",
+    },
+    {
+      kind: "number",
+      name: "rmax",
+      label: "Realisasi maksimum",
+      value: filters.approvedMax === null ? "" : String(filters.approvedMax),
+      min: 0,
+      step: 1,
+      placeholder: "Maks",
+    },
+    {
+      kind: "number",
+      name: "tmin",
+      label: "Target minimum",
+      value: filters.targetMin === null ? "" : String(filters.targetMin),
+      min: 0,
+      step: 1,
+      placeholder: "Min",
+    },
+    {
+      kind: "number",
+      name: "tmax",
+      label: "Target maksimum",
+      value: filters.targetMax === null ? "" : String(filters.targetMax),
+      min: 0,
+      step: 1,
+      placeholder: "Maks",
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <section
@@ -197,216 +317,21 @@ export function PerformanceTable({
         />
       </section>
 
-      <section
-        aria-label="Filter kinerja"
-        className="rounded-xl border border-border bg-surface p-4 shadow-sm print:hidden"
-      >
-        <form method="get" action={basePath} className="space-y-3">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <label className="block text-xs font-medium text-ink-muted">
-              Periode
-              <select
-                name="period"
-                defaultValue={filters.period.key}
-                className={`${selectClass} mt-1`}
-              >
-                {!knownPeriod ? (
-                  <option value={filters.period.key}>
-                    {filters.period.label}
-                  </option>
-                ) : null}
-                <optgroup label="Bulan">
-                  {options.months.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label="Triwulan">
-                  {options.quarters.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label="Tahun">
-                  {options.years.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </optgroup>
-              </select>
-            </label>
-
-            {showBranchFilter ? (
-              <label className="block text-xs font-medium text-ink-muted">
-                Cabang
-                <select
-                  name="branch"
-                  defaultValue={filters.branchId ?? ""}
-                  className={`${selectClass} mt-1`}
-                >
-                  <option value="">Semua cabang</option>
-                  {branches.map((branch) => (
-                    <option key={branch.id} value={branch.id}>
-                      {branch.regionName} · {branch.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ) : null}
-
-            <label className="block text-xs font-medium text-ink-muted">
-              Jenis instansi
-              <select
-                name="type"
-                defaultValue={filters.source ?? ""}
-                className={`${selectClass} mt-1`}
-              >
-                <option value="">Semua jenis</option>
-                <option value="FASKES_FKRTL">Faskes FKRTL</option>
-                <option value="FASKES_FKTP">Faskes FKTP</option>
-                <option value="PEMDA">Pemda</option>
-                <option value="OTHER">Stakeholder/Mitra</option>
-              </select>
-            </label>
-
-            <label className="block text-xs font-medium text-ink-muted">
-              Nama / kode instansi
-              <div className="relative mt-1">
-                <Search
-                  className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-muted"
-                  aria-hidden
-                />
-                <input
-                  type="search"
-                  name="q"
-                  defaultValue={filters.q ?? ""}
-                  maxLength={80}
-                  placeholder="Cari nama atau kode"
-                  className={`${inputClass} pl-9`}
-                />
-              </div>
-            </label>
-          </div>
-
-          <details className="rounded-lg border border-border bg-surface-muted/40 px-3 py-2">
-            <summary className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-ink-muted select-none">
-              <SlidersHorizontal className="size-3.5" aria-hidden />
-              Filter lanjutan
-            </summary>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <label className="block text-xs font-medium text-ink-muted">
-                Status target
-                <select
-                  name="status"
-                  defaultValue={filters.status}
-                  className={`${selectClass} mt-1`}
-                >
-                  <option value="ALL">Semua status</option>
-                  <option value="MET">Tercapai</option>
-                  <option value="BELOW">Di bawah target</option>
-                  <option value="NO_TARGET">Target belum ditetapkan</option>
-                </select>
-              </label>
-              <fieldset className="text-xs font-medium text-ink-muted">
-                <legend>Rentang capaian (%)</legend>
-                <div className="mt-1 flex items-center gap-2">
-                  <input
-                    type="number"
-                    name="pmin"
-                    min={0}
-                    step={0.1}
-                    defaultValue={filters.percentMin ?? ""}
-                    aria-label="Capaian minimum (%)"
-                    placeholder="Min"
-                    className={inputClass}
-                  />
-                  <span aria-hidden>–</span>
-                  <input
-                    type="number"
-                    name="pmax"
-                    min={0}
-                    step={0.1}
-                    defaultValue={filters.percentMax ?? ""}
-                    aria-label="Capaian maksimum (%)"
-                    placeholder="Maks"
-                    className={inputClass}
-                  />
-                </div>
-              </fieldset>
-              <fieldset className="text-xs font-medium text-ink-muted">
-                <legend>Rentang realisasi</legend>
-                <div className="mt-1 flex items-center gap-2">
-                  <input
-                    type="number"
-                    name="rmin"
-                    min={0}
-                    step={1}
-                    defaultValue={filters.approvedMin ?? ""}
-                    aria-label="Realisasi minimum"
-                    placeholder="Min"
-                    className={inputClass}
-                  />
-                  <span aria-hidden>–</span>
-                  <input
-                    type="number"
-                    name="rmax"
-                    min={0}
-                    step={1}
-                    defaultValue={filters.approvedMax ?? ""}
-                    aria-label="Realisasi maksimum"
-                    placeholder="Maks"
-                    className={inputClass}
-                  />
-                </div>
-              </fieldset>
-              <fieldset className="text-xs font-medium text-ink-muted">
-                <legend>Rentang target</legend>
-                <div className="mt-1 flex items-center gap-2">
-                  <input
-                    type="number"
-                    name="tmin"
-                    min={0}
-                    step={1}
-                    defaultValue={filters.targetMin ?? ""}
-                    aria-label="Target minimum"
-                    placeholder="Min"
-                    className={inputClass}
-                  />
-                  <span aria-hidden>–</span>
-                  <input
-                    type="number"
-                    name="tmax"
-                    min={0}
-                    step={1}
-                    defaultValue={filters.targetMax ?? ""}
-                    aria-label="Target maksimum"
-                    placeholder="Maks"
-                    className={inputClass}
-                  />
-                </div>
-              </fieldset>
-            </div>
-            <input type="hidden" name="sort" value={filters.sort} />
-            <input type="hidden" name="dir" value={filters.direction} />
-            <input type="hidden" name="pageSize" value={filters.pageSize} />
-          </details>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <Button type="submit" className="h-10">
-              Terapkan filter
-            </Button>
-            <Button asChild variant="ghost" className="h-10">
-              <Link href={basePath}>Reset</Link>
-            </Button>
-            <span className="text-xs text-ink-muted">
-              {formatNumberId(table.totalRows)} institusi cocok
-            </span>
-          </div>
-        </form>
-      </section>
+      <FilterBar
+        action={basePath}
+        label="Filter kinerja"
+        idPrefix="kinerja"
+        resetHref={basePath}
+        fields={filterFields}
+        advancedFields={advancedFields}
+        hidden={{
+          sort: filters.sort,
+          dir: filters.direction,
+          pageSize: String(filters.pageSize),
+        }}
+        summary={`${formatNumberId(table.totalRows)} institusi cocok. Realisasi hanya menghitung konten approved berdasarkan tanggal approval final.`}
+        className="print:hidden"
+      />
 
       <section aria-label="Tabel kinerja" className="space-y-3">
         <div className="flex flex-wrap items-start justify-between gap-3 print:hidden">
