@@ -146,32 +146,26 @@ test.describe("Filter detail konten stakeholder", () => {
   });
 });
 
-test.describe("Filter tabel dashboard", () => {
+test.describe("Filter cabang dashboard", () => {
   test.use({ storageState: ADMIN_STATE });
 
-  test("satu filter bar disetujui untuk instansi, cabang, tema, jenis, dan platform", async ({
+  test("checklist cabang memakai parameter berulang dan menyimpan filter lain", async ({
     page,
   }) => {
-    await page.goto("/admin");
-    const filter = page.getByRole("region", {
-      name: "Filter konten disetujui",
-    });
-    await expect(filter).toBeVisible();
-    for (const name of [
-      "q",
-      "stakeholderId",
-      "branchId",
-      "orgType",
-      "mainTheme",
-      "subTheme",
-      "type",
-      "platform",
-    ]) {
-      await expect(filter.locator(`[name="${name}"]`)).toBeVisible();
-    }
+    await page.goto("/admin?view=tema-konten");
+    const checklist = page.locator("#pilih-cabang");
+    await expect(
+      checklist.getByRole("heading", { name: "Cabang", exact: true }),
+    ).toBeVisible();
 
-    await filter.locator('select[name="subTheme"]').selectOption({ index: 1 });
-    await page.waitForURL(/subTheme=/);
-    await expect(filter.locator('select[name="subTheme"]')).not.toHaveValue("");
+    const branch = checklist.locator('input[id^="cabang-"]').first();
+    await expect(branch).toBeVisible();
+    await branch.click();
+    await page.waitForURL(/cabang=/);
+
+    const url = new URL(page.url());
+    expect(url.hash).toBe("#tema-konten");
+    expect(url.searchParams.getAll("cabang").length).toBeGreaterThan(0);
+    await expect(page.locator("#tema-konten")).toBeVisible();
   });
 });

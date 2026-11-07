@@ -24,6 +24,7 @@ export const FILTER_PARAM_KEYS = [
   "month",
   "stakeholderId",
   "branchId",
+  "cabang",
   "subTheme",
   "mainTheme",
   "source",
@@ -161,7 +162,7 @@ export function parseFilterSearch(value: string | undefined): string {
 export function buildFilterHref(
   basePath: string,
   params: FilterParams,
-  overrides: Record<string, string | number | null | undefined> = {},
+  overrides: Record<string, string | string[] | number | null | undefined> = {},
   options: { hash?: string; keepPage?: boolean } = {},
 ): string {
   const merged = new Map<string, string | string[] | null>();

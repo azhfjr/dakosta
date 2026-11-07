@@ -1,19 +1,4 @@
-import { randomUUID } from "node:crypto";
-import { expect, test, type Page } from "@playwright/test";
-
-import { demoPassword } from "../e2e/demo-password";
-
-async function confirmStepUpIfPrompted(page: Page): Promise<void> {
-  const dialog = page.getByRole("dialog", { name: "Konfirmasi kata sandi" });
-  const appeared = await dialog
-    .waitFor({ state: "visible", timeout: 3_000 })
-    .then(() => true)
-    .catch(() => false);
-  if (!appeared) return;
-  await dialog.locator("#step-up-password").fill(demoPassword());
-  await dialog.getByRole("button", { name: "Konfirmasi" }).click();
-  await expect(dialog).toBeHidden();
-}
+import { expect, test } from "@playwright/test";
 
 const ADMIN_PAGES = [
   "/admin",
@@ -38,11 +23,21 @@ test.describe("Basis data kosong", () => {
   test("seluruh halaman Master tampil tanpa galat server", async ({ page }) => {
     test.slow();
     for (const route of ADMIN_PAGES) {
-      const response = await page.goto(route, {
+      let response = await page.goto(route, {
         waitUntil: "domcontentloaded",
       });
+      await expect(page.locator("h1").first(), route).toBeVisible({
+        timeout: 30_000,
+      });
+      if (!response) {
+        // Turbopack can trigger one full reload while compiling a route for the
+        // first time, which makes the first goto resolve without a response.
+        response = await page.goto(route, { waitUntil: "domcontentloaded" });
+        await expect(page.locator("h1").first(), route).toBeVisible({
+          timeout: 30_000,
+        });
+      }
       expect(response?.status(), route).toBeLessThan(500);
-      await expect(page.locator("h1").first(), route).toBeVisible();
     }
 
     await page.goto("/admin");
@@ -59,70 +54,58 @@ test.describe("Basis data kosong", () => {
     await expect(page.getByText("Belum ada wilayah terdaftar")).toBeVisible();
   });
 
-  test("Master menyiapkan hierarki pertama lalu akun stakeholder", async ({
+  test("Master melihat hierarki kosong dengan perubahan dinonaktifkan", async ({
     page,
   }) => {
     test.slow();
-    const suffix = randomUUID().slice(0, 6).toUpperCase();
-
     await page.goto("/admin/wilayah");
-    await page.getByRole("button", { name: "Tambah wilayah" }).click();
-    const regionDialog = page.getByRole("dialog", { name: "Tambah wilayah" });
-    await regionDialog.locator("#region-name").fill(`Wilayah Uji ${suffix}`);
-    await regionDialog.locator("#region-code").fill(`W${suffix}`);
-    await regionDialog.getByRole("button", { name: "Simpan" }).click();
-    await expect(page.getByText(`Wilayah Uji ${suffix}`)).toBeVisible();
-
-    await page.goto("/admin/cabang");
-    await page.getByRole("button", { name: "Tambah cabang" }).click();
-    const branchDialog = page.getByRole("dialog", { name: "Tambah cabang" });
-    await branchDialog.locator("#branch-name").fill(`Cabang Uji ${suffix}`);
-    await branchDialog.locator("#branch-code").fill(`C${suffix}`);
-    await branchDialog.getByRole("button", { name: "Simpan" }).click();
-    await expect(page.getByText(`Cabang Uji ${suffix}`)).toBeVisible();
-
-    await page.goto("/admin/organisasi");
-    await page
-      .getByRole("button", { name: "Tambah organisasi" })
-      .first()
-      .click();
-    const orgDialog = page.getByRole("dialog", { name: "Tambah organisasi" });
-    await orgDialog.locator("#org-name").fill(`Klinik Uji ${suffix}`);
-    await orgDialog.locator("#org-code").fill(`F${suffix}`);
-    await orgDialog.locator("#org-area").fill("Kota Bandung");
-    await orgDialog.locator("#org-lat").fill("-6.9175");
-    await orgDialog.locator("#org-lng").fill("107.6191");
-    await orgDialog.getByRole("button", { name: "Simpan" }).click();
-    await expect(page.getByText(`Klinik Uji ${suffix}`)).toBeVisible();
+    await expect(page.getByText("Belum ada wilayah terdaftar")).toBeVisible();
+    await expect(
+      page.getByText(
+        /Mode demo: perubahan wilayah, cabang, dan organisasi dinonaktifkan/,
+      ),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Tambah wilayah" }),
+    ).toHaveCount(0);
 
     await page.goto("/admin/akun");
-    const email = `stakeholder.${suffix.toLowerCase()}@example.test`;
-    await page.locator("#acct-name").fill(`Stakeholder Uji ${suffix}`);
-    await page.locator("#acct-email").fill(email);
-    await page.locator("#acct-org").selectOption({ index: 1 });
-    await page.getByRole("button", { name: "Buat akun" }).click();
-    await confirmStepUpIfPrompted(page);
     await expect(
-      page.getByRole("heading", {
-        name: `Kata sandi sementara untuk Stakeholder Uji ${suffix}`,
-      }),
+      page.getByText(/Mode demo: pembuatan dan perubahan akun dinonaktifkan/),
     ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Buat akun" })).toHaveCount(
+      0,
+    );
   });
 
-  test("Master menetapkan target pertama pada basis data kosong", async ({
+  test("Dashboard kosong menampilkan angka nol dan empty state jujur", async ({
     page,
   }) => {
-    await page.goto("/admin/target");
-    await page.getByRole("button", { name: "Tambah target" }).first().click();
-    const dialog = page.getByRole("dialog", { name: "Tambah target" });
-    await dialog.locator("#target-count").fill("10");
-    await dialog.getByRole("button", { name: "Tambah target" }).click();
-    await confirmStepUpIfPrompted(page);
-    await expect(
-      page.getByText("Target ditambahkan.", { exact: true }),
-    ).toBeVisible();
-    const row = page.getByRole("row", { name: /Workspace \(global\)/ });
-    await expect(row).toBeVisible();
-    await expect(row).toContainText("10");
+    test.slow();
+    await page.goto("/admin");
+
+    await expect(page.locator("#ringkasan")).toContainText(
+      "Total Konten Tervalidasi",
+    );
+    await expect(page.locator("#ringkasan")).toContainText("0 dari 0 cabang");
+    await expect(page.locator("#ringkasan")).toContainText(
+      "Belum terhubung ke cabang.",
+    );
+    await expect(page.locator("#konten-per-cabang")).toContainText(
+      "Belum ada cabang dalam cakupan Anda.",
+    );
+    await expect(page.locator("#pilih-cabang")).toContainText(
+      "Tidak ada cabang dalam cakupan Anda",
+    );
+    await expect(page.locator("#fktp")).toContainText(
+      "Belum ada konten tervalidasi pada kategori ini.",
+    );
+    await expect(page.locator("#peta")).toContainText(
+      "Belum ada konten tervalidasi dengan lokasi",
+    );
+    await expect(page.locator("#edufast")).toContainText("Konten EDUFAST");
+    await expect(page.locator("#tema-konten")).toContainText(
+      "Belum ada konten Non-EDUFAST",
+    );
   });
 });

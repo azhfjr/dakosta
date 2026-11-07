@@ -1,4 +1,5 @@
 import type { ContentStatus } from "@/lib/content-status";
+import type { DashboardCategory } from "@/lib/dashboard/types";
 
 export const CHART_COLORS = [
   "var(--chart-1)",
@@ -20,6 +21,39 @@ export const tooltipStyle = {
   boxShadow: "0 8px 24px rgba(16, 42, 67, 0.08)",
   fontSize: 12,
 } as const;
+
+/** Shared category palette so charts, rankings, and map chips never diverge. */
+export const CATEGORY_CHART_COLORS: Record<DashboardCategory, string> = {
+  FKRTL: "var(--chart-1)",
+  FKTP: "var(--chart-2)",
+  PEMDA: "var(--chart-3)",
+  STAKEHOLDER: "var(--chart-4)",
+};
+
+/** Literal copies for MapLibre, which cannot resolve CSS custom properties. */
+export const CATEGORY_MAP_COLORS: Record<DashboardCategory, string> = {
+  FKRTL: "#00A651",
+  FKTP: "#00857C",
+  PEMDA: "#005B9F",
+  STAKEHOLDER: "#B45309",
+};
+
+export const THEME_CHART_COLORS: Record<string, string> = {
+  MOBILE_JKN: "var(--chart-1)",
+  TESTIMONI_PESERTA: "var(--chart-2)",
+  ALUR_BEROBAT: "var(--chart-3)",
+  EDUKATIF_PERSUASIF: "var(--chart-4)",
+  KORPORAT: "var(--chart-5)",
+  INFORMASI: "#7c3aed",
+  TANPA_SUB_TEMA: "#0e7490",
+};
+
+export function themeChartColor(key: string, fallbackIndex = 0): string {
+  return (
+    THEME_CHART_COLORS[key] ??
+    CHART_COLORS[fallbackIndex % CHART_COLORS.length]!
+  );
+}
 
 export const STATUS_CHART_COLOR: Record<ContentStatus, string> = {
   APPROVED: "var(--status-approved)",

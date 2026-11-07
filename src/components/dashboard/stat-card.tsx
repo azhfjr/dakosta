@@ -17,27 +17,43 @@ export function StatCard({
   hint,
   icon: Icon,
   tone = "blue",
+  size = "default",
 }: {
   label: string;
   value: string;
   hint?: string;
   icon: LucideIcon;
   tone?: keyof typeof toneClass;
+  size?: "default" | "compact";
 }) {
   return (
-    <div className="rounded-xl border border-border bg-surface p-4 shadow-sm sm:p-5">
+    <div
+      className={cn(
+        "rounded-xl border border-border bg-surface shadow-sm",
+        size === "compact" ? "p-4" : "p-4 sm:p-5",
+      )}
+    >
       <div className="flex items-start justify-between gap-3">
         <p className="text-sm font-medium text-ink-muted">{label}</p>
         <span
           className={cn(
-            "flex size-9 shrink-0 items-center justify-center rounded-lg",
+            "flex shrink-0 items-center justify-center rounded-lg",
+            size === "compact" ? "size-8" : "size-9",
             toneClass[tone],
           )}
         >
-          <Icon className="size-[18px]" aria-hidden />
+          <Icon
+            className={size === "compact" ? "size-4" : "size-[18px]"}
+            aria-hidden
+          />
         </span>
       </div>
-      <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground tabular">
+      <p
+        className={cn(
+          "mt-3 font-semibold tracking-tight text-foreground tabular",
+          size === "compact" ? "text-2xl" : "text-3xl",
+        )}
+      >
         {value}
       </p>
       {hint ? <p className="mt-1 text-xs text-ink-muted">{hint}</p> : null}

@@ -1,0 +1,152 @@
+{
+  "generatedAt": "2026-11-07T18:54:55.682Z",
+  "baseURL": "http://localhost:3300",
+  "results": [
+    {
+      "role": "master",
+      "path": "/admin",
+      "viewport": "1440",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v3\\master-1440.png",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "master",
+      "path": "/admin",
+      "viewport": "768",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v3\\master-768.png",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "master",
+      "path": "/admin",
+      "viewport": "375",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v3\\master-375.png",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/dashboard",
+      "viewport": "1440",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v3\\regional-1440.png",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/dashboard",
+      "viewport": "768",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v3\\regional-768.png",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/dashboard",
+      "viewport": "375",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v3\\regional-375.png",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/dashboard",
+      "viewport": "1440",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v3\\branch-1440.png",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/dashboard",
+      "viewport": "768",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v3\\branch-768.png",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/dashboard",
+      "viewport": "375",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v3\\branch-375.png",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "stakeholder",
+      "path": "/client",
+      "viewport": "1440",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v3\\stakeholder-1440.png",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "stakeholder",
+      "path": "/client",
+      "viewport": "768",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v3\\stakeholder-768.png",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "stakeholder",
+      "path": "/client",
+      "viewport": "375",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v3\\stakeholder-375.png",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    }
+  ],
+  "passed": 12,
+  "failed": 0
+}

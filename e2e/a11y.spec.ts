@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Frame, type Page } from "@playwright/test";
 
 import {
   ADMIN_STATE,
@@ -18,10 +18,88 @@ async function seriousViolations(page: Page) {
   );
 }
 
+const DASHBOARD_PATHS = new Set([
+  "/admin",
+  "/client",
+  "/wilayah/dashboard",
+  "/cabang/dashboard",
+]);
+
+async function waitForStable(page: Page, quietMs = 700): Promise<void> {
+  // Turbopack dev mode can trigger a full reload after it finishes compiling a
+  // route for the first time; wait until the main frame has been quiet so
+  // measurements do not race an in-flight reload.
+  let lastNavigation = Date.now();
+  const record = (frame: Frame) => {
+    if (frame === page.mainFrame()) lastNavigation = Date.now();
+  };
+  page.on("framenavigated", record);
+  try {
+    for (let waited = 0; waited < 15_000; waited += 150) {
+      if (Date.now() - lastNavigation >= quietMs) return;
+      await page.waitForTimeout(150);
+    }
+  } finally {
+    page.off("framenavigated", record);
+  }
+}
+
+async function settle(page: Page, path: string): Promise<void> {
+  await page.waitForLoadState("domcontentloaded");
+  await page.locator("main").first().waitFor({
+    state: "visible",
+    timeout: 30_000,
+  });
+  const currentPath = new URL(page.url()).pathname;
+  if (DASHBOARD_PATHS.has(path) || DASHBOARD_PATHS.has(currentPath)) {
+    // Dashboard groups stream independently; wait for the last anchors instead
+    // of networkidle, which the notification stream keeps pending forever.
+    await page.locator("#non-edufast").waitFor({
+      state: "visible",
+      timeout: 60_000,
+    });
+    await page.locator("#peta").waitFor({ state: "visible", timeout: 60_000 });
+  } else {
+    await page
+      .waitForLoadState("networkidle", { timeout: 5_000 })
+      .catch(() => undefined);
+  }
+  await page.evaluate(() => document.fonts.ready).catch(() => undefined);
+  await page.waitForTimeout(200);
+  await waitForStable(page);
+}
+
+const RELOAD_ERROR = "Execution context was destroyed";
+
+async function withReloadRetry<T>(
+  page: Page,
+  path: string,
+  action: () => Promise<T>,
+): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      return await action();
+    } catch (error) {
+      if (!(error instanceof Error) || !error.message.includes(RELOAD_ERROR)) {
+        throw error;
+      }
+      lastError = error;
+      await page
+        .waitForLoadState("domcontentloaded", { timeout: 15_000 })
+        .catch(() => undefined);
+      await settle(page, path);
+    }
+  }
+  throw lastError;
+}
+
 async function expectAccessible(page: Page, path: string): Promise<void> {
   await page.goto(path);
-  await page.waitForLoadState("networkidle");
-  const violations = await seriousViolations(page);
+  await settle(page, path);
+  const violations = await withReloadRetry(page, path, () =>
+    seriousViolations(page),
+  );
   expect(
     violations.map((violation) => ({
       id: violation.id,
@@ -38,9 +116,11 @@ async function expectNoOverflow(
   label = path,
 ): Promise<void> {
   await page.goto(path);
-  await page.waitForLoadState("networkidle");
-  const overflow = await page.evaluate(
-    () => document.documentElement.scrollWidth - window.innerWidth,
+  await settle(page, path);
+  const overflow = await withReloadRetry(page, path, () =>
+    page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth,
+    ),
   );
   expect(overflow, `Gulir horizontal di ${label}`).toBeLessThanOrEqual(1);
 }
@@ -221,14 +301,20 @@ test.describe("Matriks viewport 640/768/1440", () => {
 });
 
 test.describe("Keyboard dan fokus", () => {
-  test("skip link, filter, dan tabel bergulir dapat dijangkau keyboard", async ({
+  test("skip link, checklist, dan area bergulir dapat dijangkau keyboard", async ({
     browser,
   }) => {
     const context = await browser.newContext({ storageState: ADMIN_STATE });
     try {
       const page = await context.newPage();
       await page.goto("/admin");
-      await page.waitForLoadState("networkidle");
+      await settle(page, "/admin");
+      await expect(page.locator("#konten-per-cabang")).toBeVisible({
+        timeout: 30_000,
+      });
+      await expect(page.locator("#pilih-cabang")).toBeVisible({
+        timeout: 30_000,
+      });
 
       await page.keyboard.press("Tab");
       const skip = page.getByRole("link", { name: "Lewati ke konten utama" });
@@ -247,19 +333,23 @@ test.describe("Keyboard dan fokus", () => {
       await page.keyboard.press("Enter");
       await expect(page.locator("#konten")).toBeInViewport();
 
-      const filter = page.getByRole("region", {
-        name: "Filter konten disetujui",
-      });
-      const select = filter.locator('select[name="subTheme"]');
-      await select.focus();
-      await expect(select).toBeFocused();
+      const selectAll = page.locator("#pilih-semua-cabang");
+      await selectAll.focus();
+      await expect(selectAll).toBeFocused();
 
-      const scrollRegion = page.getByRole("region", {
-        name: "Tabel detail konten disetujui, dapat digulir",
+      const chartRegion = page.getByRole("region", {
+        name: "Grafik konten per cabang, dapat digulir",
       });
-      await expect(scrollRegion).toHaveAttribute("tabindex", "0");
-      await scrollRegion.focus();
-      await expect(scrollRegion).toBeFocused();
+      await expect(chartRegion).toHaveAttribute("tabindex", "0");
+      await chartRegion.focus();
+      await expect(chartRegion).toBeFocused();
+
+      const checklistRegion = page.getByRole("region", {
+        name: "Daftar cabang, dapat digulir",
+      });
+      await expect(checklistRegion).toHaveAttribute("tabindex", "0");
+      await checklistRegion.focus();
+      await expect(checklistRegion).toBeFocused();
     } finally {
       await context.close();
     }

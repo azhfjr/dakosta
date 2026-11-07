@@ -1,0 +1,64 @@
+{
+  "generatedAt": "2026-11-07T18:54:09.035Z",
+  "baseURL": "http://localhost:3300",
+  "ok": true,
+  "results": [
+    {
+      "viewport": "1440",
+      "tooltipText": "4 konten tervalidasi",
+      "box": {
+        "x": 325,
+        "y": 437,
+        "width": 192.375,
+        "height": 140
+      },
+      "regionBox": {
+        "x": 325,
+        "y": 437,
+        "width": 1062,
+        "height": 216
+      },
+      "withinViewport": true,
+      "withinScrollRegion": true,
+      "consoleErrors": []
+    },
+    {
+      "viewport": "768",
+      "tooltipText": "4 konten tervalidasi",
+      "box": {
+        "x": 51.18566131591797,
+        "y": 463.2044982910156,
+        "width": 192.37499237060547,
+        "height": 139.99996948242188
+      },
+      "regionBox": {
+        "x": 45,
+        "y": 463,
+        "width": 678,
+        "height": 216
+      },
+      "withinViewport": true,
+      "withinScrollRegion": true,
+      "consoleErrors": []
+    },
+    {
+      "viewport": "375",
+      "tooltipText": "4 konten tervalidasi",
+      "box": {
+        "x": 37.400390625,
+        "y": 579.2046508789062,
+        "width": 192.375,
+        "height": 140
+      },
+      "regionBox": {
+        "x": 33,
+        "y": 579,
+        "width": 309,
+        "height": 216
+      },
+      "withinViewport": true,
+      "withinScrollRegion": true,
+      "consoleErrors": []
+    }
+  ]
+}

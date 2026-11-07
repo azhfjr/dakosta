@@ -1,0 +1,27 @@
+# npm run perf (PLAYWRIGHT_BASE_URL=http://localhost:3400, PERF_RUNS=3)
+# target: staging production build on port 3400, generated 2026-11-07T17-43-26Z
+
+
+> b8cd74b6@0.1.0 perf
+> node scripts/perf-check.mjs
+
+Rute                     TTFB p50   LCP p95    CLS     JS KB  Status
+/admin                        270ms      328ms   0.000    342  OK
+/admin/validasi               269ms      348ms   0.004    223  OK
+/admin/laporan                280ms      344ms   0.000    223  OK
+/admin/konten                 276ms      892ms   0.000    234  OK
+/admin/konten/impor           273ms      328ms   0.000    227  OK
+/admin/target                 273ms      332ms   0.000    231  OK
+/admin/sinkronisasi           286ms     1896ms   0.000    236  OK
+/wilayah                      282ms      352ms   0.004    223  OK
+/wilayah/dashboard            271ms      336ms   0.000    342  OK
+/wilayah/kinerja              272ms      340ms   0.000    223  OK
+/wilayah/konten               269ms      324ms   0.000    234  OK
+/cabang                       276ms      336ms   0.004    223  OK
+/cabang/dashboard             271ms      336ms   0.000    342  OK
+/cabang/kinerja               280ms      340ms   0.000    223  OK
+/cabang/konten                274ms      848ms   0.000    234  OK
+/client                       272ms      320ms   0.000    342  OK
+/client/konten                267ms      312ms   0.099    234  OK
+
+Seluruh anggaran performa terpenuhi.

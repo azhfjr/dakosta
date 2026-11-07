@@ -2,18 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
-import { ApprovedDashboardView } from "@/components/dashboard/approved-dashboard";
+import { DashboardOverview } from "@/components/dashboard/dashboard-overview";
 import { PageContainer } from "@/components/shell/page-container";
 import { PageHeader } from "@/components/shell/page-header";
 import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { Button } from "@/components/ui/button";
-import {
-  getApprovedDashboard,
-  parseApprovedDashboardFilters,
-} from "@/lib/analytics/dashboard";
 import { redirectDashboardView } from "@/lib/dashboard/view";
 import { formatDateTimeId } from "@/lib/dates";
-import { getFilterOptions } from "@/lib/filters/options";
+import { MAP_STYLE_URL } from "@/lib/geo";
 import { requireRole } from "@/lib/session";
 
 export const metadata: Metadata = {
@@ -62,23 +58,12 @@ async function AdminHomeBody({
   user: DashboardUser;
   params: Record<string, string | string[] | undefined>;
 }) {
-  const filters = parseApprovedDashboardFilters(params);
-  const [data, options] = await Promise.all([
-    getApprovedDashboard(user, filters),
-    getFilterOptions(user),
-  ]);
-
   return (
-    <ApprovedDashboardView
-      data={data}
-      filters={filters}
-      role={user.role}
-      options={options}
+    <DashboardOverview
+      user={user}
       basePath="/admin"
-      detailBase="/admin/konten"
-      title="Dashboard"
-      description={DESCRIPTION}
-      hideHeader
+      params={params}
+      styleUrl={MAP_STYLE_URL}
     />
   );
 }

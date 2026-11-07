@@ -77,33 +77,47 @@ function sqlFor(scenario: Scenario): string {
        limit 25`;
     case "dashboard":
       return `select
+        count(*)::int as approved,
         count(*) filter (
-          where cs.status = 'APPROVED' and cs.approved_at >= $2 and cs.approved_at < $3
-        )::int as approved,
+          where st.organization_type = 'FASKES' and st.faskes_class = 'FKRTL'
+        )::int as fkrtl,
         count(*) filter (
-          where cs.status in ('SUBMITTED', 'RESUBMITTED', 'IN_REVIEW')
-        )::int as pending,
+          where st.organization_type = 'FASKES'
+            and coalesce(st.faskes_class, '') <> 'FKRTL'
+        )::int as fktp,
+        count(*) filter (where st.organization_type = 'PEMDA')::int as pemda,
         count(*) filter (
-          where cs.status = 'REVISION_REQUIRED'
-        )::int as revision
+          where st.organization_type not in ('FASKES', 'PEMDA')
+        )::int as stakeholder
         from content_submissions cs
-       where cs.stakeholder_id in (
-         select s.id from stakeholders s
-          where s.branch_office_id = $1 and s.status = 'ACTIVE'
-       )`;
+        join stakeholders st on st.id = cs.stakeholder_id
+       where cs.archived = false
+         and cs.status = 'APPROVED'
+         and cs.approved_at is not null
+         and st.branch_office_id = $1`;
     case "map":
-      return `select s.id, s.name, s.latitude, s.longitude,
-              count(cs.id)::int as approved
-         from stakeholders s
-         left join content_submissions cs
-           on cs.stakeholder_id = s.id
+      return `select st.id, st.name, st.latitude, st.longitude,
+              count(*)::int as total,
+              count(*) filter (
+                where st.organization_type = 'FASKES' and st.faskes_class = 'FKRTL'
+              )::int as fkrtl,
+              count(*) filter (
+                where st.organization_type = 'FASKES'
+                  and coalesce(st.faskes_class, '') <> 'FKRTL'
+              )::int as fktp,
+              count(*) filter (where st.organization_type = 'PEMDA')::int as pemda,
+              count(*) filter (
+                where st.organization_type not in ('FASKES', 'PEMDA')
+              )::int as stakeholder
+         from content_submissions cs
+         join stakeholders st on st.id = cs.stakeholder_id
+         left join branch_offices b on b.id = st.branch_office_id
+        where cs.archived = false
           and cs.status = 'APPROVED'
-          and cs.approved_at >= $2
-          and cs.approved_at < $3
-        where s.status = 'ACTIVE' and s.branch_office_id = $1
-        group by s.id, s.name, s.latitude, s.longitude
-        order by count(cs.id) desc, s.name
-        limit 5000`;
+          and cs.approved_at is not null
+          and st.branch_office_id = $1
+        group by st.id, st.name, st.branch_office_id, b.name,
+                 st.latitude, st.longitude`;
     case "sla":
       return `select cs.status, count(*)::int as total,
               min(cs.first_submitted_at) as oldest,
@@ -117,22 +131,35 @@ function sqlFor(scenario: Scenario): string {
         group by cs.status`;
     case "ranking":
       return `with counts as (
-        select cs.stakeholder_id, count(distinct cs.id)::int as approved
+        select st.id as stakeholder_id, st.name,
+               st.branch_office_id as branch_id, b.name as branch_name,
+               count(*)::int as total,
+               count(*) filter (
+                 where st.organization_type = 'FASKES' and st.faskes_class = 'FKRTL'
+               )::int as fkrtl,
+               count(*) filter (
+                 where st.organization_type = 'FASKES'
+                   and coalesce(st.faskes_class, '') <> 'FKRTL'
+               )::int as fktp,
+               count(*) filter (where st.organization_type = 'PEMDA')::int as pemda,
+               count(*) filter (
+                 where st.organization_type not in ('FASKES', 'PEMDA')
+               )::int as stakeholder
           from content_submissions cs
-         where cs.status = 'APPROVED'
+          join stakeholders st on st.id = cs.stakeholder_id
+          left join branch_offices b on b.id = st.branch_office_id
+         where cs.archived = false
+           and cs.status = 'APPROVED'
            and cs.approved_at is not null
-           and cs.archived = false
-           and cs.stakeholder_id in (
-             select s.id from stakeholders s where s.branch_office_id = $1
-           )
-         group by cs.stakeholder_id
+           and st.branch_office_id = $1
+         group by st.id, st.name, st.branch_office_id, b.name
       )
-      select s.id, s.name, s.organization_type, c.approved,
-             rank() over (order by c.approved desc)::int as position
-        from counts c
-        join stakeholders s on s.id = c.stakeholder_id
-       order by c.approved desc, s.name
-       limit 25`;
+      select *, row_number() over (
+               order by total desc, lower(name), stakeholder_id
+             )::int as position
+        from counts
+       order by total desc, lower(name), stakeholder_id
+       limit 10`;
     case "monthly":
       return `with months as (
         select generate_series($2::date, $3::date, interval '1 month')::date as month_start
@@ -244,7 +271,10 @@ async function main(): Promise<void> {
         const params =
           scenario === "kinerja"
             ? [branch.id, monthStarts, period.start, period.endExclusive]
-            : scenario === "sla" || scenario === "ranking"
+            : scenario === "sla" ||
+                scenario === "ranking" ||
+                scenario === "dashboard" ||
+                scenario === "map"
               ? [branch.id]
               : [branch.id, period.start, period.endExclusive];
         const started = performance.now();

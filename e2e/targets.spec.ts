@@ -33,11 +33,12 @@ test.describe("Target KPI Master", () => {
     const achievementLink = row.getByRole("link", { name: "Lihat capaian" });
     await expect(achievementLink).toHaveAttribute(
       "href",
-      /subTheme=MOBILE_JKN/,
+      /\/admin\/konten\?.*subTheme=MOBILE_JKN/,
     );
     await achievementLink.click();
-    await expect(page).toHaveURL(/\/admin\?.*subTheme=MOBILE_JKN/);
-    await expect(page.locator('select[name="subTheme"]')).toHaveValue(
+    await expect(page).toHaveURL(/\/admin\/konten\?.*subTheme=MOBILE_JKN/);
+    const filter = page.getByRole("region", { name: "Filter detail konten" });
+    await expect(filter.locator('select[name="subTheme"]')).toHaveValue(
       "MOBILE_JKN",
     );
   });

@@ -1,0 +1,24 @@
+
+> b8cd74b6@0.1.0 perf
+> node scripts/perf-check.mjs
+
+Rute                     TTFB p50   LCP p95    CLS     JS KB  Status
+/admin                         14ms       56ms   0.000    209  OK
+/admin/validasi                14ms       48ms   0.000    209  OK
+/admin/laporan                 15ms       48ms   0.000    209  OK
+/admin/konten                  16ms       52ms   0.000    209  OK
+/admin/konten/impor            15ms       52ms   0.000    209  OK
+/admin/target                  19ms     1616ms   0.000    209  OK
+/admin/sinkronisasi            16ms       52ms   0.000    209  OK
+/wilayah                       14ms       52ms   0.000    209  OK
+/wilayah/dashboard             14ms       48ms   0.000    209  OK
+/wilayah/kinerja               14ms       52ms   0.000    209  OK
+/wilayah/konten                12ms       48ms   0.000    209  OK
+/cabang                        12ms       48ms   0.000    209  OK
+/cabang/dashboard              16ms       56ms   0.000    209  OK
+/cabang/kinerja                12ms       48ms   0.000    209  OK
+/cabang/konten                 12ms       48ms   0.000    209  OK
+/client                        14ms       48ms   0.000    209  OK
+/client/konten                 12ms       48ms   0.000    209  OK
+
+Seluruh anggaran performa terpenuhi.

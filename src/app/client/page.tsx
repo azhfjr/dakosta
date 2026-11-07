@@ -1,22 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Info, PlusCircle } from "lucide-react";
 
-import { ApprovedDashboardView } from "@/components/dashboard/approved-dashboard";
+import { DashboardOverview } from "@/components/dashboard/dashboard-overview";
 import { PageContainer } from "@/components/shell/page-container";
 import { PageHeader } from "@/components/shell/page-header";
 import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { Button } from "@/components/ui/button";
-import {
-  getApprovedDashboard,
-  parseApprovedDashboardFilters,
-} from "@/lib/analytics/dashboard";
-import { recordAudit } from "@/lib/audit";
 import { redirectDashboardView } from "@/lib/dashboard/view";
 import { formatDateTimeId } from "@/lib/dates";
-import { getFilterOptions } from "@/lib/filters/options";
+import { MAP_STYLE_URL } from "@/lib/geo";
 import { requireRole } from "@/lib/session";
 
 export const metadata: Metadata = {
@@ -37,23 +31,7 @@ export default async function ClientHomePage({
 }) {
   const user = await requireRole("CLIENT");
   const params = await searchParams;
-  const filters = parseApprovedDashboardFilters(params);
   redirectDashboardView("/client", params);
-
-  if (
-    filters.table.stakeholderId &&
-    !user.stakeholderIds.includes(filters.table.stakeholderId)
-  ) {
-    await recordAudit({
-      actorId: user.id,
-      actorRole: user.role,
-      action: "ACCESS_DENIED",
-      recordType: "STAKEHOLDER",
-      recordId: filters.table.stakeholderId,
-      after: { reason: "stakeholder_scope_mismatch", route: "/client" },
-    });
-    redirect("/akses-ditolak");
-  }
 
   return (
     <PageContainer>
@@ -84,12 +62,6 @@ async function ClientHomeBody({
   user: DashboardUser;
   params: Record<string, string | string[] | undefined>;
 }) {
-  const filters = parseApprovedDashboardFilters(params);
-  const [data, options] = await Promise.all([
-    getApprovedDashboard(user, filters),
-    getFilterOptions(user),
-  ]);
-
   const notice =
     user.stakeholderIds.length === 0 ? (
       <div className="flex items-start gap-3 rounded-xl border border-status-review/30 bg-status-review/5 p-4">
@@ -108,20 +80,17 @@ async function ClientHomeBody({
           </p>
         </div>
       </div>
-    ) : undefined;
+    ) : null;
 
   return (
-    <ApprovedDashboardView
-      data={data}
-      filters={filters}
-      role={user.role}
-      options={options}
-      basePath="/client"
-      detailBase="/client/konten"
-      title={`Beranda ${user.name}`}
-      description={DESCRIPTION}
-      notice={notice}
-      hideHeader
-    />
+    <div className="space-y-4">
+      {notice}
+      <DashboardOverview
+        user={user}
+        basePath="/client"
+        params={params}
+        styleUrl={MAP_STYLE_URL}
+      />
+    </div>
   );
 }

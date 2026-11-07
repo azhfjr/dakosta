@@ -1,185 +1,305 @@
 {
-  "generatedAt": "2026-11-07T07:38:58.488Z",
+  "generatedAt": "2026-11-07T18:52:04.513Z",
   "jakartaMonth": "2026-11",
-  "fixtures": 62,
-  "total": 43,
-  "passed": 43,
+  "fixtures": 72,
+  "total": 67,
+  "passed": 67,
   "failed": 0,
   "checks": [
     {
-      "name": "dashboard totals.approved = SQL approved",
+      "name": "overview A1 total = SQL approved",
       "ok": true,
-      "detail": "actual=47 expected=47"
+      "detail": "actual=57 expected=57"
     },
     {
-      "name": "dashboard table.total = SQL approved",
+      "name": "overview A1 branch universe includes every branch",
       "ok": true,
-      "detail": "actual=47 expected=47"
+      "detail": "actual=4 expected=4"
     },
     {
-      "name": "ranking categories sum = approved total",
+      "name": "overview A1 X never exceeds Y",
       "ok": true,
-      "detail": "actual=47 expected=47"
+      "detail": "3/4"
     },
     {
-      "name": "ranking rows are a subset of approved",
+      "name": "overview A1 branchesWithContent excludes the inactive empty branch",
       "ok": true,
-      "detail": "rows=47"
+      "detail": "actual=3 expected=3"
     },
     {
-      "name": "ranking positions are tie-aware and descending",
+      "name": "overview A2 branches + unassigned = A1",
       "ok": true,
-      "detail": "5 rows"
+      "detail": "actual=57 expected=57"
     },
     {
-      "name": "ranking row counts match SQL per organization",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "monthly trend has one zero-filled bucket per month",
-      "ok": true,
-      "detail": "actual=24 expected=24"
-    },
-    {
-      "name": "monthly buckets are chronological",
+      "name": "overview A2 is sorted by total then name",
       "ok": true,
       "detail": ""
     },
     {
-      "name": "monthly trend includes empty months as zero",
+      "name": "overview A2 category counts sum to each branch total",
       "ok": true,
       "detail": ""
     },
     {
-      "name": "monthly counts use the Asia/Jakarta boundary",
-      "ok": true,
-      "detail": "2024-12:0 2025-01:0 2025-02:0 2025-03:0 2025-04:0 2025-05:0 2025-06:0 2025-07:0 2025-08:0 2025-09:0 2025-10:0 2025-11:0 2025-12:0 2026-01:0 2026-02:0 2026-03:0 2026-04:0 2026-05:6 2026-06:7 2026-07:7 2026-08:6 2026-09:6 2026-10:7 2026-11:7"
-    },
-    {
-      "name": "monthly trend sum = SQL approved inside the window",
-      "ok": true,
-      "detail": "actual=46 expected=46"
-    },
-    {
-      "name": "theme trend sum = monthly total",
-      "ok": true,
-      "detail": "actual=46 expected=46"
-    },
-    {
-      "name": "sub-theme breakdown sum = monthly total",
-      "ok": true,
-      "detail": "actual=46 expected=46"
-    },
-    {
-      "name": "orphan sub-theme is reported instead of dropped",
-      "ok": true,
-      "detail": "orphan=1"
-    },
-    {
-      "name": "content-type breakdown sum = monthly total",
-      "ok": true,
-      "detail": "actual=46 expected=46"
-    },
-    {
-      "name": "platform breakdown counts each row once",
-      "ok": true,
-      "detail": "actual=46 expected=46"
-    },
-    {
-      "name": "platform legend keys are explicit",
+      "name": "overview A2 includes branches with zero approved content",
       "ok": true,
       "detail": ""
     },
     {
-      "name": "map approved total = dashboard approved total",
+      "name": "overview filtered FKRTL total = SQL",
       "ok": true,
-      "detail": "47 vs 47"
+      "detail": "actual=9 expected=9"
     },
     {
-      "name": "Detail Konten approved total = dashboard approved total",
+      "name": "overview filtered FKTP total = SQL",
       "ok": true,
-      "detail": "actual=47 expected=47"
+      "detail": "actual=33 expected=33"
     },
     {
-      "name": "PDF report row count = min(total, cap)",
+      "name": "overview filtered PEMDA total = SQL",
       "ok": true,
-      "detail": "actual=47 expected=47"
+      "detail": "actual=8 expected=8"
     },
     {
-      "name": "CSV query (same filters) = dashboard approved total",
-      "ok": true,
-      "detail": "actual=47 expected=47"
-    },
-    {
-      "name": "platform filter reconciles with SQL",
-      "ok": true,
-      "detail": "actual=10 expected=10"
-    },
-    {
-      "name": "org-type filter reconciles with SQL",
-      "ok": true,
-      "detail": "actual=32 expected=32"
-    },
-    {
-      "name": "approval date range uses Jakarta days",
+      "name": "overview filtered STAKEHOLDER total = SQL",
       "ok": true,
       "detail": "actual=7 expected=7"
     },
     {
-      "name": "Detail Konten all-status total = SQL",
+      "name": "overview filtered category total = A1",
       "ok": true,
-      "detail": "actual=61 expected=61"
+      "detail": "actual=57 expected=57"
     },
     {
-      "name": "Detail Konten all-status includes non-approved rows",
+      "name": "overview map approved = A1",
       "ok": true,
-      "detail": "61 > 47"
+      "detail": "actual=57 expected=57"
     },
     {
-      "name": "regional dashboard total = scoped SQL approved",
+      "name": "overview map mapped + missing = approved",
       "ok": true,
-      "detail": "actual=36 expected=36"
+      "detail": "actual=57 expected=57"
     },
     {
-      "name": "regional dashboard is narrower than national",
+      "name": "overview map missing coordinates = 1",
       "ok": true,
-      "detail": "36 < 47"
+      "detail": "actual=1 expected=1"
     },
     {
-      "name": "regional trend sum = scoped SQL inside window",
+      "name": "overview map lists the institution without coordinates",
       "ok": true,
-      "detail": "actual=35 expected=35"
+      "detail": ""
     },
     {
-      "name": "branch dashboard total = scoped SQL approved",
+      "name": "overview map excludes the institution without coordinates from points",
       "ok": true,
-      "detail": "actual=27 expected=27"
+      "detail": ""
     },
     {
-      "name": "branch dashboard is narrower than national",
+      "name": "overview map point categories sum to each point total",
       "ok": true,
-      "detail": "27 < 47"
+      "detail": ""
     },
     {
-      "name": "branch trend sum = scoped SQL inside window",
+      "name": "overview EDUFAST + Non-EDUFAST = total",
       "ok": true,
-      "detail": "actual=26 expected=26"
+      "detail": "actual=57 expected=57"
     },
     {
-      "name": "stakeholder dashboard total = scoped SQL approved",
+      "name": "overview Non-EDUFAST sub-themes sum to Non-EDUFAST",
+      "ok": true,
+      "detail": "actual=38 expected=38"
+    },
+    {
+      "name": "overview Non-EDUFAST percentages add to 100.0",
+      "ok": true,
+      "detail": "100%"
+    },
+    {
+      "name": "overview unclassified legacy theme = 1",
+      "ok": true,
+      "detail": "actual=1 expected=1"
+    },
+    {
+      "name": "overview non-EDUFAST includes both NULL sub-theme rows",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview FKRTL ranking has at most 10 rows",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview FKRTL ranking is descending and deterministic",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview FKRTL ranking rows never exceed the category score",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview FKTP ranking has at most 10 rows",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview FKTP ranking is descending and deterministic",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview FKTP ranking rows never exceed the category score",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview PEMDA ranking has at most 10 rows",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview PEMDA ranking is descending and deterministic",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview PEMDA ranking rows never exceed the category score",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview STAKEHOLDER ranking has at most 10 rows",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview STAKEHOLDER ranking is descending and deterministic",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview STAKEHOLDER ranking rows never exceed the category score",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview FKTP ranking is capped at 10",
+      "ok": true,
+      "detail": "actual=10 expected=10"
+    },
+    {
+      "name": "overview duplicate institution names stay separate",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "regional overview A1 = scoped SQL",
+      "ok": true,
+      "detail": "actual=37 expected=37"
+    },
+    {
+      "name": "regional overview branch universe",
+      "ok": true,
+      "detail": "actual=3 expected=3"
+    },
+    {
+      "name": "regional overview filtered = A1",
+      "ok": true,
+      "detail": "actual=37 expected=37"
+    },
+    {
+      "name": "regional overview map = A1",
+      "ok": true,
+      "detail": "actual=37 expected=37"
+    },
+    {
+      "name": "regional overview is narrower than national",
+      "ok": true,
+      "detail": "37 <= 57"
+    },
+    {
+      "name": "branch overview A1 = scoped SQL",
+      "ok": true,
+      "detail": "actual=28 expected=28"
+    },
+    {
+      "name": "branch overview branch universe",
+      "ok": true,
+      "detail": "actual=1 expected=1"
+    },
+    {
+      "name": "branch overview filtered = A1",
+      "ok": true,
+      "detail": "actual=28 expected=28"
+    },
+    {
+      "name": "branch overview map = A1",
+      "ok": true,
+      "detail": "actual=28 expected=28"
+    },
+    {
+      "name": "branch overview is narrower than national",
+      "ok": true,
+      "detail": "28 <= 57"
+    },
+    {
+      "name": "stakeholder overview A1 = scoped SQL",
       "ok": true,
       "detail": "actual=19 expected=19"
     },
     {
-      "name": "stakeholder dashboard is narrower than national",
+      "name": "stakeholder overview branch universe",
       "ok": true,
-      "detail": "19 < 47"
+      "detail": "actual=1 expected=1"
     },
     {
-      "name": "stakeholder trend sum = scoped SQL inside window",
+      "name": "stakeholder overview filtered = A1",
       "ok": true,
-      "detail": "actual=18 expected=18"
+      "detail": "actual=19 expected=19"
+    },
+    {
+      "name": "stakeholder overview map = A1",
+      "ok": true,
+      "detail": "actual=19 expected=19"
+    },
+    {
+      "name": "stakeholder overview is narrower than national",
+      "ok": true,
+      "detail": "19 <= 57"
+    },
+    {
+      "name": "overview rejects a branch outside the role scope",
+      "ok": true,
+      "detail": "actual=0 expected=0"
+    },
+    {
+      "name": "overview map rejects a branch outside the role scope",
+      "ok": true,
+      "detail": "actual=0 expected=0"
+    },
+    {
+      "name": "overview empty selection total = 0",
+      "ok": true,
+      "detail": "actual=0 expected=0"
+    },
+    {
+      "name": "overview empty selection rankings = 0",
+      "ok": true,
+      "detail": "actual=0 expected=0"
+    },
+    {
+      "name": "overview empty selection map = 0",
+      "ok": true,
+      "detail": "actual=0 expected=0"
+    },
+    {
+      "name": "overview subset selection = SQL for that branch",
+      "ok": true,
+      "detail": "actual=9 expected=9"
     },
     {
       "name": "SLA submitted = SQL rows created in the period",

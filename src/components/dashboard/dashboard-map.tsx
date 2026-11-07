@@ -1,21 +1,40 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import type { GeoJSONSource, Map as MapLibreMap } from "maplibre-gl";
 import type { FeatureCollection, Point as GeoPoint } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
 
+import { Button } from "@/components/ui/button";
+import { CATEGORY_MAP_COLORS, MAP_BRAND } from "@/lib/chart-theme";
+import {
+  DASHBOARD_CATEGORIES,
+  DASHBOARD_CATEGORY_LABELS,
+  type DashboardCategory,
+  type DashboardMap,
+  type DashboardMapPoint,
+} from "@/lib/dashboard/types";
 import { formatNumberId } from "@/lib/dates";
-import type { DashboardMap, DashboardMapPoint } from "@/lib/dashboard-map";
-import { MAP_BRAND } from "@/lib/chart-theme";
 
 const BANDUNG = { latitude: -6.9175, longitude: 107.6191 };
-const SOURCE_POINTS = "aggregate-points";
+const SOURCE_POINTS = "dashboard-institutions";
 
 type Status = "loading" | "ready" | "failed";
 
-function collection(points: DashboardMapPoint[]): FeatureCollection<GeoPoint> {
+type PointProperties = {
+  id: string;
+  name: string;
+  branchName: string;
+  total: number;
+  FKRTL: number;
+  FKTP: number;
+  PEMDA: number;
+  STAKEHOLDER: number;
+};
+
+function collection(
+  points: DashboardMapPoint[],
+): FeatureCollection<GeoPoint, PointProperties> {
   return {
     type: "FeatureCollection",
     features: points.map((point) => ({
@@ -27,9 +46,12 @@ function collection(points: DashboardMapPoint[]): FeatureCollection<GeoPoint> {
       properties: {
         id: point.id,
         name: point.name,
-        detail: point.detail,
-        approved: point.approved,
-        href: point.href,
+        branchName: point.branchName ?? "",
+        total: point.total,
+        FKRTL: point.categories.FKRTL,
+        FKTP: point.categories.FKTP,
+        PEMDA: point.categories.PEMDA,
+        STAKEHOLDER: point.categories.STAKEHOLDER,
       },
     })),
   };
@@ -46,33 +68,54 @@ function element<K extends keyof HTMLElementTagNameMap>(
   return node;
 }
 
+function chip(category: DashboardCategory, value: number): HTMLElement {
+  const row = element("li", "flex items-center justify-between gap-4 text-xs");
+  const left = element(
+    "span",
+    "inline-flex items-center gap-1.5 text-ink-muted",
+  );
+  const dot = element("span", "size-2 rounded-full");
+  dot.style.backgroundColor = CATEGORY_MAP_COLORS[category];
+  left.append(
+    dot,
+    document.createTextNode(DASHBOARD_CATEGORY_LABELS[category]),
+  );
+  const count = element(
+    "span",
+    value > 0
+      ? "font-semibold text-foreground tabular"
+      : "text-ink-muted tabular",
+    formatNumberId(value),
+  );
+  row.append(left, count);
+  return row;
+}
+
 function popupContent(properties: Record<string, unknown>): HTMLElement {
-  const root = element("div", "space-y-1");
+  const root = element("div", "min-w-[190px] space-y-1");
   root.append(
     element(
       "p",
       "text-sm font-semibold text-foreground",
-      String(properties.name ?? ""),
+      String(properties.name ?? "Tanpa nama"),
     ),
   );
-  const detail = String(properties.detail ?? "");
-  if (detail) {
-    root.append(element("p", "text-xs text-ink-muted", detail));
+  const branchName = String(properties.branchName ?? "");
+  if (branchName) {
+    root.append(element("p", "text-xs text-ink-muted", branchName));
   }
   root.append(
     element(
       "p",
       "text-xs text-ink-muted",
-      `${formatNumberId(Number(properties.approved ?? 0))} konten disetujui`,
+      `${formatNumberId(Number(properties.total ?? 0))} konten tervalidasi`,
     ),
   );
-  const link = element(
-    "a",
-    "mt-1 inline-block text-xs font-semibold text-brand-blue-700 underline underline-offset-4",
-    "Lihat kinerja",
-  );
-  link.href = String(properties.href ?? "#");
-  root.append(link);
+  const list = element("ul", "mt-2 space-y-1");
+  for (const category of DASHBOARD_CATEGORIES) {
+    list.append(chip(category, Number(properties[category] ?? 0)));
+  }
+  root.append(list);
   return root;
 }
 
@@ -84,6 +127,7 @@ export function DashboardMapSection({
   styleUrl: string;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const [attempt, setAttempt] = useState(0);
   const [status, setStatus] = useState<Status>(
     map.points.length === 0 ? "ready" : "loading",
   );
@@ -142,10 +186,13 @@ export function DashboardMapSection({
             cluster: true,
             clusterRadius: 48,
             clusterMaxZoom: 13,
+            clusterProperties: {
+              contentTotal: ["+", ["get", "total"]],
+            },
           });
 
           instance.addLayer({
-            id: "aggregate-clusters",
+            id: "institution-clusters",
             type: "circle",
             source: SOURCE_POINTS,
             filter: ["has", "point_count"],
@@ -166,42 +213,46 @@ export function DashboardMapSection({
             },
           });
           instance.addLayer({
-            id: "aggregate-cluster-count",
+            id: "institution-cluster-total",
             type: "symbol",
             source: SOURCE_POINTS,
             filter: ["has", "point_count"],
             layout: {
-              "text-field": ["get", "point_count_abbreviated"],
-              "text-size": 12,
+              "text-field": [
+                "number-format",
+                ["get", "contentTotal"],
+                { locale: "id-ID" },
+              ],
+              "text-size": 11,
               "text-font": ["Noto Sans Regular"],
             },
             paint: { "text-color": "#ffffff" },
           });
           instance.addLayer({
-            id: "aggregate-points",
+            id: "institution-points",
             type: "circle",
             source: SOURCE_POINTS,
             filter: ["!", ["has", "point_count"]],
             paint: {
-              "circle-color": MAP_BRAND.blue,
+              "circle-color": MAP_BRAND.green,
               "circle-opacity": 0.85,
               "circle-stroke-color": "#ffffff",
               "circle-stroke-width": 1.5,
               "circle-radius": [
                 "interpolate",
                 ["linear"],
-                ["get", "approved"],
+                ["get", "total"],
                 1,
                 7,
-                100,
-                12,
-                1000,
-                20,
+                50,
+                11,
+                500,
+                17,
               ],
             },
           });
           instance.addLayer({
-            id: "aggregate-label",
+            id: "institution-label",
             type: "symbol",
             source: SOURCE_POINTS,
             filter: ["!", ["has", "point_count"]],
@@ -233,9 +284,9 @@ export function DashboardMapSection({
             });
           }
 
-          instance.on("click", "aggregate-clusters", (event) => {
+          instance.on("click", "institution-clusters", (event) => {
             const feature = instance.queryRenderedFeatures(event.point, {
-              layers: ["aggregate-clusters"],
+              layers: ["institution-clusters"],
             })[0];
             if (!feature) return;
             const clusterId = feature.properties?.cluster_id as number;
@@ -248,28 +299,28 @@ export function DashboardMapSection({
                 instance.easeTo({
                   center: geometry.coordinates as [number, number],
                   zoom,
-                  duration: 250,
+                  duration: 0,
                 });
               })
               .catch(() => undefined);
           });
 
-          instance.on("click", "aggregate-points", (event) => {
+          instance.on("click", "institution-points", (event) => {
             const feature = instance.queryRenderedFeatures(event.point, {
-              layers: ["aggregate-points"],
+              layers: ["institution-points"],
             })[0];
             if (!feature) return;
             const properties = (feature.properties ?? {}) as Record<
               string,
               unknown
             >;
-            new maplibregl.Popup({ offset: 12, maxWidth: "260px" })
+            new maplibregl.Popup({ offset: 12, maxWidth: "250px" })
               .setLngLat(event.lngLat)
               .setDOMContent(popupContent(properties))
               .addTo(instance);
           });
 
-          for (const layer of ["aggregate-points", "aggregate-clusters"]) {
+          for (const layer of ["institution-points", "institution-clusters"]) {
             instance.on("mouseenter", layer, () => {
               instance.getCanvas().style.cursor = "pointer";
             });
@@ -314,79 +365,74 @@ export function DashboardMapSection({
       if (slowTimer) clearTimeout(slowTimer);
       localMap?.remove();
     };
-  }, [map, styleUrl]);
+  }, [map, styleUrl, attempt]);
 
-  const isBranch = map.level === "BRANCH";
+  const { totals } = map;
 
   return (
     <section
-      aria-labelledby="peta-dashboard-judul"
+      id="peta"
+      aria-labelledby="peta-judul"
       className="rounded-xl border border-border bg-surface shadow-sm"
     >
       <div className="flex flex-col gap-2 border-b border-border px-4 py-3 sm:px-5">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
-            <h2
-              id="peta-dashboard-judul"
+            <h3
+              id="peta-judul"
               className="text-base font-semibold text-foreground"
             >
-              Peta capaian {isBranch ? "per cabang" : "per instansi"}
-            </h2>
+              Sebaran Konten
+            </h3>
             <p className="text-xs text-ink-muted">
-              Konten disetujui menurut tanggal approval final pada{" "}
-              {map.period ? map.period.label : "seluruh periode"}.{" "}
-              {isBranch ? "Titik cabang" : "Titik instansi"} berasal dari lokasi
-              organisasi, bukan lokasi perangkat pengguna.
-              {map.totals.zeroInstitutions > 0
-                ? ` ${formatNumberId(map.totals.zeroInstitutions)} ${isBranch ? "cabang" : "instansi"} tanpa capaian tidak ditampilkan sebagai titik.`
-                : ""}
+              Titik institusi memakai koordinat asli organisasi pada cabang
+              terpilih. Angka pada klaster adalah total konten tervalidasi.
             </p>
           </div>
           <div className="text-right text-xs text-ink-muted">
             <p className="font-semibold text-foreground tabular">
-              {formatNumberId(map.totals.approved)} konten disetujui
+              {formatNumberId(totals.mappedApproved)} konten berlokasi
             </p>
             <p>
-              {formatNumberId(map.totals.locations)} titik ·{" "}
-              {formatNumberId(map.totals.institutions)}{" "}
-              {isBranch ? "cabang" : "instansi"} dalam scope
+              {formatNumberId(totals.mappedInstitutions)} institusi ditampilkan
             </p>
           </div>
         </div>
-        {map.truncated ? (
-          <p
-            role="status"
-            className="rounded-md border border-status-revision/30 bg-status-revision/10 px-3 py-2 text-xs text-status-revision"
-          >
-            Peta dibatasi maksimum 5.000 titik. Persempit filter atau buka
-            Kinerja untuk daftar lengkap.
-          </p>
-        ) : null}
+        <div className="flex flex-wrap gap-1.5">
+          {DASHBOARD_CATEGORIES.map((category) => (
+            <span
+              key={category}
+              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-muted/60 px-2.5 py-1 text-xs text-ink-muted"
+            >
+              <span
+                className="size-2 rounded-full"
+                style={{ backgroundColor: CATEGORY_MAP_COLORS[category] }}
+                aria-hidden
+              />
+              {DASHBOARD_CATEGORY_LABELS[category]}
+            </span>
+          ))}
+        </div>
       </div>
 
       {map.points.length === 0 ? (
         <div className="px-5 py-12 text-center">
           <p className="text-sm font-semibold text-foreground">
-            Belum ada lokasi dengan capaian approved
+            Belum ada konten tervalidasi dengan lokasi pada cabang terpilih
           </p>
           <p className="mt-1 text-sm text-ink-muted">
-            Tidak ada konten disetujui pada periode ini, atau organisasi belum
-            memiliki koordinat yang valid.
+            {totals.approved > 0
+              ? "Seluruh konten pada cabang terpilih belum memiliki koordinat yang valid."
+              : "Tidak ada konten tervalidasi pada cabang terpilih."}
           </p>
-          <Link
-            href={isBranch ? "/wilayah/kinerja" : "/cabang/kinerja"}
-            className="mt-3 inline-block text-sm font-semibold text-brand-blue-700 underline underline-offset-4"
-          >
-            Lihat tabel kinerja
-          </Link>
         </div>
       ) : (
         <div className="relative">
           <div
             ref={containerRef}
-            className="h-[240px] w-full sm:h-[300px]"
+            className="h-[260px] w-full sm:h-[340px]"
             role="region"
-            aria-label={`Peta interaktif capaian ${isBranch ? "cabang" : "instansi"}. Rincian angka tersedia pada tabel peringkat dan tabel konten disetujui di halaman ini.`}
+            aria-label={`Peta interaktif sebaran konten pada ${formatNumberId(totals.mappedInstitutions)} institusi. Rincian angka tersedia pada panel peringkat dan daftar institusi tanpa lokasi.`}
           />
           {status === "loading" ? (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-surface/70 text-sm text-ink-muted">
@@ -401,20 +447,80 @@ export function DashboardMapSection({
                 </p>
                 <p className="mt-1 text-sm text-ink-muted">
                   Koneksi ke penyedia peta gagal atau WebGL tidak tersedia.
-                  Agregasi angka tetap lengkap pada tabel peringkat dan tabel
-                  konten disetujui di halaman ini.
+                  Agregasi angka tetap lengkap pada panel peringkat dan daftar
+                  institusi tanpa lokasi.
                 </p>
-                <a
-                  href="#tabel"
-                  className="mt-3 inline-block text-sm font-semibold text-brand-blue-700 underline underline-offset-4"
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                  onClick={() => {
+                    setStatus("loading");
+                    setAttempt((value) => value + 1);
+                  }}
                 >
-                  Buka tabel konten disetujui
-                </a>
+                  Coba lagi
+                </Button>
               </div>
             </div>
           ) : null}
         </div>
       )}
+
+      {totals.truncated ? (
+        <p
+          role="status"
+          className="mx-4 mt-3 rounded-md border border-status-revision/30 bg-status-revision/10 px-3 py-2 text-xs text-status-revision sm:mx-5"
+        >
+          Peta menampilkan 5.000 institusi pertama dari{" "}
+          {formatNumberId(totals.mappedInstitutions)} institusi berlokasi.
+          Seluruh angka tetap dihitung pada total.
+        </p>
+      ) : null}
+
+      {totals.missingApproved > 0 ? (
+        <div className="mx-4 mt-3 rounded-md border border-status-review/30 bg-status-review/5 px-3 py-2 text-xs text-ink-muted sm:mx-5">
+          <p>
+            {formatNumberId(totals.missingApproved)} konten dari{" "}
+            {formatNumberId(totals.missingInstitutions)} institusi belum
+            memiliki koordinat valid dan tidak tampil sebagai titik.
+          </p>
+          {map.missingLocations.length > 0 ? (
+            <details className="mt-2">
+              <summary className="cursor-pointer font-semibold text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
+                Institusi tanpa lokasi
+              </summary>
+              <ul
+                className="mt-2 max-h-48 space-y-1 overflow-y-auto pr-1 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                role="region"
+                aria-label="Institusi tanpa lokasi, dapat digulir"
+                tabIndex={0}
+              >
+                {map.missingLocations.map((row) => (
+                  <li
+                    key={row.id}
+                    className="flex items-start justify-between gap-3"
+                  >
+                    <span className="min-w-0 break-words">
+                      {row.name}
+                      {row.branchName ? (
+                        <span className="text-ink-muted">
+                          {" "}
+                          · {row.branchName}
+                        </span>
+                      ) : null}
+                    </span>
+                    <span className="shrink-0 font-semibold text-foreground tabular">
+                      {formatNumberId(row.total)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
+        </div>
+      ) : null}
     </section>
   );
 }

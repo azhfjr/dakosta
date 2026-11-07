@@ -1,0 +1,12 @@
+{
+  "generatedAt": "2026-11-07T18:55:10.568Z",
+  "baseURL": "http://localhost:3300",
+  "httpStatus": 200,
+  "blockedRequests": 2,
+  "loadingVisible": true,
+  "failureVisible": true,
+  "retryVisible": true,
+  "retryLoadingVisible": true,
+  "aggregateRetained": true,
+  "pageErrors": []
+}

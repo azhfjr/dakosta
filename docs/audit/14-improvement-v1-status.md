@@ -9,6 +9,13 @@ Dokumen ini memetakan setiap kebutuhan R01–R13 pada brief
 `prompt_dakosta_web_improvement_v1.md` ke jalur implementasi, bukti uji, dan status.
 Tidak ada nilai rahasia, kredensial, atau data pribadi di dalam dokumen ini.
 
+> **Catatan 2026-11-07:** Dashboard v3 menggantikan R03/R04. Tren bulanan, tabel
+> konten Dashboard, dan filter Dashboard lama sudah dihapus. Anchor aktif:
+> `ringkasan`, `konten-per-cabang`, `kolaborasi`, `pilih-cabang`, `fkrtl`, `fktp`,
+> `pemda`, `stakeholder`, `peta`, `tema-konten`, `edufast`, `non-edufast`.
+> Rincian dan bukti ada di `docs/audit/15-dashboard-improvement-v1.md`. Baris
+> R03/R04 di bawah dipertahankan sebagai catatan sejarah rilis v1.2.
+
 ## Ringkasan gerbang
 
 | Gerbang               | Perintah                                                                          | Hasil                                   |
@@ -53,7 +60,7 @@ Tidak ada nilai rahasia, kredensial, atau data pribadi di dalam dokumen ini.
 ## Perubahan perilaku yang disengaja
 
 1. Dashboard tidak lagi memuat metrik semua-status; angka pindah ke SLA.
-2. `?view=` tetap bekerja dan memetakan ke anchor baru (`konten`→`tabel`, `peta`, `peringkat`, `pencapaian-cabang`, `tren-bulanan`, `tren-tema`, `tren-jenis-platform`).
+2. `?view=` tetap bekerja dan memetakan ke anchor aktif (`konten`/`tabel`/`peringkat`→`kolaborasi`, `pencapaian*`/`tren-bulanan`→`konten-per-cabang`, `tema*`/`jenis-platform`→`tema-konten`, `peta`→`peta`). Lihat `src/lib/dashboard/view.ts` untuk daftar lengkap.
 3. `/admin/analitik`, `/wilayah/analitik`, `/cabang/analitik`, `/client/analitik` dialihkan dengan filter utuh (`redirectWithFilters`).
 4. Ekspor CSV konten kini menegakkan `type` dan `q`, sehingga jumlah baris sama dengan total tabel untuk filter identik.
 5. Lima kontainer tabel bergulir diberi `tabIndex=0` + `role=region` agar dapat dijangkau keyboard (temuan axe `scrollable-region-focusable`).

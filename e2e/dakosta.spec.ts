@@ -61,8 +61,6 @@ const CHECKLIST_KEYS = [
 const NARRATIVE =
   "Konten uji end-to-end sintetis untuk memastikan alur pelaporan, validasi, dan capaian hanya memakai data DEMO tanpa data pribadi.";
 
-const numberId = new Intl.NumberFormat("id-ID");
-
 function jakartaToday(): string {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Jakarta",
@@ -344,15 +342,22 @@ test.afterEach(async () => {
 test.describe("Dasbor Master", () => {
   test.use({ storageState: ADMIN_STATE });
 
-  test("menampilkan capaian disetujui dari API", async ({ page }) => {
-    const value = await approvedValue(admin);
+  test("menampilkan ringkasan konten tervalidasi dan cakupan cabang", async ({
+    page,
+  }) => {
     await page.goto("/admin");
     const hero = page.getByRole("region", {
-      name: "Ringkasan capaian disetujui",
+      name: "Ringkasan konten tervalidasi",
     });
-    await expect(hero).toBeVisible();
-    await expect(hero).toContainText(numberId.format(value));
-    await expect(hero).toContainText("konten disetujui");
+    await expect(hero).toBeVisible({ timeout: 30_000 });
+    await expect(hero).toContainText("Total Konten Tervalidasi");
+    await expect(hero).toContainText("Cabang dengan Konten");
+    const values = hero.locator("p.tabular");
+    await expect(values).toHaveCount(2);
+    await expect(values.first()).toHaveText(/^[\d.]+$/);
+    await expect(values.nth(1)).toHaveText(
+      /^\d+(?:\.\d+)? dari \d+(?:\.\d+)? cabang$/,
+    );
   });
 
   test("halaman hierarki menampilkan wilayah dan redirect cabang", async ({

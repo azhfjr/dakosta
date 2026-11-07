@@ -1,22 +1,39 @@
 import { redirectToAnchor } from "@/lib/filters/redirect";
 import { firstParam, type FilterParams } from "@/lib/filters/query";
 
+/**
+ * Legacy `?view=` links still resolve to the closest section of the current
+ * dashboard so bookmarks never land on a dead anchor.
+ */
 const VIEW_ANCHORS: Record<string, string> = {
-  konten: "tabel",
-  "semua-konten": "tabel",
-  disetujui: "tabel",
-  "konten-disetujui": "tabel",
-  tabel: "tabel",
+  ringkasan: "ringkasan",
+  pencapaian: "konten-per-cabang",
+  "pencapaian-cabang": "konten-per-cabang",
+  "konten-per-cabang": "konten-per-cabang",
+  konten: "kolaborasi",
+  "semua-konten": "kolaborasi",
+  disetujui: "kolaborasi",
+  "konten-disetujui": "kolaborasi",
+  tabel: "kolaborasi",
+  peringkat: "kolaborasi",
+  kolaborasi: "kolaborasi",
+  pilihCabang: "pilih-cabang",
+  "pilih-cabang": "pilih-cabang",
+  fkrtl: "fkrtl",
+  fktp: "fktp",
+  pemda: "pemda",
+  stakeholder: "stakeholder",
   peta: "peta",
-  peringkat: "peringkat",
-  pencapaian: "pencapaian-cabang",
-  "pencapaian-cabang": "pencapaian-cabang",
-  "tren-bulanan": "tren-bulanan",
-  bulanan: "tren-bulanan",
-  tema: "tren-tema",
-  "tren-tema": "tren-tema",
-  "jenis-platform": "tren-jenis-platform",
-  "tren-jenis-platform": "tren-jenis-platform",
+  tema: "tema-konten",
+  "tema-konten": "tema-konten",
+  "tren-tema": "tema-konten",
+  "tren-bulanan": "konten-per-cabang",
+  bulanan: "konten-per-cabang",
+  "jenis-platform": "tema-konten",
+  "tren-jenis-platform": "tema-konten",
+  edufast: "edufast",
+  nonEdufast: "non-edufast",
+  "non-edufast": "non-edufast",
 };
 
 export function dashboardViewAnchor(params: FilterParams): string | null {

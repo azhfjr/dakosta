@@ -17,22 +17,18 @@ import { drizzle } from "drizzle-orm/pglite";
 
 import * as schema from "../src/db/schema";
 import {
-  DASHBOARD_TREND_MONTHS,
-  getApprovedDashboard,
-} from "../src/lib/analytics/dashboard";
+  DASHBOARD_CATEGORIES,
+  getDashboardFiltered,
+  getDashboardSummary,
+} from "../src/lib/analytics/dashboard-overview";
 import {
-  listAnalyticsContents,
-  type AnalyticsContentFilters,
-} from "../src/lib/analytics/content-table";
+  parseBranchSelection,
+  type BranchSelection,
+} from "../src/lib/filters/branch-selection";
 import { getSlaAnalytics, type SlaFilters } from "../src/lib/analytics/sla";
 import { capabilitiesForRole } from "../src/lib/authz/capabilities";
 import type { Scope } from "../src/lib/authz/types";
-import {
-  monthKeyFor,
-  monthRange,
-  previousMonthKey,
-} from "../src/lib/kpi/formulas";
-import { CONTENT_REPORT_ROW_CAP } from "../src/lib/reports/content-pdf";
+import { monthKeyFor } from "../src/lib/kpi/formulas";
 import type { AppRole, SessionUser } from "../src/lib/session";
 
 const MIGRATIONS = [
@@ -123,6 +119,54 @@ const ORGS = [
   },
 ] as const;
 
+const BRANCH_A3 = "a3000000-0000-4000-8000-000000000003";
+const ORG_S6 = "56000000-0000-4000-8000-000000000006";
+const ORG_S7 = "57000000-0000-4000-8000-000000000007";
+
+const EXTRA_ORGS = [
+  {
+    id: ORG_S6,
+    name: "Klinik Tanpa Koordinat",
+    category: "FASKES",
+    type: "FASKES",
+    faskesClass: "FKTP",
+    faskesCode: "FKTP-BT-06",
+    branchId: BRANCH_A1,
+    regionId: REGION_A,
+    // The live schema rejects out-of-range coordinates; the harness relaxes
+    // that check to simulate legacy bad geodata and prove totals stay intact.
+    latitude: -999,
+    longitude: -999,
+  },
+  {
+    id: ORG_S7,
+    name: "Klinik Sehat A1",
+    category: "FASKES",
+    type: "FASKES",
+    faskesClass: "FKTP",
+    faskesCode: "FKTP-BT-07",
+    branchId: BRANCH_B1,
+    regionId: REGION_B,
+    latitude: -6.21,
+    longitude: 106.81,
+  },
+];
+
+const RANKING_ORGS = Array.from({ length: 8 }, (_, index) => ({
+  id: uuid("e0", index + 1),
+  name: `Klinik Uji ${String(index + 1).padStart(2, "0")}`,
+  category: "FASKES",
+  type: "FASKES",
+  faskesClass: "FKTP",
+  faskesCode: `FKTP-BT-${String(index + 8).padStart(2, "0")}`,
+  branchId: BRANCH_B1,
+  regionId: REGION_B,
+  latitude: -6.3 - index * 0.01,
+  longitude: 106.9 + index * 0.01,
+}));
+
+const ALL_ORGS = [...ORGS, ...EXTRA_ORGS, ...RANKING_ORGS];
+
 const MONTH_KEYS = [
   "2026-05",
   "2026-06",
@@ -186,14 +230,6 @@ function expectEqual(name: string, actual: number, expected: number): void {
   check(name, actual === expected, `actual=${actual} expected=${expected}`);
 }
 
-function jakartaMonth(instant: Date): string {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Jakarta",
-    year: "numeric",
-    month: "2-digit",
-  }).format(instant);
-}
-
 function uuid(prefix: string, index: number): string {
   const tail = String(index).padStart(12, "0");
   return `${prefix.padEnd(8, "0")}-0000-4000-8000-${tail}`;
@@ -214,7 +250,7 @@ function orgFixture(
   day: string,
   index: number,
 ): Fixture {
-  const org = ORGS.find((entry) => entry.id === orgId)!;
+  const org = ALL_ORGS.find((entry) => entry.id === orgId)!;
   return fixture({
     orgId,
     branchId: org.branchId,
@@ -519,6 +555,42 @@ function buildFixtures(): Fixture[] {
     }),
   );
 
+  // Missing coordinates, legacy NULL main theme, and duplicate institution
+  // names across branches must not collapse or disappear from the totals.
+  rows.push(
+    fixture({
+      orgId: ORG_S6,
+      branchId: BRANCH_A1,
+      regionId: REGION_A,
+      status: "APPROVED",
+      approvedAt: new Date("2026-11-05T03:00:00.000Z"),
+      dateCreated: "2026-11-05",
+      platform: "LAINNYA",
+      contentType: null,
+      mainTheme: null,
+      subTheme: null,
+      title: "Tanpa tema dan tanpa koordinat",
+      url: "https://contoh.test/2026-11/tanpa-lokasi",
+    }),
+    fixture({
+      orgId: ORG_S7,
+      branchId: BRANCH_B1,
+      regionId: REGION_B,
+      status: "APPROVED",
+      approvedAt: new Date("2026-11-06T03:00:00.000Z"),
+      dateCreated: "2026-11-06",
+      platform: "INSTAGRAM",
+      contentType: "VIDEO",
+      mainTheme: "NON_EDUFAST",
+      subTheme: "INFORMASI",
+      title: "Nama institusi sama",
+      url: "https://contoh.test/2026-11/duplikat-nama",
+    }),
+  );
+  for (const [index, org] of RANKING_ORGS.entries()) {
+    rows.push(orgFixture(org.id, "2026-11", "11", index));
+  }
+
   return rows;
 }
 
@@ -555,7 +627,7 @@ const regional = user(
   {
     kind: "REGION",
     regionId: REGION_A,
-    branchIds: [BRANCH_A1, BRANCH_A2],
+    branchIds: [BRANCH_A1, BRANCH_A2, BRANCH_A3],
     regionName: "Wilayah A",
   },
   "Wilayah A",
@@ -591,11 +663,11 @@ function organizationIdsForScope(scope: Scope): string[] | null {
   if (scope.kind === "GLOBAL") return null;
   if (scope.kind === "ORG") return [scope.organizationId];
   if (scope.kind === "BRANCH") {
-    return ORGS.filter((org) => org.branchId === scope.branchId).map(
+    return ALL_ORGS.filter((org) => org.branchId === scope.branchId).map(
       (org) => org.id,
     );
   }
-  return ORGS.filter((org) => scope.branchIds.includes(org.branchId)).map(
+  return ALL_ORGS.filter((org) => scope.branchIds.includes(org.branchId)).map(
     (org) => org.id,
   );
 }
@@ -628,34 +700,6 @@ async function rawCount(
     `select count(*)::int as total from content_submissions s where ${where}`,
     params,
   );
-}
-
-function defaultApprovedFilters(): AnalyticsContentFilters {
-  return {
-    period: "ALL",
-    periodBasis: "approved",
-    status: "ALL",
-    scope: "approved",
-    sources: [],
-    decidedBy: "ANY",
-    sort: "approved_recent",
-    search: "",
-    page: 1,
-  };
-}
-
-function defaultAllFilters(): AnalyticsContentFilters {
-  return {
-    period: "ALL",
-    periodBasis: "created",
-    status: "ALL",
-    scope: "all",
-    sources: [],
-    decidedBy: "ANY",
-    sort: "recent",
-    search: "",
-    page: 1,
-  };
 }
 
 function slaFilters(): SlaFilters {
@@ -707,26 +751,60 @@ async function seed(): Promise<void> {
   }
 
   for (const branchOffice of [
-    { id: BRANCH_A1, regionId: REGION_A, code: "BT-A1", name: "Cabang A1" },
-    { id: BRANCH_A2, regionId: REGION_A, code: "BT-A2", name: "Cabang A2" },
-    { id: BRANCH_B1, regionId: REGION_B, code: "BT-B1", name: "Cabang B1" },
+    {
+      id: BRANCH_A1,
+      regionId: REGION_A,
+      code: "BT-A1",
+      name: "Cabang A1",
+      status: "ACTIVE",
+    },
+    {
+      id: BRANCH_A2,
+      regionId: REGION_A,
+      code: "BT-A2",
+      name: "Cabang A2",
+      status: "ACTIVE",
+    },
+    {
+      id: BRANCH_B1,
+      regionId: REGION_B,
+      code: "BT-B1",
+      name: "Cabang B1",
+      status: "ACTIVE",
+    },
+    {
+      id: BRANCH_A3,
+      regionId: REGION_A,
+      code: "BT-A3",
+      name: "Cabang A3 Nonaktif",
+      status: "INACTIVE",
+    },
   ]) {
     await client.query(
       `insert into branch_offices (id, regional_office_id, code, name, status)
-       values ($1::uuid, $2::uuid, $3, $4, 'ACTIVE')`,
+       values ($1::uuid, $2::uuid, $3, $4, $5)`,
       [
         branchOffice.id,
         branchOffice.regionId,
         branchOffice.code,
         branchOffice.name,
+        branchOffice.status,
       ],
     );
   }
 
+  // Test-only relief of the coordinate range checks so the out-of-range
+  // sentinel fixture can exercise the map's missing-coordinate partition.
+  await client.query(
+    `alter table stakeholders drop constraint stakeholders_latitude_check`,
+  );
+  await client.query(
+    `alter table stakeholders drop constraint stakeholders_longitude_check`,
+  );
+
+  const locationByOrg = new Map<string, string>();
   let locationSeq = 0;
-  for (const org of ORGS) {
-    locationSeq += 1;
-    const locationId = uuid("d0", locationSeq);
+  for (const org of ALL_ORGS) {
     await client.query(
       `insert into stakeholders
          (id, name, category, organization_type, faskes_class, faskes_code,
@@ -747,19 +825,34 @@ async function seed(): Promise<void> {
         org.branchId,
       ],
     );
+    const hasValidCoordinates =
+      org.latitude >= -90 &&
+      org.latitude <= 90 &&
+      org.longitude >= -180 &&
+      org.longitude <= 180;
+    locationSeq += 1;
+    const locationId = uuid("d0", locationSeq);
+    // content_submissions.location_id is NOT NULL; the legacy location row
+    // keeps a neutral coordinate while the stakeholder row carries the
+    // out-of-range sentinel that the dashboard map must reject.
+    const locationLatitude = hasValidCoordinates ? org.latitude : -6.2;
+    const locationLongitude = hasValidCoordinates ? org.longitude : 106.8;
     await client.query(
       `insert into locations
          (id, stakeholder_id, latitude, longitude, label, source, verified_status, precision)
        values ($1::uuid, $2::uuid, $3, $4, $5, 'manual_pin', 'VERIFIED', 'exact')`,
-      [locationId, org.id, org.latitude, org.longitude, `Lokasi ${org.name}`],
+      [
+        locationId,
+        org.id,
+        locationLatitude,
+        locationLongitude,
+        `Lokasi ${org.name}`,
+      ],
     );
+    locationByOrg.set(org.id, locationId);
   }
 
   const fixtures = buildFixtures();
-  const locationByOrg = new Map<string, string>();
-  for (const [index, org] of ORGS.entries()) {
-    locationByOrg.set(org.id, uuid("d0", index + 1));
-  }
 
   for (const row of fixtures) {
     const hash = createHash("sha256").update(row.url).digest("hex");
@@ -787,7 +880,7 @@ async function seed(): Promise<void> {
         row.mainTheme,
         row.subTheme,
         row.dateCreated,
-        locationByOrg.get(row.orgId),
+        locationByOrg.get(row.orgId) ?? null,
         row.branchId,
         row.regionId,
         row.status,
@@ -801,285 +894,285 @@ async function seed(): Promise<void> {
   }
 }
 
-async function reconcileDashboard(): Promise<void> {
-  const filters = {
-    table: defaultApprovedFilters(),
-    rankingSearch: "",
-    rankingLimit: 10,
-  };
-  const dashboard = await getApprovedDashboard(master, filters);
+function totalOf(totals: Record<string, number>): number {
+  return Object.values(totals).reduce((sum, value) => sum + value, 0);
+}
+
+async function reconcileDashboardOverview(): Promise<void> {
+  console.log("\n-- Dashboard overview v3 (approved-only, branch-scoped) --");
+  const masterSummary = await getDashboardSummary(master);
+  const masterSelection: BranchSelection = parseBranchSelection(
+    {},
+    masterSummary.branches.map((branch) => branch.id),
+  );
+  const masterFiltered = await getDashboardFiltered(master, masterSelection);
   const approved = await rawApprovedCount(master.scope);
 
-  console.log("\n-- Dashboard (Master) --");
   expectEqual(
-    "dashboard totals.approved = SQL approved",
-    dashboard.totals.approved,
+    "overview A1 total = SQL approved",
+    masterSummary.totalApproved,
     approved,
   );
   expectEqual(
-    "dashboard table.total = SQL approved",
-    dashboard.table.total,
-    approved,
-  );
-  expectEqual(
-    "ranking categories sum = approved total",
-    dashboard.ranking.categories.reduce((sum, row) => sum + row.approved, 0),
-    approved,
-  );
-  const rankingSum = dashboard.ranking.rows.reduce(
-    (sum, row) => sum + row.approved,
-    0,
+    "overview A1 branch universe includes every branch",
+    masterSummary.branchCount,
+    4,
   );
   check(
-    "ranking rows are a subset of approved",
-    rankingSum <= approved,
-    `rows=${rankingSum}`,
+    "overview A1 X never exceeds Y",
+    masterSummary.branchesWithContent <= masterSummary.branchCount,
+    `${masterSummary.branchesWithContent}/${masterSummary.branchCount}`,
+  );
+  expectEqual(
+    "overview A1 branchesWithContent excludes the inactive empty branch",
+    masterSummary.branchesWithContent,
+    3,
+  );
+  expectEqual(
+    "overview A2 branches + unassigned = A1",
+    masterSummary.branches.reduce((sum, branch) => sum + branch.total, 0) +
+      masterSummary.unassignedApproved,
+    approved,
   );
   check(
-    "ranking positions are tie-aware and descending",
-    dashboard.ranking.rows.every((row, index, rows) => {
+    "overview A2 is sorted by total then name",
+    masterSummary.branches.every((branch, index, rows) => {
       const previous = rows[index - 1];
-      const ordered = !previous || previous.approved >= row.approved;
-      const expectedRank =
-        previous && previous.approved === row.approved
-          ? previous.rank
-          : index + 1;
-      return ordered && row.rank === expectedRank;
+      if (!previous) return true;
+      if (previous.total !== branch.total) return previous.total > branch.total;
+      return previous.name.toLowerCase() <= branch.name.toLowerCase();
     }),
-    `${dashboard.ranking.rows.length} rows`,
+  );
+  check(
+    "overview A2 category counts sum to each branch total",
+    masterSummary.branches.every(
+      (branch) => totalOf(branch.categories) === branch.total,
+    ),
+  );
+  check(
+    "overview A2 includes branches with zero approved content",
+    masterSummary.branches.length === masterSummary.branchCount &&
+      masterSummary.branches.some(
+        (branch) => branch.id === BRANCH_A3 && branch.total === 0,
+      ),
   );
 
-  const rawByOrg = await client.query<{
-    stakeholder_id: string;
-    total: number;
+  const rawCategories = await client.query<{
+    fkrtl: number;
+    fktp: number;
+    pemda: number;
+    stakeholder: number;
   }>(
-    `select stakeholder_id, count(*)::int as total
-       from content_submissions
-      where archived = false and status = 'APPROVED' and approved_at is not null
-      group by stakeholder_id`,
+    `select
+       count(*) filter (where st.organization_type = 'FASKES' and st.faskes_class = 'FKRTL')::int as fkrtl,
+       count(*) filter (where st.organization_type = 'FASKES' and coalesce(st.faskes_class, '') <> 'FKRTL')::int as fktp,
+       count(*) filter (where st.organization_type = 'PEMDA')::int as pemda,
+       count(*) filter (where st.organization_type not in ('FASKES', 'PEMDA'))::int as stakeholder
+     from content_submissions s
+     join stakeholders st on st.id = s.stakeholder_id
+     where s.archived = false and s.status = 'APPROVED' and s.approved_at is not null`,
   );
-  const rawOrgTotals = new Map(
-    rawByOrg.rows.map((row) => [row.stakeholder_id, Number(row.total)]),
-  );
-  check(
-    "ranking row counts match SQL per organization",
-    dashboard.ranking.rows.every(
-      (row) => row.approved === (rawOrgTotals.get(row.id) ?? 0),
-    ),
-  );
-
-  // Monthly window, zero-fill, and Asia/Jakarta bucketing.
-  const windowKeys: string[] = [monthKeyFor()];
-  for (let index = 1; index < DASHBOARD_TREND_MONTHS; index += 1) {
-    windowKeys.push(previousMonthKey(windowKeys[windowKeys.length - 1]!));
+  const rawCategoryRow = rawCategories.rows[0];
+  const rawCategoryTotals = {
+    FKRTL: Number(rawCategoryRow?.fkrtl ?? 0),
+    FKTP: Number(rawCategoryRow?.fktp ?? 0),
+    PEMDA: Number(rawCategoryRow?.pemda ?? 0),
+    STAKEHOLDER: Number(rawCategoryRow?.stakeholder ?? 0),
+  };
+  for (const category of DASHBOARD_CATEGORIES) {
+    expectEqual(
+      `overview filtered ${category} total = SQL`,
+      masterFiltered.categoryTotals[category],
+      rawCategoryTotals[category],
+    );
   }
-  windowKeys.reverse();
   expectEqual(
-    "monthly trend has one zero-filled bucket per month",
-    dashboard.monthly.length,
-    DASHBOARD_TREND_MONTHS,
+    "overview filtered category total = A1",
+    totalOf(masterFiltered.categoryTotals),
+    approved,
+  );
+  expectEqual(
+    "overview map approved = A1",
+    masterFiltered.map.totals.approved,
+    approved,
+  );
+  expectEqual(
+    "overview map mapped + missing = approved",
+    masterFiltered.map.totals.mappedApproved +
+      masterFiltered.map.totals.missingApproved,
+    masterFiltered.map.totals.approved,
+  );
+  expectEqual(
+    "overview map missing coordinates = 1",
+    masterFiltered.map.totals.missingApproved,
+    1,
   );
   check(
-    "monthly buckets are chronological",
-    dashboard.monthly.every(
-      (point, index) => point.month === windowKeys[index],
+    "overview map lists the institution without coordinates",
+    masterFiltered.map.missingLocations.some(
+      (row) => row.id === ORG_S6 && row.total === 1,
     ),
   );
   check(
-    "monthly trend includes empty months as zero",
-    dashboard.monthly
-      .filter((point) => point.month < MONTH_KEYS[0]!)
-      .every((point) => point.total === 0),
+    "overview map excludes the institution without coordinates from points",
+    !masterFiltered.map.points.some((point) => point.id === ORG_S6),
   );
-
-  const expectedByMonth = new Map<string, number>();
-  const approvedRows = await client.query<{
-    approved_at: Date;
-  }>(
-    `select approved_at from content_submissions
-      where archived = false and status = 'APPROVED' and approved_at is not null`,
+  check(
+    "overview map point categories sum to each point total",
+    masterFiltered.map.points.every(
+      (point) => totalOf(point.categories) === point.total,
+    ),
   );
-  for (const row of approvedRows.rows) {
-    const key = jakartaMonth(new Date(row.approved_at));
-    expectedByMonth.set(key, (expectedByMonth.get(key) ?? 0) + 1);
+  expectEqual(
+    "overview EDUFAST + Non-EDUFAST = total",
+    masterFiltered.edufast + masterFiltered.nonEdufast,
+    approved,
+  );
+  expectEqual(
+    "overview Non-EDUFAST sub-themes sum to Non-EDUFAST",
+    masterFiltered.nonEdufastThemes.reduce(
+      (sum, theme) => sum + theme.total,
+      0,
+    ),
+    masterFiltered.nonEdufast,
+  );
+  check(
+    "overview Non-EDUFAST percentages add to 100.0",
+    masterFiltered.nonEdufast === 0 ||
+      Math.round(
+        masterFiltered.nonEdufastThemes.reduce(
+          (sum, theme) => sum + theme.percentage,
+          0,
+        ) * 10,
+      ) === 1000,
+    `${masterFiltered.nonEdufastThemes.reduce(
+      (sum, theme) => sum + theme.percentage,
+      0,
+    )}%`,
+  );
+  expectEqual(
+    "overview unclassified legacy theme = 1",
+    masterFiltered.unclassifiedTheme,
+    1,
+  );
+  check(
+    "overview non-EDUFAST includes both NULL sub-theme rows",
+    masterFiltered.nonEdufastThemes.some(
+      (theme) => theme.key === "TANPA_SUB_TEMA" && theme.total === 2,
+    ),
+  );
+  for (const category of DASHBOARD_CATEGORIES) {
+    const rows = masterFiltered.rankings[category];
+    check(
+      `overview ${category} ranking has at most 10 rows`,
+      rows.length <= 10,
+    );
+    check(
+      `overview ${category} ranking is descending and deterministic`,
+      rows.every((row, index) => {
+        const previous = rows[index - 1];
+        if (!previous) return row.total > 0;
+        if (previous.total !== row.total) return previous.total > row.total;
+        return (
+          previous.name.toLowerCase() <= row.name.toLowerCase() ||
+          (previous.name === row.name &&
+            previous.stakeholderId <= row.stakeholderId)
+        );
+      }),
+    );
+    check(
+      `overview ${category} ranking rows never exceed the category score`,
+      rows.every((row) => row.total <= masterFiltered.categoryTotals[category]),
+    );
   }
-  check(
-    "monthly counts use the Asia/Jakarta boundary",
-    dashboard.monthly.every(
-      (point) => point.total === (expectedByMonth.get(point.month) ?? 0),
-    ),
-    dashboard.monthly.map((p) => `${p.month}:${p.total}`).join(" "),
-  );
 
-  const windowStart = monthRange(windowKeys[0]!).startInstant;
-  const windowEnd = monthRange(windowKeys[windowKeys.length - 1]!).endInstant;
-  const rawWindow = await scalar(
-    `select count(*)::int as total from content_submissions
-      where archived = false and status = 'APPROVED'
-        and approved_at >= $1 and approved_at <= $2`,
-    [windowStart, windowEnd],
-  );
   expectEqual(
-    "monthly trend sum = SQL approved inside the window",
-    dashboard.monthly.reduce((sum, point) => sum + point.total, 0),
-    rawWindow,
-  );
-
-  const themeSum = dashboard.theme.monthly.reduce(
-    (sum, point) => sum + point.edufast + point.nonEdufast,
-    0,
-  );
-  expectEqual("theme trend sum = monthly total", themeSum, rawWindow);
-  expectEqual(
-    "sub-theme breakdown sum = monthly total",
-    dashboard.theme.subThemes.reduce((sum, row) => sum + row.total, 0),
-    rawWindow,
+    "overview FKTP ranking is capped at 10",
+    masterFiltered.rankings.FKTP.length,
+    10,
   );
   check(
-    "orphan sub-theme is reported instead of dropped",
-    dashboard.theme.orphanTotal > 0 &&
-      dashboard.theme.subThemes.some((row) => row.orphan && row.total > 0),
-    `orphan=${dashboard.theme.orphanTotal}`,
+    "overview duplicate institution names stay separate",
+    masterFiltered.rankings.FKTP.some((row) => row.stakeholderId === ORG_S1) &&
+      masterFiltered.rankings.FKTP.some((row) => row.stakeholderId === ORG_S7),
   );
 
-  const typeSum = dashboard.typePlatform.types.reduce(
-    (sum, row) => sum + row.total,
-    0,
-  );
-  const platformSum = dashboard.typePlatform.platforms.reduce(
-    (sum, row) => sum + row.total,
-    0,
-  );
-  expectEqual("content-type breakdown sum = monthly total", typeSum, rawWindow);
-  expectEqual(
-    "platform breakdown counts each row once",
-    platformSum,
-    rawWindow,
-  );
-  check(
-    "platform legend keys are explicit",
-    dashboard.typePlatform.platforms.every(
-      (row) => row.key === "TANPA_PLATFORM" || PLATFORMS.includes(row.key),
-    ),
-  );
-
-  check(
-    "map approved total = dashboard approved total",
-    dashboard.map.totals.approved === dashboard.totals.approved,
-    `${dashboard.map.totals.approved} vs ${dashboard.totals.approved}`,
-  );
-
-  // Detail Konten approved mode and PDF input parity.
-  const approvedTable = await listAnalyticsContents(
-    master,
-    defaultApprovedFilters(),
-  );
-  expectEqual(
-    "Detail Konten approved total = dashboard approved total",
-    approvedTable.total,
-    dashboard.totals.approved,
-  );
-  const reportPage = await listAnalyticsContents(master, {
-    ...defaultApprovedFilters(),
-    page: 1,
-    pageSize: CONTENT_REPORT_ROW_CAP,
-  });
-  expectEqual(
-    "PDF report row count = min(total, cap)",
-    reportPage.rows.length,
-    Math.min(approved, CONTENT_REPORT_ROW_CAP),
-  );
-  const csvEquivalent = await rawCount(
-    `s.archived = false and s.status = 'APPROVED' and s.approved_at is not null`,
-  );
-  expectEqual(
-    "CSV query (same filters) = dashboard approved total",
-    csvEquivalent,
-    dashboard.totals.approved,
-  );
-
-  const instagram = await listAnalyticsContents(master, {
-    ...defaultApprovedFilters(),
-    platform: "INSTAGRAM",
-  });
-  const rawInstagram = await rawApprovedCount(
-    master.scope,
-    `s.platform = 'INSTAGRAM'`,
-  );
-  expectEqual(
-    "platform filter reconciles with SQL",
-    instagram.total,
-    rawInstagram,
-  );
-
-  const faskes = await listAnalyticsContents(master, {
-    ...defaultApprovedFilters(),
-    orgType: "FASKES",
-  });
-  const rawFaskes = await rawCount(
-    `s.archived = false and s.status = 'APPROVED' and s.approved_at is not null
-       and s.stakeholder_id in (select id from stakeholders where organization_type = 'FASKES')`,
-  );
-  expectEqual("org-type filter reconciles with SQL", faskes.total, rawFaskes);
-
-  const ranged = await listAnalyticsContents(master, {
-    ...defaultApprovedFilters(),
-    dateFrom: "2026-10-01",
-    dateTo: "2026-10-31",
-  });
-  const rawRanged = await rawApprovedCount(
-    master.scope,
-    `s.approved_at >= '2026-09-30T17:00:00Z' and s.approved_at < '2026-10-31T17:00:00Z'`,
-  );
-  expectEqual("approval date range uses Jakarta days", ranged.total, rawRanged);
-
-  const allStatuses = await listAnalyticsContents(master, defaultAllFilters());
-  const rawAll = await rawCount(`s.archived = false`);
-  expectEqual(
-    "Detail Konten all-status total = SQL",
-    allStatuses.total,
-    rawAll,
-  );
-  check(
-    "Detail Konten all-status includes non-approved rows",
-    allStatuses.total > approvedTable.total,
-    `${allStatuses.total} > ${approvedTable.total}`,
-  );
-
-  // Scope isolation for the same filters.
-  for (const [label, viewer] of [
-    ["regional", regional],
-    ["branch", branch],
-    ["stakeholder", stakeholder],
+  for (const [label, viewer, expectedBranches] of [
+    ["regional", regional, 3],
+    ["branch", branch, 1],
+    ["stakeholder", stakeholder, 1],
   ] as const) {
-    const scoped = await getApprovedDashboard(viewer, {
-      table: defaultApprovedFilters(),
-      rankingSearch: "",
-      rankingLimit: 10,
-    });
+    const summary = await getDashboardSummary(viewer);
+    const selection: BranchSelection = parseBranchSelection(
+      {},
+      summary.branches.map((branch) => branch.id),
+    );
+    const filtered = await getDashboardFiltered(viewer, selection);
     const rawScoped = await rawApprovedCount(viewer.scope);
     expectEqual(
-      `${label} dashboard total = scoped SQL approved`,
-      scoped.totals.approved,
+      `${label} overview A1 = scoped SQL`,
+      summary.totalApproved,
+      rawScoped,
+    );
+    expectEqual(
+      `${label} overview branch universe`,
+      summary.branchCount,
+      expectedBranches,
+    );
+    expectEqual(
+      `${label} overview filtered = A1`,
+      totalOf(filtered.categoryTotals),
+      rawScoped,
+    );
+    expectEqual(
+      `${label} overview map = A1`,
+      filtered.map.totals.approved,
       rawScoped,
     );
     check(
-      `${label} dashboard is narrower than national`,
-      scoped.totals.approved < dashboard.totals.approved,
-      `${scoped.totals.approved} < ${dashboard.totals.approved}`,
-    );
-    expectEqual(
-      `${label} trend sum = scoped SQL inside window`,
-      scoped.monthly.reduce((sum, point) => sum + point.total, 0),
-      await scalar(
-        `select count(*)::int as total from content_submissions s
-          where s.archived = false and s.status = 'APPROVED'
-            and s.approved_at >= $1 and s.approved_at <= $2
-            and s.stakeholder_id = any($3::uuid[])`,
-        [windowStart, windowEnd, organizationIdsForScope(viewer.scope)],
-      ),
+      `${label} overview is narrower than national`,
+      summary.totalApproved <= masterSummary.totalApproved,
+      `${summary.totalApproved} <= ${masterSummary.totalApproved}`,
     );
   }
+
+  const unauthorized = await getDashboardFiltered(regional, {
+    mode: "subset",
+    ids: [BRANCH_B1],
+  });
+  expectEqual(
+    "overview rejects a branch outside the role scope",
+    totalOf(unauthorized.categoryTotals),
+    0,
+  );
+  expectEqual(
+    "overview map rejects a branch outside the role scope",
+    unauthorized.map.totals.approved,
+    0,
+  );
+
+  const none = await getDashboardFiltered(master, { mode: "none", ids: [] });
+  expectEqual(
+    "overview empty selection total = 0",
+    totalOf(none.categoryTotals),
+    0,
+  );
+  expectEqual(
+    "overview empty selection rankings = 0",
+    none.rankings.FKRTL.length,
+    0,
+  );
+  expectEqual("overview empty selection map = 0", none.map.totals.approved, 0);
+
+  const subset = await getDashboardFiltered(regional, {
+    mode: "subset",
+    ids: [BRANCH_A2],
+  });
+  expectEqual(
+    "overview subset selection = SQL for that branch",
+    totalOf(subset.categoryTotals),
+    await rawApprovedCount(regional.scope, `s.stakeholder_id = '${ORG_S2}'`),
+  );
 }
 
 async function reconcileSla(): Promise<void> {
@@ -1161,7 +1254,7 @@ async function main(): Promise<void> {
   await seed();
 
   try {
-    await reconcileDashboard();
+    await reconcileDashboardOverview();
     await reconcileSla();
   } finally {
     await client.close();

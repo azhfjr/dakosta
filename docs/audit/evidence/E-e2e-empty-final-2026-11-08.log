@@ -1,0 +1,19 @@
+
+> b8cd74b6@0.1.0 test:e2e:empty
+> playwright test --config playwright.empty.config.ts
+
+[e2e-empty] Mengosongkan basis data staging dan membuat satu Master Admin.
+
+> b8cd74b6@0.1.0 db:reset:staging
+> tsx scripts/reset-demo.ts --target=staging --empty
+
+Basis data dikosongkan; satu Master Admin demo dibuat (kredensial tidak dicetak).
+[e2e-empty] Sesi Master tersimpan.
+
+Running 3 tests using 1 worker
+
+  ok 1 [chromium] › e2e-empty\empty.spec.ts:23:7 › Basis data kosong › seluruh halaman Master tampil tanpa galat server (21.2s)
+  ok 2 [chromium] › e2e-empty\empty.spec.ts:57:7 › Basis data kosong › Master melihat hierarki kosong dengan perubahan dinonaktifkan (1.7s)
+  ok 3 [chromium] › e2e-empty\empty.spec.ts:81:7 › Basis data kosong › Dashboard kosong menampilkan angka nol dan empty state jujur (678ms)
+
+  3 passed (40.1s)

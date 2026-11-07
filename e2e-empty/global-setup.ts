@@ -4,7 +4,12 @@ import path from "node:path";
 
 import { request } from "@playwright/test";
 
-import { baseURL, databaseTarget, shouldResetDatabase } from "../e2e/support";
+import {
+  baseURL,
+  databaseTarget,
+  sameOriginHeaders,
+  shouldResetDatabase,
+} from "../e2e/support";
 
 const AUTH_DIR = path.join("e2e", ".auth-empty");
 
@@ -32,6 +37,7 @@ export default async function globalSetup(): Promise<void> {
   try {
     const response = await context.post("/api/v1/demo/login", {
       data: { role: "admin" },
+      headers: sameOriginHeaders,
     });
     if (!response.ok()) {
       throw new Error(`Login demo admin gagal (${response.status()}).`);

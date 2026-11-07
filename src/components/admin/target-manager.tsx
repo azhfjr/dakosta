@@ -305,7 +305,7 @@ export function TargetManager({
                 const progress =
                   row.achievement === null ? 0 : Math.min(100, row.achievement);
                 const label = scopeLabel(row);
-                const achievementHref = `/admin?month=${month}${
+                const achievementHref = `/admin/konten?month=${month}${
                   row.stakeholderId ? `&stakeholderId=${row.stakeholderId}` : ""
                 }${row.subTheme ? `&subTheme=${row.subTheme}` : ""}`;
                 return (
