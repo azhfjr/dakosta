@@ -15,6 +15,11 @@ Tidak ada nilai rahasia, kredensial, atau data pribadi di dalam dokumen ini.
 > `pemda`, `stakeholder`, `peta`, `tema-konten`, `edufast`, `non-edufast`.
 > Rincian dan bukti ada di `docs/audit/15-dashboard-improvement-v1.md`. Baris
 > R03/R04 di bawah dipertahankan sebagai catatan sejarah rilis v1.2.
+>
+> **Rilis 2026-11-08:** Dashboard v3 sudah menjadi produksi — deploy
+> `dpl_6hFKpQpbAcZDnFTXwGDQhJNZiCd2` (alias `dakosta-dakosta.vercel.app`), smoke
+> produksi 21/21, dan anchor baru terverifikasi untuk empat peran. Target rollback
+> `dpl_GRZMo8gWau3jz6isFHJE3B4rQmTb`.
 
 ## Ringkasan gerbang
 

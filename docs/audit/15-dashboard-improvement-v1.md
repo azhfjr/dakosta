@@ -4,7 +4,7 @@
 - Plan acuan: `C:\Users\PLN\.qoder\plans\clever-bay-buck.md`
 - Brief acuan: `dakosta-dashboard-improvement-prompt-v1.md`
 - Branch kerja: `fix/all-features-hardening`
-- Status deploy: **NOT RUN** — menunggu otorisasi terpisah
+- Status deploy: **PRODUCTION** — `dpl_6hFKpQpbAcZDnFTXwGDQhJNZiCd2` (2026-11-08 05:30 WIB), alias `https://dakosta-dakosta.vercel.app`, smoke produksi 21/21
 
 ## 1. Ringkasan perubahan dan alasan
 
@@ -194,10 +194,18 @@ Asumsi reversible: D2, D4, D5, D8, dan D10 dapat diubah tanpa migrasi karena han
 
 Langkah berikutnya (di luar plan ini):
 
-1. Otorisasi eksplisit untuk deploy, lalu jalankan prosedur rilis yang sudah ada.
-2. Setelah deploy, jalankan smoke read-only dan pantau cache/error map.
+1. ~~Otorisasi eksplisit untuk deploy, lalu jalankan prosedur rilis yang sudah ada.~~ Selesai 2026-11-08.
+2. ~~Setelah deploy, jalankan smoke read-only dan pantau cache/error map.~~ Selesai; smoke 21/21 dan anchor produksi terverifikasi untuk empat peran.
 3. Evaluasi apakah label “Cabang dengan Konten” perlu penjelasan tambahan bagi peran regional.
 
 ## 7. Status deployment
 
-**NOT RUN.** Tidak ada deploy, migrasi, seed, reset, atau perubahan environment pada plan ini. Tidak ada klaim produksi. Server verifikasi lokal port 3300 dihentikan setelah seluruh bukti dikumpulkan.
+**PRODUCTION — selesai 2026-11-08 05:30 WIB.** Prosedur rilis dijalankan setelah otorisasi pengguna (“Continue, finish the job and deploy”):
+
+1. Commit rilis `6c96f3d` pada cabang `fix/all-features-hardening`.
+2. Cadangan logis produksi: `backups/2026-11-07T22-29-15-905Z-production` (gitignored).
+3. Tidak ada migrasi skema dan tidak ada perubahan variabel lingkungan pada rilis ini.
+4. Deploy Vercel produksi `dpl_6hFKpQpbAcZDnFTXwGDQhJNZiCd2` (`https://dakosta-dakosta-khvjqdcem-jarjirjor777-5316.vercel.app`), alias produksi `https://dakosta-dakosta.vercel.app`.
+5. Smoke produksi 21/21 PASS (`docs/audit/evidence/E-smoke-production-2026-11-07T22-31-37-093Z.json`), termasuk rekonsiliasi Dashboard = Kinerja = CSV (41 = 41 admin, 19 = 19 wilayah).
+6. Verifikasi anchor produksi: MASTER_ADMIN 7/7, REGIONAL_ADMIN 7/7, BRANCH_ADMIN 7/7, STAKEHOLDER 6/6; tidak ada anchor lama (`tren-bulanan`, `tren-tema`, `tabel`, `peringkat`, `semua-konten`).
+7. Target rollback: `dpl_GRZMo8gWau3jz6isFHJE3B4rQmTb` (`dakosta-dakosta-nfjqo7ny9-jarjirjor777-5316.vercel.app`). Rollback aplikasi tidak memerlukan pemulihan basis data karena rilis ini tidak mengubah skema atau data.
