@@ -3,7 +3,7 @@
 Tanggal: 2026-11-07
 Lingkungan verifikasi: staging lokal (`dakosta_staging`, build produksi pada port 3400)
 Build terverifikasi: `-a_9Vn4Z11pIQfJzWW9Nd`
-Status rilis: **staging LULUS; produksi BELUM dideploy** (menunggu konfirmasi eksplisit).
+Status rilis: **staging LULUS; produksi LULUS** — deploy `dpl_GRZMo8gWau3jz6isFHJE3B4rQmTb` (2026-11-07 16:06 WIB), smoke produksi 21/21.
 
 Dokumen ini memetakan setiap kebutuhan R01–R13 pada brief
 `prompt_dakosta_web_improvement_v1.md` ke jalur implementasi, bukti uji, dan status.
@@ -11,19 +11,20 @@ Tidak ada nilai rahasia, kredensial, atau data pribadi di dalam dokumen ini.
 
 ## Ringkasan gerbang
 
-| Gerbang               | Perintah                                                             | Hasil                                   |
-| --------------------- | -------------------------------------------------------------------- | --------------------------------------- |
-| Lint                  | `npm run lint`                                                       | PASS                                    |
-| Format                | `npm run format:check`                                               | PASS                                    |
-| Tipe                  | `npx tsc --noEmit`                                                   | PASS                                    |
-| Unit/integrasi        | `npm run test`                                                       | PASS — 244/244 (36 berkas)              |
-| Build produksi        | `npm run build:verify`                                               | PASS — BUILD_ID `-a_9Vn4Z11pIQfJzWW9Nd` |
-| Backtest rekonsiliasi | `npx tsx scripts/backtest-reconcile.ts`                              | PASS — 43/43                            |
-| E2E Chromium          | `npx playwright test` (port 3400)                                    | PASS — 89/89 (6,8 menit)                |
-| Anggaran performa     | `npm run perf`                                                       | PASS — 18 rute                          |
-| Query plan            | `npx tsx scripts/explain-check.ts --target=staging`                  | PASS — 7 skenario                       |
-| Smoke staging         | `node scripts/smoke-production.mjs --base-url=http://localhost:3400` | PASS — 21/21                            |
-| Probe keamanan        | skrip probe read-only (lihat bagian Keamanan)                        | PASS — tanpa temuan                     |
+| Gerbang               | Perintah                                                                          | Hasil                                   |
+| --------------------- | --------------------------------------------------------------------------------- | --------------------------------------- |
+| Lint                  | `npm run lint`                                                                    | PASS                                    |
+| Format                | `npm run format:check`                                                            | PASS                                    |
+| Tipe                  | `npx tsc --noEmit`                                                                | PASS                                    |
+| Unit/integrasi        | `npm run test`                                                                    | PASS — 244/244 (36 berkas)              |
+| Build produksi        | `npm run build:verify`                                                            | PASS — BUILD_ID `-a_9Vn4Z11pIQfJzWW9Nd` |
+| Backtest rekonsiliasi | `npx tsx scripts/backtest-reconcile.ts`                                           | PASS — 43/43                            |
+| E2E Chromium          | `npx playwright test` (port 3400)                                                 | PASS — 89/89 (6,8 menit)                |
+| Anggaran performa     | `npm run perf`                                                                    | PASS — 18 rute                          |
+| Query plan            | `npx tsx scripts/explain-check.ts --target=staging`                               | PASS — 7 skenario                       |
+| Smoke staging         | `node scripts/smoke-production.mjs --base-url=http://localhost:3400`              | PASS — 21/21                            |
+| Smoke produksi        | `node scripts/smoke-production.mjs --base-url=https://dakosta-dakosta.vercel.app` | PASS — 21/21                            |
+| Probe keamanan        | skrip probe read-only (lihat bagian Keamanan)                                     | PASS — tanpa temuan                     |
 
 ## Matriks R01–R13
 
@@ -41,7 +42,7 @@ Tidak ada nilai rahasia, kredensial, atau data pribadi di dalam dokumen ini.
 | R10 | Pembuatan akun Master berfungsi penuh                                              | `src/lib/accounts.ts` (409 email ganda, tautan aktivasi sekali pakai + kedaluwarsa), `src/components/accounts/account-manager.tsx` (tombol salin, tanpa "kata sandi sementara")                                                                                                         | `tests/accounts-lifecycle.test.ts`, `tests/activation.test.ts`, `e2e/targets.spec.ts` (demo containment), `e2e/accounts.spec.ts`                                                                                                                                    | PASS                                                                                                              |
 | R11 | Impor akun & konten operasional                                                    | `src/lib/imports/{accounts,content}.ts`; API `template`, `example`, `preview`, `commit`, `content/*`; wizard `import-wizard.tsx`, `content-import-wizard.tsx`; kebijakan konflik `skip                                                                                                  | update                                                                                                                                                                                                                                                              | upsert`, batas 1 MB/1000 baris, penjaga formula-injection, riwayat `content_import_runs/rows`                     | `tests/imports-r11.test.ts`, `tests/content-import.test.ts`, `tests/csv.test.ts`, `e2e/content-import.spec.ts`, `e2e/platform.spec.ts` | PASS |
 | R12 | Sinkronisasi situs Master dengan pekerjaan nyata                                   | `src/db/schema/sync.ts`, migrasi `drizzle/0006_v1_2_imports_sync.sql`, `src/lib/sync/jobs.ts` (tahap terukur, heartbeat, retry, cancel, dry-run default), API `/api/v1/admin/sync[/id                                                                                                   | /retry                                                                                                                                                                                                                                                              | /cancel]`, `src/components/admin/sync-panel.tsx`                                                                  | `tests/sync-jobs.test.ts` (7 uji), `e2e/reports.spec.ts` (demo containment), pemulihan stale via satu `UPDATE`                         | PASS |
-| R13 | Audit, backtest, regresi, rilis                                                    | `scripts/backtest-reconcile.ts`, `scripts/perf-check.mjs`, `scripts/explain-check.ts`, dokumen ini                                                                                                                                                                                      | backtest 43/43, E2E 89/89, perf 18 rute, explain 7 skenario, smoke 21/21                                                                                                                                                                                            | PASS (rilis produksi belum)                                                                                       |
+| R13 | Audit, backtest, regresi, rilis                                                    | `scripts/backtest-reconcile.ts`, `scripts/perf-check.mjs`, `scripts/explain-check.ts`, dokumen ini                                                                                                                                                                                      | backtest 43/43, E2E 89/89, perf 18 rute, explain 7 skenario, smoke 21/21                                                                                                                                                                                            | PASS (rilis produksi selesai)                                                                                     |
 
 ## Migrasi basis data
 
@@ -100,14 +101,33 @@ Tidak ada nilai rahasia, kredensial, atau data pribadi di dalam dokumen ini.
 | Anggaran performa     | `docs/audit/evidence/E-perf-v2-2026-11-07T08-34-42Z.log`               |
 | Query plan            | `docs/audit/evidence/E-explain-*.json`                                 |
 | Smoke staging         | `docs/audit/evidence/E-smoke-production-2026-11-07T08-46-45-685Z.json` |
+| Smoke produksi        | `docs/audit/evidence/E-smoke-production-2026-11-07T09-08-47-791Z.json` |
 | E2E                   | `npx playwright test` pada build `-a_9Vn4Z11pIQfJzWW9Nd`, 89/89        |
 
 ## Rollback
 
-- Produksi saat ini: `https://dakosta-dakosta.vercel.app`, deployment `dakosta-dakosta-ior2efsv2-…`; target rollback tercatat `dakosta-dakosta-aafut5gox-…` (lihat memori rilis v2).
+- Produksi saat ini: `https://dakosta-dakosta.vercel.app` → `dpl_GRZMo8gWau3jz6isFHJE3B4rQmTb`
+  (`dakosta-dakosta-nfjqo7ny9-jarjirjor777-5316.vercel.app`).
+- Target rollback: deployment produksi sebelumnya
+  `dakosta-dakosta-ior2efsv2-jarjirjor777-5316.vercel.app` (13 jam sebelum rilis
+  ini); fallback lebih lama `dakosta-dakosta-aafut5gox-…`.
 - Migrasi `0006` aditif: rollback aplikasi tidak memerlukan penghapusan tabel; bila diperlukan, tabel baru dapat dibiarkan tanpa dipakai.
 - Prosedur rilis: cadangan logis → migrasi aditif → deploy → smoke produksi → catat deployment baru dan target rollback.
 
 ## Rilis produksi
 
-Belum dijalankan. Sesuai instruksi, deploy produksi memerlukan konfirmasi eksplisit terpisah. Tidak ada perubahan variabel lingkungan pada pekerjaan ini.
+Dijalankan setelah konfirmasi eksplisit pengguna pada 2026-11-07:
+
+1. Commit rilis `3a89ff6` pada cabang `fix/all-features-hardening`.
+2. Cadangan logis produksi: `backups/2026-11-07T09-03-49-509Z-production` (gitignored).
+3. Migrasi aditif `drizzle/0006_v1_2_imports_sync.sql`; 7 migrasi tercatat di
+   `drizzle.__drizzle_migrations`; tabel `sync_jobs`, `content_import_runs`,
+   `content_import_rows` terverifikasi ada.
+4. Deploy Vercel produksi `dpl_GRZMo8gWau3jz6isFHJE3B4rQmTb`, alias
+   `https://dakosta-dakosta.vercel.app`. Percobaan pertama terputus di sisi CLI
+   (`fetch failed` setelah kompilasi) dan menghasilkan deployment kembar
+   `dakosta-dakosta-hxhzph155-…` dari commit yang sama; keduanya ekuivalen.
+5. Smoke produksi 21/21 PASS, termasuk rekonsiliasi Dashboard = Kinerja = CSV
+   (41 = 41 admin, 19 = 19 wilayah), PDF Kinerja 263.503 byte, dan CSV Kinerja.
+
+Tidak ada perubahan variabel lingkungan pada pekerjaan ini.
