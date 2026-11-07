@@ -1,12 +1,6 @@
 import "server-only";
 
-import {
-  PDFDocument,
-  StandardFonts,
-  rgb,
-  type PDFFont,
-  type PDFPage,
-} from "pdf-lib";
+import { PDFDocument, type PDFFont, type PDFPage } from "pdf-lib";
 
 import { formatDateId, formatDateTimeId } from "@/lib/dates";
 import {
@@ -15,69 +9,37 @@ import {
   type PerformanceRow,
   type PerformanceSummary,
 } from "@/lib/performance";
+import {
+  REPORT_COLORS,
+  REPORT_CONTENT_WIDTH,
+  REPORT_PAGE,
+  drawReportFooter,
+  drawReportHeader,
+  fitText,
+  formatNumber,
+  loadBrandLogo,
+  loadReportFonts,
+  safe,
+  setReportMetadata,
+} from "@/lib/reports/pdf-kit";
 
-const PAGE_WIDTH = 841.89;
-const PAGE_HEIGHT = 595.28;
-const MARGIN = 36;
-const CONTENT_WIDTH = PAGE_WIDTH - MARGIN * 2;
-const HEADER_HEIGHT = 74;
+const PAGE_WIDTH = REPORT_PAGE.width;
+const PAGE_HEIGHT = REPORT_PAGE.height;
+const MARGIN = REPORT_PAGE.margin;
+const CONTENT_WIDTH = REPORT_CONTENT_WIDTH;
 const TABLE_HEADER_HEIGHT = 18;
 const ROW_HEIGHT = 14;
+const BOTTOM_LIMIT = 40;
 
-const GREEN = rgb(0, 0.42, 0.235);
-const INK = rgb(0.07, 0.165, 0.22);
-const MUTED = rgb(0.31, 0.404, 0.475);
-const LINE = rgb(0.85, 0.9, 0.88);
-const SURFACE = rgb(0.965, 0.98, 0.972);
-
-const REPLACEMENTS: Record<string, string> = {
-  "·": "-",
-  "–": "-",
-  "—": "-",
-  "…": "...",
-  "×": "x",
-  "’": "'",
-  "‘": "'",
-  "“": '"',
-  "”": '"',
-  "→": "->",
-  "≥": ">=",
-  "≤": "<=",
-  "•": "-",
-  "\u00a0": " ",
-};
-
-function safe(value: string): string {
-  return value
-    .replace(/[·–—…×’‘“”≥≤•\u00a0]/g, (char) => REPLACEMENTS[char] ?? "")
-    .replace(/[^\x20-\x7E]/g, "");
-}
-
-function number(value: number): string {
-  return new Intl.NumberFormat("id-ID").format(value);
-}
+const GREEN = REPORT_COLORS.brand;
+const INK = REPORT_COLORS.ink;
+const MUTED = REPORT_COLORS.muted;
+const LINE = REPORT_COLORS.line;
+const SURFACE = REPORT_COLORS.surface;
 
 function percent(value: number | null): string {
   if (value === null) return "N/A";
-  return `${number(Math.round(value * 10) / 10)}%`;
-}
-
-function fit(
-  font: PDFFont,
-  value: string,
-  size: number,
-  maxWidth: number,
-): string {
-  const clean = safe(value);
-  if (font.widthOfTextAtSize(clean, size) <= maxWidth) return clean;
-  let result = clean;
-  while (
-    result.length > 1 &&
-    font.widthOfTextAtSize(`${result}...`, size) > maxWidth
-  ) {
-    result = result.slice(0, -1);
-  }
-  return `${result}...`;
+  return `${formatNumber(Math.round(value * 10) / 10)}%`;
 }
 
 const STATUS_LABEL: Record<PerformanceRow["status"], string> = {
@@ -103,44 +65,6 @@ const COLUMNS: Array<{
   { label: "Periode", width: 64 },
   { label: "Diperbarui", width: 44 },
 ];
-
-function drawPageBand(page: PDFPage): void {
-  page.drawRectangle({
-    x: 0,
-    y: PAGE_HEIGHT - 5,
-    width: PAGE_WIDTH,
-    height: 5,
-    color: GREEN,
-  });
-  page.drawRectangle({
-    x: 0,
-    y: PAGE_HEIGHT - HEADER_HEIGHT,
-    width: PAGE_WIDTH,
-    height: HEADER_HEIGHT - 5,
-    color: GREEN,
-  });
-}
-
-function drawFooter(
-  page: PDFPage,
-  font: PDFFont,
-  pageNumber: number,
-  total: number,
-  periodLabel: string,
-): void {
-  page.drawLine({
-    start: { x: MARGIN, y: 26 },
-    end: { x: PAGE_WIDTH - MARGIN, y: 26 },
-    thickness: 0.5,
-    color: LINE,
-  });
-  page.drawText(
-    safe(
-      `DAKOSTA - Laporan Kinerja - ${periodLabel} - Halaman ${pageNumber} dari ${total}`,
-    ),
-    { x: MARGIN, y: 15, size: 7, font, color: MUTED },
-  );
-}
 
 function drawTableHeader(page: PDFPage, bold: PDFFont, y: number): void {
   page.drawRectangle({
@@ -183,13 +107,13 @@ function drawRow(
     row.branchName ?? "-",
     row.name,
     row.sourceLabel,
-    row.target === null ? "N/A" : number(row.target),
-    number(row.approved),
+    row.target === null ? "N/A" : formatNumber(row.target),
+    formatNumber(row.approved),
     row.difference === null
       ? "N/A"
       : row.difference === 0
         ? "0"
-        : `${row.difference > 0 ? "+" : "-"}${number(Math.abs(row.difference))}`,
+        : `${row.difference > 0 ? "+" : "-"}${formatNumber(Math.abs(row.difference))}`,
     percent(row.achievement),
     STATUS_LABEL[row.status],
     periodLabel,
@@ -199,7 +123,7 @@ function drawRow(
   let x = MARGIN + 3;
   values.forEach((value, index) => {
     const column = COLUMNS[index]!;
-    const text = fit(font, value, 6.5, column.width - 8);
+    const text = fitText(font, value, 6.5, column.width - 8);
     const textWidth = font.widthOfTextAtSize(text, 6.5);
     page.drawText(text, {
       x: column.align === "right" ? x + column.width - textWidth - 6 : x,
@@ -222,40 +146,22 @@ export async function renderPerformancePdf(input: {
 }): Promise<Uint8Array> {
   const { filters, rows, summary } = input;
   const doc = await PDFDocument.create();
-  doc.setTitle(safe(`Laporan Kinerja ${filters.period.label}`));
-  doc.setAuthor("DAKOSTA");
-  doc.setSubject("Laporan kinerja per instansi");
-  doc.setCreator("DAKOSTA");
-  doc.setProducer("DAKOSTA");
+  setReportMetadata(doc, {
+    title: `Laporan Kinerja ${filters.period.label}`,
+    subject: "Laporan kinerja per instansi",
+  });
 
-  const font = await doc.embedFont(StandardFonts.Helvetica);
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const fonts = await loadReportFonts(doc);
+  const { font, bold } = fonts;
+  const logo = await loadBrandLogo(doc);
 
   const page = doc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
-  drawPageBand(page);
-  page.drawText("DAKOSTA", {
-    x: MARGIN,
-    y: PAGE_HEIGHT - 30,
-    size: 9,
-    font: bold,
-    color: rgb(1, 1, 1),
-  });
-  page.drawText("Laporan Kinerja per Instansi", {
-    x: MARGIN,
-    y: PAGE_HEIGHT - 50,
-    size: 17,
-    font: bold,
-    color: rgb(1, 1, 1),
-  });
-  page.drawText(safe(`Periode ${filters.period.label}`), {
-    x: MARGIN,
-    y: PAGE_HEIGHT - 65,
-    size: 8.5,
-    font,
-    color: rgb(0.9, 0.97, 0.93),
+  const headerTop = drawReportHeader(page, fonts, logo, {
+    title: "Laporan Kinerja per Instansi",
+    subtitle: `Periode ${filters.period.label}`,
   });
 
-  let y = PAGE_HEIGHT - HEADER_HEIGHT - 18;
+  let y = headerTop - 18;
   page.drawText(
     safe(`Cakupan: ${input.scopeLabel} - Peran: ${input.roleLabel}`),
     { x: MARGIN, y, size: 8, font, color: MUTED },
@@ -274,16 +180,16 @@ export async function renderPerformancePdf(input: {
   y -= 18;
 
   const cards: Array<[string, string]> = [
-    ["Institusi", number(summary.institutions)],
+    ["Institusi", formatNumber(summary.institutions)],
     [
       "Target terisi",
-      `${number(summary.withTarget)} / ${number(summary.institutions)}`,
+      `${formatNumber(summary.withTarget)} / ${formatNumber(summary.institutions)}`,
     ],
-    ["Realisasi approved", number(summary.approved)],
+    ["Realisasi approved", formatNumber(summary.approved)],
     ["Capaian agregat", percent(summary.achievement)],
     [
       "Target tercapai",
-      `${number(summary.met)} / ${number(summary.withTarget)}`,
+      `${formatNumber(summary.met)} / ${formatNumber(summary.withTarget)}`,
     ],
   ];
   const cardWidth = (CONTENT_WIDTH - 8 * (cards.length - 1)) / cards.length;
@@ -318,24 +224,13 @@ export async function renderPerformancePdf(input: {
 
   let current = page;
   for (const row of rows) {
-    if (y - ROW_HEIGHT < 34) {
+    if (y - ROW_HEIGHT < BOTTOM_LIMIT) {
       current = doc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
-      drawPageBand(current);
-      current.drawText("Laporan Kinerja per Instansi (lanjutan)", {
-        x: MARGIN,
-        y: PAGE_HEIGHT - 28,
-        size: 9,
-        font: bold,
-        color: rgb(1, 1, 1),
+      const top = drawReportHeader(current, fonts, logo, {
+        title: "Laporan Kinerja per Instansi (lanjutan)",
+        subtitle: `Periode ${filters.period.label}`,
       });
-      current.drawText(safe(`Periode ${filters.period.label}`), {
-        x: MARGIN,
-        y: PAGE_HEIGHT - 42,
-        size: 7.5,
-        font,
-        color: rgb(0.9, 0.97, 0.93),
-      });
-      y = PAGE_HEIGHT - HEADER_HEIGHT - 12;
+      y = top - 12;
       drawTableHeader(current, bold, y);
       y -= TABLE_HEADER_HEIGHT;
     }
@@ -361,10 +256,13 @@ export async function renderPerformancePdf(input: {
   }
 
   y -= 8;
-  if (y < 54) {
+  if (y < BOTTOM_LIMIT + 16) {
     current = doc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
-    drawPageBand(current);
-    y = PAGE_HEIGHT - HEADER_HEIGHT - 20;
+    const top = drawReportHeader(current, fonts, logo, {
+      title: "Laporan Kinerja per Instansi (lanjutan)",
+      subtitle: `Periode ${filters.period.label}`,
+    });
+    y = top - 16;
   }
   current.drawText(
     safe(
@@ -375,7 +273,11 @@ export async function renderPerformancePdf(input: {
 
   const pages = doc.getPages();
   pages.forEach((item, index) => {
-    drawFooter(item, font, index + 1, pages.length, filters.period.label);
+    drawReportFooter(item, fonts, logo, {
+      pageNumber: index + 1,
+      totalPages: pages.length,
+      metadata: `Laporan Kinerja - ${filters.period.label}`,
+    });
   });
 
   return doc.save();

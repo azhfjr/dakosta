@@ -13,6 +13,7 @@ const inputSchema = z.object({
   filename: z.string().trim().min(1).max(160),
   content: z.string().min(1),
   idempotencyKey: z.string().trim().max(120).optional(),
+  policy: z.enum(["skip", "update", "upsert"]).optional(),
 });
 
 export async function POST(request: Request) {
@@ -43,6 +44,7 @@ export async function POST(request: Request) {
       content: body.content,
       actorId: master.userId,
       idempotencyKey: body.idempotencyKey,
+      policy: body.policy,
     });
 
     return jsonOk(preview, { requestId });

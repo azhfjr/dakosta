@@ -220,6 +220,52 @@ test.describe("Matriks viewport 640/768/1440", () => {
   }
 });
 
+test.describe("Keyboard dan fokus", () => {
+  test("skip link, filter, dan tabel bergulir dapat dijangkau keyboard", async ({
+    browser,
+  }) => {
+    const context = await browser.newContext({ storageState: ADMIN_STATE });
+    try {
+      const page = await context.newPage();
+      await page.goto("/admin");
+      await page.waitForLoadState("networkidle");
+
+      await page.keyboard.press("Tab");
+      const skip = page.getByRole("link", { name: "Lewati ke konten utama" });
+      await expect(skip).toBeFocused();
+      await expect(skip).toBeVisible();
+      const skipOutline = await skip.evaluate((element) => {
+        const style = getComputedStyle(element);
+        return {
+          width: Number.parseFloat(style.outlineWidth),
+          style: style.outlineStyle,
+        };
+      });
+      expect(skipOutline.style).not.toBe("none");
+      expect(skipOutline.width).toBeGreaterThanOrEqual(2);
+
+      await page.keyboard.press("Enter");
+      await expect(page.locator("#konten")).toBeInViewport();
+
+      const filter = page.getByRole("region", {
+        name: "Filter konten disetujui",
+      });
+      const select = filter.locator('select[name="subTheme"]');
+      await select.focus();
+      await expect(select).toBeFocused();
+
+      const scrollRegion = page.getByRole("region", {
+        name: "Tabel detail konten disetujui, dapat digulir",
+      });
+      await expect(scrollRegion).toHaveAttribute("tabindex", "0");
+      await scrollRegion.focus();
+      await expect(scrollRegion).toBeFocused();
+    } finally {
+      await context.close();
+    }
+  });
+});
+
 test.describe("Tata letak seluler", () => {
   test("navigasi cabang dapat dibuka pada layar kecil", async ({ browser }) => {
     const context = await browser.newContext({

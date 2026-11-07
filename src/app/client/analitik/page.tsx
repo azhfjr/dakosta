@@ -1,4 +1,4 @@
-import { redirectToAnchor } from "@/lib/filters/redirect";
+import { redirectWithFilters } from "@/lib/filters/redirect";
 
 export default async function ClientAnalyticsRedirect({
   searchParams,
@@ -6,5 +6,5 @@ export default async function ClientAnalyticsRedirect({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  redirectToAnchor("/client", params, "konten-disetujui");
+  redirectWithFilters("/client/konten", params);
 }

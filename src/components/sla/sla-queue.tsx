@@ -41,8 +41,10 @@ export function SlaQueue({
   basePath,
   search,
   status,
-  stakeholderId,
+  orgType,
+  mainTheme,
   subTheme,
+  period,
   options,
   scopeLabel,
   readOnlyNote,
@@ -54,9 +56,16 @@ export function SlaQueue({
   basePath: string;
   search?: string;
   status: SlaTabKey;
-  stakeholderId?: string;
+  orgType?: string;
+  mainTheme?: string;
   subTheme?: string;
-  options: { stakeholders: FilterOption[]; subThemes: FilterOption[] };
+  period?: string;
+  options: {
+    orgTypes: FilterOption[];
+    mainThemes: FilterOption[];
+    subThemes: FilterOption[];
+    periods: FilterOption[];
+  };
   scopeLabel: string;
   readOnlyNote?: string;
 }) {
@@ -64,8 +73,10 @@ export function SlaQueue({
   const currentFilters: FilterParams = {
     status,
     q: search,
-    stakeholderId,
+    orgType,
+    mainTheme,
     subTheme,
+    period,
   };
   const statusOptions: FilterOption[] = TABS.map((tab) => ({
     value: tab.key,
@@ -83,11 +94,19 @@ export function SlaQueue({
     },
     {
       kind: "select",
-      name: "stakeholderId",
-      label: "Stakeholder",
-      value: stakeholderId ?? "",
-      options: options.stakeholders,
-      allLabel: "Semua stakeholder",
+      name: "orgType",
+      label: "Jenis organisasi",
+      value: orgType ?? "",
+      options: options.orgTypes,
+      allLabel: "Semua jenis",
+    },
+    {
+      kind: "select",
+      name: "mainTheme",
+      label: "Tema utama",
+      value: mainTheme ?? "",
+      options: options.mainThemes,
+      allLabel: "Semua tema",
     },
     {
       kind: "select",
@@ -96,6 +115,14 @@ export function SlaQueue({
       value: subTheme ?? "",
       options: options.subThemes,
       allLabel: "Semua sub-tema",
+    },
+    {
+      kind: "select",
+      name: "period",
+      label: "Periode pengiriman",
+      value: period ?? "",
+      options: options.periods,
+      allLabel: "Semua periode",
     },
     {
       kind: "search",
@@ -197,7 +224,7 @@ export function SlaQueue({
         idPrefix="sla"
         resetHref={filterResetHref(basePath)}
         fields={filterFields}
-        summary="Filter berlaku untuk tabel dan ringkasan antrean di bawah."
+        summary="Filter berlaku untuk tabel dan ringkasan antrean di bawah. Jenis organisasi mengikuti data master instansi: FASKES = Faskes, PEMDA = Pemda, OTHER = Stakeholder lainnya."
       />
 
       <section className="rounded-xl border border-border bg-surface shadow-sm">
@@ -223,7 +250,12 @@ export function SlaQueue({
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div
+            className="overflow-x-auto"
+            tabIndex={0}
+            role="region"
+            aria-label="Tabel antrean SLA, dapat digulir"
+          >
             <table className="w-full min-w-[62rem] border-collapse text-sm">
               <caption className="sr-only">Antrean konten menurut SLA</caption>
               <thead>

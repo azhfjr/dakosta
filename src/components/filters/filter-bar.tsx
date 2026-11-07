@@ -28,6 +28,12 @@ export type FilterField =
       placeholder?: string;
     }
   | {
+      kind: "date";
+      name: string;
+      label: string;
+      value: string;
+    }
+  | {
       kind: "number";
       name: string;
       label: string;
@@ -79,10 +85,16 @@ function FilterControl({
       ) : (
         <input
           id={id}
-          type={field.kind === "number" ? "number" : "search"}
+          type={
+            field.kind === "number"
+              ? "number"
+              : field.kind === "date"
+                ? "date"
+                : "search"
+          }
           name={field.name}
           defaultValue={field.value}
-          placeholder={field.placeholder}
+          placeholder={field.kind === "date" ? undefined : field.placeholder}
           min={field.kind === "number" ? field.min : undefined}
           max={field.kind === "number" ? field.max : undefined}
           step={field.kind === "number" ? field.step : undefined}

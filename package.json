@@ -28,6 +28,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test:e2e": "playwright test",
+    "test:backtest": "tsx --conditions=react-server scripts/backtest-reconcile.ts",
     "test:e2e:empty": "playwright test --config playwright.empty.config.ts",
     "perf": "node scripts/perf-check.mjs",
     "audit:routes": "node scripts/audit-routes.mjs",

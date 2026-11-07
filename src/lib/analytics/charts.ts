@@ -23,7 +23,11 @@ import {
   PLATFORM_LABEL,
   type ContentStatus,
 } from "@/lib/content-status";
-import { CONTENT_TYPE_LABELS, type ContentType } from "@/lib/taxonomy";
+import {
+  CONTENT_TYPE_LABELS,
+  type ContentType,
+  type MainTheme,
+} from "@/lib/taxonomy";
 import { monthRange, type KpiFilters } from "@/lib/kpi/formulas";
 import { parsePeriod, type Period } from "@/lib/periods";
 import { monthWindow, trailingMonthKeys } from "@/lib/analytics/period-window";
@@ -38,6 +42,8 @@ import {
 
 export type AnalyticsChartFilters = KpiFilters & {
   sources: OrgSource[];
+  orgType?: "FASKES" | "PEMDA" | "OTHER" | null;
+  mainTheme?: MainTheme | null;
 };
 
 const DAY_SECONDS = 86_400;
@@ -85,6 +91,20 @@ function scopeConditions(
     filters.sources,
   );
   if (source) conditions.push(source);
+  if (filters.orgType) {
+    conditions.push(
+      inArray(
+        schema.contentSubmissions.stakeholderId,
+        getDb()
+          .select({ id: schema.stakeholders.id })
+          .from(schema.stakeholders)
+          .where(eq(schema.stakeholders.organizationType, filters.orgType)),
+      ),
+    );
+  }
+  if (filters.mainTheme) {
+    conditions.push(eq(schema.contentSubmissions.mainTheme, filters.mainTheme));
+  }
   return conditions;
 }
 
@@ -811,6 +831,8 @@ export async function getDashboardAnalytics(
     filters.attribution,
     filters.stakeholderId,
     filters.subTheme,
+    filters.orgType ?? null,
+    filters.mainTheme ?? null,
     filters.sources,
     rankingLevel ?? "none",
   ]);

@@ -327,6 +327,17 @@ export async function createAccount(
   await assertScopeCombination(parsed);
 
   const db = getDb();
+  const [existingUser] = await db
+    .select({ id: schema.user.id })
+    .from(schema.user)
+    .where(eq(schema.user.email, parsed.email))
+    .limit(1);
+  if (existingUser) {
+    throw errors.conflict(
+      "Email sudah terdaftar. Gunakan email lain atau atur ulang akun yang ada.",
+    );
+  }
+
   const initialPassword = generateInitialPassword();
   const displayTitle = parsed.displayTitle?.trim() || ROLE_LABELS[parsed.role];
 
@@ -385,8 +396,8 @@ export async function createAccount(
     if (error instanceof AppError) throw error;
     throw new AppError(
       "USER_CREATE_FAILED",
-      "Akun tidak dapat dibuat. Periksa apakah email sudah terdaftar.",
-      409,
+      "Akun tidak dapat dibuat karena kesalahan server. Coba lagi atau hubungi Master Admin lain.",
+      500,
     );
   }
 

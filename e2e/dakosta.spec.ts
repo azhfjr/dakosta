@@ -347,13 +347,17 @@ test.describe("Dasbor Master", () => {
   test("menampilkan capaian disetujui dari API", async ({ page }) => {
     const value = await approvedValue(admin);
     await page.goto("/admin");
-    const hero = page.getByRole("region", { name: "Capaian utama" });
+    const hero = page.getByRole("region", {
+      name: "Ringkasan capaian disetujui",
+    });
     await expect(hero).toBeVisible();
     await expect(hero).toContainText(numberId.format(value));
     await expect(hero).toContainText("konten disetujui");
   });
 
-  test("halaman hierarki menampilkan wilayah dan cabang", async ({ page }) => {
+  test("halaman hierarki menampilkan wilayah dan redirect cabang", async ({
+    page,
+  }) => {
     await page.goto("/admin/wilayah");
     await expect(
       page.getByRole("heading", { name: /wilayah|regional/i }).first(),
@@ -361,7 +365,7 @@ test.describe("Dasbor Master", () => {
     await expect(page.getByText("Regional Jawa Barat")).toBeVisible();
 
     await page.goto("/admin/cabang");
-    await expect(page.getByText("Cabang Bandung Kota")).toBeVisible();
+    await page.waitForURL(/\/admin\/wilayah$/);
   });
 
   test("akun regional dan cabang tercatat pada direktori akun", async ({
@@ -449,11 +453,18 @@ test.describe("Wizard pelaporan stakeholder", () => {
   test("tombol ekspor mengikuti filter status", async ({ page }) => {
     await page.goto("/client/konten?status=APPROVED");
     await expect(
-      page.getByRole("heading", { name: "Konten saya" }),
+      page.getByRole("heading", { name: "Detail Konten", level: 1 }),
     ).toBeVisible();
     await expect(
       page.getByRole("link", { name: "Ekspor CSV" }),
-    ).toHaveAttribute("href", "/api/v1/exports/submissions?status=APPROVED");
+    ).toHaveAttribute(
+      "href",
+      "/api/v1/exports/submissions?mode=all&status=APPROVED",
+    );
+    await expect(page.getByRole("link", { name: "Unduh PDF" })).toHaveAttribute(
+      "href",
+      "/api/v1/reports/contents?mode=all&status=APPROVED",
+    );
   });
 });
 

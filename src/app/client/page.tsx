@@ -2,22 +2,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { and, count, eq } from "drizzle-orm";
-import { Info, PlusCircle, RotateCcw } from "lucide-react";
+import { Info, PlusCircle } from "lucide-react";
 
-import { KpiDashboard } from "@/components/dashboard/kpi-dashboard";
+import { ApprovedDashboardView } from "@/components/dashboard/approved-dashboard";
 import { PageContainer } from "@/components/shell/page-container";
 import { PageHeader } from "@/components/shell/page-header";
 import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { Button } from "@/components/ui/button";
-import { getDb, schema } from "@/db";
-import { getDashboardAnalytics } from "@/lib/analytics/charts";
+import {
+  getApprovedDashboard,
+  parseApprovedDashboardFilters,
+} from "@/lib/analytics/dashboard";
 import { recordAudit } from "@/lib/audit";
-import { contentScopePredicate } from "@/lib/authz/predicates";
 import { redirectDashboardView } from "@/lib/dashboard/view";
-import { formatDateTimeId, formatNumberId } from "@/lib/dates";
+import { formatDateTimeId } from "@/lib/dates";
 import { getFilterOptions } from "@/lib/filters/options";
-import { getDashboardOverview, parseKpiFiltersFromParams } from "@/lib/kpi/sql";
 import { requireRole } from "@/lib/session";
 
 export const metadata: Metadata = {
@@ -28,6 +27,9 @@ export const dynamic = "force-dynamic";
 
 type DashboardUser = Awaited<ReturnType<typeof requireRole>>;
 
+const DESCRIPTION =
+  "Capaian konten organisasi Anda, dihitung hanya dari konten yang telah memperoleh approval final reviewer cabang.";
+
 export default async function ClientHomePage({
   searchParams,
 }: {
@@ -35,19 +37,19 @@ export default async function ClientHomePage({
 }) {
   const user = await requireRole("CLIENT");
   const params = await searchParams;
-  const filters = parseKpiFiltersFromParams(params);
+  const filters = parseApprovedDashboardFilters(params);
   redirectDashboardView("/client", params);
 
   if (
-    filters.stakeholderId &&
-    !user.stakeholderIds.includes(filters.stakeholderId)
+    filters.table.stakeholderId &&
+    !user.stakeholderIds.includes(filters.table.stakeholderId)
   ) {
     await recordAudit({
       actorId: user.id,
       actorRole: user.role,
       action: "ACCESS_DENIED",
       recordType: "STAKEHOLDER",
-      recordId: filters.stakeholderId,
+      recordId: filters.table.stakeholderId,
       after: { reason: "stakeholder_scope_mismatch", route: "/client" },
     });
     redirect("/akses-ditolak");
@@ -57,7 +59,7 @@ export default async function ClientHomePage({
     <PageContainer>
       <PageHeader
         title={`Beranda ${user.name}`}
-        description="Capaian konten organisasi Anda, dihitung hanya dari konten yang telah disetujui reviewer cabang. Dasar tanggal default adalah tanggal konten."
+        description={DESCRIPTION}
         meta={`Diperbarui ${formatDateTimeId(new Date())} WIB`}
         actions={
           <Button asChild className="h-10">
@@ -69,7 +71,7 @@ export default async function ClientHomePage({
         }
       />
       <Suspense fallback={<PageSkeleton label="Memuat dasbor…" />}>
-        <ClientHomeBody user={user} filters={filters} />
+        <ClientHomeBody user={user} params={params} />
       </Suspense>
     </PageContainer>
   );
@@ -77,35 +79,15 @@ export default async function ClientHomePage({
 
 async function ClientHomeBody({
   user,
-  filters,
+  params,
 }: {
   user: DashboardUser;
-  filters: ReturnType<typeof parseKpiFiltersFromParams>;
+  params: Record<string, string | string[] | undefined>;
 }) {
-  const [overview, options, analytics, revisionCount] = await Promise.all([
-    getDashboardOverview(user, filters),
+  const filters = parseApprovedDashboardFilters(params);
+  const [data, options] = await Promise.all([
+    getApprovedDashboard(user, filters),
     getFilterOptions(user),
-    getDashboardAnalytics(
-      user,
-      { ...filters, sources: [] },
-      { rankingLevel: null },
-    ),
-    (async () => {
-      const scope = contentScopePredicate(
-        user,
-        schema.contentSubmissions.stakeholderId,
-      );
-      const [row] = await getDb()
-        .select({ total: count() })
-        .from(schema.contentSubmissions)
-        .where(
-          and(
-            eq(schema.contentSubmissions.status, "REVISION_REQUIRED"),
-            ...(scope ? [scope] : []),
-          ),
-        );
-      return Number(row?.total ?? 0);
-    })(),
   ]);
 
   const notice =
@@ -129,46 +111,17 @@ async function ClientHomeBody({
     ) : undefined;
 
   return (
-    <div className="space-y-6">
-      {revisionCount > 0 ? (
-        <div className="flex flex-col gap-3 rounded-xl border border-status-revision/30 bg-status-revision/5 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <RotateCcw
-              className="mt-0.5 size-5 shrink-0 text-status-revision"
-              aria-hidden
-            />
-            <div>
-              <h2 className="text-sm font-semibold text-foreground">
-                {formatNumberId(revisionCount)} konten perlu revisi
-              </h2>
-              <p className="mt-0.5 text-sm text-ink-muted">
-                Perbaiki konten lalu kirim ulang agar dapat divalidasi kembali.
-              </p>
-            </div>
-          </div>
-          <Button asChild variant="outline" className="h-10">
-            <Link href="/client/konten?status=REVISION_REQUIRED">
-              Buka daftar revisi
-            </Link>
-          </Button>
-        </div>
-      ) : null}
-
-      <KpiDashboard
-        overview={overview}
-        analytics={analytics}
-        role={user.role}
-        options={{
-          stakeholders: options.stakeholders,
-          subThemes: options.subThemes,
-        }}
-        basePath="/client"
-        title={`Beranda ${user.name}`}
-        description="Capaian konten organisasi Anda, dihitung hanya dari konten yang telah disetujui reviewer cabang. Dasar tanggal default adalah tanggal konten."
-        contentDetailBase="/client/konten"
-        notice={notice}
-        hideHeader
-      />
-    </div>
+    <ApprovedDashboardView
+      data={data}
+      filters={filters}
+      role={user.role}
+      options={options}
+      basePath="/client"
+      detailBase="/client/konten"
+      title={`Beranda ${user.name}`}
+      description={DESCRIPTION}
+      notice={notice}
+      hideHeader
+    />
   );
 }

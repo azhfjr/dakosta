@@ -207,7 +207,7 @@ export function UserManagement({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-ink-muted">
           {initialUsers.length} akun terdaftar. Registrasi publik ditutup; akun
-          dibuat oleh admin dengan kata sandi sementara.
+          dibuat oleh admin dengan tautan aktivasi sekali pakai.
         </p>
         <Button onClick={() => setCreateOpen(true)}>
           <Plus className="size-4" aria-hidden />
@@ -310,7 +310,8 @@ export function UserManagement({
           <DialogHeader>
             <DialogTitle>Tambah pengguna client</DialogTitle>
             <DialogDescription>
-              Kata sandi sementara dibuat otomatis dan hanya ditampilkan sekali.
+              Pengguna mengaktifkan akun lewat tautan sekali pakai dan membuat
+              kata sandi sendiri.
             </DialogDescription>
           </DialogHeader>
 

@@ -6,8 +6,10 @@ import {
   count,
   desc,
   eq,
+  gte,
   ilike,
   inArray,
+  lt,
   or,
   type SQL,
 } from "drizzle-orm";
@@ -26,7 +28,8 @@ import {
 } from "@/lib/read-cache";
 import { assertCan, assertCapability } from "@/lib/rbac";
 import type { SessionUser } from "@/lib/session";
-import { isSubTheme, SUB_THEME_LABELS } from "@/lib/taxonomy";
+import { isSubTheme, SUB_THEME_LABELS, type MainTheme } from "@/lib/taxonomy";
+import { parsePeriod } from "@/lib/periods";
 
 type Database = ReturnType<typeof getDb>;
 type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
@@ -116,6 +119,9 @@ export type ReviewDecisionInput = z.infer<typeof reviewDecisionSchema>;
 export type ReviewQueueFilters = {
   status?: "ALL" | "SUBMITTED" | "RESUBMITTED" | "IN_REVIEW";
   stakeholderId?: string;
+  orgType?: "FASKES" | "PEMDA" | "OTHER";
+  mainTheme?: MainTheme;
+  period?: string;
   subTheme?: string;
   search?: string;
   page?: number;
@@ -173,6 +179,9 @@ export async function listReviewQueue(
       "review-queue",
       filters.status ?? "ALL",
       filters.stakeholderId ?? null,
+      filters.orgType ?? null,
+      filters.mainTheme ?? null,
+      filters.period ?? null,
       filters.subTheme ?? null,
       filters.search ?? null,
       filters.page ?? 1,
@@ -207,8 +216,29 @@ async function loadReviewQueue(
       eq(schema.contentSubmissions.stakeholderId, filters.stakeholderId),
     );
   }
+  if (filters.orgType) {
+    conditions.push(
+      inArray(
+        schema.contentSubmissions.stakeholderId,
+        db
+          .select({ id: schema.stakeholders.id })
+          .from(schema.stakeholders)
+          .where(eq(schema.stakeholders.organizationType, filters.orgType)),
+      ),
+    );
+  }
+  if (filters.mainTheme) {
+    conditions.push(eq(schema.contentSubmissions.mainTheme, filters.mainTheme));
+  }
   if (filters.subTheme) {
     conditions.push(eq(schema.contentSubmissions.subTheme, filters.subTheme));
+  }
+  if (filters.period) {
+    const period = parsePeriod(filters.period);
+    conditions.push(
+      gte(schema.contentSubmissions.submittedAt, period.start),
+      lt(schema.contentSubmissions.submittedAt, period.endExclusive),
+    );
   }
   if (filters.search) {
     const needle = `%${filters.search}%`;
@@ -221,6 +251,11 @@ async function loadReviewQueue(
   }
 
   const where = and(...conditions);
+  const filterOnly = conditions.slice(1);
+  const pendingWhere = and(
+    inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]),
+    ...filterOnly,
+  );
 
   const [rows, totalRow, countRows, oldestRow] = await Promise.all([
     db
@@ -264,26 +299,20 @@ async function loadReviewQueue(
     db
       .select({ status: schema.contentSubmissions.status, total: count() })
       .from(schema.contentSubmissions)
-      .where(
-        scopePredicate
-          ? and(
-              inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]),
-              scopePredicate,
-            )
-          : inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]),
+      .innerJoin(
+        schema.stakeholders,
+        eq(schema.stakeholders.id, schema.contentSubmissions.stakeholderId),
       )
+      .where(pendingWhere)
       .groupBy(schema.contentSubmissions.status),
     db
       .select({ submittedAt: schema.contentSubmissions.submittedAt })
       .from(schema.contentSubmissions)
-      .where(
-        scopePredicate
-          ? and(
-              inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]),
-              scopePredicate,
-            )
-          : inArray(schema.contentSubmissions.status, [...PENDING_STATUSES]),
+      .innerJoin(
+        schema.stakeholders,
+        eq(schema.stakeholders.id, schema.contentSubmissions.stakeholderId),
       )
+      .where(pendingWhere)
       .orderBy(asc(schema.contentSubmissions.submittedAt))
       .limit(1),
   ]);

@@ -104,9 +104,9 @@ export function homePathForRole(role: AppRole): string {
     case "MASTER_ADMIN":
       return "/admin";
     case "REGIONAL_ADMIN":
-      return "/wilayah";
+      return "/wilayah/dashboard";
     case "BRANCH_ADMIN":
-      return "/cabang";
+      return "/cabang/dashboard";
     case "STAKEHOLDER":
       return "/client";
   }

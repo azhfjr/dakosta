@@ -1,18 +1,22 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { ApprovedContentTable } from "@/components/content/approved-content-table";
+import { ContentTable } from "@/components/content/content-table";
 import { PageContainer } from "@/components/shell/page-container";
 import { PageHeader } from "@/components/shell/page-header";
 import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { listAnalyticsContents } from "@/lib/analytics/content-table";
 import { formatDateTimeId } from "@/lib/dates";
-import { parseKontenFilters, toAnalyticsFilters } from "@/lib/filters/konten";
+import {
+  kontenExportQuery,
+  parseKontenFilters,
+  toAnalyticsFilters,
+} from "@/lib/filters/konten";
 import { getFilterOptions } from "@/lib/filters/options";
 import { requireRole } from "@/lib/session";
 
 export const metadata: Metadata = {
-  title: "Konten disetujui",
+  title: "Detail Konten",
 };
 
 export const dynamic = "force-dynamic";
@@ -27,17 +31,17 @@ export default async function RegionalContentPage({
 }) {
   const user = await requireRole("REGIONAL_ADMIN");
   const params = await searchParams;
-  const filters = parseKontenFilters(params);
+  const filters = parseKontenFilters(params, "all");
 
   return (
     <PageContainer>
       <PageHeader
-        title="Konten disetujui"
+        title="Detail Konten"
         eyebrow="Admin Wilayah"
-        description={`Daftar konten tervalidasi pada ${user.scopeLabel}. Hanya konten berstatus Disetujui yang tampil; filter periode memakai tanggal persetujuan final.`}
+        description={`Seluruh konten pada ${user.scopeLabel}, termasuk draf, konten berjalan, dan keputusan akhir. Hanya status Disetujui yang dihitung dalam capaian.`}
         meta={`Diperbarui ${formatDateTimeId(new Date())} WIB`}
       />
-      <Suspense fallback={<PageSkeleton label="Memuat konten disetujui…" />}>
+      <Suspense fallback={<PageSkeleton label="Memuat detail konten…" />}>
         <RegionalContentBody user={user} filters={filters} />
       </Suspense>
     </PageContainer>
@@ -55,14 +59,17 @@ async function RegionalContentBody({
     listAnalyticsContents(user, toAnalyticsFilters(filters)),
     getFilterOptions(user),
   ]);
+  const exportQuery = kontenExportQuery(filters);
 
   return (
-    <ApprovedContentTable
+    <ContentTable
       action="/wilayah/konten"
       detailBase="/wilayah/konten"
       filters={filters}
       data={data}
       options={options}
+      exportHref={`/api/v1/exports/submissions${exportQuery}`}
+      pdfHref={`/api/v1/reports/contents${exportQuery}`}
     />
   );
 }

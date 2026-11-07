@@ -9,7 +9,10 @@ import {
   requireStepUp,
 } from "@/lib/authz/guards";
 import { errors } from "@/lib/errors";
-import { commitContentImport } from "@/lib/imports/content";
+import {
+  commitContentImport,
+  contentImportResultsCsv,
+} from "@/lib/imports/content";
 import {
   consumeRateLimit,
   getClientIp,
@@ -24,6 +27,7 @@ const inputSchema = z.object({
   filename: z.string().trim().min(1).max(160),
   content: z.string().min(1),
   digest: z.string().trim().min(32).max(128),
+  downloadResults: z.boolean().optional(),
 });
 
 export async function POST(request: Request) {
@@ -71,14 +75,28 @@ export async function POST(request: Request) {
       action: "CONTENT_IMPORT_COMMITTED",
       recordType: "CONTENT_IMPORT",
       after: {
+        runId: result.runId,
         filename: result.filename,
         created: result.created,
+        approved: result.approved,
         failed: result.failed,
         digest: result.digest,
       },
       requestId,
       source: "APP",
     });
+
+    if (body.downloadResults) {
+      return new Response(contentImportResultsCsv(result.rows), {
+        status: 200,
+        headers: {
+          "content-type": "text/csv; charset=utf-8",
+          "content-disposition":
+            'attachment; filename="hasil-impor-konten.csv"',
+          "cache-control": "no-store",
+        },
+      });
+    }
 
     return jsonOk(result, { requestId });
   } catch (error) {

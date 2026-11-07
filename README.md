@@ -312,10 +312,11 @@ PURGE_DEMO_CONFIRM=purge-demo-only npm run db:purge:demo:production
 - Rate limit pada login demo, step-up, impor, dan review.
 - Step-up 15 menit (HMAC cookie) untuk aksi Master sensitif; alasan wajib dan
   diaudit; Master aktif terakhir tidak dapat dinonaktifkan/diturunkan.
-- Akun dibuat Master dengan kata sandi sementara dan wajib diganti saat login
-  pertama; kredensial hanya tampil sekali di UI akun Master dan tidak masuk
-  log/audit/CSV. Tabel token aktivasi/reset sudah ada di skema tetapi belum
-  dipakai karena tidak ada penyedia email. Kata sandi di-hash Better Auth.
+- Akun dibuat Master lewat tautan aktivasi sekali pakai (48 jam); pengguna
+  membuat kata sandi sendiri dan tautan hanya tampil sekali di UI akun Master,
+  tanpa kata sandi sementara di respons, log, audit, atau CSV. Reset kata sandi
+  memakai tautan yang sama dan mencabut seluruh sesi. Kata sandi di-hash Better
+  Auth.
 - PII guard memblokir pola NIK 16 digit / JKN 13 digit pada judul + narasi.
 - Data demo sintetis: tanpa PII, NIK/JKN, atau rekam medis. Pilot internal
   nonkomersial; peninjauan UU PDP oleh operator tetap diperlukan sebelum data
@@ -325,10 +326,11 @@ PURGE_DEMO_CONFIRM=purge-demo-only npm run db:purge:demo:production
 
 - **MFA/TOTP: PARTIAL** — plugin auth saat ini tidak menyediakan TOTP; yang
   tersedia adalah step-up login-recent/re-autentikasi.
-- **Undangan email: BLOCKED** — tidak ada penyedia email; serah-terima
-  kredensial dilakukan di UI Master melalui kata sandi sementara. Halaman
-  aktivasi mandiri belum diimplementasikan (tabel token disiapkan).
-- **PDF server: PARTIAL** — CSV tersedia; PDF melalui cetak peramban.
+- **Undangan email: BLOCKED** — tidak ada penyedia email; tautan aktivasi
+  diserahkan manual oleh Master dari UI akun. Halaman aktivasi mandiri sudah
+  berfungsi dan token sekali pakai diberlakukan di server.
+- **PDF server: READY** — laporan Kinerja dan Detail Konten dirender server
+  dengan logo, nomor halaman, dan metadata; CSV tersedia untuk semua filter.
 - **CI/CD: PARTIAL** — repositori lokal tanpa remote/`gh`; deploy via Vercel CLI.
 - **Neon branch programatik: BLOCKED** — tanpa `neonctl`/API key; staging
   memakai database terpisah.

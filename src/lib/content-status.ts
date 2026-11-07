@@ -75,3 +75,9 @@ export const PLATFORM_LABEL: Record<string, string> = {
   WEBSITE: "Website",
   LAINNYA: "Lainnya",
 };
+
+export const PLATFORMS = Object.keys(PLATFORM_LABEL);
+
+export function isPlatform(value: unknown): value is string {
+  return typeof value === "string" && PLATFORMS.includes(value);
+}

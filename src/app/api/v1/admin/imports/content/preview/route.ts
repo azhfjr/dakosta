@@ -38,6 +38,7 @@ export async function POST(request: Request) {
     const preview = await previewContentImport({
       filename: body.filename,
       content: body.content,
+      actorRole: user.role,
     });
     return jsonOk(preview, { requestId });
   } catch (error) {

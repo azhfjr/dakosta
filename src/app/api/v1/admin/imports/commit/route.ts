@@ -56,6 +56,7 @@ export async function POST(request: Request) {
       recordId: result.importId,
       after: {
         created: result.created,
+        updated: result.updated,
         skipped: result.skipped,
         failed: result.failed,
       },

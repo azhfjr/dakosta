@@ -3,6 +3,7 @@ import "server-only";
 import { and, asc, count, desc, eq, gte, lt, sql, type SQL } from "drizzle-orm";
 
 import { getDb, schema } from "@/db";
+import { approvedContentCondition } from "@/lib/analytics/approved";
 import {
   contentScopePredicate,
   organizationScopePredicate,
@@ -28,7 +29,8 @@ export type DashboardMapPoint = {
 
 export type DashboardMap = {
   level: DashboardMapLevel;
-  period: Period;
+  /** `null` means every approved record in scope, regardless of period. */
+  period: Period | null;
   points: DashboardMapPoint[];
   totals: {
     approved: number;
@@ -44,7 +46,7 @@ export type DashboardMap = {
 export const DASHBOARD_MAP_LIMIT = 5000;
 
 export type DashboardMapFilters = {
-  period: Period;
+  period?: Period | null;
   stakeholderId?: string | null;
   subTheme?: string | null;
 };
@@ -57,7 +59,7 @@ function levelFor(user: SessionUser): DashboardMapLevel {
 
 function hrefFor(
   user: SessionUser,
-  period: Period,
+  period: Period | null,
   point: { id: string; name: string },
 ): string {
   const base =
@@ -66,14 +68,16 @@ function hrefFor(
       : user.role === "MASTER_ADMIN"
         ? "/admin"
         : "/wilayah/kinerja";
-  const params = new URLSearchParams({ period: period.key });
+  const params = new URLSearchParams();
+  if (period) params.set("period", period.key);
   if (user.role === "BRANCH_ADMIN") {
     params.set("q", point.name);
   } else if (user.role === "REGIONAL_ADMIN") {
     params.set("branch", point.id);
   }
-  const hash = user.role === "MASTER_ADMIN" ? "#semua-konten" : "";
-  return `${base}?${params.toString()}${hash}`;
+  const query = params.toString();
+  const hash = user.role === "MASTER_ADMIN" ? "#tabel" : "";
+  return `${base}${query ? `?${query}` : ""}${hash}`;
 }
 
 export async function getDashboardMap(
@@ -84,7 +88,7 @@ export async function getDashboardMap(
   return cachedRead(
     readCacheKey(user, [
       "dashboard-map",
-      filters.period.key,
+      filters.period?.key ?? "ALL",
       filters.stakeholderId,
       filters.subTheme,
     ]),
@@ -101,12 +105,15 @@ async function loadDashboardMap(
   const subTheme: SubTheme | null = isSubTheme(filters.subTheme ?? "")
     ? (filters.subTheme as SubTheme)
     : null;
+  const period = filters.period ?? null;
 
-  const approvedConditions: SQL[] = [
-    eq(schema.contentSubmissions.status, "APPROVED"),
-    gte(schema.contentSubmissions.approvedAt, filters.period.start),
-    lt(schema.contentSubmissions.approvedAt, filters.period.endExclusive),
-  ];
+  const approvedConditions: SQL[] = [approvedContentCondition()];
+  if (period) {
+    approvedConditions.push(
+      gte(schema.contentSubmissions.approvedAt, period.start),
+      lt(schema.contentSubmissions.approvedAt, period.endExclusive),
+    );
+  }
   const contentScope = contentScopePredicate(
     user,
     schema.contentSubmissions.stakeholderId,
@@ -211,13 +218,13 @@ async function loadDashboardMap(
         latitude,
         longitude,
         approved: row.approved,
-        href: hrefFor(user, filters.period, { id: row.id, name: row.name }),
+        href: hrefFor(user, period, { id: row.id, name: row.name }),
       });
     }
 
     return {
       level,
-      period: filters.period,
+      period,
       points,
       totals: {
         approved,
@@ -284,13 +291,13 @@ async function loadDashboardMap(
       latitude,
       longitude,
       approved: row.approved,
-      href: hrefFor(user, filters.period, { id: row.id, name: row.name }),
+      href: hrefFor(user, period, { id: row.id, name: row.name }),
     });
   }
 
   return {
     level,
-    period: filters.period,
+    period,
     points,
     totals: {
       approved,

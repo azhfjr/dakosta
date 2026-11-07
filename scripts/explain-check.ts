@@ -13,8 +13,17 @@ function arg(name: string, fallback?: string): string | undefined {
   return match ? match.split("=").slice(1).join("=") : fallback;
 }
 
-type Scenario = "kinerja" | "dashboard" | "map" | "sla";
-const SCENARIOS: Scenario[] = ["kinerja", "dashboard", "map", "sla"];
+type Scenario =
+  "kinerja" | "dashboard" | "map" | "sla" | "ranking" | "monthly" | "detail";
+const SCENARIOS: Scenario[] = [
+  "kinerja",
+  "dashboard",
+  "map",
+  "sla",
+  "ranking",
+  "monthly",
+  "detail",
+];
 
 type PlanNode = {
   "Node Type"?: string;
@@ -106,6 +115,60 @@ function sqlFor(scenario: Scenario): string {
         )
           and cs.status in ('SUBMITTED', 'RESUBMITTED', 'IN_REVIEW')
         group by cs.status`;
+    case "ranking":
+      return `with counts as (
+        select cs.stakeholder_id, count(distinct cs.id)::int as approved
+          from content_submissions cs
+         where cs.status = 'APPROVED'
+           and cs.approved_at is not null
+           and cs.archived = false
+           and cs.stakeholder_id in (
+             select s.id from stakeholders s where s.branch_office_id = $1
+           )
+         group by cs.stakeholder_id
+      )
+      select s.id, s.name, s.organization_type, c.approved,
+             rank() over (order by c.approved desc)::int as position
+        from counts c
+        join stakeholders s on s.id = c.stakeholder_id
+       order by c.approved desc, s.name
+       limit 25`;
+    case "monthly":
+      return `with months as (
+        select generate_series($2::date, $3::date, interval '1 month')::date as month_start
+      ), approved as (
+        select date_trunc(
+                 'month',
+                 cs.approved_at at time zone 'Asia/Jakarta'
+               )::date as month_start,
+               count(distinct cs.id)::int as approved
+          from content_submissions cs
+         where cs.status = 'APPROVED'
+           and cs.approved_at is not null
+           and cs.archived = false
+           and cs.stakeholder_id in (
+             select s.id from stakeholders s where s.branch_office_id = $1
+           )
+           and cs.approved_at >= $2
+           and cs.approved_at < $3
+         group by 1
+      )
+      select m.month_start, coalesce(a.approved, 0) as approved
+        from months m
+        left join approved a on a.month_start = m.month_start
+       order by m.month_start`;
+    case "detail":
+      return `select cs.id, cs.title, cs.status, cs.content_type, cs.platform,
+              cs.approved_at, cs.date_created
+         from content_submissions cs
+        where cs.stakeholder_id in (
+          select s.id from stakeholders s where s.branch_office_id = $1
+        )
+          and cs.status in ('SUBMITTED', 'APPROVED', 'REVISION_REQUIRED')
+          and cs.date_created >= $2
+          and cs.date_created < $3
+        order by cs.date_created desc, cs.id desc
+        limit 25 offset 0`;
   }
 }
 
@@ -114,6 +177,9 @@ const BUDGETS: Record<Scenario, number> = {
   dashboard: 1000,
   map: 1000,
   sla: 500,
+  ranking: 800,
+  monthly: 800,
+  detail: 600,
 };
 
 async function main(): Promise<void> {
@@ -178,7 +244,7 @@ async function main(): Promise<void> {
         const params =
           scenario === "kinerja"
             ? [branch.id, monthStarts, period.start, period.endExclusive]
-            : scenario === "sla"
+            : scenario === "sla" || scenario === "ranking"
               ? [branch.id]
               : [branch.id, period.start, period.endExclusive];
         const started = performance.now();

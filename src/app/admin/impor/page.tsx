@@ -22,7 +22,7 @@ export default async function AdminImportPage() {
     <PageContainer>
       <PageHeader
         title="Impor akun massal"
-        description="Pratinjau, validasi, lalu buat akun dalam satu langkah. Setiap baris menghasilkan kata sandi sementara yang hanya ditampilkan sekali."
+        description="Pratinjau, validasi, lalu buat akun dalam satu langkah. Setiap akun memperoleh tautan aktivasi sekali pakai; pengguna membuat kata sandi sendiri."
       />
 
       <ImportWizard readOnly={admin.isDemo} />

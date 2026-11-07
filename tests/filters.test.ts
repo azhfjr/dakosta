@@ -4,9 +4,12 @@ import {
   buildFilterHref,
   filterResetHref,
   parseFilterContentType,
+  parseFilterDate,
   parseFilterMainTheme,
+  parseFilterOrgType,
   parseFilterPage,
   parseFilterPeriod,
+  parseFilterPlatform,
   parseFilterSearch,
   parseFilterSort,
   parseFilterSource,
@@ -14,6 +17,7 @@ import {
   parseFilterSubTheme,
   parseFilterUuid,
 } from "@/lib/filters/query";
+import { resolveThemeCascade } from "@/lib/filters/cascade";
 
 const SORTS = ["recent", "oldest", "title"] as const;
 
@@ -116,5 +120,39 @@ describe("buildFilterHref", () => {
     expect(filterResetHref("/admin", "konten-disetujui")).toBe(
       "/admin#konten-disetujui",
     );
+  });
+});
+
+describe("improvement filter parsers", () => {
+  it("accepts only known organization categories", () => {
+    expect(parseFilterOrgType("faskes")).toBe("FASKES");
+    expect(parseFilterOrgType("PEMDA")).toBe("PEMDA");
+    expect(parseFilterOrgType("other")).toBe("OTHER");
+    expect(parseFilterOrgType("unknown")).toBeNull();
+    expect(parseFilterOrgType(undefined)).toBeNull();
+  });
+
+  it("accepts only known platforms", () => {
+    expect(parseFilterPlatform("instagram")).toBe("INSTAGRAM");
+    expect(parseFilterPlatform("YouTube")).toBe("YOUTUBE");
+    expect(parseFilterPlatform("myspace")).toBeNull();
+  });
+
+  it("accepts ISO dates and rejects malformed ones", () => {
+    expect(parseFilterDate("2026-11-07")).toBe("2026-11-07");
+    expect(parseFilterDate("2026-13-01")).toBeNull();
+    expect(parseFilterDate("07-11-2026")).toBeNull();
+    expect(parseFilterDate("")).toBeNull();
+  });
+
+  it("keeps the theme/sub-theme pair when no parent relation exists", () => {
+    expect(resolveThemeCascade("EDUFAST", "MOBILE_JKN")).toEqual({
+      mainTheme: "EDUFAST",
+      subTheme: "MOBILE_JKN",
+    });
+    expect(resolveThemeCascade("BOGUS", "MOBILE_JKN")).toEqual({
+      mainTheme: null,
+      subTheme: "MOBILE_JKN",
+    });
   });
 });

@@ -206,7 +206,7 @@ test.describe("Guard rute UI per peran", () => {
 
       await page.goto("/wilayah");
       await expect(
-        page.getByRole("heading", { name: "SLA Check wilayah" }),
+        page.getByRole("heading", { name: "SLA wilayah" }),
       ).toBeVisible();
       await expect(page.getByText(/Regional Jawa Barat/).first()).toBeVisible();
     } finally {
@@ -227,11 +227,23 @@ test.describe("Guard rute UI per peran", () => {
 
       await page.goto("/cabang");
       await expect(
-        page.getByRole("heading", { name: "SLA Check cabang" }),
+        page.getByRole("heading", { name: "SLA cabang" }),
       ).toBeVisible();
       await expect(page.getByText(/Cabang Bandung Kota/).first()).toBeVisible();
     } finally {
       await context.close();
+    }
+  });
+  test("jejak audit hanya untuk Master", async ({ browser }) => {
+    for (const state of [REGIONAL_STATE, BRANCH_STATE, CLIENT_STATE]) {
+      const context = await browser.newContext({ storageState: state });
+      try {
+        const page = await context.newPage();
+        await page.goto("/admin/audit");
+        await expect(page).toHaveURL(/\/akses-ditolak$/, { timeout: 20_000 });
+      } finally {
+        await context.close();
+      }
     }
   });
 });

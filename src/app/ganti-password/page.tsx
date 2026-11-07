@@ -42,7 +42,7 @@ export default async function ChangePasswordPage() {
             </h1>
             <p className="text-sm leading-relaxed text-ink-muted">
               {forced
-                ? "Akun ini memakai kata sandi sementara. Buat kata sandi pribadi sebelum melanjutkan."
+                ? "Akun ini memerlukan kata sandi baru sebelum Anda dapat melanjutkan."
                 : "Perbarui kata sandi akun Anda. Sesi lain akan diakhiri setelah kata sandi tersimpan."}
             </p>
           </div>

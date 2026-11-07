@@ -56,24 +56,26 @@ test.describe("Navigasi per peran", () => {
 });
 
 test.describe("Redirect lama mempertahankan filter", () => {
-  test("analitik admin menuju section Semua Konten", async ({ browser }) => {
+  test("analitik admin menuju SLA dengan filter utuh", async ({ browser }) => {
     const context = await browser.newContext({ storageState: ADMIN_STATE });
     const page = await context.newPage();
     await page.goto("/admin/analitik?period=2026-01");
-    await page.waitForURL(/#semua-konten$/);
+    await page.waitForURL(/\/admin\/validasi\?period=2026-01$/);
     expect(page.url()).toContain("period=2026-01");
-    await expect(page.locator("#semua-konten")).toHaveCount(1);
+    await expect(
+      page.getByRole("heading", { name: "SLA Master" }),
+    ).toBeVisible();
     await context.close();
   });
 
-  test("analitik client menuju section Konten Disetujui", async ({
-    browser,
-  }) => {
+  test("analitik client menuju Detail Konten", async ({ browser }) => {
     const context = await browser.newContext({ storageState: CLIENT_STATE });
     const page = await context.newPage();
     await page.goto("/client/analitik");
-    await page.waitForURL(/#konten-disetujui$/);
-    await expect(page.locator("#konten-disetujui")).toHaveCount(1);
+    await page.waitForURL(/\/client\/konten$/);
+    await expect(
+      page.getByRole("heading", { name: "Detail Konten", level: 1 }),
+    ).toBeVisible();
     await context.close();
   });
 
@@ -88,5 +90,54 @@ test.describe("Redirect lama mempertahankan filter", () => {
     await page.waitForURL(/#peta$/);
     expect(page.url()).toContain("period=2026-01");
     await context.close();
+  });
+
+  test("menu lama Cabang, Organisasi, SLA, dan Kinerja tetap dapat dibuka", async ({
+    browser,
+  }) => {
+    const master = await browser.newContext({ storageState: ADMIN_STATE });
+    try {
+      const page = await master.newPage();
+      for (const [from, to] of [
+        ["/admin/cabang", "/admin/wilayah"],
+        ["/admin/organisasi", "/admin/wilayah"],
+        ["/admin/sla", "/admin/validasi"],
+        ["/admin/kinerja", "/admin/laporan"],
+      ]) {
+        await page.goto(from);
+        await page.waitForURL(new RegExp(`${to}$`));
+      }
+    } finally {
+      await master.close();
+    }
+
+    const regional = await browser.newContext({ storageState: REGIONAL_STATE });
+    try {
+      const page = await regional.newPage();
+      for (const [from, to] of [
+        ["/wilayah/cabang", "/wilayah/dashboard"],
+        ["/wilayah/organisasi", "/wilayah/dashboard"],
+        ["/wilayah/sla", "/wilayah"],
+      ]) {
+        await page.goto(from);
+        await page.waitForURL(new RegExp(`${to}$`));
+      }
+    } finally {
+      await regional.close();
+    }
+
+    const branch = await browser.newContext({ storageState: BRANCH_STATE });
+    try {
+      const page = await branch.newPage();
+      for (const [from, to] of [
+        ["/cabang/organisasi", "/cabang/dashboard"],
+        ["/cabang/sla", "/cabang"],
+      ]) {
+        await page.goto(from);
+        await page.waitForURL(new RegExp(`${to}$`));
+      }
+    } finally {
+      await branch.close();
+    }
   });
 });

@@ -1,20 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 
-import { KpiDashboard } from "@/components/dashboard/kpi-dashboard";
+import { ApprovedDashboardView } from "@/components/dashboard/approved-dashboard";
 import { PageContainer } from "@/components/shell/page-container";
+import { PageHeader } from "@/components/shell/page-header";
+import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { Button } from "@/components/ui/button";
-import { getDashboardAnalytics } from "@/lib/analytics/charts";
-import { getDashboardMap } from "@/lib/dashboard-map";
-import { redirectDashboardView } from "@/lib/dashboard/view";
-import { getFilterOptions } from "@/lib/filters/options";
 import {
-  getDashboardOverview,
-  kpiPeriod,
-  parseKpiFiltersFromParams,
-} from "@/lib/kpi/sql";
-import { getPerformanceSummary } from "@/lib/performance";
-import { countReviewQueue } from "@/lib/review";
+  getApprovedDashboard,
+  parseApprovedDashboardFilters,
+} from "@/lib/analytics/dashboard";
+import { redirectDashboardView } from "@/lib/dashboard/view";
+import { formatDateTimeId } from "@/lib/dates";
+import { getFilterOptions } from "@/lib/filters/options";
 import { requireRole } from "@/lib/session";
 
 export const metadata: Metadata = {
@@ -23,6 +22,11 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
+type DashboardUser = Awaited<ReturnType<typeof requireRole>>;
+
+const DESCRIPTION =
+  "Capaian konten yang telah memperoleh approval final pada seluruh riwayat dalam cakupan cabang Anda.";
+
 export default async function BranchHomePage({
   searchParams,
 }: {
@@ -30,64 +34,51 @@ export default async function BranchHomePage({
 }) {
   const user = await requireRole("BRANCH_ADMIN");
   const params = await searchParams;
-  const filters = parseKpiFiltersFromParams(params);
   redirectDashboardView("/cabang/dashboard", params);
-
-  const period = kpiPeriod(filters);
-  const alignmentAllowed = !filters.stakeholderId && !filters.subTheme;
-  const [overview, options, pendingCount, analytics, summary, map] =
-    await Promise.all([
-      getDashboardOverview(user, filters),
-      getFilterOptions(user),
-      countReviewQueue(user),
-      getDashboardAnalytics(
-        user,
-        { ...filters, sources: [] },
-        { rankingLevel: "organization" },
-      ),
-      alignmentAllowed
-        ? getPerformanceSummary(user, period)
-        : Promise.resolve(null),
-      getDashboardMap(user, {
-        period,
-        stakeholderId: filters.stakeholderId,
-        subTheme: filters.subTheme,
-      }),
-    ]);
 
   return (
     <PageContainer>
-      <KpiDashboard
-        overview={overview}
-        analytics={analytics}
-        role={user.role}
-        options={{
-          stakeholders: options.stakeholders,
-          subThemes: options.subThemes,
-        }}
-        basePath="/cabang/dashboard"
+      <PageHeader
         title="Dashboard cabang"
-        description={`Capaian dan antrean validasi untuk ${user.scopeLabel}. Anda hanya melihat konten organisasi pada cabang ini.`}
-        contentDetailBase="/cabang/konten"
-        alignment={
-          summary
-            ? {
-                ...summary,
-                periodKey: period.key,
-                periodLabel: period.label,
-              }
-            : null
-        }
-        map={map}
-        headerActions={
+        description={`${DESCRIPTION} ${user.scopeLabel}`}
+        meta={`Diperbarui ${formatDateTimeId(new Date())} WIB`}
+        actions={
           <Button asChild className="h-9">
-            <Link href="/cabang">
-              Buka SLA Check
-              {pendingCount > 0 ? ` (${pendingCount})` : ""}
-            </Link>
+            <Link href="/cabang">Buka SLA</Link>
           </Button>
         }
       />
+      <Suspense fallback={<PageSkeleton label="Memuat dasbor…" />}>
+        <BranchHomeBody user={user} params={params} />
+      </Suspense>
     </PageContainer>
+  );
+}
+
+async function BranchHomeBody({
+  user,
+  params,
+}: {
+  user: DashboardUser;
+  params: Record<string, string | string[] | undefined>;
+}) {
+  const filters = parseApprovedDashboardFilters(params);
+  const [data, options] = await Promise.all([
+    getApprovedDashboard(user, filters),
+    getFilterOptions(user),
+  ]);
+
+  return (
+    <ApprovedDashboardView
+      data={data}
+      filters={filters}
+      role={user.role}
+      options={options}
+      basePath="/cabang/dashboard"
+      detailBase="/cabang/konten"
+      title="Dashboard cabang"
+      description={DESCRIPTION}
+      hideHeader
+    />
   );
 }

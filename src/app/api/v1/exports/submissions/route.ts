@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, lt, lte, type SQL } from "drizzle-orm";
+import { and, desc, eq, gte, ilike, lt, lte, or, type SQL } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 import { getDb, schema } from "@/db";
@@ -25,6 +25,8 @@ import {
 import { getApiUser } from "@/lib/session";
 import {
   currentPeriod,
+  isContentType,
+  isMainTheme,
   isSubTheme,
   CONTENT_TYPE_LABELS,
   MAIN_THEME_LABELS,
@@ -33,6 +35,12 @@ import {
   type MainTheme,
 } from "@/lib/taxonomy";
 import { orgSourceCondition, parseOrgSources } from "@/lib/analytics/source";
+import {
+  approvedContentCondition,
+  jakartaDayEndExclusive,
+  jakartaDayStart,
+} from "@/lib/analytics/approved";
+import { parseOrgType } from "@/lib/filters/org-type";
 import { monthRange } from "@/lib/kpi/formulas";
 import { parsePeriod } from "@/lib/periods";
 
@@ -116,6 +124,23 @@ export async function GET(request: Request) {
       url.searchParams.get("attribution") === "date_created"
         ? "date_created"
         : "approved_at";
+    const orgType = parseOrgType(url.searchParams.get("orgType") ?? undefined);
+    const rawMainTheme = url.searchParams.get("mainTheme");
+    const mainTheme = isMainTheme(rawMainTheme) ? rawMainTheme : null;
+    const rawPlatform = url.searchParams.get("platform");
+    const platform = rawPlatform
+      ? rawPlatform.trim().toUpperCase().slice(0, 40)
+      : null;
+    const rawType = url.searchParams.get("type");
+    const contentType = isContentType(rawType) ? rawType : null;
+    const rawSearch = url.searchParams.get("q");
+    const search = rawSearch ? rawSearch.trim().slice(0, 80) : "";
+    const datePattern = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+    const rawFrom = url.searchParams.get("from");
+    const rawTo = url.searchParams.get("to");
+    const dateFrom = rawFrom && datePattern.test(rawFrom) ? rawFrom : null;
+    const dateTo = rawTo && datePattern.test(rawTo) ? rawTo : null;
+    const approvedOnly = url.searchParams.get("scope") === "approved";
 
     if (stakeholderId && user.scope.kind !== "GLOBAL") {
       const [organization] = await getDb()
@@ -145,12 +170,13 @@ export async function GET(request: Request) {
       }
     }
 
-    const conditions: SQL[] = [];
+    const conditions: SQL[] = [eq(schema.contentSubmissions.archived, false)];
     const scopePredicate = contentScopePredicate(
       user,
       schema.contentSubmissions.stakeholderId,
     );
     if (scopePredicate) conditions.push(scopePredicate);
+    if (approvedOnly) conditions.push(approvedContentCondition());
     if (status) {
       conditions.push(eq(schema.contentSubmissions.status, status));
     }
@@ -159,8 +185,46 @@ export async function GET(request: Request) {
         eq(schema.contentSubmissions.stakeholderId, stakeholderId),
       );
     }
+    if (orgType) {
+      conditions.push(eq(schema.stakeholders.organizationType, orgType));
+    }
+    if (mainTheme) {
+      conditions.push(eq(schema.contentSubmissions.mainTheme, mainTheme));
+    }
+    if (platform) {
+      conditions.push(eq(schema.contentSubmissions.platform, platform));
+    }
+    if (dateFrom) {
+      conditions.push(
+        approvedOnly
+          ? gte(schema.contentSubmissions.approvedAt, jakartaDayStart(dateFrom))
+          : gte(schema.contentSubmissions.dateCreated, dateFrom),
+      );
+    }
+    if (dateTo) {
+      conditions.push(
+        approvedOnly
+          ? lt(
+              schema.contentSubmissions.approvedAt,
+              jakartaDayEndExclusive(dateTo),
+            )
+          : lte(schema.contentSubmissions.dateCreated, dateTo),
+      );
+    }
     if (subTheme) {
       conditions.push(eq(schema.contentSubmissions.subTheme, subTheme));
+    }
+    if (contentType) {
+      conditions.push(eq(schema.contentSubmissions.contentType, contentType));
+    }
+    if (search) {
+      const pattern = `%${search.replace(/[\\%_]/g, (match) => `\\${match}`)}%`;
+      const matching = or(
+        ilike(schema.contentSubmissions.title, pattern),
+        ilike(schema.contentSubmissions.referenceCode, pattern),
+        ilike(schema.stakeholders.name, pattern),
+      );
+      if (matching) conditions.push(matching);
     }
     const sourcePredicate = orgSourceCondition(
       schema.contentSubmissions.stakeholderId,

@@ -13,6 +13,7 @@ import type { ImportPreview } from "@/lib/imports/accounts";
 type CommitResult = {
   importId: string;
   created: number;
+  updated: number;
   skipped: number;
   failed: number;
   credentials: Array<{
@@ -65,6 +66,28 @@ function CopyAll({ result }: { result: CommitResult }) {
   );
 }
 
+const ROW_STATUS_LABEL: Record<string, string> = {
+  VALID: "Valid",
+  INVALID: "Bermasalah",
+  CONFLICT: "Konflik",
+  SKIPPED: "Dilewati",
+  CREATED: "Dibuat",
+  UPDATED: "Diperbarui",
+  FAILED: "Gagal",
+};
+
+function badgeClass(status: string): string {
+  const base =
+    "inline-flex rounded-full border px-2.5 py-0.5 text-xs font-semibold";
+  if (status === "VALID" || status === "CREATED" || status === "UPDATED") {
+    return `${base} border-status-approved/25 bg-status-approved/10 text-status-approved`;
+  }
+  if (status === "CONFLICT" || status === "SKIPPED") {
+    return `${base} border-status-review/30 bg-status-review/10 text-status-review`;
+  }
+  return `${base} border-status-rejected/30 bg-status-rejected/10 text-status-rejected`;
+}
+
 export function ImportWizard({ readOnly = false }: { readOnly?: boolean }) {
   const router = useRouter();
   const { prompt: promptStepUp, dialog: stepUpDialog } = useStepUp();
@@ -72,6 +95,7 @@ export function ImportWizard({ readOnly = false }: { readOnly?: boolean }) {
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [result, setResult] = useState<CommitResult | null>(null);
   const [busy, setBusy] = useState<"preview" | "commit" | null>(null);
+  const [policy, setPolicy] = useState<"skip" | "update" | "upsert">("skip");
 
   async function runPreview() {
     if (!file) {
@@ -85,7 +109,7 @@ export function ImportWizard({ readOnly = false }: { readOnly?: boolean }) {
       const response = await fetch("/api/v1/admin/imports/preview", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ filename: file.name, content }),
+        body: JSON.stringify({ filename: file.name, content, policy }),
       });
       const body = (await response.json()) as {
         data?: ImportPreview;
@@ -130,7 +154,9 @@ export function ImportWizard({ readOnly = false }: { readOnly?: boolean }) {
         }
         setResult(body.data);
         setPreview(null);
-        toast.success(`${body.data.created} akun dibuat.`);
+        toast.success(
+          `${body.data.created} akun dibuat, ${body.data.updated} diperbarui.`,
+        );
         router.refresh();
       } catch {
         toast.error("Tidak dapat menghubungi server.");
@@ -164,14 +190,36 @@ export function ImportWizard({ readOnly = false }: { readOnly?: boolean }) {
         </div>
         <p className="mt-1 text-sm text-ink-muted">
           Format CSV, maksimal 1 MB dan 1.000 baris. Tidak ada kolom kata sandi;
-          kata sandi sementara dibuat otomatis saat eksekusi. Baris MASTER_ADMIN
-          ditolak.
+          setiap akun memperoleh tautan aktivasi sekali pakai. Baris
+          MASTER_ADMIN ditolak.
         </p>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <Button asChild variant="outline" className="h-10">
-            <a href="/api/v1/admin/imports/template">Unduh template</a>
+            <a href="/api/v1/admin/imports/template?kind=account">
+              Unduh template
+            </a>
           </Button>
+          <Button asChild variant="ghost" className="h-10">
+            <a href="/api/v1/admin/imports/example?kind=account">
+              Unduh contoh
+            </a>
+          </Button>
+          <label className="inline-flex items-center gap-2 text-sm text-ink-muted">
+            <span>Jika email sudah ada</span>
+            <select
+              className="h-10 rounded-lg border border-input bg-background px-2 text-sm text-foreground"
+              value={policy}
+              onChange={(event) => {
+                setPolicy(event.target.value as typeof policy);
+                setPreview(null);
+              }}
+            >
+              <option value="skip">Lewati</option>
+              <option value="update">Perbarui data</option>
+              <option value="upsert">Buat atau perbarui</option>
+            </select>
+          </label>
           <label className="inline-flex h-10 cursor-pointer items-center rounded-lg border border-input bg-background px-3 text-sm">
             <Upload className="mr-2 size-4" aria-hidden />
             {file ? file.name : "Pilih berkas CSV"}
@@ -208,21 +256,35 @@ export function ImportWizard({ readOnly = false }: { readOnly?: boolean }) {
                 Hasil validasi
               </h2>
               <p className="text-xs text-ink-muted">
-                {formatNumberId(preview.validCount)} valid ·{" "}
+                {formatNumberId(preview.validCount)} siap dibuat ·{" "}
+                {formatNumberId(preview.conflictCount)} konflik ·{" "}
                 {formatNumberId(preview.errorCount)} bermasalah · digest{" "}
                 {preview.digest.slice(0, 12)}…
+              </p>
+              <p className="text-xs text-ink-muted">
+                Kebijakan email ganda:{" "}
+                {preview.policy === "skip"
+                  ? "lewati"
+                  : preview.policy === "update"
+                    ? "perbarui data akun"
+                    : "buat atau perbarui"}
+                .
               </p>
             </div>
             <Button
               type="button"
               className="h-10"
-              disabled={busy !== null || preview.validCount === 0}
+              disabled={
+                busy !== null ||
+                preview.validCount + preview.conflictCount === 0
+              }
               onClick={runCommit}
             >
               {busy === "commit" ? (
                 <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />
               ) : null}
-              Eksekusi {formatNumberId(preview.validCount)} akun valid
+              Eksekusi{" "}
+              {formatNumberId(preview.validCount + preview.conflictCount)} baris
             </Button>
           </div>
           <div className="overflow-x-auto">
@@ -266,14 +328,8 @@ export function ImportWizard({ readOnly = false }: { readOnly?: boolean }) {
                       {row.normalized?.role ?? "—"}
                     </td>
                     <td className="px-4 py-3">
-                      <span
-                        className={
-                          row.status === "VALID"
-                            ? "inline-flex rounded-full border border-status-approved/25 bg-status-approved/10 px-2.5 py-0.5 text-xs font-semibold text-status-approved"
-                            : "inline-flex rounded-full border border-status-rejected/30 bg-status-rejected/10 px-2.5 py-0.5 text-xs font-semibold text-status-rejected"
-                        }
-                      >
-                        {row.status === "VALID" ? "Valid" : "Bermasalah"}
+                      <span className={badgeClass(row.status)}>
+                        {ROW_STATUS_LABEL[row.status] ?? row.status}
                       </span>
                       {row.errors && row.errors.length > 0 ? (
                         <ul className="mt-1 list-disc pl-4 text-xs text-status-rejected">
@@ -300,6 +356,7 @@ export function ImportWizard({ readOnly = false }: { readOnly?: boolean }) {
               </h2>
               <p className="text-xs text-ink-muted">
                 {formatNumberId(result.created)} dibuat ·{" "}
+                {formatNumberId(result.updated)} diperbarui ·{" "}
                 {formatNumberId(result.skipped)} dilewati ·{" "}
                 {formatNumberId(result.failed)} gagal
               </p>

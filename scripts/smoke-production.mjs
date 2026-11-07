@@ -123,6 +123,35 @@ async function login(baseUrl, email, password) {
   return pairs.join("; ");
 }
 
+function isLocalBase(baseUrl) {
+  return /^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/i.test(baseUrl);
+}
+
+/**
+ * Better Auth hanya mempercayai NEXT_PUBLIC_APP_URL, sehingga sign-in kredensial
+ * ditolak (403) saat smoke berjalan pada port pratinjau lokal. Mode demo
+ * menyediakan endpoint sesi yang sah untuk keperluan smoke staging.
+ */
+async function demoLogin(baseUrl, role) {
+  const response = await fetch(`${baseUrl}/api/v1/demo/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json", origin: baseUrl },
+    body: JSON.stringify({ role }),
+    redirect: "manual",
+  });
+  if (!response.ok) {
+    throw new Error(`Login demo ${role} gagal (${response.status}).`);
+  }
+  await response.arrayBuffer();
+  const cookies = response.headers.getSetCookie?.() ?? [];
+  const pairs = cookies
+    .map((cookie) => cookie.split(";")[0])
+    .filter((pair) => pair.includes("="));
+  if (pairs.length === 0)
+    throw new Error("Login demo tidak mengembalikan sesi.");
+  return pairs.join("; ");
+}
+
 function createChecks() {
   const checks = [];
   const record = (name, passed, detail = "") => {
@@ -140,11 +169,12 @@ async function main() {
     "",
   );
   if (!/^https?:\/\//.test(baseUrl)) throw new Error("--base-url tidak valid.");
-  const accountsFile = arg("accounts", latestAccountsFile());
-  if (!accountsFile || !existsSync(accountsFile)) {
+  const local = isLocalBase(baseUrl);
+  const accountsFile = local ? null : arg("accounts", latestAccountsFile());
+  if (accountsFile && !existsSync(accountsFile)) {
     throw new Error("File akun demo .secrets tidak ditemukan.");
   }
-  const accounts = readAccounts(accountsFile);
+  const accounts = accountsFile ? readAccounts(accountsFile) : null;
   const month = jakartaMonth();
   const { checks, record } = createChecks();
 
@@ -183,27 +213,17 @@ async function main() {
   );
 
   // Sessions
+  async function sessionFor(demoRole, emailKey) {
+    if (local) return demoLogin(baseUrl, demoRole);
+    if (!accounts) throw new Error("File akun demo .secrets tidak ditemukan.");
+    return login(baseUrl, accounts.emails[emailKey], accounts.password);
+  }
+
   const cookie = {
-    admin: await login(
-      baseUrl,
-      accounts.emails.MASTER_ADMIN,
-      accounts.password,
-    ),
-    regional: await login(
-      baseUrl,
-      accounts.emails.REGIONAL_ADMIN,
-      accounts.password,
-    ),
-    branch: await login(
-      baseUrl,
-      accounts.emails.BRANCH_ADMIN,
-      accounts.password,
-    ),
-    client: await login(
-      baseUrl,
-      accounts.emails.STAKEHOLDER,
-      accounts.password,
-    ),
+    admin: await sessionFor("admin", "MASTER_ADMIN"),
+    regional: await sessionFor("regional", "REGIONAL_ADMIN"),
+    branch: await sessionFor("branch", "BRANCH_ADMIN"),
+    client: await sessionFor("client", "STAKEHOLDER"),
   };
   record("login 4 peran", true, "sesi dibuat tanpa mencetak kredensial");
 

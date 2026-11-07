@@ -1,0 +1,225 @@
+{
+  "generatedAt": "2026-11-07T07:38:58.488Z",
+  "jakartaMonth": "2026-11",
+  "fixtures": 62,
+  "total": 43,
+  "passed": 43,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "dashboard totals.approved = SQL approved",
+      "ok": true,
+      "detail": "actual=47 expected=47"
+    },
+    {
+      "name": "dashboard table.total = SQL approved",
+      "ok": true,
+      "detail": "actual=47 expected=47"
+    },
+    {
+      "name": "ranking categories sum = approved total",
+      "ok": true,
+      "detail": "actual=47 expected=47"
+    },
+    {
+      "name": "ranking rows are a subset of approved",
+      "ok": true,
+      "detail": "rows=47"
+    },
+    {
+      "name": "ranking positions are tie-aware and descending",
+      "ok": true,
+      "detail": "5 rows"
+    },
+    {
+      "name": "ranking row counts match SQL per organization",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "monthly trend has one zero-filled bucket per month",
+      "ok": true,
+      "detail": "actual=24 expected=24"
+    },
+    {
+      "name": "monthly buckets are chronological",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "monthly trend includes empty months as zero",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "monthly counts use the Asia/Jakarta boundary",
+      "ok": true,
+      "detail": "2024-12:0 2025-01:0 2025-02:0 2025-03:0 2025-04:0 2025-05:0 2025-06:0 2025-07:0 2025-08:0 2025-09:0 2025-10:0 2025-11:0 2025-12:0 2026-01:0 2026-02:0 2026-03:0 2026-04:0 2026-05:6 2026-06:7 2026-07:7 2026-08:6 2026-09:6 2026-10:7 2026-11:7"
+    },
+    {
+      "name": "monthly trend sum = SQL approved inside the window",
+      "ok": true,
+      "detail": "actual=46 expected=46"
+    },
+    {
+      "name": "theme trend sum = monthly total",
+      "ok": true,
+      "detail": "actual=46 expected=46"
+    },
+    {
+      "name": "sub-theme breakdown sum = monthly total",
+      "ok": true,
+      "detail": "actual=46 expected=46"
+    },
+    {
+      "name": "orphan sub-theme is reported instead of dropped",
+      "ok": true,
+      "detail": "orphan=1"
+    },
+    {
+      "name": "content-type breakdown sum = monthly total",
+      "ok": true,
+      "detail": "actual=46 expected=46"
+    },
+    {
+      "name": "platform breakdown counts each row once",
+      "ok": true,
+      "detail": "actual=46 expected=46"
+    },
+    {
+      "name": "platform legend keys are explicit",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "map approved total = dashboard approved total",
+      "ok": true,
+      "detail": "47 vs 47"
+    },
+    {
+      "name": "Detail Konten approved total = dashboard approved total",
+      "ok": true,
+      "detail": "actual=47 expected=47"
+    },
+    {
+      "name": "PDF report row count = min(total, cap)",
+      "ok": true,
+      "detail": "actual=47 expected=47"
+    },
+    {
+      "name": "CSV query (same filters) = dashboard approved total",
+      "ok": true,
+      "detail": "actual=47 expected=47"
+    },
+    {
+      "name": "platform filter reconciles with SQL",
+      "ok": true,
+      "detail": "actual=10 expected=10"
+    },
+    {
+      "name": "org-type filter reconciles with SQL",
+      "ok": true,
+      "detail": "actual=32 expected=32"
+    },
+    {
+      "name": "approval date range uses Jakarta days",
+      "ok": true,
+      "detail": "actual=7 expected=7"
+    },
+    {
+      "name": "Detail Konten all-status total = SQL",
+      "ok": true,
+      "detail": "actual=61 expected=61"
+    },
+    {
+      "name": "Detail Konten all-status includes non-approved rows",
+      "ok": true,
+      "detail": "61 > 47"
+    },
+    {
+      "name": "regional dashboard total = scoped SQL approved",
+      "ok": true,
+      "detail": "actual=36 expected=36"
+    },
+    {
+      "name": "regional dashboard is narrower than national",
+      "ok": true,
+      "detail": "36 < 47"
+    },
+    {
+      "name": "regional trend sum = scoped SQL inside window",
+      "ok": true,
+      "detail": "actual=35 expected=35"
+    },
+    {
+      "name": "branch dashboard total = scoped SQL approved",
+      "ok": true,
+      "detail": "actual=27 expected=27"
+    },
+    {
+      "name": "branch dashboard is narrower than national",
+      "ok": true,
+      "detail": "27 < 47"
+    },
+    {
+      "name": "branch trend sum = scoped SQL inside window",
+      "ok": true,
+      "detail": "actual=26 expected=26"
+    },
+    {
+      "name": "stakeholder dashboard total = scoped SQL approved",
+      "ok": true,
+      "detail": "actual=19 expected=19"
+    },
+    {
+      "name": "stakeholder dashboard is narrower than national",
+      "ok": true,
+      "detail": "19 < 47"
+    },
+    {
+      "name": "stakeholder trend sum = scoped SQL inside window",
+      "ok": true,
+      "detail": "actual=18 expected=18"
+    },
+    {
+      "name": "SLA submitted = SQL rows created in the period",
+      "ok": true,
+      "detail": "actual=12 expected=12"
+    },
+    {
+      "name": "SLA status composition sums to submitted",
+      "ok": true,
+      "detail": "actual=12 expected=12"
+    },
+    {
+      "name": "SLA approved count = SQL APPROVED created in the period",
+      "ok": true,
+      "detail": "actual=7 expected=7"
+    },
+    {
+      "name": "SLA pending = SQL pending statuses in the period",
+      "ok": true,
+      "detail": "actual=1 expected=1"
+    },
+    {
+      "name": "SLA org-type filter reconciles with SQL",
+      "ok": true,
+      "detail": "actual=7 expected=7"
+    },
+    {
+      "name": "regional SLA is scope-bound",
+      "ok": true,
+      "detail": "actual=10 expected=10"
+    },
+    {
+      "name": "regional SLA excludes other regions",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "branch SLA is scope-bound",
+      "ok": true,
+      "detail": "actual=7 expected=7"
+    }
+  ]
+}

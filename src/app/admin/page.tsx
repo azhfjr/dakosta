@@ -2,25 +2,30 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
-import { KpiDashboard } from "@/components/dashboard/kpi-dashboard";
+import { ApprovedDashboardView } from "@/components/dashboard/approved-dashboard";
 import { PageContainer } from "@/components/shell/page-container";
 import { PageHeader } from "@/components/shell/page-header";
 import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { Button } from "@/components/ui/button";
-import { getDashboardAnalytics } from "@/lib/analytics/charts";
+import {
+  getApprovedDashboard,
+  parseApprovedDashboardFilters,
+} from "@/lib/analytics/dashboard";
 import { redirectDashboardView } from "@/lib/dashboard/view";
 import { formatDateTimeId } from "@/lib/dates";
 import { getFilterOptions } from "@/lib/filters/options";
-import { getDashboardOverview, parseKpiFiltersFromParams } from "@/lib/kpi/sql";
 import { requireRole } from "@/lib/session";
 
 export const metadata: Metadata = {
-  title: "Ringkasan admin",
+  title: "Dashboard",
 };
 
 export const dynamic = "force-dynamic";
 
 type DashboardUser = Awaited<ReturnType<typeof requireRole>>;
+
+const DESCRIPTION =
+  "Capaian konten yang telah memperoleh approval final pada seluruh riwayat dalam cakupan akses Anda.";
 
 export default async function AdminHomePage({
   searchParams,
@@ -29,23 +34,22 @@ export default async function AdminHomePage({
 }) {
   const user = await requireRole("ADMIN");
   const params = await searchParams;
-  const filters = parseKpiFiltersFromParams(params);
   redirectDashboardView("/admin", params);
 
   return (
     <PageContainer>
       <PageHeader
-        title="Ringkasan"
-        description="Capaian periode yang hanya dihitung dari konten disetujui, antrean validasi, dan kualitas keputusan admin."
+        title="Dashboard"
+        description={DESCRIPTION}
         meta={`Diperbarui ${formatDateTimeId(new Date())} WIB`}
         actions={
           <Button asChild className="h-9">
-            <Link href="/admin/validasi">Buka antrean validasi</Link>
+            <Link href="/admin/validasi">Buka SLA</Link>
           </Button>
         }
       />
       <Suspense fallback={<PageSkeleton label="Memuat dasbor…" />}>
-        <AdminHomeBody user={user} filters={filters} />
+        <AdminHomeBody user={user} params={params} />
       </Suspense>
     </PageContainer>
   );
@@ -53,34 +57,27 @@ export default async function AdminHomePage({
 
 async function AdminHomeBody({
   user,
-  filters,
+  params,
 }: {
   user: DashboardUser;
-  filters: ReturnType<typeof parseKpiFiltersFromParams>;
+  params: Record<string, string | string[] | undefined>;
 }) {
-  const [overview, options, analytics] = await Promise.all([
-    getDashboardOverview(user, filters),
+  const filters = parseApprovedDashboardFilters(params);
+  const [data, options] = await Promise.all([
+    getApprovedDashboard(user, filters),
     getFilterOptions(user),
-    getDashboardAnalytics(
-      user,
-      { ...filters, sources: [] },
-      { rankingLevel: "branch" },
-    ),
   ]);
 
   return (
-    <KpiDashboard
-      overview={overview}
-      analytics={analytics}
+    <ApprovedDashboardView
+      data={data}
+      filters={filters}
       role={user.role}
-      options={{
-        stakeholders: options.stakeholders,
-        subThemes: options.subThemes,
-      }}
+      options={options}
       basePath="/admin"
-      title="Ringkasan"
-      description="Capaian periode yang hanya dihitung dari konten disetujui, antrean validasi, dan kualitas keputusan admin."
-      contentDetailBase="/admin/validasi"
+      detailBase="/admin/konten"
+      title="Dashboard"
+      description={DESCRIPTION}
       hideHeader
     />
   );

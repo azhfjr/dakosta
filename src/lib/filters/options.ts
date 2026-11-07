@@ -9,8 +9,16 @@ import {
   organizationScopePredicate,
   regionScopePredicate,
 } from "@/lib/authz/predicates";
-import { CONTENT_STATUSES, STATUS_LABEL } from "@/lib/content-status";
+import {
+  CONTENT_STATUSES,
+  PLATFORM_LABEL,
+  STATUS_LABEL,
+} from "@/lib/content-status";
 import type { FilterOption } from "@/lib/filters/query";
+import {
+  ORG_TYPE_FILTERS,
+  ORG_TYPE_FILTER_LABELS,
+} from "@/lib/filters/org-type";
 import { monthRange, recentMonthKeys } from "@/lib/kpi/formulas";
 import { cachedRead, readCacheKey } from "@/lib/read-cache";
 import type { SessionUser } from "@/lib/session";
@@ -31,6 +39,8 @@ export type FilterOptions = {
   mainThemes: FilterOption[];
   contentTypes: FilterOption[];
   sources: FilterOption[];
+  orgTypes: FilterOption[];
+  platforms: FilterOption[];
   statuses: FilterOption[];
   periods: FilterOption[];
 };
@@ -118,6 +128,14 @@ async function loadFilterOptions(user: SessionUser): Promise<FilterOptions> {
     sources: ORG_SOURCES.map((value) => ({
       value,
       label: ORG_SOURCE_LABELS[value],
+    })),
+    orgTypes: ORG_TYPE_FILTERS.map((value) => ({
+      value,
+      label: ORG_TYPE_FILTER_LABELS[value],
+    })),
+    platforms: Object.entries(PLATFORM_LABEL).map(([value, label]) => ({
+      value,
+      label,
     })),
     statuses: CONTENT_STATUSES.map((value) => ({
       value,

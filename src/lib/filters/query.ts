@@ -1,5 +1,10 @@
 import { isOrgSource, type OrgSource } from "@/lib/analytics/org-source";
-import { CONTENT_STATUSES, type ContentStatus } from "@/lib/content-status";
+import {
+  CONTENT_STATUSES,
+  isPlatform,
+  type ContentStatus,
+} from "@/lib/content-status";
+import { parseOrgType, type OrgTypeFilter } from "@/lib/filters/org-type";
 import {
   isContentType,
   isMainTheme,
@@ -30,6 +35,10 @@ export const FILTER_PARAM_KEYS = [
   "view",
   "attribution",
   "decidedBy",
+  "orgType",
+  "platform",
+  "from",
+  "to",
 ] as const;
 
 export type FilterParamKey = (typeof FILTER_PARAM_KEYS)[number];
@@ -38,6 +47,7 @@ const FILTER_KEY_SET: ReadonlySet<string> = new Set(FILTER_PARAM_KEYS);
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
+const DATE_PATTERN = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 
 export function firstParam(
   params: FilterParams,
@@ -90,6 +100,25 @@ export function parseFilterSource(value: string | undefined): OrgSource | null {
   if (!value) return null;
   const upper = value.trim().toUpperCase();
   return isOrgSource(upper) ? upper : null;
+}
+
+export function parseFilterOrgType(
+  value: string | undefined,
+): OrgTypeFilter | null {
+  return parseOrgType(value);
+}
+
+export function parseFilterPlatform(value: string | undefined): string | null {
+  if (!value) return null;
+  const upper = value.trim().toUpperCase();
+  return isPlatform(upper) ? upper : null;
+}
+
+/** Accepts `YYYY-MM-DD`; returns null for invalid or empty input. */
+export function parseFilterDate(value: string | undefined): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  return DATE_PATTERN.test(trimmed) ? trimmed : null;
 }
 
 export function parseFilterStatus(

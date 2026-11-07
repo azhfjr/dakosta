@@ -94,6 +94,18 @@ const COLUMNS: Array<{
     example: "Kantor FKTP Bandung",
     note: "Label lokasi. Bila kosong memakai nama organisasi.",
   },
+  {
+    name: "status",
+    required: false,
+    example: "submitted / disetujui",
+    note: "Default submitted. Nilai disetujui hanya untuk Master Admin.",
+  },
+  {
+    name: "tanggal_persetujuan",
+    required: false,
+    example: "2026-10-07",
+    note: "Wajib bila status disetujui; dicatat sebagai persetujuan impor.",
+  },
 ];
 
 export default async function AdminContentImportPage() {
@@ -104,7 +116,7 @@ export default async function AdminContentImportPage() {
       <PageHeader
         eyebrow="Master Admin"
         title="Impor konten massal"
-        description="Unggah konten dari banyak Faskes, Pemda, dan stakeholder sekaligus. Setiap baris valid langsung dikirim ke antrean validasi cabang, tanpa melewati proses review."
+        description="Unggah konten dari banyak Faskes, Pemda, dan stakeholder sekaligus. Baris valid default dikirim ke antrean validasi cabang; baris bertanda disetujui hanya dapat diimpor Master Admin dengan tanggal persetujuan eksplisit."
       />
 
       <section
@@ -134,7 +146,7 @@ export default async function AdminContentImportPage() {
             ],
             [
               "4. Konfirmasi impor",
-              "Masukkan kata sandi Anda. Konten valid dikirim ke antrean validasi.",
+              "Masukkan kata sandi Anda. Baris valid dikirim ke antrean validasi cabang, kecuali baris disetujui yang Anda tandai eksplisit.",
             ],
           ].map(([title, body]) => (
             <li key={title} className="rounded-lg border border-border/70 p-3">
@@ -156,7 +168,7 @@ export default async function AdminContentImportPage() {
               className="size-3.5 text-status-approved"
               aria-hidden
             />
-            Impor tidak pernah berstatus disetujui; validasi tetap di cabang.
+            Impor default berstatus diajukan; validasi tetap di cabang.
           </span>
         </div>
       </section>
@@ -217,9 +229,9 @@ export default async function AdminContentImportPage() {
           </table>
         </div>
         <p className="border-t border-border px-5 py-3 text-xs text-ink-muted">
-          Kolom wajib: {CONTENT_IMPORT_REQUIRED.join(", ")}. Baris dengan tautan
-          yang sudah terdaftar pada konten aktif akan ditolak agar tidak terjadi
-          duplikasi.
+          Kolom wajib: {CONTENT_IMPORT_REQUIRED.join(", ")}. Kolom opsional:{" "}
+          status, tanggal_persetujuan. Baris dengan tautan yang sudah terdaftar
+          pada konten aktif akan ditolak agar tidak terjadi duplikasi.
         </p>
       </section>
     </PageContainer>

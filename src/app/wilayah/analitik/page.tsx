@@ -1,4 +1,4 @@
-import { redirectToAnchor } from "@/lib/filters/redirect";
+import { redirectWithFilters } from "@/lib/filters/redirect";
 
 export default async function RegionalAnalyticsRedirect({
   searchParams,
@@ -6,5 +6,5 @@ export default async function RegionalAnalyticsRedirect({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  redirectToAnchor("/wilayah/dashboard", params, "semua-konten");
+  redirectWithFilters("/wilayah", params);
 }

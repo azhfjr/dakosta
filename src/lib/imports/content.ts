@@ -2,12 +2,15 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 
-import { and, inArray, ne } from "drizzle-orm";
+import { and, eq, inArray, ne } from "drizzle-orm";
 
 import { getDb, schema } from "@/db";
+import type { AppRole } from "@/lib/authz/types";
+import { toCsv } from "@/lib/csv";
 import { assertEdufastSelection } from "@/lib/edufast/policy";
 import { errors } from "@/lib/errors";
 import { parseCsv } from "@/lib/imports/accounts";
+import { reviewSubmission } from "@/lib/review";
 import { saveSubmission } from "@/lib/submissions";
 import type { SessionUser } from "@/lib/session";
 import {
@@ -137,9 +140,32 @@ function normalizeDate(value: string): string | null {
   return null;
 }
 
+export const CONTENT_IMPORT_OPTIONAL_HEADERS = [
+  "status",
+  "tanggal_persetujuan",
+] as const;
+
+function csvDocument(rows: string[][]): string {
+  return `\uFEFF${rows
+    .map((row) =>
+      row
+        .map((cell) =>
+          /[",\r\n]/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell,
+        )
+        .join(","),
+    )
+    .join("\r\n")}\r\n`;
+}
+
 export function contentTemplateCsv(): string {
+  return csvDocument([
+    [...CONTENT_IMPORT_HEADERS, ...CONTENT_IMPORT_OPTIONAL_HEADERS],
+  ]);
+}
+
+export function contentExampleCsv(): string {
   const sample: string[][] = [
-    [...CONTENT_IMPORT_HEADERS],
+    [...CONTENT_IMPORT_HEADERS, ...CONTENT_IMPORT_OPTIONAL_HEADERS],
     [
       "FKTP-BDG-001",
       "Edukasi Mobile JKN untuk Peserta Baru",
@@ -153,6 +179,8 @@ export function contentTemplateCsv(): string {
       "2026-10-06",
       "",
       "",
+      "",
+      "submitted",
       "",
     ],
     [
@@ -169,17 +197,11 @@ export function contentTemplateCsv(): string {
       "",
       "",
       "",
+      "submitted",
+      "",
     ],
   ];
-  return `\uFEFF${sample
-    .map((row) =>
-      row
-        .map((cell) =>
-          /[",\r\n]/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell,
-        )
-        .join(","),
-    )
-    .join("\r\n")}\r\n`;
+  return csvDocument(sample);
 }
 
 export type ContentImportRow = {
@@ -193,6 +215,8 @@ export type ContentImportRow = {
   subTheme: SubTheme | null;
   platform: Platform | null;
   dateCreated: string | null;
+  approve: boolean;
+  approvedAt: string | null;
   errors: string[];
 };
 
@@ -202,6 +226,7 @@ export type ContentImportPreview = {
   rowCount: number;
   validCount: number;
   errorCount: number;
+  approvedCount: number;
   rows: ContentImportRow[];
 };
 
@@ -278,6 +303,7 @@ async function buildPreview(input: {
   filename: string;
   content: string;
   db?: ContentDb;
+  allowApproved?: boolean;
 }): Promise<{ preview: ContentImportPreview; parsed: ParsedRow[] }> {
   const db = input.db ?? getDb();
   if (Buffer.byteLength(input.content, "utf8") > CONTENT_IMPORT_MAX_BYTES) {
@@ -372,6 +398,32 @@ async function buildPreview(input: {
       errors.push("Tanggal terbit harus valid (YYYY-MM-DD).");
     }
 
+    const statusRaw = key(column(row, "status"));
+    const approve = ["disetujui", "approved", "setuju", "approve"].includes(
+      statusRaw,
+    );
+    if (
+      statusRaw &&
+      !approve &&
+      !["submitted", "diajukan", "baru"].includes(statusRaw)
+    ) {
+      errors.push("Status baris harus submitted atau disetujui.");
+    }
+    const approvalRaw = column(row, "tanggal_persetujuan");
+    const approvalDate = approvalRaw ? normalizeDate(approvalRaw) : null;
+    if (approvalRaw && !approvalDate) {
+      errors.push("Tanggal persetujuan harus valid (YYYY-MM-DD).");
+    }
+    if (approve) {
+      if (!input.allowApproved) {
+        errors.push(
+          "Hanya Master Admin yang boleh mengimpor baris berstatus disetujui.",
+        );
+      } else if (!approvalDate) {
+        errors.push("Tanggal persetujuan wajib diisi untuk baris disetujui.");
+      }
+    }
+
     const url = column(row, "tautan");
     let urlHash: string | null = null;
     if (url) {
@@ -461,6 +513,8 @@ async function buildPreview(input: {
       subTheme,
       platform,
       dateCreated,
+      approve,
+      approvedAt: approvalDate,
       errors,
       input: submissionInput,
     });
@@ -533,6 +587,8 @@ async function buildPreview(input: {
     subTheme: row.subTheme,
     platform: row.platform,
     dateCreated: row.dateCreated,
+    approve: row.approve,
+    approvedAt: row.approvedAt,
     errors: row.errors,
   }));
 
@@ -543,6 +599,9 @@ async function buildPreview(input: {
       rowCount: rowsOut.length,
       validCount: rowsOut.filter((row) => row.status === "VALID").length,
       errorCount: rowsOut.filter((row) => row.status === "INVALID").length,
+      approvedCount: rowsOut.filter(
+        (row) => row.status === "VALID" && row.approve,
+      ).length,
       rows: rowsOut,
     },
     parsed,
@@ -552,15 +611,21 @@ async function buildPreview(input: {
 export async function previewContentImport(input: {
   filename: string;
   content: string;
+  actorRole?: AppRole;
   db?: ContentDb;
 }): Promise<ContentImportPreview> {
-  const { preview } = await buildPreview(input);
+  const { preview } = await buildPreview({
+    filename: input.filename,
+    content: input.content,
+    allowApproved: input.actorRole === "MASTER_ADMIN",
+    db: input.db,
+  });
   return preview;
 }
 
 export type ContentImportCommitRow = {
   rowNumber: number;
-  status: "CREATED" | "FAILED";
+  status: "CREATED" | "APPROVED" | "FAILED";
   referenceCode: string | null;
   submissionId: string | null;
   organizationName: string | null;
@@ -568,9 +633,11 @@ export type ContentImportCommitRow = {
 };
 
 export type ContentImportCommitResult = {
+  runId: string;
   filename: string;
   digest: string;
   created: number;
+  approved: number;
   failed: number;
   rows: ContentImportCommitRow[];
 };
@@ -583,10 +650,12 @@ export async function commitContentImport(input: {
   requestId?: string;
   db?: ContentDb;
 }): Promise<ContentImportCommitResult> {
+  const db = input.db ?? getDb();
   const { preview, parsed } = await buildPreview({
     filename: input.filename,
     content: input.content,
-    db: input.db,
+    allowApproved: input.actor.role === "MASTER_ADMIN",
+    db,
   });
   if (preview.digest !== input.digest) {
     throw errors.conflict(
@@ -598,6 +667,31 @@ export async function commitContentImport(input: {
       "Masih ada baris bermasalah. Perbaiki berkas lalu jalankan pratinjau ulang.",
     );
   }
+
+  const idempotencyKey = `content-import:${input.actor.id}:${preview.digest}`;
+  const [existingRun] = await db
+    .select({ id: schema.contentImportRuns.id })
+    .from(schema.contentImportRuns)
+    .where(eq(schema.contentImportRuns.idempotencyKey, idempotencyKey))
+    .limit(1);
+  if (existingRun) {
+    throw errors.conflict(
+      "Berkas ini sudah pernah diimpor. Unduh laporan hasil impor sebelumnya.",
+    );
+  }
+
+  const [run] = await db
+    .insert(schema.contentImportRuns)
+    .values({
+      actorId: input.actor.id,
+      filename: input.filename,
+      digest: preview.digest,
+      idempotencyKey,
+      status: "VALIDATED",
+      rowCount: parsed.length,
+    })
+    .returning({ id: schema.contentImportRuns.id });
+  if (!run) throw errors.server("Riwayat impor konten tidak dapat disimpan.");
 
   const rows: ContentImportCommitRow[] = [];
   for (const row of parsed) {
@@ -618,9 +712,38 @@ export async function commitContentImport(input: {
         row.input,
         input.requestId,
       );
+      let status: ContentImportCommitRow["status"] = "CREATED";
+
+      if (row.approve) {
+        await reviewSubmission(
+          input.actor,
+          {
+            submissionId: saved.id,
+            action: "APPROVE",
+            expectedVersion: saved.version,
+            checklist: {
+              relevansiTema: true,
+              akurasiKonten: true,
+              kelengkapanTautan: true,
+              etikaDanPrivasi: true,
+            },
+            notes: `IMPORT_APPROVED:${preview.digest.slice(0, 12)}`,
+          },
+          input.requestId,
+        );
+        if (row.approvedAt) {
+          // Tanggal persetujuan berasal dari berkas resmi Master Admin.
+          await db
+            .update(schema.contentSubmissions)
+            .set({ approvedAt: new Date(`${row.approvedAt}T00:00:00+07:00`) })
+            .where(eq(schema.contentSubmissions.id, saved.id));
+        }
+        status = "APPROVED";
+      }
+
       rows.push({
         rowNumber: row.rowNumber,
-        status: "CREATED",
+        status,
         referenceCode: saved.referenceCode,
         submissionId: saved.id,
         organizationName: row.organizationName,
@@ -638,11 +761,56 @@ export async function commitContentImport(input: {
     }
   }
 
+  const created = rows.filter((row) => row.status === "CREATED").length;
+  const approved = rows.filter((row) => row.status === "APPROVED").length;
+  const failed = rows.filter((row) => row.status === "FAILED").length;
+
+  await db.insert(schema.contentImportRows).values(
+    rows.map((row) => ({
+      runId: run.id,
+      rowNumber: row.rowNumber,
+      status: row.status,
+      referenceCode: row.referenceCode,
+      submissionId: row.submissionId,
+      organizationName: row.organizationName,
+      errors: row.error ? [row.error] : null,
+    })),
+  );
+
+  await db
+    .update(schema.contentImportRuns)
+    .set({
+      status: "COMMITTED",
+      committedAt: new Date(),
+      createdCount: created,
+      approvedCount: approved,
+      failedCount: failed,
+      stats: { created, approved, failed, total: rows.length },
+    })
+    .where(eq(schema.contentImportRuns.id, run.id));
+
   return {
+    runId: run.id,
     filename: input.filename,
     digest: preview.digest,
-    created: rows.filter((row) => row.status === "CREATED").length,
-    failed: rows.filter((row) => row.status === "FAILED").length,
+    created,
+    approved,
+    failed,
     rows,
   };
+}
+
+export function contentImportResultsCsv(
+  rows: ContentImportCommitRow[],
+): string {
+  return toCsv(
+    ["baris", "status", "kode_referensi", "organisasi", "kesalahan"],
+    rows.map((row) => [
+      row.rowNumber,
+      row.status,
+      row.referenceCode ?? "",
+      row.organizationName ?? "",
+      row.error ?? "",
+    ]),
+  );
 }

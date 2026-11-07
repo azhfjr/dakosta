@@ -16,6 +16,11 @@ import {
 } from "drizzle-orm";
 
 import { getDb, schema } from "@/db";
+import {
+  approvedContentCondition,
+  jakartaDayEndExclusive,
+  jakartaDayStart,
+} from "@/lib/analytics/approved";
 import { contentScopePredicate } from "@/lib/authz/predicates";
 import { CONTENT_STATUSES, type ContentStatus } from "@/lib/content-status";
 import { monthRange } from "@/lib/kpi/formulas";
@@ -27,7 +32,7 @@ import {
   type OrgSource,
 } from "@/lib/analytics/source";
 import type { SessionUser } from "@/lib/session";
-import type { ContentType, SubTheme } from "@/lib/taxonomy";
+import type { ContentType, MainTheme, SubTheme } from "@/lib/taxonomy";
 
 export const ANALYTICS_TABLE_PAGE_SIZE = 25;
 
@@ -46,14 +51,29 @@ export type AnalyticsContentFilters = {
   /** `created` filters `date_created`; `approved` filters `approved_at`. */
   periodBasis?: "created" | "approved";
   status: ContentStatus | "ALL";
+  /**
+   * `approved` forces the canonical approved predicate (status, timestamp,
+   * not archived). Dashboard and Detail Konten approved views use it so a URL
+   * cannot widen the table beyond validated content.
+   */
+  scope?: "all" | "approved";
   sources: OrgSource[];
   stakeholderId?: string | null;
+  branchId?: string | null;
+  orgType?: string | null;
+  mainTheme?: MainTheme | null;
   subTheme?: SubTheme | null;
   contentType?: ContentType | null;
+  platform?: string | null;
+  /** Inclusive calendar dates in Asia/Jakarta, applied to `approved_at`. */
+  dateFrom?: string | null;
+  dateTo?: string | null;
   decidedBy: "ANY" | "BRANCH" | "MASTER";
   sort: AnalyticsSort;
   search: string;
   page: number;
+  /** Report exports raise this; the table keeps the default page size. */
+  pageSize?: number;
 };
 
 const SORTS: readonly AnalyticsSort[] = [
@@ -167,6 +187,9 @@ export async function listAnalyticsContents(
     schema.contentSubmissions.stakeholderId,
   );
   if (scope) conditions.push(scope);
+  if (filters.scope === "approved") {
+    conditions.push(approvedContentCondition());
+  }
   if (filters.status !== "ALL") {
     conditions.push(eq(schema.contentSubmissions.status, filters.status));
   }
@@ -180,12 +203,44 @@ export async function listAnalyticsContents(
       eq(schema.contentSubmissions.stakeholderId, filters.stakeholderId),
     );
   }
+  if (filters.branchId) {
+    conditions.push(eq(schema.stakeholders.branchOfficeId, filters.branchId));
+  }
+  if (filters.orgType) {
+    conditions.push(eq(schema.stakeholders.organizationType, filters.orgType));
+  }
+  if (filters.mainTheme) {
+    conditions.push(eq(schema.contentSubmissions.mainTheme, filters.mainTheme));
+  }
   if (filters.subTheme) {
     conditions.push(eq(schema.contentSubmissions.subTheme, filters.subTheme));
   }
   if (filters.contentType) {
     conditions.push(
       eq(schema.contentSubmissions.contentType, filters.contentType),
+    );
+  }
+  if (filters.platform) {
+    conditions.push(eq(schema.contentSubmissions.platform, filters.platform));
+  }
+  if (filters.dateFrom) {
+    conditions.push(
+      filters.scope === "approved"
+        ? gte(
+            schema.contentSubmissions.approvedAt,
+            jakartaDayStart(filters.dateFrom),
+          )
+        : gte(schema.contentSubmissions.dateCreated, filters.dateFrom),
+    );
+  }
+  if (filters.dateTo) {
+    conditions.push(
+      filters.scope === "approved"
+        ? lt(
+            schema.contentSubmissions.approvedAt,
+            jakartaDayEndExclusive(filters.dateTo),
+          )
+        : lte(schema.contentSubmissions.dateCreated, filters.dateTo),
     );
   }
   if (filters.period !== "ALL") {
@@ -259,6 +314,7 @@ export async function listAnalyticsContents(
         return [
           asc(schema.contentSubmissions.status),
           desc(schema.contentSubmissions.dateCreated),
+          asc(schema.contentSubmissions.id),
         ];
       case "approved_recent":
         return [
@@ -283,6 +339,11 @@ export async function listAnalyticsContents(
         ];
     }
   })();
+
+  const pageSize = Math.min(
+    Math.max(Math.floor(filters.pageSize ?? ANALYTICS_TABLE_PAGE_SIZE), 1),
+    1000,
+  );
 
   const [rows, totals] = await Promise.all([
     db
@@ -324,8 +385,8 @@ export async function listAnalyticsContents(
       )
       .where(where)
       .orderBy(...orderBy)
-      .limit(ANALYTICS_TABLE_PAGE_SIZE)
-      .offset((filters.page - 1) * ANALYTICS_TABLE_PAGE_SIZE),
+      .limit(pageSize)
+      .offset((filters.page - 1) * pageSize),
     db
       .select({
         total: count(),
@@ -356,7 +417,7 @@ export async function listAnalyticsContents(
     total,
     approvedTotal,
     page: filters.page,
-    pageCount: Math.max(1, Math.ceil(total / ANALYTICS_TABLE_PAGE_SIZE)),
+    pageCount: Math.max(1, Math.ceil(total / pageSize)),
   };
 }
 

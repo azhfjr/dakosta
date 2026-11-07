@@ -9,7 +9,9 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import * as schema from "../src/db/schema";
 import {
   CONTENT_IMPORT_HEADERS,
+  CONTENT_IMPORT_OPTIONAL_HEADERS,
   CONTENT_IMPORT_REQUIRED,
+  contentExampleCsv,
   contentTemplateCsv,
   previewContentImport,
 } from "@/lib/imports/content";
@@ -130,10 +132,28 @@ describe("content import template", () => {
   it("exports every supported column in a stable order", () => {
     const template = contentTemplateCsv();
     const header = template.replace(/^\uFEFF/, "").split("\r\n")[0];
-    expect(header).toBe(CONTENT_IMPORT_HEADERS.join(","));
+    expect(header).toBe(
+      [...CONTENT_IMPORT_HEADERS, ...CONTENT_IMPORT_OPTIONAL_HEADERS].join(","),
+    );
     for (const required of CONTENT_IMPORT_REQUIRED) {
       expect(CONTENT_IMPORT_HEADERS).toContain(required);
     }
+  });
+
+  it("keeps the template header-only and puts samples in the example file", () => {
+    const template = contentTemplateCsv()
+      .replace(/^\uFEFF/, "")
+      .split("\r\n")
+      .filter(Boolean);
+    const example = contentExampleCsv()
+      .replace(/^\uFEFF/, "")
+      .split("\r\n")
+      .filter(Boolean);
+    expect(template).toHaveLength(1);
+    expect(example.length).toBeGreaterThan(1);
+    expect(example[0]).toBe(
+      [...CONTENT_IMPORT_HEADERS, ...CONTENT_IMPORT_OPTIONAL_HEADERS].join(","),
+    );
   });
 });
 
@@ -259,5 +279,66 @@ describe("content import preview", () => {
         db: db as never,
       }),
     ).rejects.toThrow(/Kolom wajib/);
+  });
+
+  it("only lets Master Admin import approved rows, with an approval date", async () => {
+    const headers = [
+      ...CONTENT_IMPORT_HEADERS,
+      ...CONTENT_IMPORT_OPTIONAL_HEADERS,
+    ];
+    const approvedRow = (extra: Record<string, string>) => {
+      const base: Record<string, string> = {
+        ...Object.fromEntries(
+          CONTENT_IMPORT_HEADERS.map((header, index) => [
+            header,
+            validRow()[index] ?? "",
+          ]),
+        ),
+        status: "disetujui",
+        tanggal_persetujuan: "2026-10-07",
+        ...extra,
+      };
+      return headers.map((header) => base[header] ?? "");
+    };
+    const render = (rows: string[][]) =>
+      [headers, ...rows]
+        .map((row) =>
+          row
+            .map((cell) =>
+              /[",\r\n]/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell,
+            )
+            .join(","),
+        )
+        .join("\n");
+
+    const asBranch = await previewContentImport({
+      filename: "konten.csv",
+      content: render([
+        approvedRow({ tautan: "https://www.instagram.com/p/approve-1" }),
+      ]),
+      actorRole: "BRANCH_ADMIN",
+      db: db as never,
+    });
+    expect(asBranch.rows[0]?.errors.join(" ")).toMatch(/Hanya Master Admin/);
+    expect(asBranch.approvedCount).toBe(0);
+
+    const asMaster = await previewContentImport({
+      filename: "konten.csv",
+      content: render([
+        approvedRow({ tautan: "https://www.instagram.com/p/approve-2" }),
+        approvedRow({
+          tautan: "https://www.instagram.com/p/approve-3",
+          tanggal_persetujuan: "",
+        }),
+      ]),
+      actorRole: "MASTER_ADMIN",
+      db: db as never,
+    });
+    expect(asMaster.rows[0]?.status).toBe("VALID");
+    expect(asMaster.rows[0]?.approvedAt).toBe("2026-10-07");
+    expect(asMaster.approvedCount).toBe(1);
+    expect(asMaster.rows[1]?.errors.join(" ")).toMatch(
+      /Tanggal persetujuan wajib/,
+    );
   });
 });

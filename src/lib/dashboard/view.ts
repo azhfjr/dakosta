@@ -2,12 +2,21 @@ import { redirectToAnchor } from "@/lib/filters/redirect";
 import { firstParam, type FilterParams } from "@/lib/filters/query";
 
 const VIEW_ANCHORS: Record<string, string> = {
-  konten: "semua-konten",
-  "semua-konten": "semua-konten",
-  disetujui: "konten-disetujui",
-  "konten-disetujui": "konten-disetujui",
-  peta: "peta",
+  konten: "tabel",
+  "semua-konten": "tabel",
+  disetujui: "tabel",
+  "konten-disetujui": "tabel",
   tabel: "tabel",
+  peta: "peta",
+  peringkat: "peringkat",
+  pencapaian: "pencapaian-cabang",
+  "pencapaian-cabang": "pencapaian-cabang",
+  "tren-bulanan": "tren-bulanan",
+  bulanan: "tren-bulanan",
+  tema: "tren-tema",
+  "tren-tema": "tren-tema",
+  "jenis-platform": "tren-jenis-platform",
+  "tren-jenis-platform": "tren-jenis-platform",
 };
 
 export function dashboardViewAnchor(params: FilterParams): string | null {

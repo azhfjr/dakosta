@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { GeoJSONSource, Map as MapLibreMap } from "maplibre-gl";
 import type { FeatureCollection, Point as GeoPoint } from "geojson";
@@ -86,11 +86,6 @@ export function DashboardMapSection({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [status, setStatus] = useState<Status>(
     map.points.length === 0 ? "ready" : "loading",
-  );
-
-  const tableRows = useMemo(
-    () => [...map.points].sort((a, b) => b.approved - a.approved).slice(0, 200),
-    [map.points],
   );
 
   useEffect(() => {
@@ -339,8 +334,9 @@ export function DashboardMapSection({
             </h2>
             <p className="text-xs text-ink-muted">
               Konten disetujui menurut tanggal approval final pada{" "}
-              {map.period.label}. {isBranch ? "Titik cabang" : "Titik instansi"}{" "}
-              berasal dari lokasi organisasi, bukan lokasi perangkat pengguna.
+              {map.period ? map.period.label : "seluruh periode"}.{" "}
+              {isBranch ? "Titik cabang" : "Titik instansi"} berasal dari lokasi
+              organisasi, bukan lokasi perangkat pengguna.
               {map.totals.zeroInstitutions > 0
                 ? ` ${formatNumberId(map.totals.zeroInstitutions)} ${isBranch ? "cabang" : "instansi"} tanpa capaian tidak ditampilkan sebagai titik.`
                 : ""}
@@ -378,113 +374,46 @@ export function DashboardMapSection({
             memiliki koordinat yang valid.
           </p>
           <Link
-            href={`${isBranch ? "/wilayah" : "/cabang"}/kinerja?period=${map.period.key}`}
+            href={isBranch ? "/wilayah/kinerja" : "/cabang/kinerja"}
             className="mt-3 inline-block text-sm font-semibold text-brand-blue-700 underline underline-offset-4"
           >
             Lihat tabel kinerja
           </Link>
         </div>
       ) : (
-        <>
-          <div className="relative">
-            <div
-              ref={containerRef}
-              className="h-[360px] w-full sm:h-[460px]"
-              role="region"
-              aria-label={`Peta interaktif capaian ${isBranch ? "cabang" : "instansi"}. Tabel di bawah peta menyediakan alternatif yang dapat diakses keyboard.`}
-            />
-            {status === "loading" ? (
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-surface/70 text-sm text-ink-muted">
-                Memuat peta…
-              </div>
-            ) : null}
-            {status === "failed" ? (
-              <div className="absolute inset-0 flex items-center justify-center bg-surface/95 p-6">
-                <div className="max-w-md text-center">
-                  <p className="text-sm font-semibold text-foreground">
-                    Basemap tidak dapat dimuat
-                  </p>
-                  <p className="mt-1 text-sm text-ink-muted">
-                    Koneksi ke penyedia peta gagal atau WebGL tidak tersedia.
-                    Data tetap lengkap pada tabel di bawah peta.
-                  </p>
-                  <a
-                    href="#tabel-peta-dashboard"
-                    className="mt-3 inline-block text-sm font-semibold text-brand-blue-700 underline underline-offset-4"
-                  >
-                    Lihat tabel capaian
-                  </a>
-                </div>
-              </div>
-            ) : null}
-          </div>
-
-          <div id="tabel-peta-dashboard" className="border-t border-border">
-            <div className="px-4 py-3 sm:px-5">
-              <h3 className="text-sm font-semibold text-foreground">
-                Tabel capaian pada peta
-              </h3>
-              <p className="text-xs text-ink-muted">
-                Alternatif peta untuk keyboard dan pembaca layar.{" "}
-                {map.points.length > tableRows.length
-                  ? `Menampilkan ${tableRows.length} dari ${map.points.length} titik dengan capaian tertinggi.`
-                  : "Semua titik ditampilkan."}
-              </p>
+        <div className="relative">
+          <div
+            ref={containerRef}
+            className="h-[240px] w-full sm:h-[300px]"
+            role="region"
+            aria-label={`Peta interaktif capaian ${isBranch ? "cabang" : "instansi"}. Rincian angka tersedia pada tabel peringkat dan tabel konten disetujui di halaman ini.`}
+          />
+          {status === "loading" ? (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-surface/70 text-sm text-ink-muted">
+              Memuat peta…
             </div>
-            <div className="max-h-[24rem] overflow-auto">
-              <table className="w-full min-w-[36rem] border-collapse text-sm">
-                <caption className="sr-only">
-                  Capaian {isBranch ? "per cabang" : "per instansi"} pada peta
-                </caption>
-                <thead className="sticky top-0 bg-surface-muted text-left text-xs text-ink-muted">
-                  <tr>
-                    <th scope="col" className="px-4 py-2 font-semibold">
-                      {isBranch ? "Cabang" : "Instansi"}
-                    </th>
-                    <th scope="col" className="px-4 py-2 font-semibold">
-                      Wilayah
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-4 py-2 text-right font-semibold"
-                    >
-                      Disetujui
-                    </th>
-                    <th scope="col" className="px-4 py-2 font-semibold">
-                      Tindakan
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {tableRows.map((point) => (
-                    <tr
-                      key={point.id}
-                      className="border-t border-border/70 hover:bg-surface-muted/50"
-                    >
-                      <td className="px-4 py-2 font-medium text-foreground">
-                        {point.name}
-                      </td>
-                      <td className="px-4 py-2 text-ink-muted">
-                        {point.detail || "—"}
-                      </td>
-                      <td className="px-4 py-2 text-right tabular">
-                        {formatNumberId(point.approved)}
-                      </td>
-                      <td className="px-4 py-2">
-                        <Link
-                          href={point.href}
-                          className="text-xs font-semibold text-brand-blue-700 underline-offset-4 hover:underline"
-                        >
-                          Buka kinerja
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          ) : null}
+          {status === "failed" ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-surface/95 p-6">
+              <div className="max-w-md text-center">
+                <p className="text-sm font-semibold text-foreground">
+                  Basemap tidak dapat dimuat
+                </p>
+                <p className="mt-1 text-sm text-ink-muted">
+                  Koneksi ke penyedia peta gagal atau WebGL tidak tersedia.
+                  Agregasi angka tetap lengkap pada tabel peringkat dan tabel
+                  konten disetujui di halaman ini.
+                </p>
+                <a
+                  href="#tabel"
+                  className="mt-3 inline-block text-sm font-semibold text-brand-blue-700 underline underline-offset-4"
+                >
+                  Buka tabel konten disetujui
+                </a>
+              </div>
             </div>
-          </div>
-        </>
+          ) : null}
+        </div>
       )}
     </section>
   );

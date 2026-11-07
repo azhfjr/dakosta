@@ -2,22 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
-import { KpiDashboard } from "@/components/dashboard/kpi-dashboard";
+import { ApprovedDashboardView } from "@/components/dashboard/approved-dashboard";
 import { PageContainer } from "@/components/shell/page-container";
 import { PageHeader } from "@/components/shell/page-header";
 import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { Button } from "@/components/ui/button";
-import { getDashboardAnalytics } from "@/lib/analytics/charts";
-import { getDashboardMap } from "@/lib/dashboard-map";
+import {
+  getApprovedDashboard,
+  parseApprovedDashboardFilters,
+} from "@/lib/analytics/dashboard";
 import { redirectDashboardView } from "@/lib/dashboard/view";
 import { formatDateTimeId } from "@/lib/dates";
 import { getFilterOptions } from "@/lib/filters/options";
-import {
-  getDashboardOverview,
-  kpiPeriod,
-  parseKpiFiltersFromParams,
-} from "@/lib/kpi/sql";
-import { getPerformanceSummary } from "@/lib/performance";
 import { requireRole } from "@/lib/session";
 
 export const metadata: Metadata = {
@@ -35,9 +31,8 @@ export default async function RegionalHomePage({
 }) {
   const user = await requireRole("REGIONAL_ADMIN");
   const params = await searchParams;
-  const filters = parseKpiFiltersFromParams(params);
   redirectDashboardView("/wilayah/dashboard", params);
-  const description = `Capaian konten disetujui dan antrean validasi untuk ${user.scopeLabel}. Wilayah bersifat baca-saja: keputusan tetap dilakukan admin cabang.`;
+  const description = `Capaian konten yang telah memperoleh approval final untuk ${user.scopeLabel}. Wilayah bersifat baca-saja; keputusan tetap dilakukan admin cabang.`;
 
   return (
     <PageContainer>
@@ -54,7 +49,7 @@ export default async function RegionalHomePage({
       <Suspense fallback={<PageSkeleton label="Memuat dasbor…" />}>
         <RegionalHomeBody
           user={user}
-          filters={filters}
+          params={params}
           description={description}
         />
       </Suspense>
@@ -64,56 +59,29 @@ export default async function RegionalHomePage({
 
 async function RegionalHomeBody({
   user,
-  filters,
+  params,
   description,
 }: {
   user: DashboardUser;
-  filters: ReturnType<typeof parseKpiFiltersFromParams>;
+  params: Record<string, string | string[] | undefined>;
   description: string;
 }) {
-  const period = kpiPeriod(filters);
-  const alignmentAllowed = !filters.stakeholderId && !filters.subTheme;
-  const [overview, options, analytics, summary, map] = await Promise.all([
-    getDashboardOverview(user, filters),
+  const filters = parseApprovedDashboardFilters(params);
+  const [data, options] = await Promise.all([
+    getApprovedDashboard(user, filters),
     getFilterOptions(user),
-    getDashboardAnalytics(
-      user,
-      { ...filters, sources: [] },
-      { rankingLevel: "branch" },
-    ),
-    alignmentAllowed
-      ? getPerformanceSummary(user, period)
-      : Promise.resolve(null),
-    getDashboardMap(user, {
-      period,
-      stakeholderId: filters.stakeholderId,
-      subTheme: filters.subTheme,
-    }),
   ]);
 
   return (
-    <KpiDashboard
-      overview={overview}
-      analytics={analytics}
+    <ApprovedDashboardView
+      data={data}
+      filters={filters}
       role={user.role}
-      options={{
-        stakeholders: options.stakeholders,
-        subThemes: options.subThemes,
-      }}
+      options={options}
       basePath="/wilayah/dashboard"
+      detailBase="/wilayah/konten"
       title="Dashboard wilayah"
       description={description}
-      contentDetailBase="/wilayah/konten"
-      alignment={
-        summary
-          ? {
-              ...summary,
-              periodKey: period.key,
-              periodLabel: period.label,
-            }
-          : null
-      }
-      map={map}
       hideHeader
     />
   );

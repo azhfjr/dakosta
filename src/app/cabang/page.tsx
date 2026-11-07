@@ -3,21 +3,19 @@ import Link from "next/link";
 
 import { PageContainer } from "@/components/shell/page-container";
 import { PageHeader } from "@/components/shell/page-header";
+import { SlaAnalyticsView } from "@/components/sla/sla-analytics";
 import { SlaQueue, type SlaTabKey } from "@/components/sla/sla-queue";
 import { Button } from "@/components/ui/button";
+import { getSlaAnalytics, parseSlaFilters } from "@/lib/analytics/sla";
 import { formatDateTimeId } from "@/lib/dates";
 import { getFilterOptions } from "@/lib/filters/options";
-import {
-  firstParam,
-  parseFilterSubTheme,
-  parseFilterUuid,
-} from "@/lib/filters/query";
+import { firstParam } from "@/lib/filters/query";
 import { listReviewQueue } from "@/lib/review";
 import { requireRole } from "@/lib/session";
 import { getActiveSlaPolicy } from "@/lib/sla";
 
 export const metadata: Metadata = {
-  title: "SLA Check cabang",
+  title: "SLA cabang",
 };
 
 export const dynamic = "force-dynamic";
@@ -38,30 +36,28 @@ export default async function BranchSlaPage({
   const user = await requireRole("BRANCH_ADMIN");
   const params = await searchParams;
   const status = parseStatus(firstParam(params, "status"));
-  const search = firstParam(params, "q")?.slice(0, 120) || undefined;
-  const page = Math.max(Number(firstParam(params, "page") ?? 1) || 1, 1);
-  const stakeholderId =
-    parseFilterUuid(firstParam(params, "stakeholderId")) ?? undefined;
-  const subTheme =
-    parseFilterSubTheme(firstParam(params, "subTheme")) ?? undefined;
+  const filters = parseSlaFilters(params);
 
-  const [queue, policy, options] = await Promise.all([
+  const [queue, policy, options, analytics] = await Promise.all([
     listReviewQueue(user, {
       status,
-      search,
-      page,
+      orgType: filters.orgType ?? undefined,
+      mainTheme: filters.mainTheme ?? undefined,
+      subTheme: filters.subTheme ?? undefined,
+      period: filters.period,
+      search: filters.search || undefined,
+      page: filters.page,
       pageSize: 15,
-      stakeholderId,
-      subTheme,
     }),
     getActiveSlaPolicy(),
     getFilterOptions(user),
+    getSlaAnalytics(user, filters),
   ]);
 
   return (
     <PageContainer>
       <PageHeader
-        title="SLA Check cabang"
+        title="SLA cabang"
         description={`Antrean konten dari instansi di ${user.scopeLabel}. Anda dapat meninjau dan memutuskan konten cabang sendiri; SLA berakhir pada approval final.`}
         meta={`Diperbarui ${formatDateTimeId(new Date())} WIB`}
         actions={
@@ -76,22 +72,29 @@ export default async function BranchSlaPage({
         }
       />
 
-      <SlaQueue
-        queue={queue}
-        policy={policy}
-        detailBase="/cabang/review"
-        canDecide
-        basePath="/cabang"
-        search={search}
-        status={status}
-        stakeholderId={stakeholderId}
-        subTheme={subTheme}
-        options={{
-          stakeholders: options.stakeholders,
-          subThemes: options.subThemes,
-        }}
-        scopeLabel={user.scopeLabel}
-      />
+      <div className="space-y-6">
+        <SlaAnalyticsView analytics={analytics} />
+        <SlaQueue
+          queue={queue}
+          policy={policy}
+          detailBase="/cabang/review"
+          canDecide
+          basePath="/cabang"
+          search={filters.search || undefined}
+          status={status}
+          orgType={filters.orgType ?? undefined}
+          mainTheme={filters.mainTheme ?? undefined}
+          subTheme={filters.subTheme ?? undefined}
+          period={filters.period}
+          options={{
+            orgTypes: options.orgTypes,
+            mainThemes: options.mainThemes,
+            subThemes: options.subThemes,
+            periods: options.periods,
+          }}
+          scopeLabel={user.scopeLabel}
+        />
+      </div>
     </PageContainer>
   );
 }

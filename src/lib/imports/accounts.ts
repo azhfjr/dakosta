@@ -2,11 +2,11 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { getDb, schema } from "@/db";
-import { createAccount } from "@/lib/accounts";
+import { createAccount, updateAccount } from "@/lib/accounts";
 import { assertDemoCannotManageAccounts } from "@/lib/authz/demo-guard";
 import { toCsv } from "@/lib/csv";
 import { AppError, errors } from "@/lib/errors";
@@ -23,6 +23,15 @@ export const ACCOUNT_IMPORT_HEADERS = [
 
 export const IMPORT_MAX_BYTES = 1_000_000;
 export const IMPORT_MAX_ROWS = 1000;
+
+export const IMPORT_CONFLICT_POLICIES = ["skip", "update", "upsert"] as const;
+export type ImportConflictPolicy = (typeof IMPORT_CONFLICT_POLICIES)[number];
+
+export function parseConflictPolicy(value: unknown): ImportConflictPolicy {
+  return IMPORT_CONFLICT_POLICIES.includes(value as ImportConflictPolicy)
+    ? (value as ImportConflictPolicy)
+    : "skip";
+}
 
 const ROLE_CODES: Record<
   string,
@@ -43,11 +52,29 @@ const ROLE_CODES: Record<
   organisasi: "STAKEHOLDER",
 };
 
+function detectDelimiter(input: string): "," | ";" {
+  let inQuotes = false;
+  let commas = 0;
+  let semicolons = 0;
+  for (const char of input) {
+    if (char === '"') {
+      inQuotes = !inQuotes;
+      continue;
+    }
+    if (inQuotes) continue;
+    if (char === "\n" || char === "\r") break;
+    if (char === ",") commas += 1;
+    if (char === ";") semicolons += 1;
+  }
+  return semicolons > commas ? ";" : ",";
+}
+
 export function parseCsv(text: string): {
   headers: string[];
   rows: string[][];
 } {
   const input = text.replace(/^\uFEFF/, "");
+  const delimiter = detectDelimiter(input);
   const records: string[][] = [];
   let record: string[] = [];
   let field = "";
@@ -70,7 +97,7 @@ export function parseCsv(text: string): {
     }
     if (char === '"') {
       inQuotes = true;
-    } else if (char === ",") {
+    } else if (char === delimiter) {
       record.push(field);
       field = "";
     } else if (char === "\n" || char === "\r") {
@@ -99,9 +126,25 @@ export function parseCsv(text: string): {
   };
 }
 
+function csvDocument(rows: string[][]): string {
+  return `\uFEFF${rows
+    .map((row) =>
+      row
+        .map((cell) =>
+          /[",\r\n]/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell,
+        )
+        .join(","),
+    )
+    .join("\r\n")}\r\n`;
+}
+
 export function templateCsv(): string {
-  const sample = [
-    ["nama", "email", "peran", "wilayah", "cabang", "organisasi", "jabatan"],
+  return csvDocument([[...ACCOUNT_IMPORT_HEADERS]]);
+}
+
+export function exampleAccountCsv(): string {
+  return csvDocument([
+    [...ACCOUNT_IMPORT_HEADERS],
     [
       "Contoh Admin Cabang",
       "admin.cabang@instansi.go.id",
@@ -129,21 +172,19 @@ export function templateCsv(): string {
       "",
       "Admin Regional",
     ],
-  ];
-  return `\uFEFF${sample
-    .map((row) =>
-      row
-        .map((cell) =>
-          /[",\r\n]/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell,
-        )
-        .join(","),
-    )
-    .join("\r\n")}\r\n`;
+  ]);
 }
 
 export type ImportRowResult = {
   rowNumber: number;
-  status: "VALID" | "INVALID" | "CREATED" | "SKIPPED" | "FAILED";
+  status:
+    | "VALID"
+    | "INVALID"
+    | "CONFLICT"
+    | "CREATED"
+    | "UPDATED"
+    | "SKIPPED"
+    | "FAILED";
   normalized: Record<string, string> | null;
   errors: string[] | null;
   userId: string | null;
@@ -153,8 +194,10 @@ export type ImportPreview = {
   importId: string;
   filename: string;
   digest: string;
+  policy: ImportConflictPolicy;
   rowCount: number;
   validCount: number;
+  conflictCount: number;
   errorCount: number;
   rows: ImportRowResult[];
   stats: Record<string, number>;
@@ -174,8 +217,9 @@ type ScopeIndex = {
   >;
 };
 
-async function loadScopeIndex(): Promise<ScopeIndex> {
-  const db = getDb();
+type ImportDb = ReturnType<typeof getDb>;
+
+async function loadScopeIndex(db: ImportDb): Promise<ScopeIndex> {
   const [regions, branches, organizations] = await Promise.all([
     db
       .select({
@@ -336,6 +380,8 @@ export async function previewImport(input: {
   content: string;
   actorId: string;
   idempotencyKey?: string;
+  policy?: ImportConflictPolicy;
+  db?: ImportDb;
 }): Promise<ImportPreview> {
   if (Buffer.byteLength(input.content, "utf8") > IMPORT_MAX_BYTES) {
     throw errors.validation(
@@ -358,7 +404,8 @@ export async function previewImport(input: {
     throw errors.validation(`Maksimal ${IMPORT_MAX_ROWS} baris per impor.`);
   }
 
-  const index = await loadScopeIndex();
+  const db = input.db ?? getDb();
+  const index = await loadScopeIndex(db);
   const seenEmails = new Set<string>();
   const results: ImportRowResult[] = rows.map((row, position) => {
     const raw: Record<string, string> = {};
@@ -375,15 +422,63 @@ export async function previewImport(input: {
     };
   });
 
+  const policy = parseConflictPolicy(input.policy);
+  const candidates = results
+    .map((result) => result.normalized?.email)
+    .filter((email): email is string => Boolean(email));
+  if (candidates.length > 0) {
+    const existing = await db
+      .select({ id: schema.user.id, email: schema.user.email })
+      .from(schema.user)
+      .where(inArray(sql`lower(${schema.user.email})`, candidates));
+    const existingByEmail = new Map(
+      existing.map((row) => [row.email.toLowerCase(), row.id]),
+    );
+    for (const result of results) {
+      const email = result.normalized?.email;
+      if (result.status !== "VALID" || !email) continue;
+      const existingId = existingByEmail.get(email);
+      if (!existingId) continue;
+      result.userId = existingId;
+      if (policy === "skip") {
+        result.status = "SKIPPED";
+        result.errors = [
+          "Email sudah terdaftar; baris dilewati sesuai kebijakan.",
+        ];
+      } else {
+        result.status = "CONFLICT";
+        result.errors = [
+          policy === "update"
+            ? "Email sudah terdaftar; data akun akan diperbarui."
+            : "Email sudah terdaftar; akun akan diperbarui (upsert).",
+        ];
+      }
+    }
+  }
+
   const digest = createHash("sha256").update(input.content).digest("hex");
   const idempotencyKey =
     input.idempotencyKey ?? `import:${input.actorId}:${digest}`;
   const validCount = results.filter(
     (result) => result.status === "VALID",
   ).length;
-  const errorCount = results.length - validCount;
+  const conflictCount = results.filter(
+    (result) => result.status === "CONFLICT",
+  ).length;
+  const skippedCount = results.filter(
+    (result) => result.status === "SKIPPED",
+  ).length;
+  const errorCount = results.filter(
+    (result) => result.status === "INVALID",
+  ).length;
+  const stats = {
+    valid: validCount,
+    conflicts: conflictCount,
+    skipped: skippedCount,
+    invalid: errorCount,
+    total: results.length,
+  };
 
-  const db = getDb();
   const [existing] = await db
     .select({ id: schema.accountImports.id })
     .from(schema.accountImports)
@@ -400,12 +495,9 @@ export async function previewImport(input: {
         actorId: input.actorId,
         filename: input.filename,
         digest,
+        mode: policy,
         status: "VALIDATED",
-        previewStats: {
-          valid: validCount,
-          invalid: errorCount,
-          total: results.length,
-        },
+        previewStats: stats,
         rowCount: results.length,
         errorCount,
         committedAt: null,
@@ -424,11 +516,13 @@ export async function previewImport(input: {
       importId: existing.id,
       filename: input.filename,
       digest,
+      policy,
       rowCount: results.length,
       validCount,
+      conflictCount,
       errorCount,
       rows: results,
-      stats: { valid: validCount, invalid: errorCount, total: results.length },
+      stats,
     };
   }
 
@@ -438,14 +532,10 @@ export async function previewImport(input: {
       actorId: input.actorId,
       filename: input.filename,
       digest,
-      mode: "create_only",
+      mode: policy,
       status: "VALIDATED",
       idempotencyKey,
-      previewStats: {
-        valid: validCount,
-        invalid: errorCount,
-        total: results.length,
-      },
+      previewStats: stats,
       rowCount: results.length,
       errorCount,
     })
@@ -467,17 +557,20 @@ export async function previewImport(input: {
     importId: created.id,
     filename: input.filename,
     digest,
+    policy,
     rowCount: results.length,
     validCount,
+    conflictCount,
     errorCount,
     rows: results,
-    stats: { valid: validCount, invalid: errorCount, total: results.length },
+    stats,
   };
 }
 
 export type ImportCommitResult = {
   importId: string;
   created: number;
+  updated: number;
   skipped: number;
   failed: number;
   rows: ImportRowResult[];
@@ -488,6 +581,32 @@ export type ImportCommitResult = {
     activationUrl: string;
   }>;
 };
+
+type ImportRole = "REGIONAL_ADMIN" | "BRANCH_ADMIN" | "STAKEHOLDER";
+
+async function setRowOutcome(
+  importId: string,
+  rowNumber: number,
+  patch: {
+    status: ImportRowResult["status"];
+    errors: string[] | null;
+    userId: string | null;
+  },
+): Promise<void> {
+  await getDb()
+    .update(schema.accountImportRows)
+    .set({
+      status: patch.status,
+      errors: patch.errors,
+      userId: patch.userId,
+    })
+    .where(
+      and(
+        eq(schema.accountImportRows.importId, importId),
+        eq(schema.accountImportRows.rowNumber, rowNumber),
+      ),
+    );
+}
 
 export async function commitImport(input: {
   importId: string;
@@ -511,33 +630,136 @@ export async function commitImport(input: {
     .where(eq(schema.accountImportRows.importId, input.importId))
     .orderBy(schema.accountImportRows.rowNumber);
 
+  const policy = parseConflictPolicy(record.mode);
+  const normalizedRows = rows.map(
+    (row) => (row.normalized as Record<string, string> | null) ?? null,
+  );
+  const emails = normalizedRows
+    .map((normalized) => normalized?.email)
+    .filter((email): email is string => Boolean(email));
+
+  // Emails can appear or disappear between preview and commit, so the
+  // conflict decision is re-checked against the live table.
+  const liveExisting =
+    emails.length > 0
+      ? await db
+          .select({ id: schema.user.id, email: schema.user.email })
+          .from(schema.user)
+          .where(inArray(sql`lower(${schema.user.email})`, emails))
+      : [];
+  const existingByEmail = new Map(
+    liveExisting.map((row) => [row.email.toLowerCase(), row.id]),
+  );
+
   const results: ImportRowResult[] = [];
   const credentials: ImportCommitResult["credentials"] = [];
   let created = 0;
+  let updated = 0;
   let skipped = 0;
   let failed = 0;
 
-  for (const row of rows) {
-    if (row.status !== "VALID" || !row.normalized) {
+  for (const [index, row] of rows.entries()) {
+    const normalized = normalizedRows[index];
+    const persistedStatus = row.status as ImportRowResult["status"];
+
+    if (persistedStatus === "INVALID" || !normalized) {
+      failed += 1;
       results.push({
         rowNumber: row.rowNumber,
-        status: row.status as ImportRowResult["status"],
-        normalized: (row.normalized as Record<string, string> | null) ?? null,
-        errors: row.errors,
-        userId: row.userId,
+        status: "INVALID",
+        normalized,
+        errors: row.errors ?? ["Baris tidak valid."],
+        userId: null,
       });
-      if (row.status === "INVALID") failed += 1;
       continue;
     }
 
-    const normalized = row.normalized as Record<string, string>;
+    if (persistedStatus === "SKIPPED" && policy === "skip") {
+      skipped += 1;
+      results.push({
+        rowNumber: row.rowNumber,
+        status: "SKIPPED",
+        normalized,
+        errors: row.errors,
+        userId: row.userId,
+      });
+      continue;
+    }
+
+    const email = normalized.email!;
+    const role = normalized.role as ImportRole;
+    const existingId =
+      existingByEmail.get(email.toLowerCase()) ?? row.userId ?? null;
+
+    if (existingId) {
+      if (policy === "skip") {
+        const message = "Email sudah terdaftar; baris dilewati.";
+        await setRowOutcome(input.importId, row.rowNumber, {
+          status: "SKIPPED",
+          errors: [message],
+          userId: existingId,
+        });
+        skipped += 1;
+        results.push({
+          rowNumber: row.rowNumber,
+          status: "SKIPPED",
+          normalized,
+          errors: [message],
+          userId: existingId,
+        });
+        continue;
+      }
+
+      try {
+        await updateAccount(input.actorId, existingId, {
+          name: normalized.name!,
+          role,
+          regionalOfficeId: normalized.regionalOfficeId ?? null,
+          branchOfficeId: normalized.branchOfficeId ?? null,
+          organizationId: normalized.organizationId ?? null,
+          displayTitle: normalized.displayTitle || null,
+        });
+        await setRowOutcome(input.importId, row.rowNumber, {
+          status: "UPDATED",
+          errors: null,
+          userId: existingId,
+        });
+        updated += 1;
+        results.push({
+          rowNumber: row.rowNumber,
+          status: "UPDATED",
+          normalized,
+          errors: null,
+          userId: existingId,
+        });
+      } catch (error) {
+        const message =
+          error instanceof AppError
+            ? error.message
+            : "Akun tidak dapat diperbarui.";
+        await setRowOutcome(input.importId, row.rowNumber, {
+          status: "FAILED",
+          errors: [message],
+          userId: existingId,
+        });
+        failed += 1;
+        results.push({
+          rowNumber: row.rowNumber,
+          status: "FAILED",
+          normalized,
+          errors: [message],
+          userId: existingId,
+        });
+      }
+      continue;
+    }
+
     try {
       const account = await createAccount(
         {
           name: normalized.name!,
-          email: normalized.email!,
-          role: normalized.role as
-            "REGIONAL_ADMIN" | "BRANCH_ADMIN" | "STAKEHOLDER",
+          email,
+          role,
           regionalOfficeId: normalized.regionalOfficeId ?? null,
           branchOfficeId: normalized.branchOfficeId ?? null,
           organizationId: normalized.organizationId ?? null,
@@ -572,20 +794,20 @@ export async function commitImport(input: {
       const message =
         error instanceof AppError
           ? error.message
-          : "Akun tidak dapat dibuat. Periksa email duplikat.";
+          : "Akun tidak dapat dibuat karena kesalahan server.";
       await db
         .update(schema.accountImportRows)
-        .set({ status: "SKIPPED", errors: [message] })
+        .set({ status: "FAILED", errors: [message] })
         .where(
           and(
             eq(schema.accountImportRows.importId, input.importId),
             eq(schema.accountImportRows.rowNumber, row.rowNumber),
           ),
         );
-      skipped += 1;
+      failed += 1;
       results.push({
         rowNumber: row.rowNumber,
-        status: "SKIPPED",
+        status: "FAILED",
         normalized,
         errors: [message],
         userId: null,
@@ -598,13 +820,20 @@ export async function commitImport(input: {
     .set({
       status: "COMMITTED",
       committedAt: new Date(),
-      previewStats: { created, skipped, failed, total: results.length },
+      previewStats: {
+        created,
+        updated,
+        skipped,
+        failed,
+        total: results.length,
+      },
     })
     .where(eq(schema.accountImports.id, input.importId));
 
   return {
     importId: input.importId,
     created,
+    updated,
     skipped,
     failed,
     rows: results,

@@ -72,6 +72,11 @@ const nextConfig: NextConfig = {
     // Kurangi modul ikon/grafik yang ikut ter-bundle di tiap rute.
     optimizePackageImports: ["lucide-react", "recharts", "sonner"],
   },
+  // Laporan PDF membaca logo dari public/brand saat runtime, jadi aset itu
+  // harus ikut ke output function server, bukan hanya ke CDN statis.
+  outputFileTracingIncludes: {
+    "/api/v1/reports/**": ["./public/brand/**"],
+  },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

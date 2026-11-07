@@ -9,27 +9,27 @@ export const DEMO_ACCOUNTS = {
   regional: {
     email: "wilayah.a@demo.dakosta.local",
     label: "Admin Wilayah A",
-    redirectTo: "/wilayah",
+    redirectTo: "/wilayah/dashboard",
   },
   regionalB: {
     email: "wilayah.b@demo.dakosta.local",
     label: "Admin Wilayah B",
-    redirectTo: "/wilayah",
+    redirectTo: "/wilayah/dashboard",
   },
   branch: {
     email: "cabang.a1@demo.dakosta.local",
     label: "Admin Cabang A1",
-    redirectTo: "/cabang",
+    redirectTo: "/cabang/dashboard",
   },
   branchA2: {
     email: "cabang.a2@demo.dakosta.local",
     label: "Admin Cabang A2",
-    redirectTo: "/cabang",
+    redirectTo: "/cabang/dashboard",
   },
   branchB1: {
     email: "cabang.b1@demo.dakosta.local",
     label: "Admin Cabang B1",
-    redirectTo: "/cabang",
+    redirectTo: "/cabang/dashboard",
   },
   client: {
     email: "mitra.nusantara@demo.dakosta.local",

@@ -29,8 +29,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { AccountRow, ScopeOptions } from "@/lib/accounts";
 import { APP_ROLES, ROLE_LABELS, type AppRole } from "@/lib/authz/types";
+import { formatDateTimeId } from "@/lib/dates";
 
-type Credential = { name: string; email: string; activationUrl: string };
+type Credential = {
+  name: string;
+  email: string;
+  activationUrl: string;
+  activationExpiresAt: string;
+};
 
 const PAGE_SIZE = 25;
 
@@ -159,6 +165,7 @@ export function AccountManager({
           name,
           email: body.data.email,
           activationUrl: body.data.activationUrl,
+          activationExpiresAt: body.data.activationExpiresAt,
         });
         toast.success(
           "Akun dibuat. Salin tautan aktivasi dan kirimkan kepada pengguna.",
@@ -247,7 +254,7 @@ export function AccountManager({
           }),
         });
         const body = (await response.json()) as {
-          data?: { activationUrl?: string };
+          data?: { activationUrl?: string; activationExpiresAt?: string };
           error?: { code?: string; message?: string };
         };
         if (isStepUpRequired(response, body)) {
@@ -263,6 +270,7 @@ export function AccountManager({
             name: account.name,
             email: account.email,
             activationUrl: body.data.activationUrl,
+            activationExpiresAt: body.data.activationExpiresAt ?? "",
           });
           toast.success("Tautan aktivasi dibuat dan sesi dicabut.");
         } else {
@@ -327,6 +335,9 @@ export function AccountManager({
           <p className="mt-1 text-xs text-ink-muted">
             Tautan berlaku 48 jam dan hanya dapat dipakai sekali. Kirimkan
             kepada pengguna; mereka membuat kata sandi sendiri saat aktivasi.
+            {credential.activationExpiresAt
+              ? ` Kedaluwarsa ${formatDateTimeId(credential.activationExpiresAt)}.`
+              : ""}
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <code className="rounded-lg border border-border bg-surface px-3 py-2 font-mono text-sm">
@@ -382,8 +393,9 @@ export function AccountManager({
           <h2 className="text-base font-semibold text-foreground">Buat akun</h2>
         </div>
         <p className="mt-1 text-xs text-ink-muted">
-          Akun dibuat di dalam DAKOSTA. Kata sandi sementara ditampilkan sekali
-          dan tidak dikirim melalui email.
+          Akun dibuat di dalam DAKOSTA. Pengguna mengaktifkan akun lewat tautan
+          sekali pakai dan membuat kata sandi sendiri; tidak ada kata sandi
+          sementara yang ditampilkan atau dikirim melalui email.
         </p>
         <form
           onSubmit={createAccount}

@@ -21,6 +21,29 @@ import type {
   ContentImportPreview,
 } from "@/lib/imports/content";
 
+function downloadResultCsv(result: ContentImportCommitResult) {
+  const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
+  const rows = [
+    ["baris", "status", "kode_referensi", "organisasi", "kesalahan"],
+    ...result.rows.map((row) => [
+      String(row.rowNumber),
+      row.status,
+      row.referenceCode ?? "",
+      row.organizationName ?? "",
+      row.error ?? "",
+    ]),
+  ];
+  const csv = `\uFEFF${rows.map((row) => row.map(escape).join(",")).join("\r\n")}\r\n`;
+  const url = URL.createObjectURL(
+    new Blob([csv], { type: "text/csv;charset=utf-8" }),
+  );
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "hasil-impor-konten.csv";
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 export function ContentImportWizard({
   readOnly = false,
 }: {
@@ -99,7 +122,7 @@ export function ContentImportWizard({
         setPreview(null);
         setConfirmOpen(false);
         toast.success(
-          `${formatNumberId(body.data.created)} konten diimpor dan dikirim untuk validasi.`,
+          `${formatNumberId(body.data.created)} dikirim untuk validasi, ${formatNumberId(body.data.approved)} disetujui.`,
         );
         router.refresh();
       } catch {
@@ -134,13 +157,23 @@ export function ContentImportWizard({
         </div>
         <p className="mt-1 text-sm text-ink-muted">
           Format CSV, maksimal 1 MB dan 200 baris per unggahan. Konten valid
-          langsung dikirim ke antrean validasi cabang dengan status{" "}
-          <strong className="text-foreground">Diajukan</strong>.
+          dikirim ke antrean validasi cabang dengan status{" "}
+          <strong className="text-foreground">Diajukan</strong>. Kolom opsional{" "}
+          <code className="text-xs">status=disetujui</code> dan{" "}
+          <code className="text-xs">tanggal_persetujuan</code> hanya untuk
+          Master Admin dan dicatat sebagai persetujuan impor.
         </p>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <Button asChild variant="outline" className="h-10">
-            <a href="/api/v1/admin/imports/content/template">Unduh template</a>
+            <a href="/api/v1/admin/imports/template?kind=content">
+              Unduh template
+            </a>
+          </Button>
+          <Button asChild variant="ghost" className="h-10">
+            <a href="/api/v1/admin/imports/example?kind=content">
+              Unduh contoh
+            </a>
           </Button>
           <label className="inline-flex h-10 cursor-pointer items-center rounded-lg border border-input bg-background px-3 text-sm">
             <Upload className="mr-2 size-4" aria-hidden />
@@ -179,6 +212,7 @@ export function ContentImportWizard({
               </h2>
               <p className="text-xs text-ink-muted">
                 {formatNumberId(preview.validCount)} valid ·{" "}
+                {formatNumberId(preview.approvedCount)} disetujui ·{" "}
                 {formatNumberId(preview.errorCount)} bermasalah ·{" "}
                 {formatNumberId(preview.rowCount)} baris
               </p>
@@ -252,7 +286,11 @@ export function ContentImportWizard({
                             : "inline-flex rounded-full bg-status-rejected/10 px-2 py-0.5 text-xs font-medium text-status-rejected"
                         }
                       >
-                        {row.status === "VALID" ? "Valid" : "Bermasalah"}
+                        {row.status === "VALID"
+                          ? row.approve
+                            ? "Disetujui"
+                            : "Valid"
+                          : "Bermasalah"}
                       </span>
                       {row.errors.length > 0 ? (
                         <ul className="mt-1 list-disc pl-4 text-xs text-ink-muted">
@@ -279,20 +317,31 @@ export function ContentImportWizard({
             Impor selesai
           </h2>
           <p className="mt-1 text-sm text-ink-muted">
-            {formatNumberId(result.created)} konten dibuat dan dikirim untuk
-            validasi
+            {formatNumberId(result.created)} konten dikirim untuk validasi
+            {result.approved > 0
+              ? ` · ${formatNumberId(result.approved)} langsung disetujui`
+              : ""}
             {result.failed > 0
               ? ` · ${formatNumberId(result.failed)} baris gagal`
               : ""}
             .
           </p>
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-3 h-9"
+            onClick={() => downloadResultCsv(result)}
+          >
+            <Upload className="mr-1.5 size-4" aria-hidden />
+            Unduh laporan hasil
+          </Button>
           <ul className="mt-2 max-h-64 overflow-auto text-xs text-ink-muted">
             {result.rows.map((row) => (
               <li key={row.rowNumber}>
                 Baris {row.rowNumber} · {row.organizationName ?? "—"} ·{" "}
-                {row.status === "CREATED"
-                  ? row.referenceCode
-                  : (row.error ?? "Gagal")}
+                {row.status === "FAILED"
+                  ? (row.error ?? "Gagal")
+                  : `${row.status === "APPROVED" ? "Disetujui" : "Dibuat"} · ${row.referenceCode}`}
               </li>
             ))}
           </ul>
@@ -305,7 +354,7 @@ export function ContentImportWizard({
             <DialogTitle>Impor konten sekarang?</DialogTitle>
             <DialogDescription>
               {preview
-                ? `${formatNumberId(preview.validCount)} konten akan dibuat dan langsung dikirim ke antrean validasi cabang. Tindakan ini memerlukan konfirmasi kata sandi.`
+                ? `${formatNumberId(preview.validCount)} konten akan dibuat${preview.approvedCount > 0 ? `, ${formatNumberId(preview.approvedCount)} langsung disetujui dengan tanggal persetujuan dari berkas` : " dan dikirim ke antrean validasi cabang"}. Tindakan ini memerlukan konfirmasi kata sandi.`
                 : ""}
             </DialogDescription>
           </DialogHeader>

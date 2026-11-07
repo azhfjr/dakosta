@@ -57,3 +57,6 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# Audit harness run markers
+/docs/audit/v2-audit-2026-11/harness/.results/
