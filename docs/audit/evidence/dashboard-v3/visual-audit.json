@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-08T00:52:23.941Z",
-  "baseURL": "http://localhost:3300",
+  "generatedAt": "2026-11-08T04:52:25.800Z",
+  "baseURL": "http://localhost:3400",
   "results": [
     {
       "role": "master",
@@ -175,7 +175,7 @@
       "mapReady": true,
       "missingSections": [],
       "horizontalOverflowPx": 0,
-      "pageHeight": 2713,
+      "pageHeight": 2733,
       "viewportHeight": 812,
       "fitsOnePage": false,
       "consoleErrors": [],

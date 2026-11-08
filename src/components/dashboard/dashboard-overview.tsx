@@ -65,7 +65,7 @@ export function DashboardOverview({
   styleUrl: string;
 }) {
   return (
-    <div className="space-y-4 xl:space-y-3">
+    <div className="space-y-4 xl:space-y-2">
       <Suspense
         fallback={
           <DashboardSectionSkeleton label="Memuat ringkasan…" rows={2} />

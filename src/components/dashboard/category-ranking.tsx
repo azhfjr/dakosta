@@ -32,7 +32,7 @@ export function CategoryRankingPanel({
     <section
       id={anchor}
       aria-labelledby={headingId}
-      className="flex min-w-0 flex-col rounded-xl border border-border bg-surface p-4 shadow-sm xl:p-2.5"
+      className="flex min-w-0 flex-col rounded-xl border border-border bg-surface p-4 shadow-sm xl:p-2"
     >
       <div className="flex items-baseline justify-between gap-2">
         <h3
@@ -47,14 +47,14 @@ export function CategoryRankingPanel({
         </h4>
       </div>
 
-      <p className="mt-1 text-2xl font-semibold tracking-tight text-foreground tabular xl:mt-0.5 xl:text-lg">
+      <p className="mt-1 text-2xl font-semibold tracking-tight text-foreground tabular xl:mt-0 xl:text-lg xl:leading-6">
         {formatNumberId(score)}
       </p>
       <p className="mt-0.5 text-xs text-ink-muted xl:sr-only">
         Total seluruh konten tervalidasi pada cabang terpilih.
       </p>
 
-      <div className="mt-3 border-t border-border pt-2 xl:mt-1.5 xl:pt-1">
+      <div className="mt-3 border-t border-border pt-2 xl:mt-1 xl:pt-0.5">
         {rows.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border bg-surface-muted/40 px-3 py-4 text-center text-sm text-ink-muted">
             Belum ada konten tervalidasi pada kategori ini.
@@ -67,9 +67,9 @@ export function CategoryRankingPanel({
               return (
                 <li
                   key={`${row.stakeholderId}-${row.branchId ?? "tanpa-cabang"}`}
-                  className="relative min-w-0 pb-1 xl:pb-[3px]"
+                  className="relative min-w-0 pb-1 xl:pb-px"
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 xl:h-4">
                     <span className="w-4 shrink-0 text-right text-[10px] font-semibold text-ink-muted tabular">
                       {index + 1}
                     </span>
@@ -101,7 +101,7 @@ export function CategoryRankingPanel({
                     aria-valuemin={0}
                     aria-valuemax={100}
                     aria-valuenow={Math.round(share)}
-                    className="ml-6 mt-1 h-1 overflow-hidden rounded-full bg-surface-muted xl:absolute xl:inset-x-0 xl:bottom-0 xl:mt-0 xl:h-[3px] xl:ml-0"
+                    className="ml-6 mt-1 h-1 overflow-hidden rounded-full bg-surface-muted xl:absolute xl:inset-x-0 xl:bottom-0 xl:mt-0 xl:h-0.5 xl:ml-0"
                   >
                     <div
                       data-ranking-fill
