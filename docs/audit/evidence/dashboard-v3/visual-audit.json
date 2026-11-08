@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-07T18:54:55.682Z",
+  "generatedAt": "2026-11-08T00:52:23.941Z",
   "baseURL": "http://localhost:3300",
   "results": [
     {
@@ -10,6 +10,9 @@
       "mapReady": true,
       "missingSections": [],
       "horizontalOverflowPx": 0,
+      "pageHeight": 900,
+      "viewportHeight": 900,
+      "fitsOnePage": true,
       "consoleErrors": [],
       "pageErrors": [],
       "ok": true
@@ -22,6 +25,9 @@
       "mapReady": true,
       "missingSections": [],
       "horizontalOverflowPx": 0,
+      "pageHeight": 2065,
+      "viewportHeight": 1024,
+      "fitsOnePage": false,
       "consoleErrors": [],
       "pageErrors": [],
       "ok": true
@@ -34,6 +40,9 @@
       "mapReady": true,
       "missingSections": [],
       "horizontalOverflowPx": 0,
+      "pageHeight": 3089,
+      "viewportHeight": 812,
+      "fitsOnePage": false,
       "consoleErrors": [],
       "pageErrors": [],
       "ok": true
@@ -46,6 +55,9 @@
       "mapReady": true,
       "missingSections": [],
       "horizontalOverflowPx": 0,
+      "pageHeight": 900,
+      "viewportHeight": 900,
+      "fitsOnePage": true,
       "consoleErrors": [],
       "pageErrors": [],
       "ok": true
@@ -58,6 +70,9 @@
       "mapReady": true,
       "missingSections": [],
       "horizontalOverflowPx": 0,
+      "pageHeight": 1939,
+      "viewportHeight": 1024,
+      "fitsOnePage": false,
       "consoleErrors": [],
       "pageErrors": [],
       "ok": true
@@ -70,6 +85,9 @@
       "mapReady": true,
       "missingSections": [],
       "horizontalOverflowPx": 0,
+      "pageHeight": 2963,
+      "viewportHeight": 812,
+      "fitsOnePage": false,
       "consoleErrors": [],
       "pageErrors": [],
       "ok": true
@@ -82,6 +100,9 @@
       "mapReady": true,
       "missingSections": [],
       "horizontalOverflowPx": 0,
+      "pageHeight": 900,
+      "viewportHeight": 900,
+      "fitsOnePage": true,
       "consoleErrors": [],
       "pageErrors": [],
       "ok": true
@@ -94,6 +115,9 @@
       "mapReady": true,
       "missingSections": [],
       "horizontalOverflowPx": 0,
+      "pageHeight": 1861,
+      "viewportHeight": 1024,
+      "fitsOnePage": false,
       "consoleErrors": [],
       "pageErrors": [],
       "ok": true
@@ -106,6 +130,9 @@
       "mapReady": true,
       "missingSections": [],
       "horizontalOverflowPx": 0,
+      "pageHeight": 2867,
+      "viewportHeight": 812,
+      "fitsOnePage": false,
       "consoleErrors": [],
       "pageErrors": [],
       "ok": true
@@ -118,6 +145,9 @@
       "mapReady": true,
       "missingSections": [],
       "horizontalOverflowPx": 0,
+      "pageHeight": 900,
+      "viewportHeight": 900,
+      "fitsOnePage": true,
       "consoleErrors": [],
       "pageErrors": [],
       "ok": true
@@ -130,6 +160,9 @@
       "mapReady": true,
       "missingSections": [],
       "horizontalOverflowPx": 0,
+      "pageHeight": 1771,
+      "viewportHeight": 1024,
+      "fitsOnePage": false,
       "consoleErrors": [],
       "pageErrors": [],
       "ok": true
@@ -142,6 +175,9 @@
       "mapReady": true,
       "missingSections": [],
       "horizontalOverflowPx": 0,
+      "pageHeight": 2713,
+      "viewportHeight": 812,
+      "fitsOnePage": false,
       "consoleErrors": [],
       "pageErrors": [],
       "ok": true

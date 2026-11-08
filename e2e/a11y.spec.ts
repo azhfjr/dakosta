@@ -344,9 +344,19 @@ test.describe("Keyboard dan fokus", () => {
       await chartRegion.focus();
       await expect(chartRegion).toBeFocused();
 
+      const summary = page.locator("#pilih-cabang summary");
+      await summary.focus();
+      await expect(summary).toBeFocused();
+      await page.keyboard.press("Enter");
+      await expect(page.locator("#pilih-cabang details")).toHaveJSProperty(
+        "open",
+        true,
+      );
+
       const checklistRegion = page.getByRole("region", {
         name: "Daftar cabang, dapat digulir",
       });
+      await expect(checklistRegion).toBeVisible();
       await expect(checklistRegion).toHaveAttribute("tabindex", "0");
       await checklistRegion.focus();
       await expect(checklistRegion).toBeFocused();

@@ -68,6 +68,22 @@ async function scoreAt(page: Page, selector: string): Promise<number> {
   return parseNumber(await page.locator(selector).first().innerText());
 }
 
+async function openBranchList(page: Page): Promise<void> {
+  const details = page.locator("#pilih-cabang details");
+  const isOpen = await details.evaluate(
+    (node) => (node as HTMLDetailsElement).open,
+  );
+  if (isOpen) return;
+  await page.locator("#pilih-cabang summary").click();
+  await expect(details).toHaveJSProperty("open", true);
+}
+
+function parsePercent(text: string): number {
+  const match = text.match(/([\d.,]+)%/);
+  if (!match) throw new Error(`Persentase tidak ditemukan: ${text}`);
+  return Number(match[1]!.replace(/\./g, "").replace(",", "."));
+}
+
 async function sectionDomOrder(page: Page): Promise<string[]> {
   return page.evaluate((ids) => {
     const nodes = ids.map((id) => {
@@ -257,6 +273,7 @@ test.describe("Dashboard admin interaksi", () => {
     );
     const branchCount = await branches.count();
     expect(branchCount).toBeGreaterThan(0);
+    await openBranchList(page);
     await branches.first().click();
     await page.waitForURL(/cabang=/);
     await expect
@@ -298,6 +315,114 @@ test.describe("Dashboard admin interaksi", () => {
       if (totals.length > 0) {
         expect(score).toBeGreaterThanOrEqual(totals[0]!);
       }
+    }
+  });
+
+  test("bar peringkat proporsional terhadap skor kategori", async ({
+    page,
+  }) => {
+    await waitForDashboard(page, "/admin");
+
+    for (const section of CATEGORY_SECTIONS) {
+      const panel = page.locator(`#${section.anchor}`);
+      const score = await scoreAt(page, `#${section.anchor} > p.tabular`);
+      const rows = panel.locator("ol > li");
+      const count = await rows.count();
+      expect(count).toBeLessThanOrEqual(10);
+      if (count === 0) continue;
+      expect(score).toBeGreaterThan(0);
+
+      const measured: { total: number; width: number }[] = [];
+      for (let index = 0; index < count; index += 1) {
+        const row = rows.nth(index);
+        const total = parseNumber(
+          await row.locator("span.shrink-0").last().innerText(),
+        );
+        const share = parsePercent(
+          await row.locator("[data-ranking-share]").innerText(),
+        );
+        expect(
+          Math.abs(share - (total / score) * 100),
+          `${section.label} baris ${index + 1}: label persen`,
+        ).toBeLessThanOrEqual(1);
+
+        const track = await row.locator("[data-ranking-track]").boundingBox();
+        const fill = await row.locator("[data-ranking-fill]").boundingBox();
+        expect(
+          track,
+          `${section.label} baris ${index + 1}: track`,
+        ).not.toBeNull();
+        expect(
+          fill,
+          `${section.label} baris ${index + 1}: fill`,
+        ).not.toBeNull();
+        const ratio = fill!.width / track!.width;
+        expect(
+          Math.abs(ratio - total / score),
+          `${section.label} baris ${index + 1}: panjang bar`,
+        ).toBeLessThanOrEqual(0.04);
+        if (total < score) {
+          expect(
+            ratio,
+            `${section.label} baris ${index + 1}: bukan bar penuh`,
+          ).toBeLessThan(0.995);
+        }
+        measured.push({ total, width: fill!.width });
+      }
+
+      for (let index = 1; index < measured.length; index += 1) {
+        expect(
+          measured[index - 1]!.total,
+          `${section.label} harus menurun`,
+        ).toBeGreaterThanOrEqual(measured[index]!.total);
+      }
+      for (let left = 0; left < measured.length; left += 1) {
+        for (let right = left + 1; right < measured.length; right += 1) {
+          if (measured[left]!.total === measured[right]!.total) {
+            expect(
+              Math.abs(measured[left]!.width - measured[right]!.width),
+              `${section.label}: nilai seri harus sama panjang`,
+            ).toBeLessThanOrEqual(0.5);
+          }
+        }
+      }
+    }
+  });
+
+  test("dashboard muat dalam satu layar 1440x900 tanpa gulir vertikal", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await waitForDashboard(page, "/admin");
+    await page.evaluate(() => document.fonts.ready);
+    await expect
+      .poll(
+        () =>
+          page.evaluate(
+            () => document.documentElement.scrollHeight - window.innerHeight,
+          ),
+        { timeout: 15_000 },
+      )
+      .toBeLessThanOrEqual(2);
+
+    const anchors = await page.evaluate((ids) => {
+      return ids.map((id) => {
+        const node = document.getElementById(id);
+        if (!node) return null;
+        const rect = node.getBoundingClientRect();
+        return { id, top: rect.top, bottom: rect.bottom };
+      });
+    }, SECTION_ORDER);
+    for (const anchor of anchors) {
+      expect(anchor, "seluruh anchor harus ada").not.toBeNull();
+      expect(
+        anchor!.top,
+        `${anchor!.id} harus di dalam layar`,
+      ).toBeGreaterThanOrEqual(0);
+      expect(
+        anchor!.bottom,
+        `${anchor!.id} harus di dalam layar`,
+      ).toBeLessThanOrEqual(902);
     }
   });
 

@@ -24,7 +24,7 @@ const ROLES = [
 ];
 
 const VIEWPORTS = [
-  { name: "1440", width: 1440, height: 1000 },
+  { name: "1440", width: 1440, height: 900 },
   { name: "768", width: 768, height: 1024 },
   { name: "375", width: 375, height: 812 },
 ];
@@ -108,6 +108,11 @@ async function main() {
           const overflow = await page.evaluate(
             () => document.documentElement.scrollWidth - window.innerWidth,
           );
+          const pageHeight = await page.evaluate(
+            () => document.documentElement.scrollHeight,
+          );
+          const viewportHeight = await page.evaluate(() => window.innerHeight);
+          const fitsOnePage = pageHeight <= viewportHeight + 2;
           const screenshot = join(outDir, `${role.name}-${viewport.name}.png`);
           await page.screenshot({ path: screenshot, fullPage: true });
 
@@ -119,16 +124,20 @@ async function main() {
             mapReady,
             missingSections: missing,
             horizontalOverflowPx: Math.max(0, overflow),
+            pageHeight,
+            viewportHeight,
+            fitsOnePage,
             consoleErrors,
             pageErrors,
             ok:
               missing.length === 0 &&
               mapReady &&
               overflow <= 1 &&
-              pageErrors.length === 0,
+              pageErrors.length === 0 &&
+              (viewport.name !== "1440" || fitsOnePage),
           });
           console.log(
-            `${role.name} ${viewport.name}: ${missing.length === 0 ? "section lengkap" : `hilang ${missing.join(", ")}`}, peta ${mapReady ? "siap" : "belum siap"}, overflow ${Math.max(0, overflow)}px, ${pageErrors.length} page error.`,
+            `${role.name} ${viewport.name}: ${missing.length === 0 ? "section lengkap" : `hilang ${missing.join(", ")}`}, peta ${mapReady ? "siap" : "belum siap"}, overflow ${Math.max(0, overflow)}px, tinggi ${pageHeight}px${viewport.name === "1440" ? ` (${fitsOnePage ? "muat" : "melebihi"} satu layar)` : ""}, ${pageErrors.length} page error.`,
           );
         } catch (error) {
           results.push({

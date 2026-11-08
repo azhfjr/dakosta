@@ -105,7 +105,7 @@ export function AppShell({
 
         <main
           id="konten"
-          className="flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8 print:p-0"
+          className="flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-6 xl:py-4 print:p-0"
         >
           {user.role !== "MASTER_ADMIN" &&
           user.locationStatus !== "VERIFIED" &&

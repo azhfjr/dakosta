@@ -33,10 +33,11 @@ export default async function BranchHomePage({
   redirectDashboardView("/cabang/dashboard", params);
 
   return (
-    <PageContainer>
+    <PageContainer gap="compact">
       <PageHeader
         title="Dashboard cabang"
         description={`${DESCRIPTION} ${user.scopeLabel}`}
+        dense
         meta={`Diperbarui ${formatDateTimeId(new Date())} WIB`}
         actions={
           <Button asChild className="h-9">
@@ -44,7 +45,7 @@ export default async function BranchHomePage({
           </Button>
         }
       />
-      <Suspense fallback={<PageSkeleton label="Memuat dasbor…" />}>
+      <Suspense fallback={<PageSkeleton label="Memuat dasbor…" dense />}>
         <BranchHomeBody user={user} params={params} />
       </Suspense>
     </PageContainer>

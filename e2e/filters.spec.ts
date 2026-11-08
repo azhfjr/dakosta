@@ -158,6 +158,7 @@ test.describe("Filter cabang dashboard", () => {
       checklist.getByRole("heading", { name: "Cabang", exact: true }),
     ).toBeVisible();
 
+    await checklist.locator("summary").click();
     const branch = checklist.locator('input[id^="cabang-"]').first();
     await expect(branch).toBeVisible();
     await branch.click();
@@ -167,5 +168,44 @@ test.describe("Filter cabang dashboard", () => {
     expect(url.hash).toBe("#tema-konten");
     expect(url.searchParams.getAll("cabang").length).toBeGreaterThan(0);
     await expect(page.locator("#tema-konten")).toBeVisible();
+  });
+
+  test("dropdown wilayah memilih seluruh cabang wilayah dan dapat direset", async ({
+    page,
+  }) => {
+    await page.goto("/admin#tema-konten");
+    const checklist = page.locator("#pilih-cabang");
+    const regionSelect = checklist.getByLabel("Wilayah");
+    await expect(regionSelect).toBeVisible();
+    await expect(regionSelect).toHaveValue("all");
+
+    const regionOption = regionSelect.locator("option").nth(1);
+    const regionValue = await regionOption.getAttribute("value");
+    expect(regionValue).toMatch(/^region:/);
+    const region = regionValue!.slice("region:".length);
+
+    const expected = await checklist.evaluate((root, regionName) => {
+      const groups = Array.from(
+        root.querySelectorAll("[data-region]"),
+      ) as HTMLElement[];
+      const group = groups.find((item) => item.dataset.region === regionName);
+      return group ? group.querySelectorAll('input[id^="cabang-"]').length : 0;
+    }, region);
+    expect(expected).toBeGreaterThan(0);
+
+    await regionSelect.selectOption(regionValue!);
+    await page.waitForURL(
+      (url) => url.searchParams.getAll("cabang").length === expected,
+    );
+    const url = new URL(page.url());
+    expect(url.hash).toBe("#tema-konten");
+    expect(url.searchParams.getAll("cabang")).toHaveLength(expected);
+    await expect(regionSelect).toHaveValue(regionValue!);
+    await expect(page.locator("#tema-konten")).toBeVisible();
+
+    await regionSelect.selectOption("all");
+    await page.waitForURL((target) => !target.searchParams.has("cabang"));
+    expect(new URL(page.url()).hash).toBe("#tema-konten");
+    await expect(checklist.locator("#pilih-semua-cabang")).toBeChecked();
   });
 });

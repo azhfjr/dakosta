@@ -8,6 +8,7 @@ export function PageHeader({
   actions,
   meta,
   eyebrow,
+  dense = false,
   className,
 }: {
   title: string;
@@ -15,12 +16,14 @@ export function PageHeader({
   actions?: ReactNode;
   meta?: ReactNode;
   eyebrow?: string;
+  dense?: boolean;
   className?: string;
 }) {
   return (
     <header
       className={cn(
         "flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between",
+        dense && "gap-2 xl:items-center",
         className,
       )}
     >
@@ -30,11 +33,23 @@ export function PageHeader({
             {eyebrow}
           </p>
         ) : null}
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+        <h1
+          className={cn(
+            "font-semibold tracking-tight text-foreground",
+            dense ? "text-2xl xl:text-xl" : "text-2xl",
+          )}
+        >
           {title}
         </h1>
         {description ? (
-          <p className="mt-1 max-w-2xl text-sm text-ink-muted">{description}</p>
+          <p
+            className={cn(
+              "mt-1 max-w-2xl text-ink-muted",
+              dense ? "text-sm xl:line-clamp-1 xl:text-xs" : "text-sm",
+            )}
+          >
+            {description}
+          </p>
         ) : null}
       </div>
       {actions ? (

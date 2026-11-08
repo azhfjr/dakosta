@@ -65,7 +65,7 @@ export function DashboardOverview({
   styleUrl: string;
 }) {
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 xl:space-y-3">
       <Suspense
         fallback={
           <DashboardSectionSkeleton label="Memuat ringkasan…" rows={2} />
@@ -78,20 +78,22 @@ export function DashboardOverview({
           <DashboardSectionSkeleton label="Memuat kolaborasi…" rows={4} />
         }
       >
-        <CollaborationSection
-          user={user}
-          basePath={basePath}
-          params={params}
-          styleUrl={styleUrl}
-        />
+        <CollaborationSection user={user} basePath={basePath} params={params} />
       </Suspense>
-      <Suspense
-        fallback={
-          <DashboardSectionSkeleton label="Memuat tema konten…" rows={2} />
-        }
-      >
-        <ThemeSection user={user} params={params} />
-      </Suspense>
+      <div className="grid min-w-0 gap-3 xl:grid-cols-2">
+        <Suspense
+          fallback={<DashboardSectionSkeleton label="Memuat peta…" rows={1} />}
+        >
+          <MapSection user={user} params={params} styleUrl={styleUrl} />
+        </Suspense>
+        <Suspense
+          fallback={
+            <DashboardSectionSkeleton label="Memuat tema konten…" rows={2} />
+          }
+        >
+          <ThemeSection user={user} params={params} />
+        </Suspense>
+      </div>
     </div>
   );
 }
@@ -115,7 +117,7 @@ async function SummarySection({ user }: { user: SessionUser }) {
       title="Ringkasan gagal ditampilkan"
       description="Data berhasil diambil tetapi tampilan gagal dirender. Muat ulang bagian ini."
     >
-      <div className="space-y-4">
+      <div className="grid gap-3 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] xl:items-stretch">
         <SummaryScorecards summary={summary} />
         <BranchStackChart
           branches={summary.branches}
@@ -155,19 +157,17 @@ async function CollaborationSection({
   user,
   basePath,
   params,
-  styleUrl,
 }: {
   user: SessionUser;
   basePath: string;
   params: FilterParams;
-  styleUrl: string;
 }) {
   const result = await loadFiltered(user, params);
   if (!result.ok) {
     return (
       <DashboardErrorState
         title="Data kolaborasi belum dapat dimuat"
-        description="Peringkat, peta, dan checklist cabang tidak tersedia saat ini. Ringkasan di atas tidak terpengaruh."
+        description="Peringkat dan checklist cabang tidak tersedia saat ini. Ringkasan di atas tidak terpengaruh."
       />
     );
   }
@@ -182,7 +182,6 @@ async function CollaborationSection({
         filtered={result.filtered}
         basePath={basePath}
         params={params}
-        styleUrl={styleUrl}
       />
     </DashboardSectionBoundary>
   );
@@ -193,34 +192,36 @@ function CollaborationView({
   filtered,
   basePath,
   params,
-  styleUrl,
 }: {
   summary: DashboardSummary;
   filtered: DashboardFiltered;
   basePath: string;
   params: FilterParams;
-  styleUrl: string;
 }) {
   const branches: DashboardBranchRow[] = summary.branches;
   return (
     <section
       id="kolaborasi"
       aria-labelledby="kolaborasi-judul"
-      className="space-y-4"
+      className="min-w-0"
     >
-      <h2
-        id="kolaborasi-judul"
-        className="text-lg font-semibold text-foreground"
-      >
-        Kolaborasi
-      </h2>
-      <BranchChecklist
-        basePath={basePath}
-        params={params}
-        branches={branches}
-        selection={filtered.selection}
-      />
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <h2
+          id="kolaborasi-judul"
+          className="text-base font-semibold text-foreground xl:text-sm"
+        >
+          Kolaborasi
+        </h2>
+        <div className="min-w-0 flex-1">
+          <BranchChecklist
+            basePath={basePath}
+            params={params}
+            branches={branches}
+            selection={filtered.selection}
+          />
+        </div>
+      </div>
+      <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
         {DASHBOARD_CATEGORIES.map((category) => (
           <CategoryRankingPanel
             key={category}
@@ -231,8 +232,36 @@ function CollaborationView({
           />
         ))}
       </div>
-      <DashboardMapSection map={filtered.map} styleUrl={styleUrl} />
     </section>
+  );
+}
+
+async function MapSection({
+  user,
+  params,
+  styleUrl,
+}: {
+  user: SessionUser;
+  params: FilterParams;
+  styleUrl: string;
+}) {
+  const result = await loadFiltered(user, params);
+  if (!result.ok) {
+    return (
+      <DashboardErrorState
+        title="Peta belum dapat dimuat"
+        description="Sebaran konten tidak tersedia saat ini. Bagian lain tidak terpengaruh."
+      />
+    );
+  }
+
+  return (
+    <DashboardSectionBoundary
+      title="Peta gagal ditampilkan"
+      description="Data berhasil diambil tetapi tampilan gagal dirender. Muat ulang bagian ini."
+    >
+      <DashboardMapSection map={result.filtered.map} styleUrl={styleUrl} />
+    </DashboardSectionBoundary>
   );
 }
 
