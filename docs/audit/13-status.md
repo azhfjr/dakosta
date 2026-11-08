@@ -162,3 +162,20 @@ Enam temuan audit v2 sengaja tidak dikerjakan pada remediasi ini dan tetap terca
 - Staging WAN menyebabkan flakiness E2E; produksi berada di region yang sama dengan basis data.
 - Data uji sintetis; tidak ada PII.
 - G6 (beban 50/200/500 VU + soak) masih belum lulus; deploy dilakukan atas instruksi eksplisit pengguna.
+
+## Dashboard v3.1 (2026-11-08)
+
+Rilis refinemen dashboard di atas v3, dicatat lengkap di `16-dashboard-refinement-v31.md`.
+
+| Area                    | Status              | Angka terverifikasi                                                                                                    | Artefak / waktu                                                                                |
+| ----------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Gate statis + unit      | DONE (PASS)         | Prettier, lint, typecheck exit 0; 38 berkas, 259 tes                                                                   | `npm test`, 2026-11-08 11:50 WIB                                                               |
+| Backtest                | DONE (67/67 PASS)   | Rekonsiliasi dashboard = Kinerja = SQL                                                                                 | `npm run test:backtest`, generatedAt `2026-11-08T05:03:27.573Z`                                |
+| Build produksi          | DONE (PASS)         | `.next-verify` (env staging)                                                                                           | `npm run build:verify`, 2026-11-08 11:51 WIB                                                   |
+| E2E penuh               | DONE (100/100 PASS) | Termasuk regresi hash checklist dan assertion satu layar 1440×900                                                      | `PLAYWRIGHT_BASE_URL=http://localhost:3400 npx playwright test`, 7,7 mnt, 2026-11-08 12:01 WIB |
+| Audit visual            | DONE (12/12 PASS)   | 4 peran × 3 viewport; 0 overflow; 0 console/page error; 1440 tinggi 900px                                              | `dashboard-visual-audit.mjs`, generatedAt `2026-11-08T04:52:25.800Z`                           |
+| Deploy produksi v3.1    | DONE                | `dpl_59uYtGsJUDEZUfdYdvtGZAibjFq3`; alias `dakosta-dakosta.vercel.app`; rollback ke `dpl_6hFKpQpbAcZDnFTXwGDQhJNZiCd2` | `npx vercel deploy --prod --yes`, 2026-11-08 12:02 WIB                                         |
+| Smoke produksi          | DONE (21/21 PASS)   | Health, header, 401/307, login 4 peran, RBAC 403, PDF/CSV, rekonsiliasi 41 = 41 admin dan 19 = 19 wilayah              | `node scripts/smoke-production.mjs`; `E-smoke-production-2026-11-08T05-02-35-303Z.json`        |
+| Verifikasi live 4 peran | DONE (4/4 PASS)     | 1440×900 data produksi penuh: tinggi 900px, 12/12 anchor terurut, toolbar filter ada; Master 19 baris peringkat        | verifikasi Playwright, 2026-11-08 12:02 WIB; `production-*-1440.png`                           |
+
+Tidak ada migrasi skema, seed, atau perubahan variabel lingkungan pada rilis ini.
