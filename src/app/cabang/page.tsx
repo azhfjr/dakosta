@@ -62,11 +62,11 @@ export default async function BranchSlaPage({
         meta={`Diperbarui ${formatDateTimeId(new Date())} WIB`}
         actions={
           <>
-            <Button asChild variant="outline" className="h-9">
-              <Link href="/cabang/dashboard">Dashboard</Link>
+            <Button asChild variant="outline" className="h-10 sm:h-9">
+              <Link href="/cabang/dashboard">Lihat dashboard</Link>
             </Button>
-            <Button asChild className="h-9">
-              <Link href="/cabang/kinerja">Kinerja</Link>
+            <Button asChild className="h-10 sm:h-9">
+              <Link href="/cabang/kinerja">Lihat kinerja</Link>
             </Button>
           </>
         }

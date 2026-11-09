@@ -16,6 +16,7 @@ import { cachedRead, readCacheKey } from "@/lib/read-cache";
 import type { SessionUser } from "@/lib/session";
 import { SUB_THEME_LABELS, type SubTheme } from "@/lib/taxonomy";
 
+import { buildInstitutionChart } from "@/lib/dashboard/institutions";
 import {
   DASHBOARD_CATEGORIES,
   DASHBOARD_MAP_POINT_LIMIT,
@@ -262,6 +263,7 @@ function emptyFiltered(selection: BranchSelection): DashboardFiltered {
       PEMDA: [],
       STAKEHOLDER: [],
     },
+    institutionChart: buildInstitutionChart([]),
     edufast: 0,
     nonEdufast: 0,
     unclassifiedTheme: 0,
@@ -494,6 +496,7 @@ async function loadFiltered(
     selection,
     categoryTotals,
     rankings: buildRankings(institutions),
+    institutionChart: buildInstitutionChart(institutions),
     edufast,
     nonEdufast,
     unclassifiedTheme,

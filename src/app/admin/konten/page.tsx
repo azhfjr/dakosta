@@ -43,7 +43,7 @@ export default async function AdminContentPage({
         description="Arsip seluruh konten lintas stakeholder beserta status, keputusan, dan versi terakhirnya. Hanya status Disetujui yang dihitung dalam capaian."
         meta={`Diperbarui ${formatDateTimeId(new Date())} WIB`}
         actions={
-          <Button asChild variant="outline" className="h-9">
+          <Button asChild variant="outline" className="h-10 sm:h-9">
             <Link href="/admin/konten/impor">Impor konten</Link>
           </Button>
         }

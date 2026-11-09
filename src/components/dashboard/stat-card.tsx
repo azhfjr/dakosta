@@ -12,6 +12,7 @@ const toneClass = {
 } as const;
 
 export function StatCard({
+  id,
   label,
   value,
   hint,
@@ -19,6 +20,7 @@ export function StatCard({
   tone = "blue",
   size = "default",
 }: {
+  id?: string;
   label: string;
   value: string;
   hint?: string;
@@ -28,10 +30,9 @@ export function StatCard({
 }) {
   return (
     <div
-      className={cn(
-        "rounded-xl border border-border bg-surface shadow-sm",
-        size === "compact" ? "p-4" : "p-4 sm:p-5",
-      )}
+      id={id}
+      data-dashboard-panel
+      className="h-full rounded-xl border border-border bg-surface p-4 shadow-sm sm:p-5"
     >
       <div className="flex items-start justify-between gap-3">
         <p className="text-sm font-medium text-ink-muted">{label}</p>

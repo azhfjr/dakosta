@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-11-09T02:16:24.765Z",
+  "generatedAt": "2026-11-09T05:56:02.168Z",
   "jakartaMonth": "2026-11",
   "fixtures": 72,
-  "total": 67,
-  "passed": 67,
+  "total": 72,
+  "passed": 72,
   "failed": 0,
   "checks": [
     {
@@ -193,6 +193,31 @@
     },
     {
       "name": "overview duplicate institution names stay separate",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview institution chart total = A2 category sum",
+      "ok": true,
+      "detail": "actual=57 expected=57"
+    },
+    {
+      "name": "overview institution chart respects the row budget",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview institution chart categories reconcile",
+      "ok": true,
+      "detail": "{\"FKRTL\":9,\"FKTP\":33,\"PEMDA\":8,\"STAKEHOLDER\":7}"
+    },
+    {
+      "name": "overview institution chart is descending",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview institution chart aggregate implies a full row budget",
       "ok": true,
       "detail": ""
     },

@@ -178,6 +178,9 @@ test.describe("Filter cabang dashboard", () => {
     const regionSelect = checklist.getByLabel("Wilayah");
     await expect(regionSelect).toBeVisible();
     await expect(regionSelect).toHaveValue("all");
+    // The branch popover only renders its list while open, so open it before
+    // counting the branches grouped by region.
+    await checklist.locator("summary").click();
 
     const regionOption = regionSelect.locator("option").nth(1);
     const regionValue = await regionOption.getAttribute("value");

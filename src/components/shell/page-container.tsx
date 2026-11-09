@@ -24,8 +24,9 @@ export function PageContainer({
 }) {
   return (
     <div
+      data-page-container
       className={cn(
-        "mx-auto flex w-full flex-col gap-6",
+        "mx-auto flex w-full flex-col gap-5 sm:gap-6",
         widthClass[width],
         className,
       )}

@@ -373,9 +373,10 @@ export function DashboardMapSection({
     <section
       id="peta"
       aria-labelledby="peta-judul"
+      data-dashboard-panel="bleed"
       className="scroll-mt-20 rounded-xl border border-border bg-surface shadow-sm"
     >
-      <div className="flex flex-col gap-2 border-b border-border px-4 py-3 sm:px-5">
+      <div className="flex flex-col gap-2 border-b border-border px-4 py-3 sm:px-5 sm:py-4">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
             <h3
@@ -431,7 +432,7 @@ export function DashboardMapSection({
           <div
             ref={containerRef}
             data-map-canvas
-            className="h-[260px] w-full sm:h-[340px]"
+            className="h-[260px] w-full sm:h-[320px] lg:h-[340px]"
             role="region"
             aria-label={`Peta interaktif sebaran konten pada ${formatNumberId(totals.mappedInstitutions)} institusi. Rincian angka tersedia pada panel peringkat dan daftar institusi tanpa lokasi.`}
           />

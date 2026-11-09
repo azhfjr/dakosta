@@ -10,6 +10,7 @@ import { PageHeader } from "@/components/shell/page-header";
 import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { Button } from "@/components/ui/button";
 import { redirectDashboardView } from "@/lib/dashboard/view";
+import { dashboardVariant } from "@/lib/dashboard/variant";
 import { formatDateTimeId } from "@/lib/dates";
 import { MAP_STYLE_URL } from "@/lib/geo";
 import { requireRole } from "@/lib/session";
@@ -32,7 +33,7 @@ export default async function ClientHomePage({
 }) {
   const user = await requireRole("CLIENT");
   const params = await searchParams;
-  redirectDashboardView("/client", params);
+  redirectDashboardView("/client", params, dashboardVariant(user.role));
 
   return (
     <PageContainer>
@@ -42,8 +43,8 @@ export default async function ClientHomePage({
         meta={`Diperbarui ${formatDateTimeId(new Date())} WIB`}
         actions={
           <>
-            <DashboardExportButton params={params} className="h-10" />
-            <Button asChild className="h-10">
+            <DashboardExportButton params={params} className="h-10 sm:h-9" />
+            <Button asChild className="h-10 sm:h-9">
               <Link href="/client/lapor">
                 <PlusCircle className="size-4" aria-hidden />
                 Lapor konten

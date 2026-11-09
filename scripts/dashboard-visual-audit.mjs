@@ -1,15 +1,16 @@
 /**
- * Dashboard v3 visual audit.
+ * Dashboard v3.5 role-aware visual audit.
  *
  * Captures the four roles at desktop, tablet, and mobile widths against an
  * already-running local/staging server. Requires `e2e/.auth/*.json` sessions
  * produced by the E2E global setup. Never prints credentials.
  *
- * Gating verifies proportional charts/map, minimum panel and bar sizes, and
- * zero overlaps. Page height is recorded as information only: the v3 concept
- * scrolls at 1440 instead of compressing content into one screen.
+ * Gating verifies the v3.5 composition per role (national/regional branch
+ * chart, branch institution chart, stakeholder KPI + theme only), proportional
+ * charts/map/donut, header actions on the right, spacing bands, equal-height
+ * panel pairs, and zero overlaps or clipped labels.
  *
- *   PLAYWRIGHT_BASE_URL=http://localhost:3300 node scripts/dashboard-visual-audit.mjs
+ *   PLAYWRIGHT_BASE_URL=http://localhost:3400 node scripts/dashboard-visual-audit.mjs
  */
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -18,13 +19,87 @@ import { chromium } from "@playwright/test";
 
 const baseURL =
   process.env.PLAYWRIGHT_BASE_URL ??
-  `http://localhost:${process.env.E2E_PORT ?? "3300"}`;
+  `http://localhost:${process.env.E2E_PORT ?? "3400"}`;
 
 const ROLES = [
-  { name: "master", state: "admin.json", path: "/admin" },
-  { name: "regional", state: "regional.json", path: "/wilayah/dashboard" },
-  { name: "branch", state: "branch-a1.json", path: "/cabang/dashboard" },
-  { name: "stakeholder", state: "client.json", path: "/client" },
+  {
+    name: "master",
+    state: "admin.json",
+    path: "/admin",
+    variant: "national",
+    chartId: "konten-per-cabang",
+    hasFilter: true,
+    hasCollaboration: true,
+    sections: [
+      "ringkasan",
+      "konten-per-cabang",
+      "kolaborasi",
+      "pilih-cabang",
+      "fkrtl",
+      "fktp",
+      "pemda",
+      "stakeholder",
+      "peta",
+      "tema-konten",
+      "edufast",
+      "non-edufast",
+    ],
+  },
+  {
+    name: "regional",
+    state: "regional.json",
+    path: "/wilayah/dashboard",
+    variant: "regional",
+    chartId: "konten-per-cabang",
+    hasFilter: true,
+    hasCollaboration: true,
+    sections: [
+      "ringkasan",
+      "konten-per-cabang",
+      "kolaborasi",
+      "pilih-cabang",
+      "fkrtl",
+      "fktp",
+      "pemda",
+      "stakeholder",
+      "peta",
+      "tema-konten",
+      "edufast",
+      "non-edufast",
+    ],
+  },
+  {
+    name: "branch",
+    state: "branch-a1.json",
+    path: "/cabang/dashboard",
+    variant: "branch",
+    chartId: "konten-per-institusi",
+    hasFilter: false,
+    hasCollaboration: true,
+    sections: [
+      "ringkasan",
+      "konten-per-institusi",
+      "kolaborasi",
+      "fkrtl",
+      "fktp",
+      "pemda",
+      "stakeholder",
+      "peta",
+      "tema-konten",
+      "edufast",
+      "non-edufast",
+    ],
+  },
+  {
+    name: "stakeholder",
+    state: "client.json",
+    path: "/client",
+    variant: "stakeholder",
+    chartId: null,
+    hasFilter: false,
+    hasCollaboration: false,
+    sections: ["ringkasan", "edufast", "non-edufast", "tema-konten"],
+  },
 ];
 
 const VIEWPORTS = [
@@ -33,41 +108,41 @@ const VIEWPORTS = [
   { name: "375", width: 375, height: 812 },
 ];
 
-const LAYOUT_LIMITS = {
-  1440: { chartWidth: 1000, mapWidth: 1000, mapHeight: 320, panelWidth: 520 },
-  768: { chartWidth: 600, mapWidth: 600, mapHeight: 300, panelWidth: 330 },
-  375: { chartWidth: 280, mapWidth: 280, mapHeight: 240, panelWidth: 320 },
-};
+const CHART_WIDTH_MIN = { 1440: 1000, 768: 600, 375: 280 };
+const MAP_WIDTH_MIN = { 1440: 1000, 768: 600, 375: 280 };
 
-const SECTIONS = [
-  "ringkasan",
-  "konten-per-cabang",
-  "kolaborasi",
-  "pilih-cabang",
-  "fkrtl",
-  "fktp",
-  "pemda",
-  "stakeholder",
-  "peta",
-  "tema-konten",
-  "edufast",
-  "non-edufast",
-];
+const outDir = join("docs", "audit", "evidence", "dashboard-v35");
 
-const GAP_PAIRS = [
-  ["ringkasan", "konten-per-cabang"],
-  ["konten-per-cabang", "kolaborasi"],
-  ["pilih-cabang", "fkrtl"],
-  ["fkrtl", "pemda"],
-  ["stakeholder", "peta"],
-  ["peta", "tema-konten"],
-];
+function gapPairsFor(role, viewport) {
+  if (!role.hasCollaboration) {
+    return [["ringkasan", "tema-konten", 20, 32]];
+  }
+  // Below `sm` the ranking grid stacks into one column, so only consecutive
+  // panels are adjacent; measuring fkrtl→pemda there would span a whole panel.
+  const rankingPairs =
+    viewport.width < 640
+      ? [
+          ["fkrtl", "fktp", 12, 20],
+          ["fktp", "pemda", 12, 20],
+          ["pemda", "stakeholder", 12, 20],
+        ]
+      : [
+          ["fkrtl", "pemda", 12, 20],
+          ["fktp", "stakeholder", 12, 20],
+        ];
+  return [
+    ["ringkasan", role.chartId, 12, 32],
+    [role.chartId, "kolaborasi", 20, 32],
+    ...(role.hasFilter ? [["pilih-cabang", "fkrtl", 12, 32]] : []),
+    ...rankingPairs,
+    ["stakeholder", "peta", 12, 32],
+    ["kolaborasi", "tema-konten", 20, 32],
+  ];
+}
 
-const outDir = join("docs", "audit", "evidence", "dashboard-v3");
-
-async function measureLayout(page) {
+async function measureLayout(page, role, gapPairs) {
   return page.evaluate(
-    ({ gapPairs, panelIds }) => {
+    ({ gapPairs, panelIds, chartId, hasCollaboration }) => {
       function box(node) {
         if (!node) return null;
         const rect = node.getBoundingClientRect();
@@ -90,43 +165,113 @@ async function measureLayout(page) {
         ].map((id) => [id, byId(id)]),
       );
 
-      const gaps = gapPairs.map(([from, to]) => ({
+      const gaps = gapPairs.map(([from, to, min, max]) => ({
         from,
         to,
+        min,
+        max,
         gap:
           boxes[from] && boxes[to] ? boxes[to].top - boxes[from].bottom : null,
       }));
 
-      const chartNode = document.querySelector(
-        '#konten-per-cabang [role="region"][aria-label^="Grafik konten"]',
+      const headerBox = box(document.querySelector("[data-page-header]"));
+      const actionsBox = box(
+        document.querySelector("[data-page-header-actions]"),
       );
-      const chart = chartNode
-        ? {
+      const metaBox = box(document.querySelector("[data-page-header-meta]"));
+      const actionsNode = document.querySelector("[data-page-header-actions]");
+      const actionButtons = actionsNode
+        ? [...actionsNode.querySelectorAll("a,button")].map((node) => box(node))
+        : [];
+
+      let chart = null;
+      let chartEmpty = false;
+      if (chartId) {
+        const section = document.getElementById(chartId);
+        chartEmpty = Boolean(
+          section?.textContent?.includes(
+            "Belum ada cabang dalam cakupan Anda.",
+          ) ||
+          section?.textContent?.includes(
+            "Belum ada konten tervalidasi pada cabang Anda.",
+          ) ||
+          section?.textContent?.includes("Belum ada institusi"),
+        );
+        const chartNode = section?.querySelector(
+          '[role="region"][aria-label$="dapat digulir"]',
+        );
+        if (chartNode) {
+          const regionRect = chartNode.getBoundingClientRect();
+          const canvas = chartNode.firstElementChild;
+          const labels = [
+            ...chartNode.querySelectorAll(".recharts-label-list text"),
+          ];
+          const bars = [
+            ...chartNode.querySelectorAll(".recharts-bar-rectangle path"),
+          ];
+          chart = {
             ...box(chartNode),
+            canvasH: canvas ? canvas.getBoundingClientRect().height : null,
             svg: chartNode.querySelector("svg") !== null,
+            labels: labels.length,
+            labelOverflow: labels.length
+              ? Math.max(
+                  ...labels.map(
+                    (label) =>
+                      label.getBoundingClientRect().right - regionRect.right,
+                  ),
+                )
+              : 0,
+            barThickness: bars.length
+              ? Math.min(
+                  ...bars.map((bar) => bar.getBoundingClientRect().height),
+                )
+              : null,
             innerOverflow: chartNode.scrollWidth - chartNode.clientWidth,
+          };
+        }
+      }
+
+      const mapNode = document.querySelector("[data-map-canvas]");
+      const map = mapNode
+        ? {
+            ...box(mapNode),
+            headingAbove:
+              (document.getElementById("peta-judul")?.getBoundingClientRect()
+                .bottom ?? Number.POSITIVE_INFINITY) <=
+              mapNode.getBoundingClientRect().top + 1,
           }
         : null;
+      const mapEmpty = hasCollaboration
+        ? Boolean(
+            document
+              .getElementById("peta")
+              ?.textContent?.includes(
+                "Belum ada konten tervalidasi dengan lokasi",
+              ),
+          )
+        : false;
 
-      const canvas = document.querySelector("[data-map-canvas]");
-      const map = box(canvas);
-      const mapHeading = byId("peta-judul");
       const donut = box(document.querySelector("[data-theme-donut]"));
       const legend = box(
         document.querySelector(
           '#tema-konten [role="region"][aria-label^="Legenda tema"]',
         ),
       );
-      const themeCard = box(document.querySelector("[data-theme-card]"));
+      const themeEmpty = Boolean(
+        document
+          .getElementById("tema-konten")
+          ?.textContent?.includes("Belum ada konten Non-EDUFAST"),
+      );
 
       const overlaps = [];
       function check(name, left, right) {
         if (!left || !right) return;
         if (
-          left.left < right.right &&
-          right.left < left.right &&
-          left.top < right.bottom &&
-          right.top < left.bottom
+          left.left < right.right - 0.5 &&
+          right.left < left.right - 0.5 &&
+          left.top < right.bottom - 0.5 &&
+          right.top < left.bottom - 0.5
         ) {
           overlaps.push(name);
         }
@@ -140,54 +285,54 @@ async function measureLayout(page) {
           );
         }
       }
-      check("pilih-cabang-fkrtl", byId("pilih-cabang"), byId("fkrtl"));
-      check("pilih-cabang-fktp", byId("pilih-cabang"), byId("fktp"));
-      check("ringkasan-grafik", byId("ringkasan"), byId("konten-per-cabang"));
-      check("stakeholder-peta", byId("stakeholder"), byId("peta"));
-      check("peta-tema", byId("peta"), byId("tema-konten"));
-      check("judul-peta-kanvas", mapHeading, map);
+      if (hasCollaboration) {
+        check("pilih-cabang-fkrtl", byId("pilih-cabang"), byId("fkrtl"));
+        check("ringkasan-grafik", byId("ringkasan"), byId(chartId));
+        check("stakeholder-peta", byId("stakeholder"), byId("peta"));
+        check("peta-tema", byId("peta"), byId("tema-konten"));
+        check("judul-peta-kanvas", byId("peta-judul"), map);
+      }
       check("donut-legenda", donut, legend);
       check("edufast-non-edufast", byId("edufast"), byId("non-edufast"));
-      check("skor-tema-kartu", byId("non-edufast"), themeCard);
 
       const tracks = [...document.querySelectorAll("[data-ranking-track]")].map(
         (track) => track.getBoundingClientRect().height,
       );
 
-      const chartEmpty = document
-        .getElementById("konten-per-cabang")
-        ?.textContent?.includes("Belum ada cabang dalam cakupan Anda.");
-      const mapEmpty = document
-        .getElementById("peta")
-        ?.textContent?.includes("Belum ada konten tervalidasi dengan lokasi");
-      const themeEmpty = document
-        .getElementById("tema-konten")
-        ?.textContent?.includes("Belum ada konten Non-EDUFAST");
+      const panelRows = [
+        ["fkrtl", "fktp"],
+        ["pemda", "stakeholder"],
+      ].map(([leftId, rightId]) => ({
+        left: boxes[leftId] ?? null,
+        right: boxes[rightId] ?? null,
+      }));
 
       return {
         overflow: document.documentElement.scrollWidth - window.innerWidth,
         boxes,
         gaps,
+        header: headerBox,
+        actions: actionsBox,
+        meta: metaBox,
+        actionButtons,
         chart,
-        chartEmpty: Boolean(chartEmpty),
-        map: map
-          ? {
-              ...map,
-              headingAbove:
-                mapHeading !== null && mapHeading.bottom <= map.top + 1,
-            }
-          : null,
-        mapEmpty: Boolean(mapEmpty),
+        chartEmpty,
+        map,
+        mapEmpty,
         donut,
         legend,
-        themeEmpty: Boolean(themeEmpty),
-        barH: tracks.length > 0 ? Math.min(...tracks) : null,
+        themeEmpty,
+        rankingTrackMin: tracks.length > 0 ? Math.min(...tracks) : null,
+        rankingTrackMax: tracks.length > 0 ? Math.max(...tracks) : null,
+        panelRows,
         overlaps,
       };
     },
     {
-      gapPairs: GAP_PAIRS,
+      gapPairs,
       panelIds: ["fkrtl", "fktp", "pemda", "stakeholder"],
+      chartId: role.chartId,
+      hasCollaboration: role.hasCollaboration,
     },
   );
 }
@@ -200,6 +345,7 @@ async function main() {
   try {
     for (const role of ROLES) {
       for (const viewport of VIEWPORTS) {
+        const gapPairs = gapPairsFor(role, viewport);
         const context = await browser.newContext({
           storageState: join("e2e", ".auth", role.state),
           viewport: { width: viewport.width, height: viewport.height },
@@ -224,99 +370,171 @@ async function main() {
             state: "visible",
             timeout: 120_000,
           });
-          // The map initialises only once it intersects the viewport, so scroll
-          // to it before capturing a full-page screenshot.
-          await page.locator("#peta").scrollIntoViewIfNeeded();
-          let mapState = "empty";
-          if ((await page.locator("[data-map-canvas]").count()) > 0) {
-            mapState = "loading";
-            try {
-              await page
-                .locator("#peta .maplibregl-canvas")
-                .waitFor({ state: "visible", timeout: 60_000 });
-              await page
+          if (role.chartId) {
+            await page.locator(`#${role.chartId}`).waitFor({
+              state: "visible",
+              timeout: 120_000,
+            });
+          }
+          let mapState = "not-applicable";
+          if (role.hasCollaboration) {
+            await page.locator("#peta").scrollIntoViewIfNeeded();
+            if ((await page.locator("[data-map-canvas]").count()) > 0) {
+              mapState = "loading";
+              try {
+                await page
+                  .locator("#peta .maplibregl-canvas")
+                  .waitFor({ state: "visible", timeout: 60_000 });
+                await page
+                  .locator("#peta")
+                  .getByText("Memuat peta…", { exact: true })
+                  .waitFor({ state: "detached", timeout: 60_000 });
+                const mapFailed = await page
+                  .locator("#peta")
+                  .getByText("Basemap tidak dapat dimuat")
+                  .count();
+                mapState = mapFailed === 0 ? "ready" : "failed";
+              } catch {
+                mapState = "failed";
+              }
+            } else {
+              mapState = (await page
                 .locator("#peta")
-                .getByText("Memuat peta…", { exact: true })
-                .waitFor({ state: "detached", timeout: 60_000 });
-              const mapFailed = await page
-                .locator("#peta")
-                .getByText("Basemap tidak dapat dimuat")
-                .count();
-              mapState = mapFailed === 0 ? "ready" : "failed";
-            } catch {
-              mapState = "failed";
+                .getByText("Belum ada konten tervalidasi dengan lokasi", {
+                  exact: false,
+                })
+                .count())
+                ? "empty"
+                : "failed";
             }
-          } else {
-            mapState = (await page
-              .locator("#peta")
-              .getByText("Belum ada konten tervalidasi dengan lokasi", {
-                exact: false,
-              })
-              .count())
-              ? "empty"
-              : "failed";
           }
           await page.evaluate(() => window.scrollTo(0, 0));
           await page.waitForTimeout(1200);
 
           const missing = await page.evaluate(
             (ids) => ids.filter((id) => !document.getElementById(id)),
-            SECTIONS,
+            role.sections,
           );
           const pageHeight = await page.evaluate(
             () => document.documentElement.scrollHeight,
           );
-          const layout = await measureLayout(page);
-          const limits = LAYOUT_LIMITS[viewport.name];
+          const layout = await measureLayout(page, role, gapPairs);
+
+          const gapViolations = layout.gaps.filter((gap) => {
+            if (gap.gap === null) return true;
+            return gap.gap < gap.min - 0.5 || gap.gap > gap.max + 0.5;
+          });
+          const headerOk =
+            viewport.width < 768
+              ? layout.actions &&
+                layout.header &&
+                Math.abs(layout.actions.left - layout.header.left) <= 2
+              : layout.actions &&
+                layout.header &&
+                Math.abs(layout.actions.right - layout.header.right) <= 2 &&
+                layout.meta &&
+                layout.meta.top >= layout.actions.bottom - 1;
+          const buttonsOk = layout.actionButtons.every((button) => {
+            if (!button) return false;
+            return viewport.name === "375"
+              ? button.height >= 39
+              : button.height >= 35 && button.height <= 41;
+          });
+          const chartOk = role.chartId
+            ? layout.chart
+              ? layout.chart.width >= CHART_WIDTH_MIN[viewport.name] &&
+                layout.chart.height >= 158 &&
+                layout.chart.height <= 362 &&
+                (layout.chart.canvasH === null ||
+                  (layout.chart.canvasH >= 159 &&
+                    layout.chart.canvasH <= 380)) &&
+                layout.chart.svg &&
+                layout.chart.innerOverflow <= 1 &&
+                layout.chart.labels > 0 &&
+                layout.chart.labelOverflow <= 1.5 &&
+                (layout.chart.barThickness === null ||
+                  (layout.chart.barThickness >= 10 &&
+                    layout.chart.barThickness <= 16))
+              : layout.chartEmpty
+            : layout.chart === null;
+          const mapOk = !role.hasCollaboration
+            ? layout.map === null
+            : layout.map
+              ? layout.map.width >= MAP_WIDTH_MIN[viewport.name] &&
+                layout.map.height >= 258 &&
+                layout.map.height <= 342 &&
+                layout.map.headingAbove
+              : layout.mapEmpty;
+          const themeOk = layout.donut
+            ? layout.donut.width >= 210 &&
+              layout.donut.height >= 210 &&
+              layout.donut.height <= 240 &&
+              (!layout.legend ||
+                layout.legend.height <= layout.donut.height + 1)
+            : layout.themeEmpty;
+          const rankingOk = role.hasCollaboration
+            ? layout.rankingTrackMin !== null &&
+              layout.rankingTrackMin >= 5.5 &&
+              layout.rankingTrackMax <= 8.5
+            : layout.rankingTrackMin === null;
+          const panelRowsOk =
+            viewport.width < 768 ||
+            !role.hasCollaboration ||
+            layout.panelRows.every(
+              ({ left, right }) =>
+                !left ||
+                !right ||
+                (Math.abs(left.top - right.top) <= 2 &&
+                  Math.abs(left.height - right.height) <= 2),
+            );
+
           const layoutOk =
             layout.overflow <= 1 &&
             layout.overlaps.length === 0 &&
-            layout.gaps.every((gap) => gap.gap !== null && gap.gap >= 8) &&
-            (layout.chart
-              ? layout.chart.width >= limits.chartWidth &&
-                layout.chart.height >= 140 &&
-                layout.chart.height <= 380 &&
-                layout.chart.svg &&
-                layout.chart.innerOverflow <= 1
-              : layout.chartEmpty) &&
-            (layout.map
-              ? layout.map.width >= limits.mapWidth &&
-                layout.map.height >= limits.mapHeight &&
-                layout.map.headingAbove
-              : layout.mapEmpty) &&
-            (layout.donut
-              ? layout.donut.width >= 210 && layout.donut.height >= 210
-              : layout.themeEmpty) &&
-            (layout.barH === null || layout.barH >= 5);
+            gapViolations.length === 0 &&
+            headerOk &&
+            buttonsOk &&
+            chartOk &&
+            mapOk &&
+            themeOk &&
+            rankingOk &&
+            panelRowsOk;
 
           const screenshot = join(outDir, `${role.name}-${viewport.name}.png`);
-          await page.screenshot({ path: screenshot, fullPage: true });
+          await page.screenshot({
+            path: screenshot,
+            fullPage: pageHeight <= 16_000,
+          });
 
-          const minGap = Math.min(...layout.gaps.map((gap) => gap.gap ?? -1));
           results.push({
             role: role.name,
+            variant: role.variant,
             path: role.path,
             viewport: viewport.name,
             screenshot,
             mapState,
-            mapReady: mapState === "ready",
+            mapReady: mapState === "ready" || mapState === "not-applicable",
             missingSections: missing,
             horizontalOverflowPx: Math.max(0, layout.overflow),
             pageHeight,
             layout: {
               chartW: layout.chart?.width ?? null,
               chartH: layout.chart?.height ?? null,
+              chartLabels: layout.chart?.labels ?? null,
+              chartBarThickness: layout.chart?.barThickness ?? null,
+              chartLabelOverflow: layout.chart?.labelOverflow ?? null,
               mapW: layout.map?.width ?? null,
               mapH: layout.map?.height ?? null,
-              panelW: Math.min(
-                ...["fkrtl", "fktp", "pemda", "stakeholder"].map(
-                  (id) => layout.boxes[id]?.width ?? 0,
-                ),
-              ),
-              donut: layout.donut?.width ?? null,
-              barH: layout.barH,
-              minGap,
+              donut: layout.donut?.height ?? null,
+              rankingTrack: layout.rankingTrackMin,
+              gaps: layout.gaps.map((gap) => ({
+                pair: `${gap.from}→${gap.to}`,
+                gap: gap.gap,
+                band: [gap.min, gap.max],
+              })),
               overlaps: layout.overlaps,
+              headerRightAligned: headerOk,
+              panelRowsOk,
             },
             consoleErrors,
             pageErrors,
@@ -327,11 +545,30 @@ async function main() {
               layoutOk,
           });
           console.log(
-            `${role.name} ${viewport.name}: ${missing.length === 0 ? "section lengkap" : `hilang ${missing.join(", ")}`}, peta ${mapState}, overflow ${Math.max(0, layout.overflow)}px, grafik ${layout.chart ? `${Math.round(layout.chart.width)}x${Math.round(layout.chart.height)}` : "kosong"}, peta ${layout.map ? `${Math.round(layout.map.width)}x${Math.round(layout.map.height)}` : "kosong"}, gap min ${minGap}px, overlap ${layout.overlaps.length}, tinggi ${pageHeight}px, ${pageErrors.length} page error.`,
+            `${role.name} ${viewport.name}: ${
+              missing.length === 0
+                ? "section lengkap"
+                : `hilang ${missing.join(", ")}`
+            }, peta ${mapState}, overflow ${Math.max(0, layout.overflow)}px, grafik ${
+              layout.chart
+                ? `${Math.round(layout.chart.width)}x${Math.round(layout.chart.height)}`
+                : "kosong"
+            }, peta ${
+              layout.map
+                ? `${Math.round(layout.map.width)}x${Math.round(layout.map.height)}`
+                : "kosong"
+            }, gap ${
+              gapViolations.length > 0
+                ? `LANGAR ${gapViolations
+                    .map((gap) => `${gap.from}→${gap.to} ${gap.gap}px`)
+                    .join(", ")}`
+                : "sesuai band"
+            }, overlap ${layout.overlaps.length}, ${layoutOk ? "OK" : "GAGAL GATE"}, ${pageErrors.length} page error.`,
           );
         } catch (error) {
           results.push({
             role: role.name,
+            variant: role.variant,
             path: role.path,
             viewport: viewport.name,
             screenshot: null,

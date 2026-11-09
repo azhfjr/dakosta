@@ -42,20 +42,14 @@ export default async function ClientContentListPage({
       <PageHeader
         title="Detail Konten"
         description="Seluruh konten organisasi Anda, termasuk draf, konten berjalan, dan riwayat keputusan."
+        meta="Ekspor mengikuti seluruh filter aktif."
         actions={
-          <div className="flex flex-col items-start gap-2 sm:items-end">
-            <div className="flex flex-wrap gap-2">
-              <Button asChild className="h-11">
-                <Link href="/client/lapor">
-                  <PlusCircle className="size-4" aria-hidden />
-                  Lapor konten
-                </Link>
-              </Button>
-            </div>
-            <p className="text-xs text-ink-muted">
-              Ekspor mengikuti seluruh filter aktif.
-            </p>
-          </div>
+          <Button asChild className="h-10 sm:h-9">
+            <Link href="/client/lapor">
+              <PlusCircle className="size-4" aria-hidden />
+              Lapor konten
+            </Link>
+          </Button>
         }
       />
 

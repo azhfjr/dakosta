@@ -14,13 +14,13 @@ export function DashboardSectionSkeleton({
   rows?: number;
 }) {
   return (
-    <div aria-busy="true" aria-label={label} className="space-y-3">
+    <div aria-busy="true" aria-label={label} className="space-y-4">
       <p className="text-sm text-ink-muted">{label}</p>
       <div
         className={
           rows > 2
-            ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-            : "grid gap-4 sm:grid-cols-2"
+            ? "grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4"
+            : "grid gap-3 sm:grid-cols-2 sm:gap-4"
         }
       >
         {Array.from({ length: rows }).map((_, index) => (

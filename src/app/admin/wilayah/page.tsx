@@ -23,7 +23,7 @@ export default async function AdminRegionsPage() {
       <PageHeader
         title="Wilayah"
         description="Struktur wilayah DAKOSTA beserta jumlah cabang, organisasi, dan capaian kontennya. Data mengikuti hierarki region → branch → organization."
-        actions={<RegionEditor readOnly={admin.isDemo} />}
+        actions={admin.isDemo ? undefined : <RegionEditor />}
       />
 
       {admin.isDemo ? (

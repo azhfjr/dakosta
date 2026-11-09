@@ -92,7 +92,7 @@ export default async function AdminTargetPage({
         summary={`${formatNumberId(total)} cakupan target pada ${overview.periodLabel}.`}
         actions={
           <Button asChild variant="outline" size="sm" className="h-9">
-            <Link href={`/admin?month=${month}`}>Buka ringkasan periode</Link>
+            <Link href={`/admin?month=${month}`}>Lihat ringkasan periode</Link>
           </Button>
         }
       />

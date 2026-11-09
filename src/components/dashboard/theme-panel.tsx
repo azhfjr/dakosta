@@ -47,11 +47,15 @@ export function ThemePanel({
   nonEdufast,
   unclassifiedTheme,
   themes,
+  scopeDescription,
+  showScorecards = true,
 }: {
   edufast: number;
   nonEdufast: number;
   unclassifiedTheme: number;
   themes: DashboardThemeRow[];
+  scopeDescription: string;
+  showScorecards?: boolean;
 }) {
   const data: ThemeDatum[] = themes.map((theme) => ({
     key: theme.key,
@@ -73,23 +77,34 @@ export function ThemePanel({
       >
         Tema Konten
       </h2>
-      <div className="mt-4 grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-1">
-          <ThemeScorecards edufast={edufast} nonEdufast={nonEdufast} />
-        </div>
+      <div className="mt-4 grid gap-3 sm:gap-4 lg:grid-cols-3">
+        {showScorecards ? (
+          <div className="h-full lg:col-span-1">
+            <ThemeScorecards
+              edufast={edufast}
+              nonEdufast={nonEdufast}
+              scopeDescription={scopeDescription}
+            />
+          </div>
+        ) : null}
 
         <div
           data-theme-card
-          className="rounded-xl border border-border bg-surface p-4 shadow-sm sm:p-5 lg:col-span-2"
+          data-dashboard-panel
+          className={
+            showScorecards
+              ? "rounded-xl border border-border bg-surface p-4 shadow-sm sm:p-5 lg:col-span-2"
+              : "rounded-xl border border-border bg-surface p-4 shadow-sm sm:p-5 lg:col-span-3"
+          }
         >
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
               <h3 className="text-base font-semibold text-foreground">
                 Tema Non-EDUFAST
               </h3>
-              <p className="mt-0.5 text-xs text-ink-muted">
-                Sebaran sub-tema dari total konten Non-EDUFAST pada cabang
-                terpilih.
+              <p className="mt-1 text-xs leading-relaxed text-ink-muted">
+                Sebaran sub-tema dari total konten Non-EDUFAST pada{" "}
+                {scopeDescription}.
               </p>
             </div>
             {unclassifiedTheme > 0 ? (
@@ -100,13 +115,16 @@ export function ThemePanel({
           </div>
 
           {!hasThemes ? (
-            <div className="mt-4 flex min-h-[220px] items-center justify-center rounded-lg border border-dashed border-border bg-surface-muted/40 px-4 text-center text-sm text-ink-muted">
-              Belum ada konten Non-EDUFAST pada cabang terpilih.
+            <div className="mt-3 flex min-h-[220px] items-center justify-center rounded-lg border border-dashed border-border bg-surface-muted/40 px-4 text-center text-sm text-ink-muted">
+              Belum ada konten Non-EDUFAST pada {scopeDescription}.
             </div>
           ) : (
             <>
-              <div className="mt-4 grid gap-4 md:grid-cols-2 md:items-center">
-                <div data-theme-donut className="relative h-[230px] w-full">
+              <div className="mt-3 grid gap-3 sm:gap-4 md:grid-cols-[260px_minmax(0,1fr)] md:items-center">
+                <div
+                  data-theme-donut
+                  className="relative h-[220px] w-full md:w-[260px]"
+                >
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart accessibilityLayer>
                       <Pie
@@ -141,7 +159,7 @@ export function ThemePanel({
                 </div>
 
                 <div
-                  className="max-h-[230px] min-w-0 overflow-y-auto overscroll-contain pr-1 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  className="max-h-[220px] min-w-0 overflow-y-auto overscroll-contain pr-1 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                   role="region"
                   aria-label="Legenda tema, dapat digulir"
                   tabIndex={0}

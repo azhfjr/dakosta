@@ -1,0 +1,5947 @@
+{
+  "generatedAt": "2026-11-09T05:55:49.598Z",
+  "baseURL": "http://localhost:3400",
+  "mode": "gate",
+  "baselineFile": "docs/audit/evidence/ui-v35/phase2-menu.json",
+  "viewports": [
+    {
+      "name": "1440",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "768",
+      "width": 768,
+      "height": 1024
+    },
+    {
+      "name": "375",
+      "width": 375,
+      "height": 812
+    }
+  ],
+  "bands": {
+    "sectionGap": [
+      20,
+      32
+    ],
+    "cardGap": [
+      12,
+      20
+    ],
+    "panelPadding": [
+      16,
+      24
+    ],
+    "chartHeight": [
+      140,
+      380
+    ],
+    "barThickness": [
+      10,
+      16
+    ],
+    "rankingTrack": [
+      6,
+      8
+    ],
+    "mapHeight": [
+      260,
+      360
+    ],
+    "donut": [
+      210,
+      240
+    ],
+    "buttonHeight": [
+      36,
+      40
+    ],
+    "mobileTouch": [
+      40,
+      null
+    ],
+    "overflow": [
+      0,
+      1
+    ]
+  },
+  "summary": {
+    "pages": 123,
+    "passed": 123,
+    "failed": 0,
+    "violations": 0,
+    "existing": 0,
+    "baseline": 0,
+    "new": 0,
+    "byCode": {}
+  },
+  "results": [
+    {
+      "role": "master",
+      "path": "/admin",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-1440.png",
+      "durationMs": 2336,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2653,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 340,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "768",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-768.png",
+      "durationMs": 1621,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2864,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 320,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-375.png",
+      "durationMs": 1591,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 4188,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 260,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/validasi",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-validasi-1440.png",
+      "durationMs": 1732,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 3696,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/validasi",
+      "type": "table",
+      "detail": false,
+      "viewport": "768",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-validasi-768.png",
+      "durationMs": 1677,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 5527,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/validasi",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-validasi-375.png",
+      "durationMs": 1631,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 7130,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/laporan",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-laporan-1440.png",
+      "durationMs": 2179,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1601,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/laporan",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-laporan-375.png",
+      "durationMs": 1616,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2611,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/konten",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-konten-1440.png",
+      "durationMs": 1866,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 3523,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/konten",
+      "type": "table",
+      "detail": false,
+      "viewport": "768",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-konten-768.png",
+      "durationMs": 1774,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 3605,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/konten",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-konten-375.png",
+      "durationMs": 1749,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 4054,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/konten/impor",
+      "type": "form",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-konten-impor-1440.png",
+      "durationMs": 1617,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1434,
+        "blockGaps": [
+          24,
+          24,
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/konten/impor",
+      "type": "form",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-konten-impor-375.png",
+      "durationMs": 1583,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2338,
+        "blockGaps": [
+          20,
+          20,
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/red-notice",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-red-notice-1440.png",
+      "durationMs": 2529,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 971,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/red-notice",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-red-notice-375.png",
+      "durationMs": 2495,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1284,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/notifikasi",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-notifikasi-1440.png",
+      "durationMs": 2257,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 900,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/notifikasi",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-notifikasi-375.png",
+      "durationMs": 1671,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 812,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/wilayah",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-wilayah-1440.png",
+      "durationMs": 2224,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 900,
+        "blockGaps": [
+          24,
+          24
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/wilayah",
+      "type": "table",
+      "detail": false,
+      "viewport": "768",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-wilayah-768.png",
+      "durationMs": 2095,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1024,
+        "blockGaps": [
+          24,
+          24
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/wilayah",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-wilayah-375.png",
+      "durationMs": 2095,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 812,
+        "blockGaps": [
+          20,
+          20
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/edufast",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-edufast-1440.png",
+      "durationMs": 2030,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1200,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 8
+          },
+          {
+            "kind": "column",
+            "value": 8
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/edufast",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-edufast-375.png",
+      "durationMs": 1960,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1761,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 8
+          },
+          {
+            "kind": "column",
+            "value": 8
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/impor",
+      "type": "form",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-impor-1440.png",
+      "durationMs": 1671,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 900,
+        "blockGaps": [
+          24,
+          24
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/impor",
+      "type": "form",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-impor-375.png",
+      "durationMs": 1652,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 812,
+        "blockGaps": [
+          20,
+          20
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/akun",
+      "type": "form",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-akun-1440.png",
+      "durationMs": 2005,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1451,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/akun",
+      "type": "form",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-akun-375.png",
+      "durationMs": 1988,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1694,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/peta",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-peta-1440.png",
+      "durationMs": 2639,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 10362,
+        "blockGaps": [
+          24,
+          24,
+          24,
+          24,
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/peta",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-peta-375.png",
+      "durationMs": 1903,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 13093,
+        "blockGaps": [
+          20,
+          20,
+          20,
+          20,
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/target",
+      "type": "form",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-target-1440.png",
+      "durationMs": 2044,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1467,
+        "blockGaps": [
+          24,
+          24,
+          24,
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/target",
+      "type": "form",
+      "detail": false,
+      "viewport": "768",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-target-768.png",
+      "durationMs": 1594,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1625,
+        "blockGaps": [
+          24,
+          24,
+          24,
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/target",
+      "type": "form",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-target-375.png",
+      "durationMs": 2101,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2432,
+        "blockGaps": [
+          20,
+          20,
+          20,
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/audit",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-audit-1440.png",
+      "durationMs": 2158,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 3978,
+        "blockGaps": [
+          24,
+          24
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/audit",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-audit-375.png",
+      "durationMs": 2298,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 4297,
+        "blockGaps": [
+          20,
+          20
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/sinkronisasi",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-sinkronisasi-1440.png",
+      "durationMs": 1698,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 900,
+        "blockGaps": [],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/sinkronisasi",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-sinkronisasi-375.png",
+      "durationMs": 1653,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 812,
+        "blockGaps": [],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/analitik",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-analitik-1440.png",
+      "durationMs": 2079,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 900,
+        "blockGaps": [],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/analitik",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-analitik-375.png",
+      "durationMs": 2918,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 7130,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/kinerja",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-kinerja-1440.png",
+      "durationMs": 2173,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1601,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/kinerja",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-kinerja-375.png",
+      "durationMs": 2089,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2611,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/sla",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-sla-1440.png",
+      "durationMs": 2249,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 3696,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/sla",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-sla-375.png",
+      "durationMs": 2187,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 7130,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/cabang",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-cabang-1440.png",
+      "durationMs": 2100,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 900,
+        "blockGaps": [
+          24,
+          24
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/cabang",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-cabang-375.png",
+      "durationMs": 2049,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 812,
+        "blockGaps": [
+          20,
+          20
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/organisasi",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-organisasi-1440.png",
+      "durationMs": 2078,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 900,
+        "blockGaps": [
+          24,
+          24
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/organisasi",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-organisasi-375.png",
+      "durationMs": 2586,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 812,
+        "blockGaps": [
+          20,
+          20
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/pengguna",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-pengguna-1440.png",
+      "durationMs": 2141,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1451,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/pengguna",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-pengguna-375.png",
+      "durationMs": 2110,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1694,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/stakeholder",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-stakeholder-1440.png",
+      "durationMs": 2622,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 900,
+        "blockGaps": [
+          24,
+          24
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/stakeholder",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-stakeholder-375.png",
+      "durationMs": 2599,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 812,
+        "blockGaps": [
+          20,
+          20
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/validasi/20000000-0000-4000-8000-000000000015",
+      "type": "detail",
+      "detail": true,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-validasi-20000000-0000-4000-8000-000000000015-1440.png",
+      "durationMs": 2184,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1320,
+        "blockGaps": [
+          24,
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 24
+          },
+          {
+            "kind": "column",
+            "value": 24
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 8
+          },
+          {
+            "kind": "column",
+            "value": 8
+          },
+          {
+            "kind": "row",
+            "value": 8
+          },
+          {
+            "kind": "column",
+            "value": 8
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin/validasi/20000000-0000-4000-8000-000000000015",
+      "type": "detail",
+      "detail": true,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-validasi-20000000-0000-4000-8000-000000000015-375.png",
+      "durationMs": 2249,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2876,
+        "blockGaps": [
+          20,
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 24
+          },
+          {
+            "kind": "column",
+            "value": 24
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 8
+          },
+          {
+            "kind": "column",
+            "value": 8
+          },
+          {
+            "kind": "row",
+            "value": 8
+          },
+          {
+            "kind": "column",
+            "value": 8
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/dashboard",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-dashboard-1440.png",
+      "durationMs": 2314,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2593,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 340,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/dashboard",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "768",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-dashboard-768.png",
+      "durationMs": 1617,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2840,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 320,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/dashboard",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-dashboard-375.png",
+      "durationMs": 1567,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 4164,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 260,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-1440.png",
+      "durationMs": 3222,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 3696,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah",
+      "type": "table",
+      "detail": false,
+      "viewport": "768",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-768.png",
+      "durationMs": 1727,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 5527,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-375.png",
+      "durationMs": 1779,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 7110,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/kinerja",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-kinerja-1440.png",
+      "durationMs": 2214,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1601,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/kinerja",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-kinerja-375.png",
+      "durationMs": 1583,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2611,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/konten",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-konten-1440.png",
+      "durationMs": 2254,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 3523,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/konten",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-konten-375.png",
+      "durationMs": 1821,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 4006,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/red-notice",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-red-notice-1440.png",
+      "durationMs": 2555,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 928,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/red-notice",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-red-notice-375.png",
+      "durationMs": 2621,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1221,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/notifikasi",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-notifikasi-1440.png",
+      "durationMs": 1677,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 900,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/notifikasi",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-notifikasi-375.png",
+      "durationMs": 1674,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 812,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/cabang",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-cabang-1440.png",
+      "durationMs": 2706,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2593,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 340,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/cabang",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-cabang-375.png",
+      "durationMs": 2095,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 4164,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 260,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/analitik",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-analitik-1440.png",
+      "durationMs": 2233,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 3696,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/analitik",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-analitik-375.png",
+      "durationMs": 2758,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 7110,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/laporan",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-laporan-1440.png",
+      "durationMs": 2143,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1601,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/laporan",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-laporan-375.png",
+      "durationMs": 2122,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2611,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/organisasi",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-organisasi-1440.png",
+      "durationMs": 2195,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2593,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 340,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/organisasi",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-organisasi-375.png",
+      "durationMs": 2113,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 4164,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 260,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/peta",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-peta-1440.png",
+      "durationMs": 2451,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2593,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 340,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/peta",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-peta-375.png",
+      "durationMs": 2119,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 4164,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 260,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/sla",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-sla-1440.png",
+      "durationMs": 2235,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 3696,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/sla",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-sla-375.png",
+      "durationMs": 2966,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 7110,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/konten/ff9993ec-528f-474b-8c1a-aa8492e665ed",
+      "type": "detail",
+      "detail": true,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-konten-ff9993ec-528f-474b-8c1a-aa8492e665ed-1440.png",
+      "durationMs": 2151,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1437,
+        "blockGaps": [
+          24,
+          24,
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/konten/ff9993ec-528f-474b-8c1a-aa8492e665ed",
+      "type": "detail",
+      "detail": true,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-konten-ff9993ec-528f-474b-8c1a-aa8492e665ed-375.png",
+      "durationMs": 2605,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1995,
+        "blockGaps": [
+          20,
+          20,
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/dashboard",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-dashboard-1440.png",
+      "durationMs": 4253,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2451,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 340,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/dashboard",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "768",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-dashboard-768.png",
+      "durationMs": 1593,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2698,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 320,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/dashboard",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-dashboard-375.png",
+      "durationMs": 1610,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 3970,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 260,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-1440.png",
+      "durationMs": 1711,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 3706,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang",
+      "type": "table",
+      "detail": false,
+      "viewport": "768",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-768.png",
+      "durationMs": 1694,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 5429,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-375.png",
+      "durationMs": 1652,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 6996,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/kinerja",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-kinerja-1440.png",
+      "durationMs": 2178,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1601,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/kinerja",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-kinerja-375.png",
+      "durationMs": 1585,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2537,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/konten",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-konten-1440.png",
+      "durationMs": 2000,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 3523,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/konten",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-konten-375.png",
+      "durationMs": 1752,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 4006,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/review",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-review-1440.png",
+      "durationMs": 2229,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 3706,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/review",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-review-375.png",
+      "durationMs": 2429,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 6996,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/red-notice",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-red-notice-1440.png",
+      "durationMs": 2748,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 900,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/red-notice",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-red-notice-375.png",
+      "durationMs": 2765,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1118,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/notifikasi",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-notifikasi-1440.png",
+      "durationMs": 2742,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 6579,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/notifikasi",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-notifikasi-375.png",
+      "durationMs": 2107,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 9957,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/analitik",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-analitik-1440.png",
+      "durationMs": 2228,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 3706,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/analitik",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-analitik-375.png",
+      "durationMs": 2691,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 6996,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/laporan",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-laporan-1440.png",
+      "durationMs": 2128,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1601,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/laporan",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-laporan-375.png",
+      "durationMs": 2125,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2537,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/organisasi",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-organisasi-1440.png",
+      "durationMs": 2197,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2451,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 340,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/organisasi",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-organisasi-375.png",
+      "durationMs": 2119,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 3970,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 260,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/peta",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-peta-1440.png",
+      "durationMs": 2569,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2451,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 340,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/peta",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-peta-375.png",
+      "durationMs": 2121,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 3970,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 260,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/sla",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-sla-1440.png",
+      "durationMs": 2213,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 3706,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/sla",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-sla-375.png",
+      "durationMs": 2675,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 6996,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/konten/ff9993ec-528f-474b-8c1a-aa8492e665ed",
+      "type": "detail",
+      "detail": true,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-konten-ff9993ec-528f-474b-8c1a-aa8492e665ed-1440.png",
+      "durationMs": 2350,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1437,
+        "blockGaps": [
+          24,
+          24,
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/konten/ff9993ec-528f-474b-8c1a-aa8492e665ed",
+      "type": "detail",
+      "detail": true,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-konten-ff9993ec-528f-474b-8c1a-aa8492e665ed-375.png",
+      "durationMs": 2741,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1949,
+        "blockGaps": [
+          20,
+          20,
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "stakeholder",
+      "path": "/client",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/stakeholder-client-1440.png",
+      "durationMs": 2298,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 901,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": 220,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": 220,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "stakeholder",
+      "path": "/client",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "768",
+      "ok": true,
+      "screenshot": "screenshots/stakeholder-client-768.png",
+      "durationMs": 1586,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1063,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": 220,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": 220,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "stakeholder",
+      "path": "/client",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/stakeholder-client-375.png",
+      "durationMs": 1568,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1566,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": 220,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": 220,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "stakeholder",
+      "path": "/client/konten",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/stakeholder-client-konten-1440.png",
+      "durationMs": 1845,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 3294,
+        "blockGaps": [
+          24,
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "stakeholder",
+      "path": "/client/konten",
+      "type": "table",
+      "detail": false,
+      "viewport": "768",
+      "ok": true,
+      "screenshot": "screenshots/stakeholder-client-konten-768.png",
+      "durationMs": 1777,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 3412,
+        "blockGaps": [
+          24,
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "stakeholder",
+      "path": "/client/konten",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/stakeholder-client-konten-375.png",
+      "durationMs": 1750,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 3822,
+        "blockGaps": [
+          20,
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "stakeholder",
+      "path": "/client/lapor",
+      "type": "form",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/stakeholder-client-lapor-1440.png",
+      "durationMs": 2052,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1339,
+        "blockGaps": [
+          24,
+          24,
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 8
+          },
+          {
+            "kind": "column",
+            "value": 8
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "stakeholder",
+      "path": "/client/lapor",
+      "type": "form",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/stakeholder-client-lapor-375.png",
+      "durationMs": 2134,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2051,
+        "blockGaps": [
+          20,
+          20,
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 8
+          },
+          {
+            "kind": "column",
+            "value": 8
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "stakeholder",
+      "path": "/client/notifikasi",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/stakeholder-client-notifikasi-1440.png",
+      "durationMs": 2172,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 6494,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "stakeholder",
+      "path": "/client/notifikasi",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/stakeholder-client-notifikasi-375.png",
+      "durationMs": 2101,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 9301,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "stakeholder",
+      "path": "/client/profil",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/stakeholder-client-profil-1440.png",
+      "durationMs": 1720,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 942,
+        "blockGaps": [
+          24,
+          24,
+          24,
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "stakeholder",
+      "path": "/client/profil",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/stakeholder-client-profil-375.png",
+      "durationMs": 1691,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1259,
+        "blockGaps": [
+          20,
+          20,
+          20,
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "stakeholder",
+      "path": "/client/analitik",
+      "type": "table",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/stakeholder-client-analitik-1440.png",
+      "durationMs": 2237,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 3294,
+        "blockGaps": [
+          24,
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "stakeholder",
+      "path": "/client/analitik",
+      "type": "table",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/stakeholder-client-analitik-375.png",
+      "durationMs": 2370,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 3822,
+        "blockGaps": [
+          20,
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "stakeholder",
+      "path": "/client/konten/ff9993ec-528f-474b-8c1a-aa8492e665ed",
+      "type": "detail",
+      "detail": true,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/stakeholder-client-konten-ff9993ec-528f-474b-8c1a-aa8492e665ed-1440.png",
+      "durationMs": 2125,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1052,
+        "blockGaps": [
+          24,
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 24
+          },
+          {
+            "kind": "column",
+            "value": 24
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 8
+          },
+          {
+            "kind": "column",
+            "value": 8
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "stakeholder",
+      "path": "/client/konten/ff9993ec-528f-474b-8c1a-aa8492e665ed",
+      "type": "detail",
+      "detail": true,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/stakeholder-client-konten-ff9993ec-528f-474b-8c1a-aa8492e665ed-375.png",
+      "durationMs": 2504,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2072,
+        "blockGaps": [
+          20,
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 24
+          },
+          {
+            "kind": "column",
+            "value": 24
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 8
+          },
+          {
+            "kind": "column",
+            "value": 8
+          }
+        ],
+        "chartHeight": null,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": null,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    }
+  ]
+}

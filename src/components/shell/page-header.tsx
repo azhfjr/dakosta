@@ -19,8 +19,9 @@ export function PageHeader({
 }) {
   return (
     <header
+      data-page-header
       className={cn(
-        "flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between",
+        "flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-6",
         className,
       )}
     >
@@ -37,11 +38,25 @@ export function PageHeader({
           <p className="mt-1 max-w-2xl text-sm text-ink-muted">{description}</p>
         ) : null}
       </div>
-      {actions ? (
-        <div className="flex shrink-0 flex-wrap gap-2">{actions}</div>
-      ) : null}
-      {meta ? (
-        <div className="text-xs text-ink-muted sm:text-right">{meta}</div>
+      {actions || meta ? (
+        <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+          {actions ? (
+            <div
+              data-page-header-actions
+              className="flex flex-wrap items-center gap-2 sm:justify-end"
+            >
+              {actions}
+            </div>
+          ) : null}
+          {meta ? (
+            <div
+              data-page-header-meta
+              className="text-xs text-ink-muted sm:text-right"
+            >
+              {meta}
+            </div>
+          ) : null}
+        </div>
       ) : null}
     </header>
   );

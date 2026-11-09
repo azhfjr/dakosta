@@ -1,0 +1,84 @@
+{
+  "generatedAt": "2026-11-09T03:55:47.678Z",
+  "baseURL": "http://localhost:3400",
+  "mode": "gate",
+  "baselineFile": "docs/audit/evidence/ui-v35/baseline.json",
+  "viewports": [
+    {
+      "name": "1440",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "768",
+      "width": 768,
+      "height": 1024
+    },
+    {
+      "name": "375",
+      "width": 375,
+      "height": 812
+    }
+  ],
+  "bands": {
+    "sectionGap": [
+      20,
+      32
+    ],
+    "cardGap": [
+      12,
+      20
+    ],
+    "panelPadding": [
+      16,
+      24
+    ],
+    "headingGap": [
+      8,
+      16
+    ],
+    "chartHeight": [
+      140,
+      380
+    ],
+    "barThickness": [
+      10,
+      16
+    ],
+    "rankingTrack": [
+      6,
+      8
+    ],
+    "mapHeight": [
+      260,
+      360
+    ],
+    "donut": [
+      210,
+      240
+    ],
+    "buttonHeight": [
+      36,
+      40
+    ],
+    "mobileTouch": [
+      40,
+      null
+    ],
+    "overflow": [
+      0,
+      1
+    ]
+  },
+  "summary": {
+    "pages": 0,
+    "passed": 0,
+    "failed": 0,
+    "violations": 0,
+    "existing": 0,
+    "baseline": 0,
+    "new": 0,
+    "byCode": {}
+  },
+  "results": []
+}

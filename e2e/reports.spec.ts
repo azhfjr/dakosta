@@ -187,7 +187,7 @@ test.describe("Dashboard PDF", () => {
     }
   });
 
-  test("menu Unduh menyediakan PDF dan infografis di empat dashboard", async ({
+  test("menu Unduh laporan menyediakan PDF dan gambar di empat dashboard", async ({
     browser,
   }) => {
     test.setTimeout(240_000);
@@ -204,7 +204,9 @@ test.describe("Dashboard PDF", () => {
       try {
         const page = await context.newPage();
         await page.goto(path);
-        const trigger = page.getByRole("button", { name: "Unduh dashboard" });
+        const trigger = page.getByRole("button", {
+          name: "Unduh laporan dashboard",
+        });
         await expect(trigger).toBeVisible();
 
         await trigger.focus();

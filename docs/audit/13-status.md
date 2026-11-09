@@ -4,6 +4,22 @@
 
 Label: DONE (bukti lulus), PARTIAL (sebagian), BLOCKED, NOT RUN.
 
+## Status v3.5 — dashboard per peran (2026-11-09)
+
+Dashboard v3.5 (bar chart sederhana, ranking tanpa persentase, aksi kanan, tampilan per peran, PDF/infografis selaras) sudah diimplementasikan di branch `fix/all-features-hardening` dan lulus seluruh gate lokal. **Belum di-commit dan belum di-deploy.** Detail: `docs/audit/20-dashboard-v35-role-views.md`.
+
+| Area                      | Status                       | Angka terverifikasi                                                 | Artefak / waktu                                       |
+| ------------------------- | ---------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------- |
+| Prettier/ESLint/Typecheck | DONE (PASS)                  | 0 error, 0 warning                                                  | 2026-11-09                                            |
+| Unit/integration          | DONE (286/286 PASS)          | 42 berkas; 28 tes dashboard khusus                                  | `npm test`, 2026-11-09 13:40                          |
+| Build verify              | DONE (PASS)                  | `.next-verify`                                                      | `npm run build:verify`, 2026-11-09                    |
+| E2E penuh                 | DONE (132/132 PASS)          | 13 spec, 8,8 mnt; termasuk 4 dashboard × 2 viewport + 22 tes header | Playwright port 3400, 2026-11-09                      |
+| Visual audit per peran    | DONE (12/12 PASS)            | 4 peran × 3 viewport, overflow 0px, overlap 0, gap sesuai band      | `docs/audit/evidence/dashboard-v35/visual-audit.json` |
+| Audit UI/UX semua menu    | DONE (123/123 PASS)          | 56 rute × 1440/375 + 11 halaman padat × 768; 0 temuan (0 NEW)       | `docs/audit/evidence/ui-v35/final.json`               |
+| Backtest rekonsiliasi     | DONE (72/72 PASS)            | Termasuk `institutionChart` (total, urutan, rekonsiliasi kategori)  | `docs/audit/evidence/r13-backtest-reconcile.json`     |
+| PDF/infografis per peran  | DONE (6 ekspor)              | 1 halaman A4 landscape; PNG 300 DPI 3508×2481                       | `docs/audit/evidence/ui-v35/pdf/`                     |
+| Commit/deploy             | NOT RUN (menunggu instruksi) | Rollback target tetap v3.4 `dpl_9dMaPC3hj5PjdLkL2CM8htwb9iVw`       | —                                                     |
+
 ## Status terkini — remediasi audit v2 (2026-11-07)
 
 Fase F0–F5 sudah di-commit (`4607b9f`, `b57a7ce`, `edcba20`, `dde0234`, `599502c`, `b88c4b6`); F6 dijalankan penuh dan dicatat di bawah ini. Gate lokal/E2E memakai **staging** (`dakosta_staging`); langkah produksi F6 (backup, dry-run, deploy, smoke) dijalankan terpisah setelah seluruh gate lulus dan dicatat pada tabel yang sama.

@@ -7,7 +7,10 @@ import {
 import { recordAudit } from "@/lib/audit";
 import { ROLE_LABELS } from "@/lib/authz/types";
 import { getRequestId, jsonError } from "@/lib/api";
-import { parseBranchSelection } from "@/lib/filters/branch-selection";
+import {
+  dashboardVariant,
+  selectionForDashboard,
+} from "@/lib/dashboard/variant";
 import type { FilterParams } from "@/lib/filters/query";
 import {
   consumeRateLimit,
@@ -59,13 +62,15 @@ export async function GET(request: Request) {
     };
 
     const summary = await getDashboardSummaryUncached(user);
-    const selection = parseBranchSelection(
+    const selection = selectionForDashboard(
+      dashboardVariant(user.role),
       params,
       summary.branches.map((branch) => branch.id),
     );
     const filtered = await getDashboardFilteredUncached(user, selection);
 
     const pdf = await renderDashboardPdf({
+      role: user.role,
       scopeLabel: user.scopeLabel,
       roleLabel: ROLE_LABELS[user.role] ?? user.role,
       selection,

@@ -1,0 +1,908 @@
+{
+  "generatedAt": "2026-11-09T05:51:15.104Z",
+  "baseURL": "http://localhost:3400",
+  "results": [
+    {
+      "role": "master",
+      "variant": "national",
+      "path": "/admin",
+      "viewport": "1440",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v35\\master-1440.png",
+      "mapState": "ready",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 2653,
+      "layout": {
+        "chartW": 1062,
+        "chartH": 160,
+        "chartLabels": 3,
+        "chartBarThickness": 14,
+        "chartLabelOverflow": -28.279052734375,
+        "mapW": 1102,
+        "mapH": 340,
+        "donut": 220,
+        "rankingTrack": 6,
+        "gaps": [
+          {
+            "pair": "ringkasan→konten-per-cabang",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "konten-per-cabang→kolaborasi",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "pilih-cabang→fkrtl",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "fkrtl→pemda",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "fktp→stakeholder",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "stakeholder→peta",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "kolaborasi→tema-konten",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "master",
+      "variant": "national",
+      "path": "/admin",
+      "viewport": "768",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v35\\master-768.png",
+      "mapState": "ready",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 2864,
+      "layout": {
+        "chartW": 678,
+        "chartH": 160,
+        "chartLabels": 3,
+        "chartBarThickness": 14,
+        "chartLabelOverflow": -28.27899169921875,
+        "mapW": 718,
+        "mapH": 320,
+        "donut": 220,
+        "rankingTrack": 6,
+        "gaps": [
+          {
+            "pair": "ringkasan→konten-per-cabang",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "konten-per-cabang→kolaborasi",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "pilih-cabang→fkrtl",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "fkrtl→pemda",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "fktp→stakeholder",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "stakeholder→peta",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "kolaborasi→tema-konten",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "master",
+      "variant": "national",
+      "path": "/admin",
+      "viewport": "375",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v35\\master-375.png",
+      "mapState": "ready",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 4188,
+      "layout": {
+        "chartW": 309,
+        "chartH": 160,
+        "chartLabels": 3,
+        "chartBarThickness": 14,
+        "chartLabelOverflow": -28.27899169921875,
+        "mapW": 341,
+        "mapH": 260,
+        "donut": 220,
+        "rankingTrack": 6,
+        "gaps": [
+          {
+            "pair": "ringkasan→konten-per-cabang",
+            "gap": 16,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "konten-per-cabang→kolaborasi",
+            "gap": 20,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "pilih-cabang→fkrtl",
+            "gap": 16,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "fkrtl→fktp",
+            "gap": 12,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "fktp→pemda",
+            "gap": 12,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "pemda→stakeholder",
+            "gap": 12,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "stakeholder→peta",
+            "gap": 16,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "kolaborasi→tema-konten",
+            "gap": 20,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "regional",
+      "variant": "regional",
+      "path": "/wilayah/dashboard",
+      "viewport": "1440",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v35\\regional-1440.png",
+      "mapState": "ready",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 2593,
+      "layout": {
+        "chartW": 1062,
+        "chartH": 160,
+        "chartLabels": 2,
+        "chartBarThickness": 14,
+        "chartLabelOverflow": -28.279052734375,
+        "mapW": 1102,
+        "mapH": 340,
+        "donut": 220,
+        "rankingTrack": 6,
+        "gaps": [
+          {
+            "pair": "ringkasan→konten-per-cabang",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "konten-per-cabang→kolaborasi",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "pilih-cabang→fkrtl",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "fkrtl→pemda",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "fktp→stakeholder",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "stakeholder→peta",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "kolaborasi→tema-konten",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "regional",
+      "variant": "regional",
+      "path": "/wilayah/dashboard",
+      "viewport": "768",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v35\\regional-768.png",
+      "mapState": "ready",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 2840,
+      "layout": {
+        "chartW": 678,
+        "chartH": 160,
+        "chartLabels": 2,
+        "chartBarThickness": 14,
+        "chartLabelOverflow": -28.27899169921875,
+        "mapW": 718,
+        "mapH": 320,
+        "donut": 220,
+        "rankingTrack": 6,
+        "gaps": [
+          {
+            "pair": "ringkasan→konten-per-cabang",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "konten-per-cabang→kolaborasi",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "pilih-cabang→fkrtl",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "fkrtl→pemda",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "fktp→stakeholder",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "stakeholder→peta",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "kolaborasi→tema-konten",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "regional",
+      "variant": "regional",
+      "path": "/wilayah/dashboard",
+      "viewport": "375",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v35\\regional-375.png",
+      "mapState": "ready",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 4164,
+      "layout": {
+        "chartW": 309,
+        "chartH": 160,
+        "chartLabels": 2,
+        "chartBarThickness": 14,
+        "chartLabelOverflow": -28.27899169921875,
+        "mapW": 341,
+        "mapH": 260,
+        "donut": 220,
+        "rankingTrack": 6,
+        "gaps": [
+          {
+            "pair": "ringkasan→konten-per-cabang",
+            "gap": 16,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "konten-per-cabang→kolaborasi",
+            "gap": 20,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "pilih-cabang→fkrtl",
+            "gap": 16,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "fkrtl→fktp",
+            "gap": 12,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "fktp→pemda",
+            "gap": 12,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "pemda→stakeholder",
+            "gap": 12,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "stakeholder→peta",
+            "gap": 16,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "kolaborasi→tema-konten",
+            "gap": 20,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "branch",
+      "variant": "branch",
+      "path": "/cabang/dashboard",
+      "viewport": "1440",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v35\\branch-1440.png",
+      "mapState": "ready",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 2451,
+      "layout": {
+        "chartW": 1062,
+        "chartH": 160,
+        "chartLabels": 3,
+        "chartBarThickness": 14,
+        "chartLabelOverflow": -28.4219970703125,
+        "mapW": 1102,
+        "mapH": 340,
+        "donut": 220,
+        "rankingTrack": 6,
+        "gaps": [
+          {
+            "pair": "ringkasan→konten-per-institusi",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "konten-per-institusi→kolaborasi",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "fkrtl→pemda",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "fktp→stakeholder",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "stakeholder→peta",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "kolaborasi→tema-konten",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "branch",
+      "variant": "branch",
+      "path": "/cabang/dashboard",
+      "viewport": "768",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v35\\branch-768.png",
+      "mapState": "ready",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 2698,
+      "layout": {
+        "chartW": 678,
+        "chartH": 160,
+        "chartLabels": 3,
+        "chartBarThickness": 14,
+        "chartLabelOverflow": -28.4219970703125,
+        "mapW": 718,
+        "mapH": 320,
+        "donut": 220,
+        "rankingTrack": 6,
+        "gaps": [
+          {
+            "pair": "ringkasan→konten-per-institusi",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "konten-per-institusi→kolaborasi",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "fkrtl→pemda",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "fktp→stakeholder",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "stakeholder→peta",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "kolaborasi→tema-konten",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "branch",
+      "variant": "branch",
+      "path": "/cabang/dashboard",
+      "viewport": "375",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v35\\branch-375.png",
+      "mapState": "ready",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 3970,
+      "layout": {
+        "chartW": 309,
+        "chartH": 160,
+        "chartLabels": 3,
+        "chartBarThickness": 14,
+        "chartLabelOverflow": -28.4219970703125,
+        "mapW": 341,
+        "mapH": 260,
+        "donut": 220,
+        "rankingTrack": 6,
+        "gaps": [
+          {
+            "pair": "ringkasan→konten-per-institusi",
+            "gap": 16,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "konten-per-institusi→kolaborasi",
+            "gap": 20,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "fkrtl→fktp",
+            "gap": 12,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "fktp→pemda",
+            "gap": 12,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "pemda→stakeholder",
+            "gap": 12,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "stakeholder→peta",
+            "gap": 16,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "kolaborasi→tema-konten",
+            "gap": 20,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "stakeholder",
+      "variant": "stakeholder",
+      "path": "/client",
+      "viewport": "1440",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v35\\stakeholder-1440.png",
+      "mapState": "not-applicable",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 901,
+      "layout": {
+        "chartW": null,
+        "chartH": null,
+        "chartLabels": null,
+        "chartBarThickness": null,
+        "chartLabelOverflow": null,
+        "mapW": null,
+        "mapH": null,
+        "donut": 220,
+        "rankingTrack": null,
+        "gaps": [
+          {
+            "pair": "ringkasan→tema-konten",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "stakeholder",
+      "variant": "stakeholder",
+      "path": "/client",
+      "viewport": "768",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v35\\stakeholder-768.png",
+      "mapState": "not-applicable",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 1063,
+      "layout": {
+        "chartW": null,
+        "chartH": null,
+        "chartLabels": null,
+        "chartBarThickness": null,
+        "chartLabelOverflow": null,
+        "mapW": null,
+        "mapH": null,
+        "donut": 220,
+        "rankingTrack": null,
+        "gaps": [
+          {
+            "pair": "ringkasan→tema-konten",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "stakeholder",
+      "variant": "stakeholder",
+      "path": "/client",
+      "viewport": "375",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v35\\stakeholder-375.png",
+      "mapState": "not-applicable",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 1566,
+      "layout": {
+        "chartW": null,
+        "chartH": null,
+        "chartLabels": null,
+        "chartBarThickness": null,
+        "chartLabelOverflow": null,
+        "mapW": null,
+        "mapH": null,
+        "donut": 220,
+        "rankingTrack": null,
+        "gaps": [
+          {
+            "pair": "ringkasan→tema-konten",
+            "gap": 20,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    }
+  ],
+  "passed": 12,
+  "failed": 0
+}

@@ -62,11 +62,11 @@ export default async function RegionalSlaPage({
         meta={`Diperbarui ${formatDateTimeId(new Date())} WIB`}
         actions={
           <>
-            <Button asChild variant="outline" className="h-9">
-              <Link href="/wilayah/dashboard">Dashboard</Link>
+            <Button asChild variant="outline" className="h-10 sm:h-9">
+              <Link href="/wilayah/dashboard">Lihat dashboard</Link>
             </Button>
-            <Button asChild className="h-9">
-              <Link href="/wilayah/kinerja">Kinerja</Link>
+            <Button asChild className="h-10 sm:h-9">
+              <Link href="/wilayah/kinerja">Lihat kinerja</Link>
             </Button>
           </>
         }

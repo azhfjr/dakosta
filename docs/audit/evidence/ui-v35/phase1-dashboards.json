@@ -1,0 +1,829 @@
+{
+  "generatedAt": "2026-11-09T04:05:55.933Z",
+  "baseURL": "http://localhost:3400",
+  "mode": "gate",
+  "baselineFile": "docs/audit/evidence/ui-v35/baseline.json",
+  "viewports": [
+    {
+      "name": "1440",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "768",
+      "width": 768,
+      "height": 1024
+    },
+    {
+      "name": "375",
+      "width": 375,
+      "height": 812
+    }
+  ],
+  "bands": {
+    "sectionGap": [
+      20,
+      32
+    ],
+    "cardGap": [
+      12,
+      20
+    ],
+    "panelPadding": [
+      16,
+      24
+    ],
+    "headingGap": [
+      8,
+      16
+    ],
+    "chartHeight": [
+      140,
+      380
+    ],
+    "barThickness": [
+      10,
+      16
+    ],
+    "rankingTrack": [
+      6,
+      8
+    ],
+    "mapHeight": [
+      260,
+      360
+    ],
+    "donut": [
+      210,
+      240
+    ],
+    "buttonHeight": [
+      36,
+      40
+    ],
+    "mobileTouch": [
+      40,
+      null
+    ],
+    "overflow": [
+      0,
+      1
+    ]
+  },
+  "summary": {
+    "pages": 12,
+    "passed": 12,
+    "failed": 0,
+    "violations": 0,
+    "existing": 0,
+    "baseline": 0,
+    "new": 0,
+    "byCode": {}
+  },
+  "results": [
+    {
+      "role": "master",
+      "path": "/admin",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-1440.png",
+      "durationMs": 2066,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2651,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 340,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "768",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-768.png",
+      "durationMs": 1275,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2856,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 320,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "master",
+      "path": "/admin",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/master-admin-375.png",
+      "durationMs": 1208,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 4188,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 260,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/dashboard",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-dashboard-1440.png",
+      "durationMs": 1969,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2591,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 340,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/dashboard",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "768",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-dashboard-768.png",
+      "durationMs": 1268,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2832,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 320,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/dashboard",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/regional-wilayah-dashboard-375.png",
+      "durationMs": 1206,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 4164,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 260,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/dashboard",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-dashboard-1440.png",
+      "durationMs": 2345,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2449,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 340,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/dashboard",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "768",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-dashboard-768.png",
+      "durationMs": 1240,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 2690,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 320,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/dashboard",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/branch-cabang-dashboard-375.png",
+      "durationMs": 1165,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 3970,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": 160,
+        "barThickness": 14,
+        "mapHeight": 260,
+        "donutHeight": 220,
+        "rankingTrack": 6,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "stakeholder",
+      "path": "/client",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "1440",
+      "ok": true,
+      "screenshot": "screenshots/stakeholder-client-1440.png",
+      "durationMs": 1927,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 901,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": 220,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": 220,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "stakeholder",
+      "path": "/client",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "768",
+      "ok": true,
+      "screenshot": "screenshots/stakeholder-client-768.png",
+      "durationMs": 1156,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1063,
+        "blockGaps": [
+          24
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          },
+          {
+            "kind": "row",
+            "value": 16
+          },
+          {
+            "kind": "column",
+            "value": 16
+          }
+        ],
+        "chartHeight": 220,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": 220,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    },
+    {
+      "role": "stakeholder",
+      "path": "/client",
+      "type": "dashboard",
+      "detail": false,
+      "viewport": "375",
+      "ok": true,
+      "screenshot": "screenshots/stakeholder-client-375.png",
+      "durationMs": 1133,
+      "pageErrors": [],
+      "violations": [],
+      "metrics": {
+        "overflowPx": 0,
+        "pageHeight": 1566,
+        "blockGaps": [
+          20
+        ],
+        "gridGaps": [
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          },
+          {
+            "kind": "row",
+            "value": 12
+          },
+          {
+            "kind": "column",
+            "value": 12
+          }
+        ],
+        "chartHeight": 220,
+        "barThickness": null,
+        "mapHeight": null,
+        "donutHeight": 220,
+        "rankingTrack": null,
+        "clippedText": 0,
+        "overlapCount": 0
+      }
+    }
+  ]
+}

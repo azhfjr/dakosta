@@ -95,14 +95,14 @@ export default async function ClientContentDetailPage({
             rel="noopener noreferrer"
             className="inline-flex h-11 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium text-brand-blue-800 hover:bg-surface-muted"
           >
-            Buka konten
+            Lihat konten
             <ExternalLink className="size-4" aria-hidden />
           </a>
         </div>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <section className="rounded-xl border border-border bg-surface p-5 shadow-sm">
             <h2 className="text-sm font-semibold text-foreground">Narasi</h2>
             <p className="mt-3 text-sm leading-relaxed whitespace-pre-line text-ink">
@@ -164,9 +164,9 @@ export default async function ClientContentDetailPage({
                   {formatDateTimeId(detail.approvedAt)}
                 </dd>
               </div>
-              <div className="sm:col-span-2">
+              <div className="min-w-0 sm:col-span-2">
                 <dt className="text-xs text-ink-muted">Tautan</dt>
-                <dd className="truncate text-brand-blue-800">
+                <dd className="break-all text-brand-blue-800">
                   {detail.publishedUrl}
                 </dd>
               </div>

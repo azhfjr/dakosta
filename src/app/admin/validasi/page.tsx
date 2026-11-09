@@ -62,11 +62,11 @@ export default async function MasterSlaPage({
         meta={`Diperbarui ${formatDateTimeId(new Date())} WIB`}
         actions={
           <>
-            <Button asChild variant="outline" className="h-9">
-              <Link href="/admin">Dashboard</Link>
+            <Button asChild variant="outline" className="h-10 sm:h-9">
+              <Link href="/admin">Lihat dashboard</Link>
             </Button>
-            <Button asChild className="h-9">
-              <Link href="/admin/laporan">Kinerja</Link>
+            <Button asChild className="h-10 sm:h-9">
+              <Link href="/admin/laporan">Lihat kinerja</Link>
             </Button>
           </>
         }

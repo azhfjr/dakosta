@@ -262,7 +262,11 @@ export function BranchChecklist({
               onToggle={(event) => setListOpen(event.currentTarget.open)}
               className="group"
             >
-              <summary className="flex h-9 cursor-pointer list-none items-center gap-1.5 rounded-md border border-input bg-background px-2 text-sm font-medium text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none">
+              <summary
+                aria-controls="pilih-cabang-panel"
+                aria-expanded={listOpen}
+                className="flex h-9 cursor-pointer list-none items-center gap-1.5 rounded-md border border-input bg-background px-2 text-sm font-medium text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+              >
                 Cabang
                 <span className="rounded bg-surface-muted px-1.5 py-0.5 text-xs font-semibold text-ink-muted tabular">
                   {selectedCount}/{branchCount}
@@ -272,7 +276,13 @@ export function BranchChecklist({
                   aria-hidden
                 />
               </summary>
-              <div className="absolute top-full right-3 left-3 z-30 mt-1 rounded-xl border border-border bg-surface p-3 shadow-xl sm:left-auto sm:w-[min(20rem,calc(100vw-2rem))]">
+            </details>
+
+            {listOpen ? (
+              <div
+                id="pilih-cabang-panel"
+                className="absolute top-full right-3 left-3 z-30 mt-1 rounded-xl border border-border bg-surface p-3 shadow-xl sm:left-auto sm:w-[min(20rem,calc(100vw-2rem))]"
+              >
                 <div
                   className="max-h-72 space-y-2 overflow-y-auto overscroll-contain pr-1 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                   role="region"
@@ -329,7 +339,7 @@ export function BranchChecklist({
                   })}
                 </div>
               </div>
-            </details>
+            ) : null}
 
             <label
               htmlFor="pilih-semua-cabang"

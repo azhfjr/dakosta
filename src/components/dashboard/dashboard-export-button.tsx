@@ -72,7 +72,7 @@ export function DashboardExportButton({
         cache: "no-store",
       });
       if (!response.ok) {
-        let message = "Unduhan gagal. Coba lagi sebentar.";
+        let message = "Laporan belum bisa diunduh. Coba lagi sebentar.";
         try {
           const body = (await response.json()) as {
             error?: { message?: string };
@@ -104,8 +104,8 @@ export function DashboardExportButton({
     } catch {
       setError(
         format === "infographic"
-          ? "Gagal membuat infografis PNG. Coba lagi."
-          : "Unduhan gagal. Periksa koneksi lalu coba lagi.",
+          ? "Gambar belum bisa dibuat. Coba lagi."
+          : "Laporan belum bisa diunduh. Periksa koneksi lalu coba lagi.",
       );
     } finally {
       setLoading(null);
@@ -124,7 +124,7 @@ export function DashboardExportButton({
             className={className}
             disabled={busy}
             aria-busy={busy}
-            aria-label="Unduh dashboard"
+            aria-label="Unduh laporan dashboard"
             aria-haspopup="menu"
             data-dashboard-export-trigger
           >
@@ -133,7 +133,7 @@ export function DashboardExportButton({
             ) : (
               <Download className="size-4" aria-hidden />
             )}
-            {busy ? "Menyiapkan..." : "Unduh"}
+            {busy ? "Menyiapkan..." : "Unduh laporan"}
             <ChevronDown className="size-3.5 opacity-60" aria-hidden />
           </Button>
         </DropdownMenuTrigger>
@@ -145,9 +145,9 @@ export function DashboardExportButton({
           >
             <FileText aria-hidden />
             <span className="flex flex-col">
-              <span className="text-sm font-medium">PDF — satu halaman A4</span>
+              <span className="text-sm font-medium">PDF siap cetak</span>
               <span className="text-xs text-ink-muted">
-                Seluruh chart kecuali peta
+                Satu halaman A4, semua chart kecuali peta
               </span>
             </span>
           </DropdownMenuItem>
@@ -157,11 +157,9 @@ export function DashboardExportButton({
           >
             <FileImage aria-hidden />
             <span className="flex flex-col">
-              <span className="text-sm font-medium">
-                Infografis — PNG 300 DPI
-              </span>
+              <span className="text-sm font-medium">Gambar siap dibagikan</span>
               <span className="text-xs text-ink-muted">
-                3508 × 2481 piksel, isi sama dengan PDF
+                PNG 300 DPI, tampilan sama dengan PDF
               </span>
             </span>
           </DropdownMenuItem>

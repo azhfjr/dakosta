@@ -114,7 +114,7 @@ export default async function ReviewDetailPage({
             target="_blank"
             rel="noopener noreferrer"
           >
-            Buka konten
+            Lihat konten
             <ExternalLink className="ml-1.5 size-4" aria-hidden />
           </a>
         </Button>

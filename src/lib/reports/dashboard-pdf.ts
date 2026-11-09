@@ -9,7 +9,7 @@ import {
 } from "pdf-lib";
 
 import type { AppRole } from "@/lib/authz/types";
-import { CATEGORY_MAP_COLORS, themeMapColor } from "@/lib/chart-theme";
+import { themeMapColor } from "@/lib/chart-theme";
 import {
   DASHBOARD_CATEGORIES,
   DASHBOARD_CATEGORY_LABELS,
@@ -20,7 +20,11 @@ import {
   type DashboardSummary,
   type DashboardThemeRow,
 } from "@/lib/dashboard/types";
-import { formatShareId, rankingShare } from "@/lib/dashboard/ranking";
+import { rankingShare } from "@/lib/dashboard/ranking";
+import {
+  dashboardVariant,
+  type DashboardVariant,
+} from "@/lib/dashboard/variant";
 import { formatDateTimeId, jakartaToday } from "@/lib/dates";
 import type { BranchSelection } from "@/lib/filters/branch-selection";
 import {
@@ -49,15 +53,18 @@ const KPI_HEIGHT = 40;
 const MID_HEIGHT = 272;
 const THEME_HEIGHT = 138;
 const COLUMN_GAP = 12;
-const BRANCH_COLUMN_WIDTH = 392;
-const RANKING_COLUMN_X = MARGIN + BRANCH_COLUMN_WIDTH + COLUMN_GAP;
+const CHART_COLUMN_WIDTH = 392;
+const RANKING_COLUMN_X = MARGIN + CHART_COLUMN_WIDTH + COLUMN_GAP;
 const RANKING_COLUMN_WIDTH = CONTENT_RIGHT - RANKING_COLUMN_X;
 
-const BRANCH_MAX_ROWS = 18;
+const BRANCH_MAX_ROWS = 16;
 const BRANCH_KEEP_ROWS = 15;
-const RANKING_ROWS = 10;
+const INSTITUTION_MAX_ROWS = 12;
+const RANKING_ROWS = 8;
 const THEME_LEGEND_MAX = 10;
+const STAKEHOLDER_THEME_MAX = 16;
 const THEME_LEGEND_COLUMNS = 2;
+const BRAND_HEX = "#006b3c";
 
 const percentFormatter = new Intl.NumberFormat("id-ID", {
   maximumFractionDigits: 1,
@@ -71,6 +78,7 @@ const RANKING_GRID: ReadonlyArray<
 ];
 
 export type DashboardPdfInput = {
+  role: AppRole;
   scopeLabel: string;
   roleLabel: string;
   selection: BranchSelection;
@@ -79,7 +87,7 @@ export type DashboardPdfInput = {
   generatedAt: Date;
 };
 
-export type DashboardBranchPlanRow = {
+export type DashboardChartPlanRow = {
   id: string;
   name: string;
   categories: DashboardCategoryTotals;
@@ -88,8 +96,10 @@ export type DashboardBranchPlanRow = {
 };
 
 export type DashboardPdfPlan = {
-  branches: DashboardBranchPlanRow[];
-  branchCount: number;
+  variant: DashboardVariant;
+  chartTitle: string;
+  chartRows: DashboardChartPlanRow[];
+  chartCount: number;
   aggregatedCount: number;
   rankings: Record<DashboardCategory, DashboardRankingRow[]>;
   themes: DashboardThemeRow[];
@@ -122,73 +132,132 @@ function selectionLabel(selection: BranchSelection): string {
   }
 }
 
+function sumCategories(
+  rows: ReadonlyArray<{ categories: DashboardCategoryTotals }>,
+): DashboardCategoryTotals {
+  const categories = emptyCategories();
+  for (const row of rows) {
+    for (const category of DASHBOARD_CATEGORIES) {
+      categories[category] += row.categories[category];
+    }
+  }
+  return categories;
+}
+
 /**
- * Pure single-page plan. Branches beyond the 18-row budget collapse into one
+ * Pure single-page plan. Named bars beyond the row budget collapse into one
  * aggregate row so every rendered total still reconciles with the data.
  */
 export function planDashboardPage(input: DashboardPdfInput): DashboardPdfPlan {
-  const sorted = [...input.summary.branches].sort(
-    (left, right) => right.total - left.total,
-  );
-  const branches: DashboardBranchPlanRow[] = [];
+  const variant = dashboardVariant(input.role);
+  const chartRows: DashboardChartPlanRow[] = [];
+  let chartCount = 0;
   let aggregatedCount = 0;
 
-  if (sorted.length <= BRANCH_MAX_ROWS) {
-    for (const branch of sorted) {
-      branches.push({
-        id: branch.id,
-        name: branch.name,
-        categories: branch.categories,
-        total: branch.total,
+  if (variant === "branch") {
+    const chart = input.filtered.institutionChart;
+    chartCount = chart.total;
+    for (const row of chart.rows.slice(0, INSTITUTION_MAX_ROWS)) {
+      chartRows.push({
+        id: row.id,
+        name: row.name,
+        categories: row.categories,
+        total: row.total,
         aggregated: false,
       });
     }
-  } else {
-    for (const branch of sorted.slice(0, BRANCH_KEEP_ROWS)) {
-      branches.push({
-        id: branch.id,
-        name: branch.name,
-        categories: branch.categories,
-        total: branch.total,
-        aggregated: false,
+    // Fold anything beyond the PDF row budget into the aggregate row so the
+    // panel total always reconciles with the chart total.
+    const overflow = chart.rows.slice(INSTITUTION_MAX_ROWS);
+    const overflowCategories = sumCategories(overflow);
+    const remaining = chart.remaining;
+    const aggregateCount = (remaining?.count ?? 0) + overflow.length;
+    if (remaining || overflow.length > 0) {
+      const categories = remaining
+        ? {
+            FKRTL: remaining.categories.FKRTL + overflowCategories.FKRTL,
+            FKTP: remaining.categories.FKTP + overflowCategories.FKTP,
+            PEMDA: remaining.categories.PEMDA + overflowCategories.PEMDA,
+            STAKEHOLDER:
+              remaining.categories.STAKEHOLDER + overflowCategories.STAKEHOLDER,
+          }
+        : overflowCategories;
+      const aggregateTotal =
+        (remaining?.total ?? 0) +
+        overflow.reduce((sum, row) => sum + row.total, 0);
+      aggregatedCount = aggregateCount;
+      chartRows.push({
+        id: "__aggregate__",
+        name: `Institusi lainnya (${formatNumber(aggregateCount)})`,
+        categories,
+        total: aggregateTotal,
+        aggregated: true,
       });
     }
-    const hidden = sorted.slice(BRANCH_KEEP_ROWS);
-    const categories = emptyCategories();
-    let total = 0;
-    for (const branch of hidden) {
-      for (const category of DASHBOARD_CATEGORIES) {
-        categories[category] += branch.categories[category];
+  } else if (variant !== "stakeholder") {
+    const sorted = [...input.summary.branches].sort(
+      (left, right) =>
+        right.total - left.total || left.name.localeCompare(right.name),
+    );
+    chartCount = sorted.length;
+    if (sorted.length <= BRANCH_MAX_ROWS) {
+      for (const branch of sorted) {
+        chartRows.push({
+          id: branch.id,
+          name: branch.name,
+          categories: branch.categories,
+          total: branch.total,
+          aggregated: false,
+        });
       }
-      total += branch.total;
+    } else {
+      for (const branch of sorted.slice(0, BRANCH_KEEP_ROWS)) {
+        chartRows.push({
+          id: branch.id,
+          name: branch.name,
+          categories: branch.categories,
+          total: branch.total,
+          aggregated: false,
+        });
+      }
+      const hidden = sorted.slice(BRANCH_KEEP_ROWS);
+      aggregatedCount = hidden.length;
+      chartRows.push({
+        id: "__aggregate__",
+        name: `Cabang lainnya (${formatNumber(hidden.length)})`,
+        categories: sumCategories(hidden),
+        total: hidden.reduce((total, branch) => total + branch.total, 0),
+        aggregated: true,
+      });
     }
-    aggregatedCount = hidden.length;
-    branches.push({
-      id: "__aggregate__",
-      name: `Cabang lainnya (${formatNumber(hidden.length)})`,
-      categories,
-      total,
-      aggregated: true,
-    });
   }
 
   const rankings = {} as Record<DashboardCategory, DashboardRankingRow[]>;
   for (const category of DASHBOARD_CATEGORIES) {
-    rankings[category] = (input.filtered.rankings[category] ?? []).slice(
-      0,
-      RANKING_ROWS,
-    );
+    rankings[category] =
+      variant === "stakeholder"
+        ? []
+        : (input.filtered.rankings[category] ?? []).slice(0, RANKING_ROWS);
   }
 
   const themes = input.filtered.nonEdufastThemes;
+  const legendMax =
+    variant === "stakeholder" ? STAKEHOLDER_THEME_MAX : THEME_LEGEND_MAX;
   return {
-    branches,
-    branchCount: sorted.length,
+    variant,
+    chartTitle:
+      variant === "branch"
+        ? "Konten per Institusi"
+        : variant === "stakeholder"
+          ? ""
+          : "Konten per Cabang",
+    chartRows,
+    chartCount,
     aggregatedCount,
     rankings,
     themes,
-    themeLegend: themes.slice(0, THEME_LEGEND_MAX),
-    hiddenThemes: Math.max(0, themes.length - THEME_LEGEND_MAX),
+    themeLegend: themes.slice(0, legendMax),
+    hiddenThemes: Math.max(0, themes.length - legendMax),
     selectionLabel: selectionLabel(input.selection),
   };
 }
@@ -339,43 +408,11 @@ function drawKpiCard(
   });
 }
 
-function drawCategoryLegend(
-  page: PDFPage,
-  fonts: ReportFonts,
-  right: number,
-  y: number,
-): void {
-  const items = DASHBOARD_CATEGORIES.map((category) => {
-    const label = safe(DASHBOARD_CATEGORY_LABELS[category]);
-    return {
-      category,
-      label,
-      width: 9 + fonts.font.widthOfTextAtSize(label, 6),
-    };
-  });
-  const totalWidth =
-    items.reduce((sum, item) => sum + item.width, 0) + (items.length - 1) * 9;
-  let cursor = right - totalWidth;
-  for (const item of items) {
-    page.drawRectangle({
-      x: cursor,
-      y: y - 1,
-      width: 5.5,
-      height: 5.5,
-      color: hexRgb(CATEGORY_MAP_COLORS[item.category]),
-    });
-    page.drawText(item.label, {
-      x: cursor + 8,
-      y,
-      size: 6,
-      font: fonts.font,
-      color: REPORT_COLORS.muted,
-    });
-    cursor += item.width + 9;
-  }
-}
-
-function drawBranchChart(
+/**
+ * Horizontal single-series bar chart: one brand colour, four value ticks, and
+ * value labels in a fixed right column so no label can clip the page edge.
+ */
+function drawBarChart(
   page: PDFPage,
   fonts: ReportFonts,
   plan: DashboardPdfPlan,
@@ -390,43 +427,64 @@ function drawBranchChart(
     borderColor: REPORT_COLORS.line,
     borderWidth: 0.6,
   });
-  page.drawText("Konten per Cabang", {
+  page.drawText(plan.chartTitle, {
     x: input.x + 10,
     y: input.top - 14,
     size: 9.5,
     font: fonts.bold,
     color: REPORT_COLORS.ink,
   });
-  drawCategoryLegend(page, fonts, input.x + input.width - 10, input.top - 13.5);
-
-  if (plan.branches.length === 0) {
-    page.drawText("Belum ada cabang dalam cakupan untuk ditampilkan.", {
+  page.drawText(
+    fitText(
+      fonts.font,
+      `${formatNumber(plan.chartRows.reduce((total, row) => total + row.total, 0))} konten tervalidasi`,
+      6,
+      input.width - 140,
+    ),
+    {
       x: input.x + 10,
-      y: input.top - 52,
-      size: 8,
+      y: input.top - 24,
+      size: 6,
       font: fonts.font,
       color: REPORT_COLORS.muted,
-    });
+    },
+  );
+
+  if (plan.chartRows.length === 0) {
+    page.drawText(
+      plan.variant === "branch"
+        ? "Belum ada institusi dengan konten tervalidasi."
+        : "Belum ada cabang dalam cakupan untuk ditampilkan.",
+      {
+        x: input.x + 10,
+        y: input.top - 58,
+        size: 8,
+        font: fonts.font,
+        color: REPORT_COLORS.muted,
+      },
+    );
     return;
   }
 
-  const labelWidth = 128;
+  const labelWidth = 132;
   const barsX = input.x + 10 + labelWidth + 6;
   const totalRight = input.x + input.width - 10;
-  const barsWidth = totalRight - 30 - barsX;
-  const gridTop = input.top - 34;
+  const barsWidth = totalRight - 38 - barsX;
+  const gridTop = input.top - 36;
   const gridBottom = input.top - input.height + 8;
   const gridHeight = gridTop - gridBottom;
-  const rowHeight = gridHeight / plan.branches.length;
+  // Cap the pitch on sparse scopes (four national branches) so the fixed
+  // one-page band does not stretch a handful of bars across 270pt.
+  const rowHeight = Math.min(28, gridHeight / plan.chartRows.length);
+  const rowsTop =
+    gridTop - Math.max(0, (gridHeight - rowHeight * plan.chartRows.length) / 2);
   const maxTotal = Math.max(
-    ...plan.branches
-      .filter((branch) => !branch.aggregated)
-      .map((branch) => branch.total),
+    ...plan.chartRows.filter((row) => !row.aggregated).map((row) => row.total),
     1,
   );
   const tickStep = Math.max(1, Math.ceil(maxTotal / 4));
   const scaleMax = tickStep * 4;
-  const barHeight = Math.min(8, Math.max(4, rowHeight - 4));
+  const barHeight = Math.min(10, Math.max(5, rowHeight * 0.45));
 
   for (let tick = 0; tick <= 4; tick += 1) {
     const ratio = tick / 4;
@@ -447,8 +505,8 @@ function drawBranchChart(
     });
   }
 
-  plan.branches.forEach((row, index) => {
-    const center = gridTop - (index + 0.5) * rowHeight;
+  plan.chartRows.forEach((row, index) => {
+    const center = rowsTop - (index + 0.5) * rowHeight;
     const labelColor = row.aggregated ? REPORT_COLORS.muted : REPORT_COLORS.ink;
     page.drawText(fitText(fonts.bold, row.name, 6.4, labelWidth), {
       x: input.x + 10,
@@ -458,22 +516,20 @@ function drawBranchChart(
       color: labelColor,
     });
 
-    // The aggregate row sums hidden branches, so drawing it to scale would
-    // dwarf every named bar. Show its total without a bar instead.
+    // The aggregate row sums every hidden row; drawing it to the same scale
+    // would flatten all named bars, so only its value is printed.
     if (!row.aggregated) {
-      let cursor = barsX;
-      for (const category of DASHBOARD_CATEGORIES) {
-        const width = (row.categories[category] / scaleMax) * barsWidth;
-        if (width <= 0) continue;
-        page.drawRectangle({
-          x: cursor,
-          y: center - barHeight / 2,
-          width,
-          height: barHeight,
-          color: hexRgb(CATEGORY_MAP_COLORS[category]),
-        });
-        cursor += width;
-      }
+      const width = Math.max(
+        (row.total / scaleMax) * barsWidth,
+        row.total > 0 ? 1.2 : 0,
+      );
+      page.drawRectangle({
+        x: barsX,
+        y: center - barHeight / 2,
+        width,
+        height: barHeight,
+        color: REPORT_COLORS.brand,
+      });
     }
     drawRightText(
       page,
@@ -499,7 +555,7 @@ function drawRankingPanel(
     rows: DashboardRankingRow[];
   },
 ): void {
-  const color = hexRgb(CATEGORY_MAP_COLORS[input.category]);
+  const color = hexRgb(BRAND_HEX);
   const label = DASHBOARD_CATEGORY_LABELS[input.category];
 
   page.drawRectangle({
@@ -521,18 +577,19 @@ function drawRankingPanel(
 
   page.drawText(`Konten ${safe(label)}`, {
     x: input.x + 8,
-    y: input.top - 13,
+    y: input.top - 14,
     size: 7.6,
     font: fonts.bold,
     color: REPORT_COLORS.muted,
   });
-  page.drawText(formatNumber(input.score), {
-    x: input.x + 8,
-    y: input.top - 26,
-    size: 11,
-    font: fonts.bold,
-    color: REPORT_COLORS.ink,
-  });
+  drawRightText(
+    page,
+    fonts.bold,
+    formatNumber(input.score),
+    9.5,
+    input.x + input.width - 8,
+    input.top - 15,
+  );
 
   if (input.rows.length === 0) {
     page.drawText("Belum ada konten tervalidasi.", {
@@ -547,24 +604,22 @@ function drawRankingPanel(
 
   const trackX = input.x + 8;
   const trackWidth = input.width - 16;
-  const rowsTop = input.top - 32;
-  const rowHeight = Math.min(
-    10,
-    (rowsTop - (input.top - input.height) - 6) / RANKING_ROWS,
-  );
+  const rowsTop = input.top - 26;
+  const available = rowsTop - (input.top - input.height) - 6;
+  const rowHeight = Math.min(13, available / input.rows.length);
 
   input.rows.forEach((row, index) => {
     const rowTop = rowsTop - index * rowHeight;
     const share = rankingShare(row.total, input.score);
-    page.drawText(formatShareId(share), {
+    page.drawText(`${index + 1}`, {
       x: trackX,
       y: rowTop - 5.6,
-      size: 5.2,
-      font: fonts.font,
+      size: 5.4,
+      font: fonts.bold,
       color: REPORT_COLORS.muted,
     });
-    page.drawText(fitText(fonts.bold, row.name, 6.2, trackWidth - 58), {
-      x: trackX + 17,
+    page.drawText(fitText(fonts.bold, row.name, 6.2, trackWidth - 52), {
+      x: trackX + 12,
       y: rowTop - 5.6,
       size: 6.2,
       font: fonts.bold,
@@ -579,17 +634,20 @@ function drawRankingPanel(
       rowTop - 5.6,
     );
     page.drawRectangle({
-      x: trackX,
-      y: rowTop - 9.4,
-      width: trackWidth,
-      height: 1.6,
+      x: trackX + 12,
+      y: rowTop - 9.6,
+      width: Math.max(0, trackWidth - 12),
+      height: 2.2,
       color: REPORT_COLORS.surface,
     });
     page.drawRectangle({
-      x: trackX,
-      y: rowTop - 9.4,
-      width: Math.max((share / 100) * trackWidth, row.total > 0 ? 1.2 : 0),
-      height: 1.6,
+      x: trackX + 12,
+      y: rowTop - 9.6,
+      width: Math.max(
+        ((trackWidth - 12) * share) / 100,
+        row.total > 0 ? 1.2 : 0,
+      ),
+      height: 2.2,
       color,
     });
   });
@@ -714,6 +772,17 @@ function drawThemeLegend(
   });
 }
 
+function scopePhrase(variant: DashboardVariant): string {
+  switch (variant) {
+    case "branch":
+      return "cakupan cabang Anda";
+    case "stakeholder":
+      return "organisasi Anda";
+    default:
+      return "cabang terpilih";
+  }
+}
+
 function drawThemeBand(
   page: PDFPage,
   fonts: ReportFonts,
@@ -768,7 +837,7 @@ function drawThemeBand(
   if (input.filtered.nonEdufastThemes.length === 0) {
     const lines = wrapText(
       fonts.font,
-      "Belum ada konten Non-EDUFAST pada cabang terpilih.",
+      `Belum ada konten Non-EDUFAST pada ${scopePhrase(plan.variant)}.`,
       6.6,
       150,
     );
@@ -826,6 +895,206 @@ function drawThemeBand(
   }
 }
 
+/**
+ * Stakeholder layout: the theme band owns the whole body, so the donut grows
+ * and the legend gets one full-width column with proportional tracks.
+ */
+function drawStakeholderThemeBand(
+  page: PDFPage,
+  fonts: ReportFonts,
+  input: DashboardPdfInput,
+  plan: DashboardPdfPlan,
+  band: { top: number; height: number },
+): void {
+  const bottom = band.top - band.height;
+  page.drawRectangle({
+    x: MARGIN,
+    y: bottom,
+    width: CONTENT_W,
+    height: band.height,
+    color: REPORT_COLORS.white,
+    borderColor: REPORT_COLORS.line,
+    borderWidth: 0.6,
+  });
+  page.drawText("Tema Konten", {
+    x: MARGIN + 12,
+    y: band.top - 17,
+    size: 9.5,
+    font: fonts.bold,
+    color: REPORT_COLORS.ink,
+  });
+  page.drawText("EDUFAST dan sub-tema Non-EDUFAST pada organisasi Anda", {
+    x: MARGIN + 82,
+    y: band.top - 16.5,
+    size: 6.4,
+    font: fonts.font,
+    color: REPORT_COLORS.muted,
+  });
+
+  const donutCx = MARGIN + 130;
+  const donutCy = bottom + band.height / 2 - 8;
+  if (input.filtered.nonEdufastThemes.length === 0) {
+    const lines = wrapText(
+      fonts.font,
+      "Belum ada konten Non-EDUFAST pada organisasi Anda.",
+      7,
+      150,
+    );
+    lines.forEach((line, index) => {
+      page.drawText(line, {
+        x: donutCx - 75,
+        y: donutCy + 16 - index * 10,
+        size: 7,
+        font: fonts.font,
+        color: REPORT_COLORS.muted,
+      });
+    });
+  } else {
+    drawDonut(page, fonts, {
+      cx: donutCx,
+      cy: donutCy,
+      outer: 66,
+      inner: 40,
+      total: Math.max(input.filtered.nonEdufast, 1),
+      themes: input.filtered.nonEdufastThemes,
+    });
+  }
+
+  const legendX = MARGIN + 260;
+  const legendWidth = CONTENT_RIGHT - 12 - legendX;
+  const rowsTop = band.top - 46;
+  const rowsBottom = bottom + 18;
+  const available = rowsTop - rowsBottom;
+  const rowHeight =
+    plan.themeLegend.length > 0
+      ? Math.min(22, (available - 8) / plan.themeLegend.length)
+      : 0;
+
+  if (plan.themeLegend.length === 0) {
+    page.drawText("Belum ada tema Non-EDUFAST untuk ditampilkan.", {
+      x: legendX,
+      y: rowsTop - 6,
+      size: 7,
+      font: fonts.font,
+      color: REPORT_COLORS.muted,
+    });
+  } else {
+    const blockHeight = rowHeight * plan.themeLegend.length;
+    const start =
+      rowsTop - Math.max(0, (available - blockHeight) / 2) - rowHeight + 6;
+    plan.themeLegend.forEach((row, index) => {
+      const y = start - index * rowHeight;
+      page.drawCircle({
+        x: legendX + 2.5,
+        y: y + 3,
+        size: 2.6,
+        color: hexRgb(themeMapColor(row.key, index)),
+      });
+      page.drawText(fitText(fonts.font, row.label, 6.8, legendWidth - 96), {
+        x: legendX + 9,
+        y,
+        size: 6.8,
+        font: fonts.font,
+        color: REPORT_COLORS.ink,
+      });
+      drawRightText(
+        page,
+        fonts.bold,
+        `${formatNumber(row.total)} (${percentFormatter.format(row.percentage)}%)`,
+        6.8,
+        legendX + legendWidth,
+        y,
+      );
+      const trackY = y - 4.2;
+      page.drawRectangle({
+        x: legendX + 9,
+        y: trackY,
+        width: legendWidth - 9,
+        height: 2.4,
+        color: REPORT_COLORS.surface,
+      });
+      page.drawRectangle({
+        x: legendX + 9,
+        y: trackY,
+        width: Math.max(
+          ((legendWidth - 9) * row.percentage) / 100,
+          row.total > 0 ? 1.2 : 0,
+        ),
+        height: 2.4,
+        color: hexRgb(themeMapColor(row.key, index)),
+      });
+    });
+  }
+
+  if (plan.hiddenThemes > 0) {
+    page.drawText(
+      `+${formatNumber(plan.hiddenThemes)} tema lainnya (lihat dashboard)`,
+      {
+        x: legendX,
+        y: bottom + 8,
+        size: 6,
+        font: fonts.font,
+        color: REPORT_COLORS.muted,
+      },
+    );
+  }
+  if (input.filtered.unclassifiedTheme > 0) {
+    page.drawText(
+      `Termasuk ${formatNumber(input.filtered.unclassifiedTheme)} konten tanpa tema.`,
+      {
+        x: MARGIN + 12,
+        y: bottom + 10,
+        size: 6,
+        font: fonts.font,
+        color: REPORT_COLORS.muted,
+      },
+    );
+  }
+}
+
+function kpiCards(
+  input: DashboardPdfInput,
+  plan: DashboardPdfPlan,
+): Array<[string, string]> {
+  const filterScoped =
+    plan.variant !== "branch" &&
+    plan.variant !== "stakeholder" &&
+    (input.selection.mode === "subset" || input.selection.mode === "none");
+  const suffix = filterScoped ? " (seluruh cakupan)" : "";
+  const total: [string, string] = [
+    `Total Konten Tervalidasi${suffix}`,
+    formatNumber(input.summary.totalApproved),
+  ];
+  const scopeKpi: [string, string] =
+    plan.variant === "branch" || plan.variant === "stakeholder"
+      ? [
+          "Institusi dengan Konten",
+          formatNumber(input.filtered.map.totals.institutions),
+        ]
+      : [
+          `Cabang dengan Konten${suffix}`,
+          `${formatNumber(input.summary.branchesWithContent)} dari ${formatNumber(input.summary.branchCount)}`,
+        ];
+
+  if (plan.variant === "stakeholder") {
+    return [
+      total,
+      scopeKpi,
+      ["Konten EDUFAST", formatNumber(input.filtered.edufast)],
+      ["Konten Non-EDUFAST", formatNumber(input.filtered.nonEdufast)],
+    ];
+  }
+
+  return [
+    total,
+    scopeKpi,
+    ["FKRTL", formatNumber(input.filtered.categoryTotals.FKRTL)],
+    ["FKTP", formatNumber(input.filtered.categoryTotals.FKTP)],
+    ["Pemda", formatNumber(input.filtered.categoryTotals.PEMDA)],
+    ["Stakeholder", formatNumber(input.filtered.categoryTotals.STAKEHOLDER)],
+  ];
+}
+
 export async function renderDashboardPdf(
   input: DashboardPdfInput,
 ): Promise<Uint8Array> {
@@ -851,27 +1120,11 @@ export async function renderDashboardPdf(
     subtitle,
   });
 
-  const kpiTop = contentTop - 6;
+  const kpis = kpiCards(input, plan);
+  const kpiTop = contentTop - 8;
   const kpiBottom = kpiTop - KPI_HEIGHT;
-  const gap = 6;
-  const cardWidth = (CONTENT_W - gap * 5) / 6;
-  const filterScoped =
-    input.selection.mode === "subset" || input.selection.mode === "none";
-  const scopeSuffix = filterScoped ? " (seluruh cakupan)" : "";
-  const kpis: Array<[string, string]> = [
-    [
-      `Total Konten Tervalidasi${scopeSuffix}`,
-      formatNumber(input.summary.totalApproved),
-    ],
-    [
-      `Cabang dengan Konten${scopeSuffix}`,
-      `${formatNumber(input.summary.branchesWithContent)} dari ${formatNumber(input.summary.branchCount)}`,
-    ],
-    ["FKRTL", formatNumber(input.filtered.categoryTotals.FKRTL)],
-    ["FKTP", formatNumber(input.filtered.categoryTotals.FKTP)],
-    ["Pemda", formatNumber(input.filtered.categoryTotals.PEMDA)],
-    ["Stakeholder", formatNumber(input.filtered.categoryTotals.STAKEHOLDER)],
-  ];
+  const gap = 8;
+  const cardWidth = (CONTENT_W - gap * (kpis.length - 1)) / kpis.length;
   kpis.forEach(([label, value], index) => {
     drawKpiCard(page, fonts, {
       x: MARGIN + index * (cardWidth + gap),
@@ -882,35 +1135,43 @@ export async function renderDashboardPdf(
     });
   });
 
-  const midTop = kpiBottom - 22;
-  drawBranchChart(page, fonts, plan, {
-    x: MARGIN,
-    top: midTop,
-    width: BRANCH_COLUMN_WIDTH,
-    height: MID_HEIGHT,
-  });
+  if (plan.variant === "stakeholder") {
+    const top = kpiBottom - 16;
+    drawStakeholderThemeBand(page, fonts, input, plan, {
+      top,
+      height: top - (FOOTER_LINE_Y + 10),
+    });
+  } else {
+    const midTop = kpiBottom - 22;
+    drawBarChart(page, fonts, plan, {
+      x: MARGIN,
+      top: midTop,
+      width: CHART_COLUMN_WIDTH,
+      height: MID_HEIGHT,
+    });
 
-  const panelGap = 9;
-  const panelWidth = (RANKING_COLUMN_WIDTH - panelGap) / 2;
-  const panelHeight = (MID_HEIGHT - panelGap) / 2;
-  RANKING_GRID.forEach((row, rowIndex) => {
-    row.forEach((category, columnIndex) => {
-      drawRankingPanel(page, fonts, {
-        x: RANKING_COLUMN_X + columnIndex * (panelWidth + panelGap),
-        top: midTop - rowIndex * (panelHeight + panelGap),
-        width: panelWidth,
-        height: panelHeight,
-        category,
-        score: input.filtered.categoryTotals[category],
-        rows: plan.rankings[category],
+    const panelGap = 9;
+    const panelWidth = (RANKING_COLUMN_WIDTH - panelGap) / 2;
+    const panelHeight = (MID_HEIGHT - panelGap) / 2;
+    RANKING_GRID.forEach((row, rowIndex) => {
+      row.forEach((category, columnIndex) => {
+        drawRankingPanel(page, fonts, {
+          x: RANKING_COLUMN_X + columnIndex * (panelWidth + panelGap),
+          top: midTop - rowIndex * (panelHeight + panelGap),
+          width: panelWidth,
+          height: panelHeight,
+          category,
+          score: input.filtered.categoryTotals[category],
+          rows: plan.rankings[category],
+        });
       });
     });
-  });
 
-  drawThemeBand(page, fonts, input, plan, {
-    top: midTop - MID_HEIGHT - 8,
-    height: THEME_HEIGHT,
-  });
+    drawThemeBand(page, fonts, input, plan, {
+      top: midTop - MID_HEIGHT - 8,
+      height: THEME_HEIGHT,
+    });
+  }
 
   drawFooter(page, fonts, logo, {
     scopeLabel: input.scopeLabel,

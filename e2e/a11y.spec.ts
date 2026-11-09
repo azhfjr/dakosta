@@ -54,11 +54,19 @@ async function settle(page: Page, path: string): Promise<void> {
   if (DASHBOARD_PATHS.has(path) || DASHBOARD_PATHS.has(currentPath)) {
     // Dashboard groups stream independently; wait for the last anchors instead
     // of networkidle, which the notification stream keeps pending forever.
+    // The stakeholder dashboard has no map, so its trailing anchor is the
+    // theme panel.
+    const lastAnchor =
+      path === "/client" || currentPath === "/client"
+        ? "#tema-konten"
+        : "#peta";
     await page.locator("#non-edufast").waitFor({
       state: "visible",
       timeout: 60_000,
     });
-    await page.locator("#peta").waitFor({ state: "visible", timeout: 60_000 });
+    await page
+      .locator(lastAnchor)
+      .waitFor({ state: "visible", timeout: 60_000 });
   } else {
     await page
       .waitForLoadState("networkidle", { timeout: 5_000 })
@@ -338,7 +346,7 @@ test.describe("Keyboard dan fokus", () => {
       await expect(selectAll).toBeFocused();
 
       const chartRegion = page.getByRole("region", {
-        name: "Grafik konten per cabang, dapat digulir",
+        name: "Konten per Cabang, dapat digulir",
       });
       await expect(chartRegion).toHaveAttribute("tabindex", "0");
       await chartRegion.focus();

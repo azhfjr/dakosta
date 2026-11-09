@@ -1097,6 +1097,43 @@ async function reconcileDashboardOverview(): Promise<void> {
       masterFiltered.rankings.FKTP.some((row) => row.stakeholderId === ORG_S7),
   );
 
+  const institutionChart = masterFiltered.institutionChart;
+  const chartCategories: Record<string, number> = {};
+  for (const category of DASHBOARD_CATEGORIES) {
+    chartCategories[category] = institutionChart.rows.reduce(
+      (sum, row) => sum + row.categories[category],
+      institutionChart.remaining?.categories[category] ?? 0,
+    );
+  }
+  expectEqual(
+    "overview institution chart total = A2 category sum",
+    institutionChart.total,
+    totalOf(masterFiltered.categoryTotals),
+  );
+  check(
+    "overview institution chart respects the row budget",
+    institutionChart.rows.length <= 12,
+  );
+  check(
+    "overview institution chart categories reconcile",
+    DASHBOARD_CATEGORIES.every(
+      (category) =>
+        chartCategories[category] === masterFiltered.categoryTotals[category],
+    ),
+    JSON.stringify(chartCategories),
+  );
+  check(
+    "overview institution chart is descending",
+    institutionChart.rows.every((row, index) => {
+      const previous = institutionChart.rows[index - 1];
+      return !previous || previous.total >= row.total;
+    }),
+  );
+  check(
+    "overview institution chart aggregate implies a full row budget",
+    institutionChart.remaining === null || institutionChart.rows.length === 12,
+  );
+
   for (const [label, viewer, expectedBranches] of [
     ["regional", regional, 3],
     ["branch", branch, 1],

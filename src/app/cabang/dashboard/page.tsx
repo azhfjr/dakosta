@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/shell/page-header";
 import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { Button } from "@/components/ui/button";
 import { redirectDashboardView } from "@/lib/dashboard/view";
+import { dashboardVariant } from "@/lib/dashboard/variant";
 import { formatDateTimeId } from "@/lib/dates";
 import { MAP_STYLE_URL } from "@/lib/geo";
 import { requireRole } from "@/lib/session";
@@ -31,7 +32,11 @@ export default async function BranchHomePage({
 }) {
   const user = await requireRole("BRANCH_ADMIN");
   const params = await searchParams;
-  redirectDashboardView("/cabang/dashboard", params);
+  redirectDashboardView(
+    "/cabang/dashboard",
+    params,
+    dashboardVariant(user.role),
+  );
 
   return (
     <PageContainer>
@@ -41,9 +46,9 @@ export default async function BranchHomePage({
         meta={`Diperbarui ${formatDateTimeId(new Date())} WIB`}
         actions={
           <>
-            <DashboardExportButton params={params} className="h-9" />
-            <Button asChild className="h-9">
-              <Link href="/cabang">Buka SLA</Link>
+            <DashboardExportButton params={params} className="h-10 sm:h-9" />
+            <Button asChild className="h-10 sm:h-9">
+              <Link href="/cabang">Cek SLA cabang</Link>
             </Button>
           </>
         }

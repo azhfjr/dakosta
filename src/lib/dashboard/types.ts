@@ -46,6 +46,25 @@ export type DashboardRankingRow = {
   total: number;
 };
 
+export type DashboardInstitutionRow = {
+  id: string;
+  name: string;
+  branchName: string | null;
+  total: number;
+  categories: DashboardCategoryTotals;
+};
+
+export type DashboardInstitutionChart = {
+  total: number;
+  /** Top institutions; never more than the chart row budget. */
+  rows: DashboardInstitutionRow[];
+  remaining: {
+    count: number;
+    total: number;
+    categories: DashboardCategoryTotals;
+  } | null;
+};
+
 export type DashboardMapPoint = {
   id: string;
   name: string;
@@ -88,6 +107,7 @@ export type DashboardFiltered = {
   selection: BranchSelection;
   categoryTotals: DashboardCategoryTotals;
   rankings: Record<DashboardCategory, DashboardRankingRow[]>;
+  institutionChart: DashboardInstitutionChart;
   edufast: number;
   nonEdufast: number;
   unclassifiedTheme: number;

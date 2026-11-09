@@ -9,11 +9,3 @@ export function rankingShare(total: number, score: number): number {
   }
   return Math.min(100, Math.max(0, (total / score) * 100));
 }
-
-const shareFormatter = new Intl.NumberFormat("id-ID", {
-  maximumFractionDigits: 1,
-});
-
-export function formatShareId(share: number): string {
-  return `${shareFormatter.format(share)}%`;
-}
