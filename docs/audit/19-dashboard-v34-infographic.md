@@ -2,7 +2,7 @@
 
 - Tanggal: 9 November 2026
 - Branch kerja: `fix/all-features-hardening`
-- Status deploy: **BELUM DEPLOY** saat dokumen ditulis — bagian 10 diperbarui setelah deploy produksi
+- Status deploy: **DONE** — `dpl_9dMaPC3hj5PjdLkL2CM8htwb9iVw` (detail di bagian 10)
 - Rencana: `C:\Users\PLN\.qoder\plans\calm-haven-marten.md`
 - Menggantikan: `18-dashboard-pdf-export.md` (v3.3, lima halaman + peta). Dokumen 18 dipertahankan sebagai riwayat.
 
@@ -114,4 +114,23 @@ Tidak ada perubahan skema, seed, data produksi, autentikasi, aturan approval, at
 
 ## 10. Deploy produksi
 
-Diisi setelah deploy dan smoke produksi.
+| Item            | Nilai                                                                                     |
+| --------------- | ----------------------------------------------------------------------------------------- |
+| Commit fitur    | `6468128` — `feat(dashboard): compact branch chart, one-page PDF, and infographic export` |
+| Deployment      | `dpl_9dMaPC3hj5PjdLkL2CM8htwb9iVw`                                                        |
+| URL deployment  | `https://dakosta-dakosta-d4i3o6nrq-jarjirjor777-5316.vercel.app`                          |
+| Alias produksi  | `https://dakosta-dakosta.vercel.app`                                                      |
+| Waktu           | 9 November 2026, 09.49 WIB                                                                |
+| Rollback target | v3.2 `dpl_3jMB35EEUcnFZtyHrPwLo6VaKRCT`                                                   |
+
+Smoke produksi `node scripts/smoke-production.mjs` — **25/25 LULUS** (evidence `docs/audit/evidence/E-smoke-production-2026-11-09T02-50-30-370Z.json`):
+
+- Health, header keamanan, redirect unauth, API 401, login 4 peran, seluruh halaman dashboard/kinerja 200.
+- RBAC 403 regional/cabang tetap ditolak.
+- PDF Kinerja 263.503 byte dan PDF dashboard 265.764 byte valid; nama file per periode/peran benar.
+- Infografis dashboard: 200, body PDF satu halaman, header `X-Infographic-Filename` bernama PNG.
+- Rekonsiliasi Dashboard = Kinerja = CSV: 41 = 41 (admin) dan 19 = 19 (wilayah).
+- CSV Kinerja/konten terunduh; route PDF lama 404.
+- Aset worker `GET /vendor/pdf.worker.min.mjs` → 200 `application/javascript`, 1.375.838 byte.
+
+Rollback tanpa migrasi: promosikan ulang `dpl_3jMB35EEUcnFZtyHrPwLo6VaKRCT` atau revert commit `6468128`, lalu jalankan smoke.

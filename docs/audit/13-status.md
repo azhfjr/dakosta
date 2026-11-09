@@ -199,7 +199,7 @@ Tidak ada perubahan skema, seed, data produksi, autentikasi, aturan approval, at
 
 ## Unduh Dashboard PDF (2026-11-09)
 
-Tombol **Unduh PDF** pada keempat dashboard, dirender server-side sebagai PDF vektor A4 landscape (bukan screenshot) dengan logo Dakosta di header dan footer setiap halaman serta seluruh chart utuh; dicatat lengkap di `18-dashboard-pdf-export.md`. **Belum deploy** — produksi tetap pada v3.2 `dpl_3jMB35EEUcnFZtyHrPwLo6VaKRCT`.
+Tombol **Unduh PDF** pada keempat dashboard, dirender server-side sebagai PDF vektor A4 landscape (bukan screenshot) dengan logo Dakosta di header dan footer setiap halaman serta seluruh chart utuh; dicatat lengkap di `18-dashboard-pdf-export.md`. Komposisi lima halaman ini **digantikan v3.4** (satu halaman tanpa peta) dan ikut terdeploy bersama commit `6468128`.
 
 | Area             | Status         | Angka terverifikasi                                                                                   | Artefak / waktu                                           |
 | ---------------- | -------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
@@ -217,16 +217,17 @@ Tidak ada perubahan skema, seed, data produksi, autentikasi, aturan approval, va
 
 Menggantikan komposisi PDF v3.3 (lima halaman + peta) di atas; rincian di `19-dashboard-v34-infographic.md`. Chart cabang dipadatkan (pitch 32 px, tinggi 150–340 px), PDF kini **satu halaman A4 landscape tanpa peta**, dan tersedia **infografis PNG 300 DPI** (3508×2481) dari PDF yang sama melalui satu tombol "Unduh" berdropdown. Deploy akan dicatat pada bagian setelah smoke.
 
-| Area            | Status         | Angka terverifikasi                                                                                | Artefak / waktu                               |
-| --------------- | -------------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| Gate statis     | DONE (PASS)    | Prettier (20 file), ESLint 0 temuan, typecheck exit 0                                              | 2026-11-09 10.35 WIB                          |
-| Unit test       | DONE (268/268) | 40 file; 6 tes dashboard PDF + tes infografis + filter                                             | `npm test`, 2026-11-09 10.40 WIB              |
-| Build produksi  | DONE (PASS)    | `.next-verify`; route `?format=infographic` terdaftar                                              | `npm run build:verify`, 2026-11-09 10.42 WIB  |
-| E2E penuh       | DONE (104/104) | Seluruh spec; PDF 4 peran, PNG 3508×2481, menu keyboard di 4 dashboard                             | port 3400, 8,5 menit, 2026-11-09 10.45 WIB    |
-| Visual audit    | DONE (12/12)   | 4 peran × 3 viewport; chart 150–164 px; 0 overlap; 0 overflow; 0 error                             | `visual-audit.json`, 2026-11-09 10.46 WIB     |
-| Backtest        | DONE (67/67)   | Rekonsiliasi dashboard = Kinerja = SQL tetap lulus                                                 | `npm run test:backtest`, 2026-11-09 10.33 WIB |
-| Deep review     | DONE           | Temuan major diperbaiki (agregat, label KPI, asersi teks, nama file WIB)                           | core review diff v3.3+v3.4                    |
-| Unduhan manual  | DONE (5/5)     | master/`?cabang=`/regional/cabang/stakeholder: 200, 1 halaman A4, logo, tanpa kliping; PNG ±505 KB | `.tmp/pdf/*`, 2026-11-09 10.47 WIB            |
-| Deploy produksi | PENDING        | Dijalankan setelah commit; rollback target v3.2 `dpl_3jMB35EEUcnFZtyHrPwLo6VaKRCT`                 | —                                             |
+| Area            | Status         | Angka terverifikasi                                                                                   | Artefak / waktu                                        |
+| --------------- | -------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| Gate statis     | DONE (PASS)    | Prettier (20 file), ESLint 0 temuan, typecheck exit 0                                                 | 2026-11-09 10.35 WIB                                   |
+| Unit test       | DONE (268/268) | 40 file; 6 tes dashboard PDF + tes infografis + filter                                                | `npm test`, 2026-11-09 10.40 WIB                       |
+| Build produksi  | DONE (PASS)    | `.next-verify`; route `?format=infographic` terdaftar                                                 | `npm run build:verify`, 2026-11-09 10.42 WIB           |
+| E2E penuh       | DONE (104/104) | Seluruh spec; PDF 4 peran, PNG 3508×2481, menu keyboard di 4 dashboard                                | port 3400, 8,5 menit, 2026-11-09 10.45 WIB             |
+| Visual audit    | DONE (12/12)   | 4 peran × 3 viewport; chart 150–164 px; 0 overlap; 0 overflow; 0 error                                | `visual-audit.json`, 2026-11-09 10.46 WIB              |
+| Backtest        | DONE (67/67)   | Rekonsiliasi dashboard = Kinerja = SQL tetap lulus                                                    | `npm run test:backtest`, 2026-11-09 10.33 WIB          |
+| Deep review     | DONE           | Temuan major diperbaiki (agregat, label KPI, asersi teks, nama file WIB)                              | core review diff v3.3+v3.4                             |
+| Unduhan manual  | DONE (5/5)     | master/`?cabang=`/regional/cabang/stakeholder: 200, 1 halaman A4, logo, tanpa kliping; PNG ±505 KB    | `.tmp/pdf/*`, 2026-11-09 10.47 WIB                     |
+| Deploy produksi | DONE           | Commit `6468128`; `dpl_9dMaPC3hj5PjdLkL2CM8htwb9iVw`; alias `dakosta-dakosta.vercel.app`              | `npx vercel deploy --prod --yes`, 2026-11-09 09.49 WIB |
+| Smoke produksi  | DONE (25/25)   | PDF dashboard 265.764 byte; infografis 200 + header PNG; rekonsiliasi 41 = 41 dan 19 = 19; worker 200 | `E-smoke-production-2026-11-09T02-50-30-370Z.json`     |
 
 Tidak ada perubahan skema, seed, data produksi, autentikasi, aturan approval, atau variabel lingkungan. Satu dependensi klien baru: `pdfjs-dist@4.10.38`.
