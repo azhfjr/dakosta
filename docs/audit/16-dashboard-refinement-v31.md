@@ -5,6 +5,8 @@
 - Commit rilis: `04f8fc7` (refinement + perbaikan hash) dan `535a500` (fit satu layar untuk 10 baris peringkat)
 - Status deploy: **PRODUCTION** — `dpl_59uYtGsJUDEZUfdYdvtGZAibjFq3`, alias `https://dakosta-dakosta.vercel.app`, smoke produksi 21/21
 
+> **Superseded (9 November 2026):** Kepadatan satu layar dan gate 1440×900 pada laporan ini digantikan oleh `17-dashboard-restoration-v32.md`. Butir 2 di bawah juga tidak akurat: bar sejak v3.1 dihitung terhadap total kategori, bukan terhadap nilai maksimum baris yang tampil.
+
 ## 1. Ringkasan perubahan
 
 v3.1 mempertahankan information architecture, kontrak data approved-only, dan seluruh keputusan D1–D10 dari rilis v3 (`dpl_6hFKpQpbAcZDnFTXwGDQhJNZiCd2`). Perubahan bersifat presentasional dan navigasi:

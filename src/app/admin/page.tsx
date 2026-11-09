@@ -33,11 +33,10 @@ export default async function AdminHomePage({
   redirectDashboardView("/admin", params);
 
   return (
-    <PageContainer gap="compact">
+    <PageContainer>
       <PageHeader
         title="Dashboard"
         description={DESCRIPTION}
-        dense
         meta={`Diperbarui ${formatDateTimeId(new Date())} WIB`}
         actions={
           <Button asChild className="h-9">
@@ -45,7 +44,7 @@ export default async function AdminHomePage({
           </Button>
         }
       />
-      <Suspense fallback={<PageSkeleton label="Memuat dasbor…" dense />}>
+      <Suspense fallback={<PageSkeleton label="Memuat dasbor…" />}>
         <AdminHomeBody user={user} params={params} />
       </Suspense>
     </PageContainer>

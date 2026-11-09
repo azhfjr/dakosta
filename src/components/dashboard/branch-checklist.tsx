@@ -213,7 +213,7 @@ export function BranchChecklist({
       id="pilih-cabang"
       aria-labelledby="pilih-cabang-judul"
       aria-busy={pending}
-      className="relative rounded-xl border border-border bg-surface px-3 py-2 shadow-sm"
+      className="relative scroll-mt-20 rounded-xl border border-border bg-surface px-4 py-3 shadow-sm"
     >
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <h3
@@ -229,7 +229,7 @@ export function BranchChecklist({
               className="mt-0.5 size-4 shrink-0 text-status-review"
               aria-hidden
             />
-            <p className="text-xs text-ink-muted">
+            <p className="text-sm text-ink-muted">
               Tidak ada cabang dalam cakupan Anda, sehingga filter cabang tidak
               tersedia. Capaian tetap mengikuti cakupan organisasi Anda.
             </p>
@@ -241,7 +241,7 @@ export function BranchChecklist({
               value={regionValue}
               disabled={pending}
               onChange={(event) => onSelectRegion(event.currentTarget.value)}
-              className="h-8 max-w-44 rounded-md border border-input bg-background px-2 text-xs text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              className="h-9 max-w-44 rounded-md border border-input bg-background px-2 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
             >
               <option value="all">Semua wilayah</option>
               {groups.map((group) => (
@@ -262,9 +262,9 @@ export function BranchChecklist({
               onToggle={(event) => setListOpen(event.currentTarget.open)}
               className="group"
             >
-              <summary className="flex h-8 cursor-pointer list-none items-center gap-1.5 rounded-md border border-input bg-background px-2 text-xs font-medium text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none">
+              <summary className="flex h-9 cursor-pointer list-none items-center gap-1.5 rounded-md border border-input bg-background px-2 text-sm font-medium text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none">
                 Cabang
-                <span className="rounded bg-surface-muted px-1.5 py-0.5 text-[10px] font-semibold text-ink-muted tabular">
+                <span className="rounded bg-surface-muted px-1.5 py-0.5 text-xs font-semibold text-ink-muted tabular">
                   {selectedCount}/{branchCount}
                 </span>
                 <ChevronDown
@@ -274,7 +274,7 @@ export function BranchChecklist({
               </summary>
               <div className="absolute top-full right-3 left-3 z-30 mt-1 rounded-xl border border-border bg-surface p-3 shadow-xl sm:left-auto sm:w-[min(20rem,calc(100vw-2rem))]">
                 <div
-                  className="max-h-56 space-y-2 overflow-y-auto overscroll-contain pr-1 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  className="max-h-72 space-y-2 overflow-y-auto overscroll-contain pr-1 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                   role="region"
                   aria-label="Daftar cabang, dapat digulir"
                   tabIndex={0}
@@ -291,7 +291,7 @@ export function BranchChecklist({
                         data-region={group.region}
                         className="rounded-lg border border-border/70 p-2"
                       >
-                        <label className="flex items-center gap-2 text-[11px] font-semibold tracking-wide text-ink-muted uppercase">
+                        <label className="flex items-center gap-2 text-xs font-semibold tracking-wide text-ink-muted uppercase">
                           <TriStateCheckbox
                             id={`wilayah-${group.region.replace(/\s+/g, "-").toLowerCase()}`}
                             checked={groupAll}
@@ -307,7 +307,7 @@ export function BranchChecklist({
                         <ul className="mt-1 space-y-1 pl-6">
                           {group.branches.map((branch) => (
                             <li key={branch.id}>
-                              <label className="flex cursor-pointer items-start gap-2 text-xs text-foreground">
+                              <label className="flex cursor-pointer items-start gap-2 text-sm text-foreground">
                                 <TriStateCheckbox
                                   id={`cabang-${branch.id}`}
                                   checked={selected.has(branch.id)}
@@ -333,7 +333,7 @@ export function BranchChecklist({
 
             <label
               htmlFor="pilih-semua-cabang"
-              className="flex items-center gap-2 text-xs font-medium text-foreground"
+              className="flex items-center gap-2 text-sm font-medium text-foreground"
             >
               <TriStateCheckbox
                 id="pilih-semua-cabang"
@@ -346,7 +346,7 @@ export function BranchChecklist({
               Pilih Semua
             </label>
 
-            <p className="text-xs text-ink-muted sm:ml-auto" aria-live="polite">
+            <p className="text-sm text-ink-muted sm:ml-auto" aria-live="polite">
               <span className="font-semibold text-foreground tabular">
                 {selectedCount} dari {branchCount}
               </span>{" "}
@@ -359,7 +359,7 @@ export function BranchChecklist({
       {branchCount > 0 && selectedCount === 0 ? (
         <p
           role="status"
-          className="mt-2 rounded-md border border-status-review/30 bg-status-review/5 px-2.5 py-1.5 text-xs text-ink-muted"
+          className="mt-2 rounded-md border border-status-review/30 bg-status-review/5 px-2.5 py-2 text-sm text-ink-muted"
         >
           Tidak ada cabang dipilih. Data kolaborasi, peta, dan tema akan kosong
           sampai Anda memilih minimal satu cabang.

@@ -9,31 +9,23 @@ const widthClass = {
   full: "max-w-none",
 } as const;
 
-const gapClass = {
-  default: "gap-6",
-  compact: "gap-4 xl:gap-3",
-} as const;
-
 /**
  * Single page-width contract: `default` for dashboards, tables, and forms;
  * `narrow` for reading and settings pages; `wide` for dense full-width tables.
  */
 export function PageContainer({
   width = "default",
-  gap = "default",
   className,
   children,
 }: {
   width?: keyof typeof widthClass;
-  gap?: keyof typeof gapClass;
   className?: string;
   children: ReactNode;
 }) {
   return (
     <div
       className={cn(
-        "mx-auto flex w-full flex-col",
-        gapClass[gap],
+        "mx-auto flex w-full flex-col gap-6",
         widthClass[width],
         className,
       )}

@@ -109,6 +109,242 @@ async function orderOffsets(page: Page): Promise<number[]> {
   );
 }
 
+const PANEL_IDS = ["fkrtl", "fktp", "pemda", "stakeholder"] as const;
+const GAP_PAIRS = [
+  ["ringkasan", "konten-per-cabang"],
+  ["konten-per-cabang", "kolaborasi"],
+  ["pilih-cabang", "fkrtl"],
+  ["fkrtl", "pemda"],
+  ["stakeholder", "peta"],
+  ["peta", "tema-konten"],
+] as const;
+
+type LayoutBox = {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+  width: number;
+  height: number;
+};
+
+async function layoutMetrics(page: Page) {
+  return page.evaluate(
+    ({ panelIds, gapPairs }) => {
+      function box(node: Element | null): LayoutBox | null {
+        if (!node) return null;
+        const rect = node.getBoundingClientRect();
+        return {
+          left: rect.left,
+          top: rect.top + window.scrollY,
+          right: rect.right,
+          bottom: rect.bottom + window.scrollY,
+          width: rect.width,
+          height: rect.height,
+        };
+      }
+      const boxes = Object.fromEntries(
+        [
+          ...new Set<string>([
+            ...panelIds,
+            ...gapPairs.flatMap(([from, to]) => [from, to]),
+          ]),
+        ].map((id) => [id, box(document.getElementById(id))]),
+      ) as Record<string, LayoutBox | null>;
+      const gaps = gapPairs.map(([from, to]) => {
+        const start = boxes[from];
+        const end = boxes[to];
+        return {
+          from,
+          to,
+          gap: start && end ? end.top - start.bottom : null,
+        };
+      });
+      const chartRegion = document.querySelector<HTMLElement>(
+        '#konten-per-cabang [role="region"][aria-label^="Grafik konten"]',
+      );
+      const chart = chartRegion
+        ? {
+            ...box(chartRegion)!,
+            svg: chartRegion.querySelector("svg") !== null,
+            innerOverflow: chartRegion.scrollWidth - chartRegion.clientWidth,
+          }
+        : null;
+      const canvas = document.querySelector<HTMLElement>("[data-map-canvas]");
+      const map = canvas
+        ? {
+            ...box(canvas)!,
+            headingBottom:
+              box(document.getElementById("peta-judul"))?.bottom ?? null,
+          }
+        : null;
+      const donutNode =
+        document.querySelector<HTMLElement>("[data-theme-donut]");
+      const donut = donutNode
+        ? {
+            donut: box(donutNode)!,
+            legend: box(
+              document.querySelector<HTMLElement>(
+                '#tema-konten [role="region"][aria-label^="Legenda tema"]',
+              ),
+            ),
+          }
+        : null;
+      const tracks = [
+        ...document.querySelectorAll<HTMLElement>("[data-ranking-track]"),
+      ];
+      return {
+        overflow: document.documentElement.scrollWidth - window.innerWidth,
+        boxes,
+        gaps,
+        chart,
+        map,
+        donut,
+        minTrackHeight: tracks.length
+          ? Math.min(
+              ...tracks.map((track) => track.getBoundingClientRect().height),
+            )
+          : null,
+      };
+    },
+    { panelIds: PANEL_IDS, gapPairs: GAP_PAIRS },
+  );
+}
+
+function overlaps(left: LayoutBox, right: LayoutBox): boolean {
+  return (
+    left.left < right.right &&
+    right.left < left.right &&
+    left.top < right.bottom &&
+    right.top < left.bottom
+  );
+}
+
+async function expectProportionalLayout(
+  page: Page,
+  mode: "desktop" | "mobile",
+): Promise<void> {
+  const metrics = await layoutMetrics(page);
+
+  expect(
+    metrics.overflow,
+    "tidak boleh ada overflow horizontal",
+  ).toBeLessThanOrEqual(1);
+
+  for (const { from, to, gap } of metrics.gaps) {
+    expect(gap, `jarak ${from} → ${to} tidak terukur`).not.toBeNull();
+    expect(gap!, `jarak vertikal ${from} → ${to}`).toBeGreaterThanOrEqual(8);
+  }
+
+  const minPanelWidth = mode === "desktop" ? 520 : 320;
+  const panelBoxes = PANEL_IDS.map((id) => {
+    const panel = metrics.boxes[id];
+    expect(panel, `panel #${id} harus ada`).not.toBeNull();
+    expect(panel!.width, `lebar panel #${id}`).toBeGreaterThanOrEqual(
+      minPanelWidth,
+    );
+    return { id, box: panel! };
+  });
+
+  if (mode === "desktop") {
+    const rows: [string, string][] = [
+      ["fkrtl", "fktp"],
+      ["pemda", "stakeholder"],
+    ];
+    for (const [leftId, rightId] of rows) {
+      const left = panelBoxes.find((panel) => panel.id === leftId)!.box;
+      const right = panelBoxes.find((panel) => panel.id === rightId)!.box;
+      expect(
+        Math.abs(left.width - right.width),
+        `${leftId} dan ${rightId} harus selebar`,
+      ).toBeLessThanOrEqual(1);
+      expect(
+        Math.abs(left.top - right.top),
+        `${leftId} dan ${rightId} harus sebaris`,
+      ).toBeLessThanOrEqual(1);
+      expect(
+        Math.abs(left.height - right.height),
+        `${leftId} dan ${rightId} harus setinggi`,
+      ).toBeLessThanOrEqual(1);
+      expect(
+        overlaps(left, right),
+        `${leftId} dan ${rightId} tidak boleh bertumpuk`,
+      ).toBe(false);
+    }
+  } else {
+    const leftEdge = panelBoxes[0]!.box.left;
+    for (const panel of panelBoxes) {
+      expect(
+        Math.abs(panel.box.left - leftEdge),
+        `panel #${panel.id} harus rata kiri`,
+      ).toBeLessThanOrEqual(1);
+    }
+  }
+
+  const minChartWidth = mode === "desktop" ? 1000 : 280;
+  if (metrics.chart) {
+    expect(metrics.chart.width, "lebar grafik").toBeGreaterThanOrEqual(
+      minChartWidth,
+    );
+    expect(metrics.chart.height, "tinggi grafik").toBeGreaterThanOrEqual(180);
+    expect(metrics.chart.svg, "grafik harus merender SVG").toBe(true);
+    expect(
+      metrics.chart.innerOverflow,
+      "grafik tidak boleh overflow horizontal",
+    ).toBeLessThanOrEqual(1);
+  } else {
+    await expect(page.locator("#konten-per-cabang")).toContainText(
+      "Belum ada cabang dalam cakupan Anda.",
+    );
+  }
+
+  const minMapWidth = mode === "desktop" ? 1000 : 280;
+  const minMapHeight = mode === "desktop" ? 320 : 240;
+  if (metrics.map) {
+    expect(metrics.map.width, "lebar peta").toBeGreaterThanOrEqual(minMapWidth);
+    expect(metrics.map.height, "tinggi peta").toBeGreaterThanOrEqual(
+      minMapHeight,
+    );
+    expect(metrics.map.headingBottom, "judul peta harus ada").not.toBeNull();
+    expect(
+      metrics.map.headingBottom!,
+      "judul peta harus di atas kanvas",
+    ).toBeLessThanOrEqual(metrics.map.top + 1);
+  } else {
+    await expect(page.locator("#peta")).toContainText(
+      "Belum ada konten tervalidasi dengan lokasi",
+    );
+  }
+
+  if (metrics.donut) {
+    expect(metrics.donut.donut.width, "lebar donut").toBeGreaterThanOrEqual(
+      210,
+    );
+    expect(metrics.donut.donut.height, "tinggi donut").toBeGreaterThanOrEqual(
+      210,
+    );
+    if (metrics.donut.legend) {
+      expect(
+        overlaps(metrics.donut.donut, metrics.donut.legend),
+        "donut dan legenda tidak boleh bertumpuk",
+      ).toBe(false);
+    }
+  } else {
+    await expect(
+      page.getByText("Belum ada konten Non-EDUFAST pada cabang terpilih.", {
+        exact: true,
+      }),
+    ).toBeVisible();
+  }
+
+  if (metrics.minTrackHeight !== null) {
+    expect(
+      metrics.minTrackHeight,
+      "tinggi bar peringkat minimal 5px",
+    ).toBeGreaterThanOrEqual(5);
+  }
+}
+
 for (const dashboard of DASHBOARDS) {
   test.describe(`Dashboard ${dashboard.name}`, () => {
     test.use({ storageState: dashboard.state });
@@ -389,41 +625,22 @@ test.describe("Dashboard admin interaksi", () => {
     }
   });
 
-  test("dashboard muat dalam satu layar 1440x900 tanpa gulir vertikal", async ({
+  test("layout proporsional dan tanpa tumpang tindih pada 1440x900", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await waitForDashboard(page, "/admin");
     await page.evaluate(() => document.fonts.ready);
-    await expect
-      .poll(
-        () =>
-          page.evaluate(
-            () => document.documentElement.scrollHeight - window.innerHeight,
-          ),
-        { timeout: 15_000 },
-      )
-      .toBeLessThanOrEqual(2);
+    await expectProportionalLayout(page, "desktop");
+  });
 
-    const anchors = await page.evaluate((ids) => {
-      return ids.map((id) => {
-        const node = document.getElementById(id);
-        if (!node) return null;
-        const rect = node.getBoundingClientRect();
-        return { id, top: rect.top, bottom: rect.bottom };
-      });
-    }, SECTION_ORDER);
-    for (const anchor of anchors) {
-      expect(anchor, "seluruh anchor harus ada").not.toBeNull();
-      expect(
-        anchor!.top,
-        `${anchor!.id} harus di dalam layar`,
-      ).toBeGreaterThanOrEqual(0);
-      expect(
-        anchor!.bottom,
-        `${anchor!.id} harus di dalam layar`,
-      ).toBeLessThanOrEqual(902);
-    }
+  test("layout tetap proporsional dan tanpa tumpang tindih pada 375x812", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await waitForDashboard(page, "/admin");
+    await page.evaluate(() => document.fonts.ready);
+    await expectProportionalLayout(page, "mobile");
   });
 
   test("tema Non-EDUFAST memakai total dan persentase yang konsisten", async ({

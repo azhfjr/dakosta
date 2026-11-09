@@ -179,3 +179,18 @@ Rilis refinemen dashboard di atas v3, dicatat lengkap di `16-dashboard-refinemen
 | Verifikasi live 4 peran | DONE (4/4 PASS)     | 1440×900 data produksi penuh: tinggi 900px, 12/12 anchor terurut, toolbar filter ada; Master 19 baris peringkat        | verifikasi Playwright, 2026-11-08 12:02 WIB; `production-*-1440.png`                           |
 
 Tidak ada migrasi skema, seed, atau perubahan variabel lingkungan pada rilis ini.
+
+## Dashboard v3.2 (2026-11-09)
+
+Restorasi konsep v3 di atas v3.1: chart dan peta proporsional, tanpa overlap spacing, filter inline horizontal dipertahankan; dicatat lengkap di `17-dashboard-restoration-v32.md`. Gate satu layar 1440×900 dihentikan dan diganti gate proporsi terukur.
+
+| Area               | Status              | Angka terverifikasi                                                                        | Artefak / waktu                                                           |
+| ------------------ | ------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| Gate statis + unit | DONE (PASS)         | Prettier, lint, typecheck exit 0; 38 berkas, 259 tes                                       | `npm test`, 2026-11-09 00:42 waktu lokal                                  |
+| Backtest           | DONE (67/67 PASS)   | Rekonsiliasi dashboard = Kinerja = SQL tidak berubah                                       | `npm run test:backtest`, generatedAt `2026-11-08T17:41:33.445Z`           |
+| Build produksi     | DONE (PASS)         | `.next-verify` (env staging)                                                               | `npm run build:verify`, 2026-11-09 00:43 waktu lokal                      |
+| E2E penuh          | DONE (101/101 PASS) | Termasuk gate proporsi/no-overlap 1440×900 dan 375×812; regresi hash checklist tetap       | `PLAYWRIGHT_BASE_URL=http://localhost:3400 npx playwright test`, 10,2 mnt |
+| Audit visual       | DONE (12/12 PASS)   | 4 peran × 3 viewport; 0 overlap; gap min 16px; 0 overflow; peta siap; 0 console/page error | `dashboard-visual-audit.mjs`, generatedAt `2026-11-08T17:54:09.404Z`      |
+| Deploy produksi    | NOT RUN             | Belum di-commit/deploy; produksi tetap v3.1 `dpl_59uYtGsJUDEZUfdYdvtGZAibjFq3`             | menunggu instruksi pengguna                                               |
+
+Tidak ada perubahan skema, seed, data produksi, autentikasi, aturan approval, atau variabel lingkungan.

@@ -1,4 +1,4 @@
-import { Building2, FileCheck2 } from "lucide-react";
+import { Building2, FileCheck2, GraduationCap, Layers } from "lucide-react";
 
 import { StatCard } from "@/components/dashboard/stat-card";
 import type { DashboardSummary } from "@/lib/dashboard/types";
@@ -10,16 +10,15 @@ export function SummaryScorecards({ summary }: { summary: DashboardSummary }) {
     <section
       id="ringkasan"
       aria-label="Ringkasan konten tervalidasi"
-      className="min-w-0"
+      className="scroll-mt-20"
     >
-      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+      <div className="grid gap-4 sm:grid-cols-2">
         <StatCard
           label="Total Konten Tervalidasi"
           value={formatNumberId(summary.totalApproved)}
           hint="Seluruh riwayat, hanya konten dengan approval final."
           icon={FileCheck2}
           tone="green"
-          size="dense"
         />
         <StatCard
           label="Cabang dengan Konten"
@@ -33,7 +32,6 @@ export function SummaryScorecards({ summary }: { summary: DashboardSummary }) {
           }
           icon={Building2}
           tone="blue"
-          size="dense"
         />
       </div>
     </section>
@@ -48,28 +46,26 @@ export function ThemeScorecards({
   nonEdufast: number;
 }) {
   return (
-    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
-      <div
-        id="edufast"
-        className="rounded-lg border border-border bg-surface-muted/40 px-2.5 py-2"
-      >
-        <p className="text-[10px] font-semibold tracking-wide text-ink-muted uppercase">
-          Konten EDUFAST
-        </p>
-        <p className="mt-0.5 text-lg font-semibold tracking-tight text-foreground tabular">
-          {formatNumberId(edufast)}
-        </p>
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+      <div id="edufast" className="scroll-mt-20">
+        <StatCard
+          label="Konten EDUFAST"
+          value={formatNumberId(edufast)}
+          hint="Tema utama EDUFAST pada cabang terpilih."
+          icon={GraduationCap}
+          tone="teal"
+          size="compact"
+        />
       </div>
-      <div
-        id="non-edufast"
-        className="rounded-lg border border-border bg-surface-muted/40 px-2.5 py-2"
-      >
-        <p className="text-[10px] font-semibold tracking-wide text-ink-muted uppercase">
-          Konten Non-EDUFAST
-        </p>
-        <p className="mt-0.5 text-lg font-semibold tracking-tight text-foreground tabular">
-          {formatNumberId(nonEdufast)}
-        </p>
+      <div id="non-edufast" className="scroll-mt-20">
+        <StatCard
+          label="Konten Non-EDUFAST"
+          value={formatNumberId(nonEdufast)}
+          hint="Seluruh tema utama selain EDUFAST pada cabang terpilih."
+          icon={Layers}
+          tone="amber"
+          size="compact"
+        />
       </div>
     </div>
   );

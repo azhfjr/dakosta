@@ -34,11 +34,10 @@ export default async function ClientHomePage({
   redirectDashboardView("/client", params);
 
   return (
-    <PageContainer gap="compact">
+    <PageContainer>
       <PageHeader
         title={`Beranda ${user.name}`}
         description={DESCRIPTION}
-        dense
         meta={`Diperbarui ${formatDateTimeId(new Date())} WIB`}
         actions={
           <Button asChild className="h-10">
@@ -49,7 +48,7 @@ export default async function ClientHomePage({
           </Button>
         }
       />
-      <Suspense fallback={<PageSkeleton label="Memuat dasbor…" dense />}>
+      <Suspense fallback={<PageSkeleton label="Memuat dasbor…" />}>
         <ClientHomeBody user={user} params={params} />
       </Suspense>
     </PageContainer>
@@ -65,7 +64,7 @@ async function ClientHomeBody({
 }) {
   const notice =
     user.stakeholderIds.length === 0 ? (
-      <div className="flex items-start gap-3 rounded-xl border border-status-review/30 bg-status-review/5 p-3 xl:p-2.5">
+      <div className="flex items-start gap-3 rounded-xl border border-status-review/30 bg-status-review/5 p-4">
         <Info
           className="mt-0.5 size-5 shrink-0 text-status-review"
           aria-hidden

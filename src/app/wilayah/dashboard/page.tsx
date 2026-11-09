@@ -31,11 +31,10 @@ export default async function RegionalHomePage({
   const description = `Capaian konten yang telah memperoleh approval final untuk ${user.scopeLabel}. Wilayah bersifat baca-saja; keputusan tetap dilakukan admin cabang.`;
 
   return (
-    <PageContainer gap="compact">
+    <PageContainer>
       <PageHeader
         title="Dashboard wilayah"
         description={description}
-        dense
         meta={`Diperbarui ${formatDateTimeId(new Date())} WIB`}
         actions={
           <Button asChild className="h-9">
@@ -43,7 +42,7 @@ export default async function RegionalHomePage({
           </Button>
         }
       />
-      <Suspense fallback={<PageSkeleton label="Memuat dasbor…" dense />}>
+      <Suspense fallback={<PageSkeleton label="Memuat dasbor…" />}>
         <RegionalHomeBody user={user} params={params} />
       </Suspense>
     </PageContainer>

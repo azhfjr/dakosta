@@ -25,8 +25,8 @@ import {
 } from "@/lib/dashboard/types";
 import { formatNumberId } from "@/lib/dates";
 
-const LABEL_WIDTH = 132;
-const LABEL_CHARS = 15;
+const LABEL_WIDTH = 168;
+const LABEL_CHARS = 19;
 
 type ChartRow = {
   id: string;
@@ -76,7 +76,7 @@ function BranchTick({ x = 0, y = 0, payload }: TickProps) {
   const name = separator >= 0 ? raw.slice(0, separator) : raw;
   const total = separator >= 0 ? raw.slice(separator + 1) : "";
   const lines = wrapLabel(name);
-  const lineHeight = 12;
+  const lineHeight = 13;
   const blockHeight = lines.length * lineHeight + lineHeight;
   const start = y - blockHeight / 2 + lineHeight - 2;
 
@@ -147,8 +147,8 @@ export function BranchStackChart({
     1,
     ...branches.map((branch) => wrapLabel(branch.name).length),
   );
-  const rowHeight = Math.max(28, maxLines * 12 + 14);
-  const height = Math.max(120, branches.length * rowHeight + 8);
+  const rowHeight = Math.max(46, maxLines * 13 + 24);
+  const height = Math.max(180, branches.length * rowHeight + 16);
   const rows: ChartRow[] = branches.map((branch) => ({
     id: branch.id,
     label: `${branch.name}\u0000${formatNumberId(branch.total)}`,
@@ -165,16 +165,21 @@ export function BranchStackChart({
     <section
       id="konten-per-cabang"
       aria-labelledby="konten-per-cabang-judul"
-      className="flex h-full min-w-0 flex-col rounded-xl border border-border bg-surface p-3 shadow-sm"
+      className="scroll-mt-20 rounded-xl border border-border bg-surface p-4 shadow-sm sm:p-5"
     >
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2
-          id="konten-per-cabang-judul"
-          className="text-base font-semibold text-foreground xl:text-sm"
-        >
-          Konten per Cabang
-        </h2>
-        <div className="flex flex-wrap gap-1">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <h2
+            id="konten-per-cabang-judul"
+            className="text-base font-semibold text-foreground"
+          >
+            Konten per Cabang
+          </h2>
+          <p className="mt-0.5 text-xs text-ink-muted">
+            Hanya konten dengan approval final, diurutkan dari total tertinggi.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-1.5">
           {DASHBOARD_CATEGORIES.map((category) => (
             <ChartLegendChip
               key={category}
@@ -183,19 +188,16 @@ export function BranchStackChart({
             />
           ))}
         </div>
-        <p className="w-full text-xs text-ink-muted xl:sr-only">
-          Hanya konten dengan approval final, diurutkan dari total tertinggi.
-        </p>
       </div>
 
       {branches.length === 0 ? (
-        <div className="mt-2 flex min-h-[120px] items-center justify-center rounded-lg border border-dashed border-border bg-surface-muted/40 px-4 text-center text-sm text-ink-muted">
+        <div className="mt-4 flex min-h-[160px] items-center justify-center rounded-lg border border-dashed border-border bg-surface-muted/40 px-4 text-center text-sm text-ink-muted">
           Belum ada cabang dalam cakupan Anda.
         </div>
       ) : (
         <>
           <div
-            className="mt-2 max-h-[240px] overflow-y-auto overscroll-contain pr-1 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none xl:max-h-[132px]"
+            className="mt-4 max-h-[440px] overflow-y-auto overscroll-contain pr-1 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
             role="region"
             aria-label="Grafik konten per cabang, dapat digulir"
             tabIndex={0}
@@ -205,7 +207,7 @@ export function BranchStackChart({
                 <BarChart
                   data={rows}
                   layout="vertical"
-                  margin={{ top: 4, right: 12, bottom: 0, left: 4 }}
+                  margin={{ top: 8, right: 16, bottom: 4, left: 4 }}
                   accessibilityLayer
                 >
                   <CartesianGrid horizontal={false} stroke={CHART_GRID} />
@@ -243,7 +245,7 @@ export function BranchStackChart({
             </div>
           </div>
           {totalApproved === 0 ? (
-            <p className="mt-2 text-xs text-ink-muted">
+            <p className="mt-2 text-sm text-ink-muted">
               Belum ada konten tervalidasi pada cabang dalam cakupan Anda.
             </p>
           ) : null}
@@ -251,7 +253,7 @@ export function BranchStackChart({
       )}
 
       {unassignedApproved > 0 ? (
-        <p className="mt-2 rounded-md border border-status-review/30 bg-status-review/5 px-2 py-1 text-[11px] text-ink-muted">
+        <p className="mt-3 rounded-md border border-status-review/30 bg-status-review/5 px-3 py-2 text-xs text-ink-muted">
           {formatNumberId(unassignedApproved)} konten tervalidasi belum
           terhubung ke cabang dan tidak tampil pada grafik ini.
         </p>
