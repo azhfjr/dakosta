@@ -165,4 +165,21 @@ Keputusan yang dicatat: strip KPI PDF memuat 6 kartu (total, cakupan, FKRTL, FKT
 
 ## 11. Rollback
 
-Tidak ada migrasi data. Rollback = kembalikan berkas UI/PDF ke commit v3.4; bila sudah di-deploy, promosikan ulang deployment v3.4 `dpl_9dMaPC3hj5PjdLkL2CM8htwb9iVw`. Rilis v3.5 **belum di-commit dan belum di-deploy**; commit/deploy menunggu instruksi eksplisit.
+Tidak ada migrasi data atau perubahan variabel lingkungan. Rollback = promosikan ulang deployment v3.4 `dpl_9dMaPC3hj5PjdLkL2CM8htwb9iVw` (alias `dakosta-dakosta.vercel.app`). Commit fitur v3.5 adalah `a937c55`; tidak ada commit lain yang perlu dibalik.
+
+## 12. Deploy produksi (2026-11-09)
+
+| Area                | Hasil                                                                                                                                                                                                                                                                                                          |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Commit rilis        | `a937c55` — `feat(dashboard): ship v3.5 role-aware views with simple bar charts`                                                                                                                                                                                                                               |
+| Deployment produksi | `dpl_5dnHcwACpnC6ZcTp7FftALfbikhY`, status Ready, build 1 mnt; alias `dakosta-dakosta.vercel.app`                                                                                                                                                                                                              |
+| Smoke produksi      | 25/25 PASS — health, header keamanan, 401/307, login 4 peran, RBAC 403, PDF Kinerja 263.503 B, PDF dashboard 265.564 B, infografis 200, CSV, rekonsiliasi 41 = 41 dan 19 = 19; evidence `E-smoke-production-2026-11-09T06-08-33-486Z.json`                                                                     |
+| Audit live 4 peran  | 4/4 PASS — aksi header rata kanan (tepi 1408 = 1408), ranking tanpa persen, chart cabang/institusi sesuai peran, stakeholder tanpa ranking/peta/filter, 375px tanpa overflow; evidence `production-live-audit.json` + 8 tangkapan layar                                                                        |
+| Verifikasi dataset  | PARTIAL — tier DB berhenti pada `RESUBMITTED` 19 vs 20 dan tier HTTP pada approved bulan berjalan 41 vs 40; drift demo satu konten yang di-approve lewat alur demo, bukan akibat deploy. Tidak ada penulisan data; smoke membuktikan dashboard = CSV = Kinerja (41 = 41, 19 = 19). Data produksi tidak diubah. |
+| Rollback target     | v3.4 `dpl_9dMaPC3hj5PjdLkL2CM8htwb9iVw`                                                                                                                                                                                                                                                                        |
+
+Tidak ada skema, seed, data produksi, autentikasi, aturan approval, rate limit, atau variabel lingkungan yang diubah.
+
+### Temuan di luar cakupan v3.5
+
+Form login dapat melakukan submit GET bawaan apabila dikirim sebelum React selesai hydration (perilaku lama, bukan perubahan v3.5): kredensial dapat muncul di URL. Audit live menghindari kondisi ini dengan menunggu hydration. Disarankan patch terpisah (mis. `method="post"` atau menonaktifkan tombol sampai hydration) berikut gate dan smoke tersendiri.

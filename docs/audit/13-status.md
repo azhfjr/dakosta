@@ -1,24 +1,27 @@
 # D13 — Status Jujur
 
-**Diperbarui:** 2026-11-07 (remediasi audit v2, branch `fix/all-features-hardening`, produksi v2 ter-deploy). Dokumen ini memisahkan **status terkini pasca-remediasi** dari **baseline rilis v1.1 (historis)**. Setiap angka menyebut artefak dan waktunya; angka tanpa artefak tidak dipakai.
+**Diperbarui:** 2026-11-09 (dashboard v3.5 ter-deploy, branch `fix/all-features-hardening`). Dokumen ini memisahkan **status terkini pasca-remediasi** dari **baseline rilis v1.1 (historis)**. Setiap angka menyebut artefak dan waktunya; angka tanpa artefak tidak dipakai.
 
 Label: DONE (bukti lulus), PARTIAL (sebagian), BLOCKED, NOT RUN.
 
 ## Status v3.5 — dashboard per peran (2026-11-09)
 
-Dashboard v3.5 (bar chart sederhana, ranking tanpa persentase, aksi kanan, tampilan per peran, PDF/infografis selaras) sudah diimplementasikan di branch `fix/all-features-hardening` dan lulus seluruh gate lokal. **Belum di-commit dan belum di-deploy.** Detail: `docs/audit/20-dashboard-v35-role-views.md`.
+Dashboard v3.5 (bar chart sederhana, ranking tanpa persentase, aksi kanan, tampilan per peran, PDF/infografis selaras) di-commit sebagai `a937c55` dan di-deploy ke produksi sebagai `dpl_5dnHcwACpnC6ZcTp7FftALfbikhY`. Detail: `docs/audit/20-dashboard-v35-role-views.md`.
 
-| Area                      | Status                       | Angka terverifikasi                                                 | Artefak / waktu                                       |
-| ------------------------- | ---------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------- |
-| Prettier/ESLint/Typecheck | DONE (PASS)                  | 0 error, 0 warning                                                  | 2026-11-09                                            |
-| Unit/integration          | DONE (286/286 PASS)          | 42 berkas; 28 tes dashboard khusus                                  | `npm test`, 2026-11-09 13:40                          |
-| Build verify              | DONE (PASS)                  | `.next-verify`                                                      | `npm run build:verify`, 2026-11-09                    |
-| E2E penuh                 | DONE (132/132 PASS)          | 13 spec, 8,8 mnt; termasuk 4 dashboard × 2 viewport + 22 tes header | Playwright port 3400, 2026-11-09                      |
-| Visual audit per peran    | DONE (12/12 PASS)            | 4 peran × 3 viewport, overflow 0px, overlap 0, gap sesuai band      | `docs/audit/evidence/dashboard-v35/visual-audit.json` |
-| Audit UI/UX semua menu    | DONE (123/123 PASS)          | 56 rute × 1440/375 + 11 halaman padat × 768; 0 temuan (0 NEW)       | `docs/audit/evidence/ui-v35/final.json`               |
-| Backtest rekonsiliasi     | DONE (72/72 PASS)            | Termasuk `institutionChart` (total, urutan, rekonsiliasi kategori)  | `docs/audit/evidence/r13-backtest-reconcile.json`     |
-| PDF/infografis per peran  | DONE (6 ekspor)              | 1 halaman A4 landscape; PNG 300 DPI 3508×2481                       | `docs/audit/evidence/ui-v35/pdf/`                     |
-| Commit/deploy             | NOT RUN (menunggu instruksi) | Rollback target tetap v3.4 `dpl_9dMaPC3hj5PjdLkL2CM8htwb9iVw`       | —                                                     |
+| Area                      | Status              | Angka terverifikasi                                                                                                                                             | Artefak / waktu                                                             |
+| ------------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Prettier/ESLint/Typecheck | DONE (PASS)         | 0 error, 0 warning                                                                                                                                              | 2026-11-09                                                                  |
+| Unit/integration          | DONE (286/286 PASS) | 42 berkas; 28 tes dashboard khusus                                                                                                                              | `npm test`, 2026-11-09 13:40                                                |
+| Build verify              | DONE (PASS)         | `.next-verify`                                                                                                                                                  | `npm run build:verify`, 2026-11-09                                          |
+| E2E penuh                 | DONE (132/132 PASS) | 13 spec, 8,8 mnt; termasuk 4 dashboard × 2 viewport + 22 tes header                                                                                             | Playwright port 3400, 2026-11-09                                            |
+| Visual audit per peran    | DONE (12/12 PASS)   | 4 peran × 3 viewport, overflow 0px, overlap 0, gap sesuai band                                                                                                  | `docs/audit/evidence/dashboard-v35/visual-audit.json`                       |
+| Audit UI/UX semua menu    | DONE (123/123 PASS) | 56 rute × 1440/375 + 11 halaman padat × 768; 0 temuan (0 NEW)                                                                                                   | `docs/audit/evidence/ui-v35/final.json`                                     |
+| Backtest rekonsiliasi     | DONE (72/72 PASS)   | Termasuk `institutionChart` (total, urutan, rekonsiliasi kategori)                                                                                              | `docs/audit/evidence/r13-backtest-reconcile.json`                           |
+| PDF/infografis per peran  | DONE (6 ekspor)     | 1 halaman A4 landscape; PNG 300 DPI 3508×2481                                                                                                                   | `docs/audit/evidence/ui-v35/pdf/`                                           |
+| Commit/deploy             | DONE                | Commit `a937c55`; `dpl_5dnHcwACpnC6ZcTp7FftALfbikhY`; alias `dakosta-dakosta.vercel.app`; rollback v3.4 `dpl_9dMaPC3hj5PjdLkL2CM8htwb9iVw`                      | `npx vercel deploy --prod --yes`, 2026-11-09 13:07 WIB                      |
+| Smoke produksi            | DONE (25/25 PASS)   | Health, header keamanan, 401/307, login 4 peran, RBAC 403, PDF 2 jenis, infografis, CSV, rekonsiliasi 41 = 41 dan 19 = 19                                       | `docs/audit/evidence/E-smoke-production-2026-11-09T06-08-33-486Z.json`      |
+| Audit live 4 peran        | DONE (4/4 PASS)     | Aksi header rata kanan 1408 = 1408; ranking tanpa persen; chart sesuai peran; stakeholder tanpa ranking/peta/filter; 375px tanpa overflow                       | `docs/audit/evidence/ui-v35/production-live-audit.json` + 8 tangkapan layar |
+| Verifikasi dataset demo   | PARTIAL             | `RESUBMITTED` 19 vs 20 dan approved bulan berjalan 41 vs 40 = drift satu konten demo yang di-approve lewat alur demo; bukan akibat deploy, tanpa penulisan data | `npm run db:verify:demo:production`, 2026-11-09 13:08 WIB                   |
 
 ## Status terkini — remediasi audit v2 (2026-11-07)
 
