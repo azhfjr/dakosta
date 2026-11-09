@@ -48,6 +48,32 @@ export const THEME_CHART_COLORS: Record<string, string> = {
   TANPA_SUB_TEMA: "#0e7490",
 };
 
+/** Literal palette for PDF output, which cannot resolve CSS variables. */
+export const CHART_MAP_COLORS = [
+  "#00a651",
+  "#00857c",
+  "#005b9f",
+  "#b45309",
+  "#64748b",
+] as const;
+
+export const THEME_MAP_COLORS: Record<string, string> = {
+  MOBILE_JKN: CHART_MAP_COLORS[0],
+  TESTIMONI_PESERTA: CHART_MAP_COLORS[1],
+  ALUR_BEROBAT: CHART_MAP_COLORS[2],
+  EDUKATIF_PERSUASIF: CHART_MAP_COLORS[3],
+  KORPORAT: CHART_MAP_COLORS[4],
+  INFORMASI: "#7c3aed",
+  TANPA_SUB_TEMA: "#0e7490",
+};
+
+export function themeMapColor(key: string, fallbackIndex = 0): string {
+  return (
+    THEME_MAP_COLORS[key] ??
+    CHART_MAP_COLORS[fallbackIndex % CHART_MAP_COLORS.length]!
+  );
+}
+
 export function themeChartColor(key: string, fallbackIndex = 0): string {
   return (
     THEME_CHART_COLORS[key] ??

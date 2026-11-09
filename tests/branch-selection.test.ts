@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  branchFilterValues,
   branchSelectionHref,
   branchSelectionKey,
   parseBranchSelection,
@@ -75,6 +76,18 @@ describe("parseBranchSelection", () => {
       mode: "not-applicable",
       ids: [],
     });
+  });
+});
+
+describe("branchFilterValues", () => {
+  it("flattens single, comma separated, and repeated values", () => {
+    expect(branchFilterValues({})).toEqual([]);
+    expect(branchFilterValues({ cabang: BRANCH_A })).toEqual([BRANCH_A]);
+    expect(
+      branchFilterValues({
+        cabang: [`${BRANCH_A}, ${BRANCH_B}`, BRANCH_C],
+      }),
+    ).toEqual([BRANCH_A, BRANCH_B, BRANCH_C]);
   });
 });
 

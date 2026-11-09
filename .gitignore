@@ -50,6 +50,7 @@ next-env.d.ts
 
 # local scratch
 .tmp-*
+/.tmp/
 
 # operational data
 /backups

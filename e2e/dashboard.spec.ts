@@ -286,7 +286,10 @@ async function expectProportionalLayout(
     expect(metrics.chart.width, "lebar grafik").toBeGreaterThanOrEqual(
       minChartWidth,
     );
-    expect(metrics.chart.height, "tinggi grafik").toBeGreaterThanOrEqual(180);
+    expect(metrics.chart.height, "tinggi grafik").toBeGreaterThanOrEqual(140);
+    expect(metrics.chart.height, "tinggi grafik maksimal").toBeLessThanOrEqual(
+      380,
+    );
     expect(metrics.chart.svg, "grafik harus merender SVG").toBe(true);
     expect(
       metrics.chart.innerOverflow,

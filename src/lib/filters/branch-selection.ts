@@ -15,7 +15,8 @@ function uniqueSorted(ids: Iterable<string>): string[] {
   return [...new Set(ids)].sort(compareIds);
 }
 
-function rawBranchValues(params: FilterParams): string[] {
+/** Flattens repeated and comma-separated `cabang` values into one list. */
+export function branchFilterValues(params: FilterParams): string[] {
   const raw = params.cabang;
   if (raw === undefined) return [];
   const values = Array.isArray(raw) ? raw : [raw];
@@ -37,7 +38,7 @@ export function parseBranchSelection(
   const allowed = uniqueSorted(allowedIds);
   if (allowed.length === 0) return { mode: "not-applicable", ids: [] };
 
-  const values = rawBranchValues(params);
+  const values = branchFilterValues(params);
   if (values.length === 0) return { mode: "all", ids: allowed };
   if (values.some((value) => value.toLowerCase() === "none")) {
     return { mode: "none", ids: [] };

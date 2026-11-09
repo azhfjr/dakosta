@@ -196,3 +196,37 @@ Restorasi konsep v3 di atas v3.1: chart dan peta proporsional, tanpa overlap spa
 | Audit live 4 peran | DONE (4/4 PASS)     | 1440×900 data produksi penuh: 0 overlap, gap min 16px, 12/12 anchor terurut, chart Master 1062×416, peta siap                            | `production-live-audit.json`, generatedAt `2026-11-09T01:03:51.539Z`                    |
 
 Tidak ada perubahan skema, seed, data produksi, autentikasi, aturan approval, atau variabel lingkungan.
+
+## Unduh Dashboard PDF (2026-11-09)
+
+Tombol **Unduh PDF** pada keempat dashboard, dirender server-side sebagai PDF vektor A4 landscape (bukan screenshot) dengan logo Dakosta di header dan footer setiap halaman serta seluruh chart utuh; dicatat lengkap di `18-dashboard-pdf-export.md`. **Belum deploy** — produksi tetap pada v3.2 `dpl_3jMB35EEUcnFZtyHrPwLo6VaKRCT`.
+
+| Area             | Status         | Angka terverifikasi                                                                                   | Artefak / waktu                                           |
+| ---------------- | -------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| Gate statis      | DONE (PASS)    | Prettier (14 file), ESLint, typecheck exit 0                                                          | 2026-11-09 09:44 WIB                                      |
+| Unit test        | DONE (265/265) | Termasuk 20 tes dashboard PDF/filter; invariant pagination = seluruh data                             | `npm test`, 2026-11-09 09:45 WIB                          |
+| Build produksi   | DONE (PASS)    | `.next-verify` (env staging), route `/api/v1/reports/dashboard` terdaftar                             | `npm run build:verify`, 2026-11-09 09:38 WIB              |
+| E2E              | DONE (28/28)   | `e2e/reports.spec.ts` + `e2e/dashboard.spec.ts`; PDF 4 peran, anonim 401, tombol unduh di 4 dashboard | `PLAYWRIGHT_BASE_URL=http://localhost:3400`, 1,3 mnt      |
+| Unduhan manual   | DONE (5/5)     | admin/regional/branch/client/`?cabang=none`: 200, 5 halaman A4 landscape, logo di setiap halaman      | `.tmp-pdf-check` (scratch, dihapus), 2026-11-09 09:42 WIB |
+| Audit visual PDF | DONE           | Halaman 1–5 diperiksa di viewer Chromium: tanpa teks terpotong/tumpang tindih; legenda dan halo label | tangkapan layar sesi, 2026-11-09 09:43 WIB                |
+| Deploy produksi  | PENDING        | Menunggu konfirmasi eksplisit pengguna; smoke produksi dijalankan setelah deploy                      | —                                                         |
+
+Tidak ada perubahan skema, seed, data produksi, autentikasi, aturan approval, variabel lingkungan, atau dependensi.
+
+## Dashboard v3.4 — chart kompak, PDF satu halaman, infografis (2026-11-09)
+
+Menggantikan komposisi PDF v3.3 (lima halaman + peta) di atas; rincian di `19-dashboard-v34-infographic.md`. Chart cabang dipadatkan (pitch 32 px, tinggi 150–340 px), PDF kini **satu halaman A4 landscape tanpa peta**, dan tersedia **infografis PNG 300 DPI** (3508×2481) dari PDF yang sama melalui satu tombol "Unduh" berdropdown. Deploy akan dicatat pada bagian setelah smoke.
+
+| Area            | Status         | Angka terverifikasi                                                                                | Artefak / waktu                               |
+| --------------- | -------------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Gate statis     | DONE (PASS)    | Prettier (20 file), ESLint 0 temuan, typecheck exit 0                                              | 2026-11-09 10.35 WIB                          |
+| Unit test       | DONE (268/268) | 40 file; 6 tes dashboard PDF + tes infografis + filter                                             | `npm test`, 2026-11-09 10.40 WIB              |
+| Build produksi  | DONE (PASS)    | `.next-verify`; route `?format=infographic` terdaftar                                              | `npm run build:verify`, 2026-11-09 10.42 WIB  |
+| E2E penuh       | DONE (104/104) | Seluruh spec; PDF 4 peran, PNG 3508×2481, menu keyboard di 4 dashboard                             | port 3400, 8,5 menit, 2026-11-09 10.45 WIB    |
+| Visual audit    | DONE (12/12)   | 4 peran × 3 viewport; chart 150–164 px; 0 overlap; 0 overflow; 0 error                             | `visual-audit.json`, 2026-11-09 10.46 WIB     |
+| Backtest        | DONE (67/67)   | Rekonsiliasi dashboard = Kinerja = SQL tetap lulus                                                 | `npm run test:backtest`, 2026-11-09 10.33 WIB |
+| Deep review     | DONE           | Temuan major diperbaiki (agregat, label KPI, asersi teks, nama file WIB)                           | core review diff v3.3+v3.4                    |
+| Unduhan manual  | DONE (5/5)     | master/`?cabang=`/regional/cabang/stakeholder: 200, 1 halaman A4, logo, tanpa kliping; PNG ±505 KB | `.tmp/pdf/*`, 2026-11-09 10.47 WIB            |
+| Deploy produksi | PENDING        | Dijalankan setelah commit; rollback target v3.2 `dpl_3jMB35EEUcnFZtyHrPwLo6VaKRCT`                 | —                                             |
+
+Tidak ada perubahan skema, seed, data produksi, autentikasi, aturan approval, atau variabel lingkungan. Satu dependensi klien baru: `pdfjs-dist@4.10.38`.

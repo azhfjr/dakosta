@@ -76,13 +76,13 @@ function BranchTick({ x = 0, y = 0, payload }: TickProps) {
   const name = separator >= 0 ? raw.slice(0, separator) : raw;
   const total = separator >= 0 ? raw.slice(separator + 1) : "";
   const lines = wrapLabel(name);
-  const lineHeight = 13;
+  const lineHeight = 12;
   const blockHeight = lines.length * lineHeight + lineHeight;
   const start = y - blockHeight / 2 + lineHeight - 2;
 
   return (
     <g transform={`translate(${x},0)`}>
-      <text textAnchor="end" fill={CHART_AXIS} fontSize={11}>
+      <text textAnchor="end" fill={CHART_AXIS} fontSize={10}>
         {lines.map((line, index) => (
           <tspan key={`${line}-${index}`} x={0} y={start + index * lineHeight}>
             {line}
@@ -147,8 +147,8 @@ export function BranchStackChart({
     1,
     ...branches.map((branch) => wrapLabel(branch.name).length),
   );
-  const rowHeight = Math.max(46, maxLines * 13 + 24);
-  const height = Math.max(180, branches.length * rowHeight + 16);
+  const rowHeight = Math.max(32, maxLines * 12 + 14);
+  const height = Math.max(150, branches.length * rowHeight + 12);
   const rows: ChartRow[] = branches.map((branch) => ({
     id: branch.id,
     label: `${branch.name}\u0000${formatNumberId(branch.total)}`,
@@ -197,7 +197,7 @@ export function BranchStackChart({
       ) : (
         <>
           <div
-            className="mt-4 max-h-[440px] overflow-y-auto overscroll-contain pr-1 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            className="mt-3 max-h-[340px] overflow-y-auto overscroll-contain pr-1 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
             role="region"
             aria-label="Grafik konten per cabang, dapat digulir"
             tabIndex={0}
@@ -207,14 +207,16 @@ export function BranchStackChart({
                 <BarChart
                   data={rows}
                   layout="vertical"
-                  margin={{ top: 8, right: 16, bottom: 4, left: 4 }}
+                  margin={{ top: 4, right: 14, bottom: 0, left: 4 }}
+                  barCategoryGap="28%"
                   accessibilityLayer
                 >
                   <CartesianGrid horizontal={false} stroke={CHART_GRID} />
                   <XAxis
                     type="number"
                     allowDecimals={false}
-                    tick={{ fill: CHART_AXIS, fontSize: 11 }}
+                    tickCount={4}
+                    tick={{ fill: CHART_AXIS, fontSize: 10 }}
                     tickFormatter={(value: number) => formatNumberId(value)}
                   />
                   <YAxis
@@ -237,6 +239,7 @@ export function BranchStackChart({
                       name={DASHBOARD_CATEGORY_LABELS[category]}
                       stackId="konten"
                       fill={CATEGORY_CHART_COLORS[category]}
+                      maxBarSize={16}
                       isAnimationActive={false}
                     />
                   ))}

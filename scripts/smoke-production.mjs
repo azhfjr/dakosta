@@ -314,6 +314,42 @@ async function main() {
     "Content-Disposition",
   );
 
+  const dashboardPdf = await get("/api/v1/reports/dashboard", cookie.regional);
+  const dashboardPdfBuffer = Buffer.from(await dashboardPdf.arrayBuffer());
+  record(
+    "PDF dashboard valid",
+    dashboardPdf.status === 200 &&
+      dashboardPdfBuffer.subarray(0, 5).toString() === "%PDF-",
+    `status ${dashboardPdf.status}, ${dashboardPdfBuffer.length} byte`,
+  );
+  record(
+    "PDF dashboard diberi nama peran",
+    (dashboardPdf.headers.get("content-disposition") ?? "").includes(
+      "dashboard-dakosta-regional_admin-",
+    ),
+    "Content-Disposition",
+  );
+
+  const infographic = await get(
+    "/api/v1/reports/dashboard?format=infographic",
+    cookie.regional,
+  );
+  const infographicBuffer = Buffer.from(await infographic.arrayBuffer());
+  record(
+    "Infografis dashboard memakai PDF satu halaman",
+    infographic.status === 200 &&
+      infographicBuffer.subarray(0, 5).toString() === "%PDF-" &&
+      infographic.headers.get("x-report-format") === "infographic",
+    `status ${infographic.status}, ${infographicBuffer.length} byte`,
+  );
+  record(
+    "Infografis dashboard diberi nama PNG",
+    (infographic.headers.get("x-infographic-filename") ?? "").startsWith(
+      "infografis-dakosta-regional_admin-",
+    ),
+    "X-Infographic-Filename",
+  );
+
   const oldPdf = await get(
     `/api/v1/reports/achievement?month=${month}`,
     cookie.admin,

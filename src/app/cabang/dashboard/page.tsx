@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { DashboardExportButton } from "@/components/dashboard/dashboard-export-button";
 import { DashboardOverview } from "@/components/dashboard/dashboard-overview";
 import { PageContainer } from "@/components/shell/page-container";
 import { PageHeader } from "@/components/shell/page-header";
@@ -39,9 +40,12 @@ export default async function BranchHomePage({
         description={`${DESCRIPTION} ${user.scopeLabel}`}
         meta={`Diperbarui ${formatDateTimeId(new Date())} WIB`}
         actions={
-          <Button asChild className="h-9">
-            <Link href="/cabang">Buka SLA</Link>
-          </Button>
+          <>
+            <DashboardExportButton params={params} className="h-9" />
+            <Button asChild className="h-9">
+              <Link href="/cabang">Buka SLA</Link>
+            </Button>
+          </>
         }
       />
       <Suspense fallback={<PageSkeleton label="Memuat dasbor…" />}>

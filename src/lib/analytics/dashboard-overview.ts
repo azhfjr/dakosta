@@ -525,3 +525,17 @@ export async function getDashboardFiltered(
     () => loadFiltered(user, selection),
   );
 }
+
+/** Export/PDF path: a downloaded file must be a live snapshot, not cached. */
+export async function getDashboardSummaryUncached(
+  user: SessionUser,
+): Promise<DashboardSummary> {
+  return loadSummary(user);
+}
+
+export async function getDashboardFilteredUncached(
+  user: SessionUser,
+  selection: BranchSelection,
+): Promise<DashboardFiltered> {
+  return loadFiltered(user, selection);
+}

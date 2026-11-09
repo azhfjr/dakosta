@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Info, PlusCircle } from "lucide-react";
 
+import { DashboardExportButton } from "@/components/dashboard/dashboard-export-button";
 import { DashboardOverview } from "@/components/dashboard/dashboard-overview";
 import { PageContainer } from "@/components/shell/page-container";
 import { PageHeader } from "@/components/shell/page-header";
@@ -40,12 +41,15 @@ export default async function ClientHomePage({
         description={DESCRIPTION}
         meta={`Diperbarui ${formatDateTimeId(new Date())} WIB`}
         actions={
-          <Button asChild className="h-10">
-            <Link href="/client/lapor">
-              <PlusCircle className="size-4" aria-hidden />
-              Lapor konten
-            </Link>
-          </Button>
+          <>
+            <DashboardExportButton params={params} className="h-10" />
+            <Button asChild className="h-10">
+              <Link href="/client/lapor">
+                <PlusCircle className="size-4" aria-hidden />
+                Lapor konten
+              </Link>
+            </Button>
+          </>
         }
       />
       <Suspense fallback={<PageSkeleton label="Memuat dasbor…" />}>

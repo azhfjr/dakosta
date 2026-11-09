@@ -16,6 +16,9 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "test-results/**",
     "playwright-report/**",
+    // Local scratch (progress page, PDF viewer, vendored previews).
+    ".tmp/**",
+    ".tmp-*/**",
     // Vendored static assets (MapLibre worker bundle).
     "public/**",
   ]),

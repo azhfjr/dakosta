@@ -274,7 +274,8 @@ async function main() {
             layout.gaps.every((gap) => gap.gap !== null && gap.gap >= 8) &&
             (layout.chart
               ? layout.chart.width >= limits.chartWidth &&
-                layout.chart.height >= 180 &&
+                layout.chart.height >= 140 &&
+                layout.chart.height <= 380 &&
                 layout.chart.svg &&
                 layout.chart.innerOverflow <= 1
               : layout.chartEmpty) &&

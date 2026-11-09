@@ -4,6 +4,7 @@ import {
   test,
   type APIRequestContext,
 } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 
 import {
   ADMIN_STATE,
@@ -137,6 +138,117 @@ test.describe("Laporan Kinerja PDF", () => {
       expect(response.status()).toBe(401);
     } finally {
       await anonymous.dispose();
+    }
+  });
+});
+
+test.describe("Dashboard PDF", () => {
+  test("Master mengunduh PDF dashboard dengan nama peran", async () => {
+    const admin = await playwrightRequest.newContext({
+      baseURL,
+      storageState: ADMIN_STATE,
+    });
+    try {
+      const response = await admin.get("/api/v1/reports/dashboard");
+      expect(response.status()).toBe(200);
+      expect(response.headers()["content-type"]).toContain("application/pdf");
+      expect(response.headers()["content-disposition"]).toContain(
+        'attachment; filename="dashboard-dakosta-master_admin-',
+      );
+      expect(response.headers()["cache-control"]).toContain("no-store");
+
+      const buffer = Buffer.from(await response.body());
+      expect(buffer.subarray(0, 5).toString()).toBe("%PDF-");
+      expect(buffer.length).toBeGreaterThan(1_000);
+    } finally {
+      await admin.dispose();
+    }
+  });
+
+  test("stakeholder dapat mengunduh dashboard dan anonim ditolak", async () => {
+    const client = await playwrightRequest.newContext({
+      baseURL,
+      storageState: CLIENT_STATE,
+    });
+    try {
+      const response = await client.get("/api/v1/reports/dashboard");
+      expect(response.status()).toBe(200);
+      expect(response.headers()["content-type"]).toContain("application/pdf");
+    } finally {
+      await client.dispose();
+    }
+
+    const anonymous = await playwrightRequest.newContext({ baseURL });
+    try {
+      const response = await anonymous.get("/api/v1/reports/dashboard");
+      expect(response.status()).toBe(401);
+    } finally {
+      await anonymous.dispose();
+    }
+  });
+
+  test("menu Unduh menyediakan PDF dan infografis di empat dashboard", async ({
+    browser,
+  }) => {
+    test.setTimeout(240_000);
+    for (const [state, path] of [
+      [ADMIN_STATE, "/admin"],
+      [REGIONAL_STATE, "/wilayah/dashboard"],
+      [BRANCH_STATE, "/cabang/dashboard"],
+      [CLIENT_STATE, "/client"],
+    ] as const) {
+      const context = await browser.newContext({
+        storageState: state,
+        acceptDownloads: true,
+      });
+      try {
+        const page = await context.newPage();
+        await page.goto(path);
+        const trigger = page.getByRole("button", { name: "Unduh dashboard" });
+        await expect(trigger).toBeVisible();
+
+        await trigger.focus();
+        await page.keyboard.press("Enter");
+        await expect(page.getByRole("menu")).toBeVisible();
+        await page.keyboard.press("Escape");
+        await expect(page.getByRole("menu")).toHaveCount(0);
+
+        await trigger.click();
+        const [pdfDownload] = await Promise.all([
+          page.waitForEvent("download"),
+          page.locator('[data-dashboard-export-option="pdf"]').click(),
+        ]);
+        expect(pdfDownload.suggestedFilename()).toMatch(
+          /^dashboard-dakosta-[a-z_]+-\d{4}-\d{2}-\d{2}\.pdf$/,
+        );
+        const pdfPath = await pdfDownload.path();
+        expect(pdfPath).not.toBeNull();
+        const pdfBytes = await readFile(pdfPath as string);
+        expect(pdfBytes.subarray(0, 5).toString()).toBe("%PDF-");
+        expect(pdfBytes.length).toBeGreaterThan(1_000);
+
+        await trigger.click();
+        const [pngDownload] = await Promise.all([
+          page.waitForEvent("download", { timeout: 180_000 }),
+          page.locator('[data-dashboard-export-option="infographic"]').click(),
+        ]);
+        expect(pngDownload.suggestedFilename()).toMatch(
+          /^infografis-dakosta-[a-z_]+-\d{4}-\d{2}-\d{2}\.png$/,
+        );
+        const pngPath = await pngDownload.path();
+        expect(pngPath).not.toBeNull();
+        const pngBytes = await readFile(pngPath as string);
+        expect(pngBytes.subarray(0, 8).toString("hex")).toBe(
+          "89504e470d0a1a0a",
+        );
+        expect(pngBytes.readUInt32BE(16)).toBe(3508);
+        expect(pngBytes.readUInt32BE(20)).toBeGreaterThanOrEqual(2480);
+        expect(pngBytes.readUInt32BE(20)).toBeLessThanOrEqual(2481);
+        // Flat vector art compresses well in lossless PNG; ~500 KB at 8.7 MP.
+        expect(pngBytes.length).toBeGreaterThan(200_000);
+      } finally {
+        await context.close();
+      }
     }
   });
 });
