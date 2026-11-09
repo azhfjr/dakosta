@@ -30,7 +30,7 @@ export default async function RegionalNotificationsPage() {
   }));
 
   return (
-    <PageContainer width="narrow">
+    <PageContainer width="wide">
       <PageHeader
         title="Notifikasi"
         description={`Pemberitahuan aktivitas konten pada ${user.scopeLabel}. Tautan diarahkan ke tampilan baca-saja wilayah.`}

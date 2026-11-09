@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 import {
   ADMIN_STATE,
@@ -53,12 +53,7 @@ const DASHBOARDS = [
     chartId: null,
     hasFilter: false,
     hasCollaboration: false,
-    kpis: [
-      "Total Konten Tervalidasi",
-      "Institusi dengan Konten",
-      "Konten EDUFAST",
-      "Konten Non-EDUFAST",
-    ],
+    kpis: ["Total Konten Tervalidasi", "Konten EDUFAST", "Konten Non-EDUFAST"],
     secondaryAction: "Lapor konten",
   },
 ] as const;
@@ -69,6 +64,7 @@ const SECTION_ORDER: Record<string, readonly string[]> = {
   national: [
     "ringkasan",
     "konten-per-cabang",
+    "tren-bulanan",
     "kolaborasi",
     "pilih-cabang",
     "fkrtl",
@@ -83,6 +79,7 @@ const SECTION_ORDER: Record<string, readonly string[]> = {
   regional: [
     "ringkasan",
     "konten-per-cabang",
+    "tren-bulanan",
     "kolaborasi",
     "pilih-cabang",
     "fkrtl",
@@ -97,6 +94,7 @@ const SECTION_ORDER: Record<string, readonly string[]> = {
   branch: [
     "ringkasan",
     "konten-per-institusi",
+    "tren-bulanan",
     "kolaborasi",
     "fkrtl",
     "fktp",
@@ -107,7 +105,14 @@ const SECTION_ORDER: Record<string, readonly string[]> = {
     "edufast",
     "non-edufast",
   ],
-  stakeholder: ["ringkasan", "edufast", "non-edufast", "tema-konten"],
+  stakeholder: [
+    "ringkasan",
+    "jenis-konten",
+    "tren-bulanan",
+    "tren-jenis-konten",
+    "tren-tema",
+    "tema-konten",
+  ],
 };
 
 const CATEGORY_SECTIONS = [
@@ -122,10 +127,13 @@ const PANEL_IDS = ["fkrtl", "fktp", "pemda", "stakeholder"] as const;
 const OUT_OF_SCOPE_BRANCH = "00000000-0000-4000-8000-000000000000";
 
 const GAP_BANDS: Record<string, [number, number]> = {
-  "ringkasan→chart": [12, 32],
-  "chart→kolaborasi": [20, 32],
-  "ringkasan→tema": [20, 32],
-  "kolaborasi→tema": [20, 32],
+  "ringkasan→chart": [16, 32],
+  "chart→tren": [16, 32],
+  "tren→kolaborasi": [16, 32],
+  "ringkasan→jenis": [16, 32],
+  "ringkasan→tema": [16, 32],
+  "tren-tema→tema": [16, 32],
+  "kolaborasi→tema": [16, 32],
   "filter→fkrtl": [12, 32],
   "fkrtl→pemda": [12, 20],
   "fkrtl→fktp": [12, 20],
@@ -137,23 +145,24 @@ const GAP_BANDS: Record<string, [number, number]> = {
 
 /** Only panels that actually sit next to each other are measured. */
 function gapKeysFor(dashboard: DashboardConfig, width: number): string[] {
-  if (!dashboard.hasCollaboration) return ["ringkasan→tema"];
+  if (!dashboard.hasCollaboration) {
+    return ["ringkasan→jenis", "tren-tema→tema", "tema-heading→card"];
+  }
   const rankingKeys =
     width < 640
       ? ["fkrtl→fktp", "fktp→pemda", "pemda→stakeholder"]
       : ["fkrtl→pemda"];
   return [
     "ringkasan→chart",
-    "chart→kolaborasi",
+    "chart→tren",
+    "tren→kolaborasi",
     ...(dashboard.hasFilter ? ["filter→fkrtl"] : []),
     ...rankingKeys,
     "stakeholder→peta",
     "kolaborasi→tema",
     // Below `lg` the theme scorecards stack above the theme card, so the
     // heading-to-card distance spans a whole card row.
-    ...(!dashboard.hasCollaboration || width >= 1024
-      ? ["tema-heading→card"]
-      : []),
+    ...(width >= 1024 ? ["tema-heading→card"] : []),
   ];
 }
 
@@ -177,6 +186,7 @@ async function waitForDashboard(
   // The dashboard streams one Suspense boundary per group; wait for the last
   // anchor of each group before reading numbers or interacting.
   await expect(page.locator("#ringkasan")).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator("#tren-bulanan")).toBeVisible({ timeout: 30_000 });
   await expect(page.locator("#tema-konten")).toBeVisible({ timeout: 30_000 });
   if (dashboard.chartId) {
     await expect(page.locator(`#${dashboard.chartId}`)).toBeVisible({
@@ -196,6 +206,23 @@ async function waitForDashboard(
 
 async function scoreAt(page: Page, selector: string): Promise<number> {
   return parseNumber(await page.locator(selector).first().innerText());
+}
+
+/**
+ * Recharts only paints a rectangle for non-zero values, so the rendered count
+ * equals the number of non-zero series cells across the 12 zero-filled months.
+ */
+async function expectedMonthlyBars(section: Locator): Promise<number> {
+  const rows = section.locator("table tbody tr");
+  const rowCount = await rows.count();
+  let expected = 0;
+  for (let index = 0; index < rowCount; index += 1) {
+    const cells = await rows.nth(index).locator("td").allInnerTexts();
+    expected += cells
+      .slice(0, -1)
+      .filter((text) => parseNumber(text) > 0).length;
+  }
+  return expected;
 }
 
 async function openBranchList(page: Page): Promise<void> {
@@ -317,6 +344,9 @@ async function layoutMetrics(
 
       const ringkasan = document.getElementById("ringkasan");
       const chartSection = chartId ? document.getElementById(chartId) : null;
+      const tren = document.getElementById("tren-bulanan");
+      const jenisKonten = document.getElementById("jenis-konten");
+      const trenTema = document.getElementById("tren-tema");
       const kolaborasi = document.getElementById("kolaborasi");
       const pilihCabang = document.getElementById("pilih-cabang");
       const panels = Object.fromEntries(
@@ -329,9 +359,12 @@ async function layoutMetrics(
 
       const nodes: Record<string, [Element | null, Element | null]> = {
         "ringkasan→chart": [ringkasan, chartSection],
-        "chart→kolaborasi": [chartSection, kolaborasi],
+        "chart→tren": [chartSection, tren],
+        "tren→kolaborasi": [tren, kolaborasi],
+        "ringkasan→jenis": [ringkasan, jenisKonten],
         "ringkasan→tema": [ringkasan, tema],
         "kolaborasi→tema": [kolaborasi, tema],
+        "tren-tema→tema": [trenTema, tema],
         "filter→fkrtl": [pilihCabang, panels.fkrtl ?? null],
         "fkrtl→pemda": [panels.fkrtl ?? null, panels.pemda ?? null],
         "fkrtl→fktp": [panels.fkrtl ?? null, panels.fktp ?? null],
@@ -786,13 +819,23 @@ for (const dashboard of DASHBOARDS) {
         page.getByRole("heading", { name: "Tema Non-EDUFAST" }),
       ).toBeVisible();
 
-      for (const legacy of [
-        "#tren-bulanan",
-        "#tren-tema",
-        "#tabel",
-        "#peringkat",
-      ]) {
+      for (const legacy of ["#tabel", "#peringkat"]) {
         await expect(page.locator(legacy)).toHaveCount(0);
+      }
+      await expect(page.locator("#tren-bulanan")).toBeVisible();
+      if (dashboard.variant === "stakeholder") {
+        await expect(page.locator("#jenis-konten")).toBeVisible();
+        await expect(page.locator("#tren-jenis-konten")).toBeVisible();
+        await expect(page.locator("#tren-tema")).toBeVisible();
+        await expect(
+          page
+            .locator("#ringkasan")
+            .getByText("Institusi dengan Konten", { exact: true }),
+        ).toHaveCount(0);
+      } else {
+        await expect(page.locator("#jenis-konten")).toHaveCount(0);
+        await expect(page.locator("#tren-jenis-konten")).toHaveCount(0);
+        await expect(page.locator("#tren-tema")).toHaveCount(0);
       }
       await expect(
         page.getByRole("region", { name: "Filter dasbor" }),
@@ -803,6 +846,180 @@ for (const dashboard of DASHBOARDS) {
       ).toEqual(SECTION_ORDER[dashboard.variant]!);
 
       expect(pageErrors).toEqual([]);
+    });
+
+    test("scorecard kategori menampilkan porsi kecil", async ({ page }) => {
+      await waitForDashboard(page, dashboard);
+      const ringkasan = page.locator("#ringkasan");
+
+      if (dashboard.variant === "stakeholder") {
+        await expect(
+          ringkasan.getByText("Institusi dengan Konten", { exact: true }),
+        ).toHaveCount(0);
+        await expect(ringkasan.locator("[data-stat-share]")).toHaveCount(0);
+        for (const label of ["FKRTL", "FKTP", "Pemda", "Stakeholder"]) {
+          await expect(ringkasan.getByText(label, { exact: true })).toHaveCount(
+            0,
+          );
+        }
+        return;
+      }
+
+      for (const label of ["FKRTL", "FKTP", "Pemda", "Stakeholder"]) {
+        await expect(ringkasan.getByText(label, { exact: true })).toBeVisible();
+      }
+
+      const shares = ringkasan.locator("[data-stat-share]");
+      await expect(shares).toHaveCount(4);
+      const values: number[] = [];
+      for (let index = 0; index < 4; index += 1) {
+        const text = await shares.nth(index).innerText();
+        expect(text).toMatch(/^\d+,\d%$/);
+        expect(await shares.nth(index).getAttribute("aria-label")).toContain(
+          "dari konten tervalidasi terkategori",
+        );
+        values.push(Number(text.replace("%", "").replace(",", ".")));
+      }
+      if (values.some((value) => value > 0)) {
+        const sum = values.reduce((total, value) => total + value, 0);
+        expect(Math.round(sum * 10), "porsi kategori berjumlah 100%").toBe(
+          1000,
+        );
+      }
+    });
+
+    test("tren bulanan merender 12 kolom", async ({ page }) => {
+      await waitForDashboard(page, dashboard);
+      const section = page.locator("#tren-bulanan");
+      await expect(section).toBeVisible();
+
+      const empty = section.getByText(
+        /Belum ada konten tervalidasi pada .* dalam 12 bulan terakhir/,
+      );
+      if ((await empty.count()) > 0) {
+        await expect(empty).toBeVisible();
+        return;
+      }
+
+      await expect(section.locator("table tbody tr")).toHaveCount(12);
+      await expect(section.locator("[data-monthly-chart]")).toBeVisible();
+      await expect(section.locator(".recharts-bar-rectangle")).toHaveCount(
+        await expectedMonthlyBars(section),
+      );
+      await expect(
+        section.getByText(
+          "12 bulan terakhir · dihitung dari tanggal disetujui (WIB).",
+        ),
+      ).toBeVisible();
+    });
+
+    test("peta memakai tingkat zoom sesuai peran", async ({ page }) => {
+      if (dashboard.variant === "stakeholder") {
+        await waitForDashboard(page, dashboard);
+        await expect(page.locator("#peta")).toHaveCount(0);
+        return;
+      }
+
+      await waitForDashboard(page, dashboard);
+      const canvas = page.locator("#peta [data-map-tier]");
+      await expect(canvas).toBeVisible();
+      const fallback = page.getByText("Basemap tidak dapat dimuat");
+
+      const initialTier =
+        dashboard.variant === "branch"
+          ? "institution"
+          : dashboard.variant === "regional"
+            ? "branch"
+            : "region";
+      await expect(canvas).toHaveAttribute("data-map-tier", initialTier);
+
+      if (dashboard.variant === "branch") return;
+
+      // The map initializes lazily once its section intersects the viewport.
+      await page.locator("#peta").scrollIntoViewIfNeeded();
+      const zoomIn = page.locator("#peta .maplibregl-ctrl-zoom-in");
+      await expect
+        .poll(
+          async () =>
+            (await zoomIn.count()) > 0 || (await fallback.count()) > 0,
+          { timeout: 30_000 },
+        )
+        .toBe(true);
+      if ((await fallback.count()) > 0) {
+        test.skip(true, "Basemap atau WebGL tidak tersedia pada runner");
+        return;
+      }
+      await expect(zoomIn).toBeVisible();
+      // MapLibre animates each zoom step (~300ms); clicking faster swallows
+      // steps, so wait for the animation before the next click.
+      let reached = false;
+      for (let click = 0; click < 9; click += 1) {
+        await zoomIn.click();
+        await page.waitForTimeout(600);
+        if ((await canvas.getAttribute("data-map-tier")) === "institution") {
+          reached = true;
+          break;
+        }
+      }
+      expect(reached, "zoom in harus mencapai tingkat institusi").toBe(true);
+
+      const zoomOut = page.locator("#peta .maplibregl-ctrl-zoom-out");
+      reached = false;
+      for (let click = 0; click < 9; click += 1) {
+        await zoomOut.click();
+        await page.waitForTimeout(600);
+        if ((await canvas.getAttribute("data-map-tier")) === initialTier) {
+          reached = true;
+          break;
+        }
+      }
+      expect(reached, "zoom out harus kembali ke tingkat semula").toBe(true);
+    });
+
+    test("stakeholder memakai pie dan tren per jenis serta tema", async ({
+      page,
+    }) => {
+      test.skip(dashboard.variant !== "stakeholder", "khusus stakeholder");
+      await waitForDashboard(page, dashboard);
+
+      const pie = page.locator("#jenis-konten");
+      await expect(pie).toBeVisible();
+      await expect(
+        pie.getByRole("heading", { name: "Jenis Konten", exact: true }),
+      ).toBeVisible();
+
+      const emptyPie = pie.getByText(/Belum ada konten tervalidasi pada /);
+      if ((await emptyPie.count()) === 0) {
+        await expect(pie.locator("[data-content-type-donut]")).toBeVisible();
+        const legend = pie.locator("ul > li");
+        const legendCount = await legend.count();
+        expect(legendCount).toBeGreaterThan(0);
+        const shares: number[] = [];
+        for (let index = 0; index < legendCount; index += 1) {
+          shares.push(parsePercent(await legend.nth(index).innerText()));
+        }
+        if (shares.some((value) => value > 0)) {
+          const sum = shares.reduce((total, value) => total + value, 0);
+          expect(Math.round(sum * 10), "porsi jenis konten 100%").toBe(1000);
+        }
+      }
+
+      for (const id of ["tren-jenis-konten", "tren-tema"]) {
+        const section = page.locator(`#${id}`);
+        await expect(section).toBeVisible();
+        const empty = section.getByText(
+          /Belum ada konten tervalidasi per .* dalam 12 bulan terakhir/,
+        );
+        if ((await empty.count()) > 0) {
+          await expect(empty).toBeVisible();
+        } else {
+          await expect(section.locator("table tbody tr")).toHaveCount(12);
+          await expect(section.locator("[data-monthly-chart]")).toBeVisible();
+          await expect(section.locator(".recharts-bar-rectangle")).toHaveCount(
+            await expectedMonthlyBars(section),
+          );
+        }
+      }
     });
 
     test("aksi kanan header dan copy tombol", async ({ page }) => {

@@ -117,6 +117,7 @@ describe("content report renderer", () => {
     const bytes = await renderContentReportPdf({
       scopeLabel: "Nasional",
       roleLabel: "Master Admin",
+      role: "MASTER_ADMIN",
       filters,
       rows: [],
       total: 0,
@@ -138,6 +139,7 @@ describe("content report renderer", () => {
     const bytes = await renderContentReportPdf({
       scopeLabel: "Wilayah Jakarta",
       roleLabel: "Admin Wilayah",
+      role: "REGIONAL_ADMIN",
       filters,
       rows,
       total: rows.length,

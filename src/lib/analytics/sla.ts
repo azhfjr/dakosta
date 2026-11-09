@@ -66,6 +66,7 @@ export function slaQuery(filters: SlaFilters): Record<string, string> {
 }
 
 export type SlaSummary = {
+  draft: number;
   pending: number;
   revision: number;
   approved: number;
@@ -88,23 +89,24 @@ export type SlaAnalytics = {
 };
 
 function summarize(statusCounts: StatusCount[]): SlaSummary {
+  let draft = 0;
   let pending = 0;
   let revision = 0;
   let approved = 0;
-  let rejected = 0;
   let submitted = 0;
   for (const row of statusCounts) {
     const total = Number(row.total);
     submitted += total;
+    if (row.status === "DRAFT") draft += total;
     if ((PENDING_STATUSES as readonly string[]).includes(row.status)) {
       pending += total;
     }
     if (row.status === "REVISION_REQUIRED") revision += total;
     if (row.status === "APPROVED") approved += total;
-    if (row.status === "REJECTED") rejected += total;
   }
-  const decided = approved + revision + rejected;
+  const decided = approved + revision;
   return {
+    draft,
     pending,
     revision,
     approved,

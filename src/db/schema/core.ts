@@ -561,7 +561,7 @@ export const contentSubmissions = pgTable(
     ),
     check(
       "content_submissions_status_check",
-      sql`${table.status} in ('DRAFT', 'SUBMITTED', 'RESUBMITTED', 'IN_REVIEW', 'APPROVED', 'REVISION_REQUIRED', 'REJECTED', 'REVOKED', 'ARCHIVED')`,
+      sql`${table.status} in ('DRAFT', 'SUBMITTED', 'REVISION_REQUIRED', 'APPROVED')`,
     ),
     check(
       "content_submissions_content_type_check",

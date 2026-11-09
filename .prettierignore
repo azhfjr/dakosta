@@ -17,6 +17,7 @@ drizzle
 package-lock.json
 public/brand
 public/maplibre
+public/vendor
 public/file.svg
 public/globe.svg
 public/next.svg

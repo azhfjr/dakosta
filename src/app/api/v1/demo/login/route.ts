@@ -89,12 +89,25 @@ export async function POST(request: Request) {
   }
 
   const account = DEMO_ACCOUNTS[body.role];
-  const authResponse = await getAuth().api.signInEmail({
-    body: { email: account.email, password },
-    asResponse: true,
-  });
+  const signInEmails =
+    "alternateEmails" in account
+      ? [account.email, ...account.alternateEmails]
+      : [account.email];
 
-  if (!authResponse.ok) {
+  let authResponse: Response | undefined;
+  for (const email of signInEmails) {
+    const attempt = await getAuth().api.signInEmail({
+      body: { email, password },
+      asResponse: true,
+    });
+    authResponse ??= attempt;
+    if (attempt.ok) {
+      authResponse = attempt;
+      break;
+    }
+  }
+
+  if (!authResponse?.ok) {
     return NextResponse.json(
       {
         error: {

@@ -16,6 +16,7 @@ export function StatCard({
   label,
   value,
   hint,
+  share,
   icon: Icon,
   tone = "blue",
   size = "default",
@@ -24,6 +25,8 @@ export function StatCard({
   label: string;
   value: string;
   hint?: string;
+  /** Optional small percentage shown beside the value; never a headline. */
+  share?: { value: string; srLabel: string };
   icon: LucideIcon;
   tone?: keyof typeof toneClass;
   size?: "default" | "compact";
@@ -49,14 +52,25 @@ export function StatCard({
           />
         </span>
       </div>
-      <p
-        className={cn(
-          "mt-3 font-semibold tracking-tight text-foreground tabular",
-          size === "compact" ? "text-2xl" : "text-3xl",
-        )}
-      >
-        {value}
-      </p>
+      <div className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        <p
+          className={cn(
+            "font-semibold tracking-tight text-foreground tabular",
+            size === "compact" ? "text-2xl" : "text-3xl",
+          )}
+        >
+          {value}
+        </p>
+        {share ? (
+          <span
+            data-stat-share={share.value}
+            aria-label={share.srLabel}
+            className="text-xs font-semibold text-ink-muted tabular"
+          >
+            {share.value}
+          </span>
+        ) : null}
+      </div>
       {hint ? <p className="mt-1 text-xs text-ink-muted">{hint}</p> : null}
     </div>
   );

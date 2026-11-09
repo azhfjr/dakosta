@@ -2,7 +2,7 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 
-import { and, eq, inArray, ne } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 
 import { getDb, schema } from "@/db";
 import type { AppRole } from "@/lib/authz/types";
@@ -538,7 +538,7 @@ async function buildPreview(input: {
       .where(
         and(
           inArray(schema.contentSubmissions.normalizedUrlHash, hashes),
-          ne(schema.contentSubmissions.status, "ARCHIVED"),
+          eq(schema.contentSubmissions.archived, false),
         ),
       )
       .limit(hashes.length);

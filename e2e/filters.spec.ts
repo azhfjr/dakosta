@@ -7,81 +7,234 @@ import {
   REGIONAL_STATE,
 } from "./support";
 
-test.describe("Filter detail konten admin", () => {
+const STATUS_LABELS = [
+  "Semua status",
+  "Draf",
+  "Terkirim",
+  "Perlu Revisi",
+  "Disetujui",
+] as const;
+
+const CONTENT_ROLES = [
+  {
+    name: "master",
+    path: "/admin/konten",
+    state: ADMIN_STATE,
+    hasStakeholderFilter: true,
+  },
+  {
+    name: "wilayah",
+    path: "/wilayah/konten",
+    state: REGIONAL_STATE,
+    hasStakeholderFilter: true,
+  },
+  {
+    name: "cabang",
+    path: "/cabang/konten",
+    state: BRANCH_STATE,
+    hasStakeholderFilter: false,
+  },
+  {
+    name: "stakeholder",
+    path: "/client/konten",
+    state: CLIENT_STATE,
+    hasStakeholderFilter: false,
+  },
+] as const;
+
+test.describe("Filter detail konten terpadu", () => {
   test.use({ storageState: ADMIN_STATE });
 
-  test("status, organisasi, tema, dan sub-tema mengubah URL serta tabel", async ({
+  for (const role of CONTENT_ROLES) {
+    test(`${role.name}: satu panel filter tanpa filter lanjutan dan tanpa jenis organisasi`, async ({
+      browser,
+    }) => {
+      const context = await browser.newContext({ storageState: role.state });
+      try {
+        const page = await context.newPage();
+        await page.goto(role.path);
+        const filter = page.getByRole("region", {
+          name: "Filter detail konten",
+        });
+        await expect(filter).toBeVisible({ timeout: 30_000 });
+
+        const controls = [
+          "q",
+          "status",
+          "mainTheme",
+          "subTheme",
+          "type",
+          "platform",
+          "from",
+          "to",
+        ];
+        if (role.hasStakeholderFilter) controls.push("stakeholderId");
+        for (const name of controls) {
+          await expect(filter.locator(`[name="${name}"]`)).toBeVisible();
+        }
+
+        await expect(filter.locator('[name="orgType"]')).toHaveCount(0);
+        await expect(filter.locator('[name="period"]')).toHaveCount(0);
+        await expect(filter.locator('[name="sort"]')).toHaveCount(0);
+        await expect(filter.locator("summary")).toHaveCount(0);
+        await expect(filter.getByText("Filter lanjutan")).toHaveCount(0);
+
+        expect(
+          await filter
+            .locator('select[name="status"] option')
+            .allTextContents(),
+        ).toEqual([...STATUS_LABELS]);
+
+        await filter.locator('select[name="status"]').selectOption("APPROVED");
+        await page.waitForURL(/status=APPROVED/);
+        await expect(filter.locator('select[name="status"]')).toHaveValue(
+          "APPROVED",
+        );
+      } finally {
+        await context.close();
+      }
+    });
+  }
+
+  test("master: status dan sub-tema bertahan bersamaan di URL", async ({
     page,
   }) => {
     await page.goto("/admin/konten");
     const filter = page.getByRole("region", { name: "Filter detail konten" });
-    await expect(filter).toBeVisible();
+    await expect(filter).toBeVisible({ timeout: 30_000 });
+
+    await filter
+      .locator('select[name="status"]')
+      .selectOption("REVISION_REQUIRED");
+    await page.waitForURL(/status=REVISION_REQUIRED/);
+
+    await filter.locator('select[name="subTheme"]').selectOption({ index: 1 });
+    await page.waitForURL(/subTheme=/);
+
+    const url = new URL(page.url());
+    expect(url.searchParams.get("status")).toBe("REVISION_REQUIRED");
+    expect(url.searchParams.get("subTheme")).toBeTruthy();
+    expect(url.searchParams.get("mode")).toBe("all");
+  });
+
+  test("status legacy pada URL dipetakan ke status kanonik", async ({
+    page,
+  }) => {
+    const cases = [
+      ["IN_REVIEW", "SUBMITTED"],
+      ["RESUBMITTED", "SUBMITTED"],
+      ["REJECTED", "REVISION_REQUIRED"],
+      ["REVOKED", "REVISION_REQUIRED"],
+      ["ARCHIVED", "APPROVED"],
+    ] as const;
+
+    for (const [legacy, canonical] of cases) {
+      await page.goto(`/admin/konten?status=${legacy}`);
+      const filter = page.getByRole("region", {
+        name: "Filter detail konten",
+      });
+      await expect(filter.locator('select[name="status"]')).toHaveValue(
+        canonical,
+      );
+      await expect(page.locator(`option[value="${legacy}"]`)).toHaveCount(0);
+    }
+  });
+
+  test("parameter lama orgType dan period tidak merusak halaman", async ({
+    page,
+  }) => {
+    await page.goto("/admin/konten?orgType=FASKES&period=2026-01");
+    const filter = page.getByRole("region", { name: "Filter detail konten" });
+    await expect(filter).toBeVisible({ timeout: 30_000 });
+    await expect(filter.locator('[name="orgType"]')).toHaveCount(0);
+    await expect(filter.locator('[name="period"]')).toHaveCount(0);
     await expect(
       page.getByRole("heading", { name: "Detail Konten", level: 1 }),
     ).toBeVisible();
+  });
+});
+
+test.describe("Sortir detail konten lewat header kolom", () => {
+  test.use({ storageState: ADMIN_STATE });
+
+  test("header mengubah URL, arah, dan mengembalikan halaman ke awal", async ({
+    page,
+  }) => {
+    await page.goto("/admin/konten?page=2");
+    const table = page.getByRole("region", {
+      name: "Tabel detail konten, dapat digulir",
+    });
+    await expect(table).toBeVisible({ timeout: 30_000 });
+
+    const titleHeader = table.getByRole("columnheader", { name: "Judul" });
+    await expect(titleHeader).toHaveAttribute("aria-sort", "none");
+
+    await titleHeader.getByRole("link", { name: "Judul" }).click();
+    await page.waitForURL(/sort=title/);
+    let url = new URL(page.url());
+    expect(url.searchParams.get("sort")).toBe("title");
+    expect(url.searchParams.get("direction")).toBe("asc");
+    expect(url.searchParams.has("page")).toBe(false);
+    await expect(
+      page.getByRole("columnheader", { name: "Judul" }),
+    ).toHaveAttribute("aria-sort", "ascending");
+
+    await page
+      .getByRole("columnheader", { name: "Judul" })
+      .getByRole("link")
+      .click();
+    await page.waitForURL(/direction=desc/);
+    url = new URL(page.url());
+    expect(url.searchParams.get("direction")).toBe("desc");
+    await expect(
+      page.getByRole("columnheader", { name: "Judul" }),
+    ).toHaveAttribute("aria-sort", "descending");
+  });
+
+  test("sortir status memakai arah bawaan dan tetap dapat dibalik", async ({
+    page,
+  }) => {
+    await page.goto("/admin/konten");
+    const statusHeader = page.getByRole("columnheader", { name: "Status" });
+    await statusHeader.getByRole("link", { name: "Status" }).click();
+    await page.waitForURL(/sort=status/);
+    const url = new URL(page.url());
+    expect(url.searchParams.get("sort")).toBe("status");
+    expect(url.searchParams.get("direction")).toBe("desc");
+    await expect(
+      page.getByRole("columnheader", { name: "Status" }),
+    ).toHaveAttribute("aria-sort", "descending");
+  });
+});
+
+test.describe("Filter antrean SLA", () => {
+  test.use({ storageState: ADMIN_STATE });
+
+  test("filter antrean memakai satu panel terpadu dengan jenis organisasi", async ({
+    page,
+  }) => {
+    await page.goto("/admin/validasi");
+    const filter = page.getByRole("region", { name: "Filter antrean" });
+    await expect(filter).toBeVisible({ timeout: 30_000 });
 
     for (const name of [
-      "q",
       "status",
       "orgType",
       "mainTheme",
       "subTheme",
-      "stakeholderId",
+      "period",
+      "q",
     ]) {
       await expect(filter.locator(`[name="${name}"]`)).toBeVisible();
     }
-
-    await filter.locator('select[name="status"]').selectOption("APPROVED");
-    await page.waitForURL(/status=APPROVED/);
-    await expect(filter.locator('select[name="status"]')).toHaveValue(
-      "APPROVED",
-    );
-
-    await filter.locator('select[name="subTheme"]').selectOption({ index: 1 });
-    await page.waitForURL(/subTheme=/);
-    await expect(filter.locator('select[name="subTheme"]')).not.toHaveValue("");
-    await expect(filter.locator('select[name="status"]')).toHaveValue(
-      "APPROVED",
-    );
-  });
-
-  test("atur ulang mengembalikan seluruh filter", async ({ page }) => {
-    await page.goto("/admin/konten?status=SUBMITTED");
-    const filter = page.getByRole("region", { name: "Filter detail konten" });
-    await expect(filter.locator('select[name="status"]')).toHaveValue(
-      "SUBMITTED",
-    );
-
-    await filter.getByRole("link", { name: "Atur ulang" }).click();
-    await page.waitForURL(/\/admin\/konten$/);
-    await expect(filter.locator('select[name="status"]')).toHaveValue("");
-  });
-
-  test("filter lanjutan memuat jenis konten, platform, periode, dan sortir", async ({
-    page,
-  }) => {
-    await page.goto("/admin/konten");
-    const filter = page.getByRole("region", { name: "Filter detail konten" });
-    await filter.locator("summary", { hasText: "Filter lanjutan" }).click();
-
-    for (const name of ["type", "platform", "period", "sort", "from", "to"]) {
-      await expect(filter.locator(`[name="${name}"]`)).toBeVisible();
-    }
-
-    await filter.locator('select[name="type"]').selectOption({ index: 1 });
-    await page.waitForURL(/type=/);
-    await expect(filter.locator('select[name="type"]')).not.toHaveValue("");
-  });
-
-  test("filter antrean SLA memakai dropdown status", async ({ page }) => {
-    await page.goto("/admin/validasi");
-    const filter = page.getByRole("region", { name: "Filter antrean" });
-    await expect(filter.locator('select[name="status"]')).toBeVisible();
-    await expect(filter.locator('input[name="q"]')).toBeVisible();
-    await expect(filter.locator('select[name="orgType"]')).toBeVisible();
-    await expect(filter.locator('select[name="mainTheme"]')).toBeVisible();
-    await expect(filter.locator('select[name="subTheme"]')).toBeVisible();
-    await expect(filter.locator('select[name="stakeholderId"]')).toHaveCount(0);
+    await expect(filter.locator("summary")).toHaveCount(0);
+    await expect(filter.getByText("Filter lanjutan")).toHaveCount(0);
+    await expect(
+      filter.locator('select[name="status"] option[value="ALL"]'),
+    ).toHaveCount(1);
+    await expect(
+      filter.locator('select[name="status"] option[value="SUBMITTED"]'),
+    ).toHaveCount(1);
 
     await filter.locator('select[name="status"]').selectOption("SUBMITTED");
     await page.waitForURL(/status=SUBMITTED/);
@@ -91,58 +244,67 @@ test.describe("Filter detail konten admin", () => {
   });
 });
 
-test.describe("Filter detail konten wilayah", () => {
-  test.use({ storageState: REGIONAL_STATE });
+test.describe("Filter kinerja tanpa batas numerik", () => {
+  test.use({ storageState: ADMIN_STATE });
 
-  test("menampilkan status, organisasi, tema, dan filter lanjutan", async ({
+  test("filter utama menyatu dan parameter numerik lama diabaikan", async ({
     page,
   }) => {
-    await page.goto("/wilayah/konten");
-    const filter = page.getByRole("region", { name: "Filter detail konten" });
-    await expect(filter.locator('select[name="status"]')).toBeVisible();
-    await expect(filter.locator('select[name="orgType"]')).toBeVisible();
-    await expect(filter.locator('select[name="subTheme"]')).toBeVisible();
+    await page.goto(
+      "/admin/laporan?approvedMin=5&approvedMax=90&realizedMin=2&realizedMax=80&targetMin=1&targetMax=50&percentMin=10&percentMax=100",
+    );
+    const filter = page.getByRole("region", { name: "Filter kinerja" });
+    await expect(filter).toBeVisible({ timeout: 30_000 });
 
-    await filter.locator("summary", { hasText: "Filter lanjutan" }).click();
-    await expect(filter.locator('select[name="period"]')).toBeVisible();
-    await expect(filter.locator('select[name="type"]')).toBeVisible();
-    await expect(filter.locator('select[name="sort"]')).toBeVisible();
+    for (const name of ["period", "branch", "type", "status", "q"]) {
+      await expect(filter.locator(`[name="${name}"]`)).toBeVisible();
+    }
+    for (const removed of [
+      "approvedMin",
+      "approvedMax",
+      "realizedMin",
+      "realizedMax",
+      "targetMin",
+      "targetMax",
+      "percentMin",
+      "percentMax",
+    ]) {
+      await expect(filter.locator(`[name="${removed}"]`)).toHaveCount(0);
+    }
+    await expect(filter.locator('input[type="number"]')).toHaveCount(0);
+    await expect(filter.locator("summary")).toHaveCount(0);
+    await expect(filter.getByText("Filter lanjutan")).toHaveCount(0);
 
-    await filter.locator('select[name="sort"]').selectOption("title");
-    await page.waitForURL(/sort=title/);
-    await expect(filter.locator('select[name="sort"]')).toHaveValue("title");
+    expect(
+      await filter.locator('select[name="status"] option').allTextContents(),
+    ).toEqual([
+      "Semua status",
+      "Tercapai",
+      "Di bawah target",
+      "Target belum ditetapkan",
+    ]);
+
+    await filter.locator('select[name="status"]').selectOption("BELOW");
+    await page.waitForURL(/status=BELOW/);
+    await expect(
+      page.getByRole("region", { name: "Tabel kinerja" }),
+    ).toBeVisible();
   });
-});
 
-test.describe("Filter detail konten cabang", () => {
-  test.use({ storageState: BRANCH_STATE });
-
-  test("menampilkan filter status dan jenis konten", async ({ page }) => {
-    await page.goto("/cabang/konten");
-    const filter = page.getByRole("region", { name: "Filter detail konten" });
-    await expect(filter.locator('select[name="status"]')).toBeVisible();
-    await filter.locator("summary", { hasText: "Filter lanjutan" }).click();
-    await expect(filter.locator('select[name="type"]')).toBeVisible();
-
-    await filter.locator('select[name="type"]').selectOption({ index: 1 });
-    await page.waitForURL(/type=/);
-    await expect(filter.locator('select[name="type"]')).not.toHaveValue("");
-  });
-});
-
-test.describe("Filter detail konten stakeholder", () => {
-  test.use({ storageState: CLIENT_STATE });
-
-  test("status, sub-tema, dan sortir memakai dropdown", async ({ page }) => {
-    await page.goto("/client/konten");
-    const filter = page.getByRole("region", { name: "Filter detail konten" });
-    await expect(filter.locator('select[name="status"]')).toBeVisible();
-    await expect(filter.locator('select[name="subTheme"]')).toBeVisible();
-
-    await filter.locator("summary", { hasText: "Filter lanjutan" }).click();
-    await filter.locator('select[name="sort"]').selectOption("title");
-    await page.waitForURL(/sort=title/);
-    await expect(filter.locator('select[name="sort"]')).toHaveValue("title");
+  test("tabel kinerja memakai header sortir yang sama", async ({ page }) => {
+    await page.goto("/admin/laporan");
+    const table = page.getByRole("region", { name: "Tabel kinerja" });
+    await expect(table).toBeVisible({ timeout: 30_000 });
+    const instansi = table.getByRole("columnheader", { name: "Instansi" });
+    await expect(instansi).toHaveAttribute(
+      "aria-sort",
+      /^(none|ascending|descending)$/,
+    );
+    await instansi.getByRole("link", { name: "Instansi" }).click();
+    await page.waitForURL(/sort=name/);
+    await expect(
+      table.getByRole("columnheader", { name: "Instansi" }),
+    ).toHaveAttribute("aria-sort", "ascending");
   });
 });
 
@@ -165,7 +327,7 @@ test.describe("Filter cabang dashboard", () => {
     await page.waitForURL(/cabang=/);
 
     const url = new URL(page.url());
-    expect(url.hash).toBe("#tema-konten");
+    await expect.poll(() => new URL(page.url()).hash).toBe("#tema-konten");
     expect(url.searchParams.getAll("cabang").length).toBeGreaterThan(0);
     await expect(page.locator("#tema-konten")).toBeVisible();
   });
@@ -201,14 +363,14 @@ test.describe("Filter cabang dashboard", () => {
       (url) => url.searchParams.getAll("cabang").length === expected,
     );
     const url = new URL(page.url());
-    expect(url.hash).toBe("#tema-konten");
+    await expect.poll(() => new URL(page.url()).hash).toBe("#tema-konten");
     expect(url.searchParams.getAll("cabang")).toHaveLength(expected);
     await expect(regionSelect).toHaveValue(regionValue!);
     await expect(page.locator("#tema-konten")).toBeVisible();
 
     await regionSelect.selectOption("all");
     await page.waitForURL((target) => !target.searchParams.has("cabang"));
-    expect(new URL(page.url()).hash).toBe("#tema-konten");
+    await expect.poll(() => new URL(page.url()).hash).toBe("#tema-konten");
     await expect(checklist.locator("#pilih-semua-cabang")).toBeChecked();
   });
 });

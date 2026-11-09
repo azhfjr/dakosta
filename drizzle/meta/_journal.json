@@ -50,6 +50,13 @@
       "when": 1794035605364,
       "tag": "0006_v1_2_imports_sync",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794238557390,
+      "tag": "0007_fantastic_prowler",
+      "breakpoints": true
     }
   ]
 }

@@ -22,11 +22,11 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-dvh bg-surface-muted/60 print:block print:bg-white lg:grid lg:grid-cols-[17rem_minmax(0,1fr)]">
+    <div className="min-h-dvh bg-surface-muted/60 print:block print:bg-white lg:grid lg:grid-cols-[15rem_minmax(0,1fr)]">
       <NotificationStream />
       <aside className="sticky top-0 hidden h-dvh flex-col border-r border-border bg-surface print:hidden lg:flex">
-        <div className="px-5 pt-5 pb-4">
-          <BrandLogo variant="compact" className="w-36" />
+        <div className="px-4 pt-5 pb-4">
+          <BrandLogo variant="compact" className="w-32" />
           <p className="mt-2 text-xs leading-relaxed text-ink-muted">
             Dashboard Konten Kolaborasi Stakeholder
           </p>

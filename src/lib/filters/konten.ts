@@ -3,13 +3,12 @@ import type {
   AnalyticsSort,
 } from "@/lib/analytics/content-table";
 import type { OrgSource } from "@/lib/analytics/org-source";
-import type { OrgTypeFilter } from "@/lib/filters/org-type";
 import {
   firstParam,
   parseFilterContentType,
   parseFilterDate,
+  parseFilterDirection,
   parseFilterMainTheme,
-  parseFilterOrgType,
   parseFilterPage,
   parseFilterPeriod,
   parseFilterPlatform,
@@ -30,22 +29,24 @@ export type KontenMode = "all" | "approved";
 export const KONTEN_SORTS = [
   "recent",
   "oldest",
+  "code",
   "title",
-  "decision",
+  "organization",
+  "type",
+  "platform",
   "status",
   "approved_recent",
   "approved_oldest",
-  "organization",
 ] as const satisfies readonly AnalyticsSort[];
 
 export type KontenSort = (typeof KONTEN_SORTS)[number];
+export type KontenDirection = "asc" | "desc";
 
 export type KontenFilters = {
   mode: KontenMode;
   period: string;
   status: ContentStatus | "ALL";
   source: OrgSource | null;
-  orgType: OrgTypeFilter | null;
   mainTheme: MainTheme | null;
   subTheme: SubTheme | null;
   contentType: ContentType | null;
@@ -54,6 +55,7 @@ export type KontenFilters = {
   dateFrom: string | null;
   dateTo: string | null;
   sort: KontenSort;
+  direction: KontenDirection;
   search: string;
   page: number;
 };
@@ -61,16 +63,33 @@ export type KontenFilters = {
 export const KONTEN_SORT_LABELS: Record<KontenSort, string> = {
   recent: "Terbaru dibuat",
   oldest: "Terlama dibuat",
-  title: "Judul A–Z",
-  decision: "Keputusan terbaru",
+  code: "Kode",
+  title: "Judul",
+  organization: "Organisasi",
+  type: "Jenis konten",
+  platform: "Platform",
   status: "Status",
   approved_recent: "Terbaru disetujui",
   approved_oldest: "Terlama disetujui",
-  organization: "Organisasi A–Z",
 };
+
+const TEXT_SORTS: ReadonlySet<KontenSort> = new Set([
+  "code",
+  "title",
+  "organization",
+  "type",
+  "platform",
+]);
 
 export function defaultKontenSort(mode: KontenMode): KontenSort {
   return mode === "approved" ? "approved_recent" : "recent";
+}
+
+/** Text columns start A–Z; dates and status start newest/first. */
+export function defaultKontenDirection(sort: KontenSort): KontenDirection {
+  if (sort === "oldest" || sort === "approved_oldest") return "asc";
+  if (TEXT_SORTS.has(sort)) return "asc";
+  return "desc";
 }
 
 /**
@@ -81,6 +100,11 @@ export function parseKontenFilters(
   params: FilterParams,
   mode: KontenMode = "approved",
 ): KontenFilters {
+  const sort = parseFilterSort(
+    firstParam(params, "sort"),
+    KONTEN_SORTS,
+    defaultKontenSort(mode),
+  );
   return {
     mode,
     period: parseFilterPeriod(params),
@@ -89,7 +113,6 @@ export function parseKontenFilters(
         ? "APPROVED"
         : parseFilterStatus(firstParam(params, "status")),
     source: parseFilterSource(firstParam(params, "source")),
-    orgType: parseFilterOrgType(firstParam(params, "orgType")),
     mainTheme: parseFilterMainTheme(firstParam(params, "mainTheme")),
     subTheme: parseFilterSubTheme(firstParam(params, "subTheme")),
     contentType: parseFilterContentType(firstParam(params, "type")),
@@ -97,10 +120,10 @@ export function parseKontenFilters(
     stakeholderId: parseFilterUuid(firstParam(params, "stakeholderId")),
     dateFrom: parseFilterDate(firstParam(params, "from")),
     dateTo: parseFilterDate(firstParam(params, "to")),
-    sort: parseFilterSort(
-      firstParam(params, "sort"),
-      KONTEN_SORTS,
-      defaultKontenSort(mode),
+    sort,
+    direction: parseFilterDirection(
+      firstParam(params, "direction"),
+      defaultKontenDirection(sort),
     ),
     search: parseFilterSearch(firstParam(params, "q")),
     page: parseFilterPage(firstParam(params, "page")),
@@ -117,7 +140,6 @@ export function toAnalyticsFilters(
     scope: filters.mode,
     sources: filters.source ? [filters.source] : [],
     stakeholderId: filters.stakeholderId,
-    orgType: filters.orgType,
     mainTheme: filters.mainTheme,
     subTheme: filters.subTheme,
     contentType: filters.contentType,
@@ -126,6 +148,7 @@ export function toAnalyticsFilters(
     dateTo: filters.dateTo,
     decidedBy: "ANY",
     sort: filters.sort,
+    direction: filters.direction,
     search: filters.search,
     page: filters.page,
   };
@@ -140,7 +163,6 @@ export function kontenQuery(filters: KontenFilters): Record<string, string> {
     query.status = filters.status;
   }
   if (filters.source) query.source = filters.source;
-  if (filters.orgType) query.orgType = filters.orgType;
   if (filters.mainTheme) query.mainTheme = filters.mainTheme;
   if (filters.subTheme) query.subTheme = filters.subTheme;
   if (filters.contentType) query.type = filters.contentType;
@@ -150,6 +172,8 @@ export function kontenQuery(filters: KontenFilters): Record<string, string> {
   if (filters.dateTo) query.to = filters.dateTo;
   if (filters.sort !== defaultKontenSort(filters.mode))
     query.sort = filters.sort;
+  if (filters.direction !== defaultKontenDirection(filters.sort))
+    query.direction = filters.direction;
   if (filters.search) query.q = filters.search;
   if (filters.page > 1) query.page = String(filters.page);
   return query;
@@ -163,6 +187,7 @@ export function kontenExportQuery(
   const query = new URLSearchParams(kontenQuery(filters));
   query.delete("page");
   query.delete("sort");
+  query.delete("direction");
   if (scopePath) query.set("scope", scopePath);
   const serialized = query.toString();
   return serialized ? `?${serialized}` : "";

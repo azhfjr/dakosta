@@ -17,7 +17,7 @@ export default async function AdminNotificationsPage() {
   const items = await listNotifications(user.id, { limit: 50 });
 
   return (
-    <PageContainer width="narrow">
+    <PageContainer width="wide">
       <PageHeader
         title="Notifikasi"
         description="Pemberitahuan pengiriman konten baru dan pembaruan yang membutuhkan tindakan admin."

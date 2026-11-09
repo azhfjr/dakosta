@@ -25,7 +25,7 @@ const STATUS_TABS: Array<{ key: MapStatus; label: string }> = [
   { key: "ALL", label: "Semua" },
   { key: "APPROVED", label: "Disetujui" },
   { key: "SUBMITTED", label: "Terkirim" },
-  { key: "IN_REVIEW", label: "Ditinjau" },
+  { key: "REVISION_REQUIRED", label: "Perlu Revisi" },
 ];
 
 export default async function AdminMapPage({

@@ -23,6 +23,7 @@ describe("dashboardSections", () => {
     expect(dashboardSections("national")).toEqual([
       "ringkasan",
       "konten-per-cabang",
+      "tren-bulanan",
       "kolaborasi",
       "peta",
       "tema-konten",
@@ -36,13 +37,18 @@ describe("dashboardSections", () => {
     const sections = dashboardSections("branch");
     expect(sections).toContain("konten-per-institusi");
     expect(sections).not.toContain("konten-per-cabang");
+    expect(sections).toContain("tren-bulanan");
     expect(sections).toContain("kolaborasi");
     expect(sections).toContain("peta");
   });
 
-  it("limits a stakeholder to their own summary and themes", () => {
+  it("gives a stakeholder type and theme analytics instead of institution views", () => {
     expect(dashboardSections("stakeholder")).toEqual([
       "ringkasan",
+      "jenis-konten",
+      "tren-bulanan",
+      "tren-jenis-konten",
+      "tren-tema",
       "tema-konten",
     ]);
   });
@@ -103,5 +109,26 @@ describe("dashboardViewAnchor", () => {
     expect(dashboardViewAnchor({ view: "tema-konten" }, "stakeholder")).toBe(
       "tema-konten",
     );
+    expect(dashboardViewAnchor({ view: "jenis-konten" }, "stakeholder")).toBe(
+      "jenis-konten",
+    );
+    expect(dashboardViewAnchor({ view: "tren-tema" }, "stakeholder")).toBe(
+      "tren-tema",
+    );
+  });
+
+  it("maps new analytics views onto the sections each role actually has", () => {
+    expect(dashboardViewAnchor({ view: "tren-bulanan" }, "branch")).toBe(
+      "tren-bulanan",
+    );
+    expect(dashboardViewAnchor({ view: "jenis-platform" }, "national")).toBe(
+      "tema-konten",
+    );
+    expect(dashboardViewAnchor({ view: "jenis-konten" }, "stakeholder")).toBe(
+      "jenis-konten",
+    );
+    expect(
+      dashboardViewAnchor({ view: "tren-jenis-platform" }, "stakeholder"),
+    ).toBe("tren-jenis-konten");
   });
 });

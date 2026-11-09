@@ -59,12 +59,11 @@ function chunks<T>(items: T[], size: number): T[][] {
   return result;
 }
 
-type LoadStatus = "APPROVED" | "REVISION_REQUIRED" | "REJECTED" | "PENDING";
+type LoadStatus = "APPROVED" | "REVISION_REQUIRED" | "PENDING";
 
 function pickStatus(roll: number): LoadStatus {
   if (roll < 0.7) return "APPROVED";
-  if (roll < 0.8) return "REVISION_REQUIRED";
-  if (roll < 0.9) return "REJECTED";
+  if (roll < 0.85) return "REVISION_REQUIRED";
   return "PENDING";
 }
 
@@ -316,7 +315,6 @@ async function main(): Promise<void> {
     let approvedCount = 0;
     let reviewCount = 0;
     let revisionCount = 0;
-    let rejectedCount = 0;
 
     for (let index = 0; index < contents; index += 1) {
       const bigBranchRoll = random();
@@ -371,12 +369,7 @@ async function main(): Promise<void> {
         locationId: uuidFor("d4000000", safeOrg + 1),
         branchOfficeId: orgBranchIds[safeOrg]!,
         regionalOfficeId: orgRegionIds[safeOrg]!,
-        status:
-          status === "PENDING"
-            ? index % 3 === 0
-              ? "RESUBMITTED"
-              : "SUBMITTED"
-            : status,
+        status: status === "PENDING" ? "SUBMITTED" : status,
         version,
         idempotencyKey: `load-${index + 1}`,
         firstSubmittedAt: submittedAt,
@@ -392,7 +385,6 @@ async function main(): Promise<void> {
 
       if (status === "APPROVED") approvedCount += 1;
       if (status === "REVISION_REQUIRED") revisionCount += 1;
-      if (status === "REJECTED") rejectedCount += 1;
 
       if (status === "PENDING") {
         if (orgBranchIds[safeOrg] === demo.branch_id) {
@@ -435,7 +427,7 @@ async function main(): Promise<void> {
             etikaDanPrivasi: true,
           },
           notes: null,
-          previousStatus: resubmitted ? "RESUBMITTED" : "SUBMITTED",
+          previousStatus: "SUBMITTED",
           nextStatus: "APPROVED",
           conflictOfInterest: false,
           reviewerRole: "BRANCH_ADMIN",
@@ -449,19 +441,16 @@ async function main(): Promise<void> {
           submissionId: id,
           version,
           reviewerId,
-          action: status === "REJECTED" ? "REJECT" : "REQUEST_REVISION",
+          action: "REQUEST_REVISION",
           checklist: {
             relevansiTema: true,
             akurasiKonten: true,
             kelengkapanTautan: true,
             etikaDanPrivasi: true,
           },
-          notes:
-            status === "REJECTED"
-              ? "Konten sintetis ditolak untuk skenario beban."
-              : "Konten sintetis perlu revisi untuk skenario beban.",
+          notes: "Konten sintetis perlu revisi untuk skenario beban.",
           previousStatus: "SUBMITTED",
-          nextStatus: status === "REJECTED" ? "REJECTED" : "REVISION_REQUIRED",
+          nextStatus: "REVISION_REQUIRED",
           conflictOfInterest: false,
           reviewerRole: "BRANCH_ADMIN",
           reviewerBranchId: orgBranchIds[safeOrg]!,
@@ -530,7 +519,7 @@ async function main(): Promise<void> {
     const elapsed = ((performance.now() - started) / 1000).toFixed(1);
     console.log(`Selesai dalam ${elapsed} detik.`);
     console.log(
-      `Konten: ${contents} (approved ${approvedCount}, revisi ${revisionCount}, ditolak ${rejectedCount}, pending ${contents - approvedCount - revisionCount - rejectedCount}).`,
+      `Konten: ${contents} (approved ${approvedCount}, revisi ${revisionCount}, pending ${contents - approvedCount - revisionCount}).`,
     );
     console.log(
       `Review: ${reviewCount}. Target: ${targetRows.length}. Pending demo branch: ${pending.length}.`,

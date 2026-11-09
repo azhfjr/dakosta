@@ -585,7 +585,9 @@ export async function insertDemoDataset(
       version: submission.version,
       idempotencyKey: submission.idempotencyKey,
       firstSubmittedAt:
-        submission.status === "RESUBMITTED" && submission.submittedAt !== null
+        submission.status === "SUBMITTED" &&
+        submission.version > 1 &&
+        submission.submittedAt !== null
           ? new Date(submission.submittedAt.getTime() - DAY_MS)
           : submission.submittedAt,
       submittedAt: submission.submittedAt,

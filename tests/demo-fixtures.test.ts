@@ -27,11 +27,7 @@ const SAMPLES = [OCTOBER, JANUARY];
 
 const DECISION_STATUSES: readonly DemoStatus[] = [
   "APPROVED",
-  "ARCHIVED",
-  "REJECTED",
   "REVISION_REQUIRED",
-  "RESUBMITTED",
-  "REVOKED",
 ];
 
 describe("demo volume constants", () => {
@@ -58,13 +54,11 @@ describe.each(SAMPLES)("demo fixtures (compact volume) at %s", (now) => {
       (submission) => submission.status !== "DRAFT",
     ).length;
     const resubmitted = dataset.submissions.filter(
-      (submission) => submission.status === "RESUBMITTED",
+      (submission) =>
+        submission.status === "SUBMITTED" && submission.version > 1,
     ).length;
     const decisionReviews = dataset.submissions.filter((submission) =>
       DECISION_STATUSES.includes(submission.status),
-    ).length;
-    const revoked = dataset.submissions.filter(
-      (submission) => submission.status === "REVOKED",
     ).length;
 
     expect(counts.regions).toBe(3);
@@ -88,12 +82,8 @@ describe.each(SAMPLES)("demo fixtures (compact volume) at %s", (now) => {
     expect(counts.targets).toBe(demoTargetTotal(DEMO_VOLUME_TEST));
     expect(counts.locations).toBe(counts.submissions);
     expect(counts.revisions).toBe(nonDraft + resubmitted);
-    expect(counts.reviews).toBe(decisionReviews + revoked);
-    expect(counts.pending).toBe(
-      counts.status.SUBMITTED +
-        counts.status.RESUBMITTED +
-        counts.status.IN_REVIEW,
-    );
+    expect(counts.reviews).toBe(decisionReviews + resubmitted);
+    expect(counts.pending).toBe(counts.status.SUBMITTED);
     expect(counts.notifications).toBe(counts.pending + counts.reviews + 5);
     expect(counts.outbox).toBe(counts.notifications);
     expect(counts.audits).toBe(counts.reviews + 3);
@@ -112,8 +102,8 @@ describe.each(SAMPLES)("demo fixtures (compact volume) at %s", (now) => {
     expect(counts.branchApproved.every((value) => value > 0)).toBe(true);
     expect(counts.regionSubmissions.every((value) => value > 0)).toBe(true);
     expect(counts.approvedCurrent).toBe(DEMO_ORGANIZATIONS.length * 2);
-    expect(counts.approvedPrevious).toBe(DEMO_ORGANIZATIONS.length * 2);
-    expect(counts.approvedOldest).toBe(DEMO_ORGANIZATIONS.length * 2);
+    expect(counts.approvedPrevious).toBe(DEMO_ORGANIZATIONS.length * 3);
+    expect(counts.approvedOldest).toBe(DEMO_ORGANIZATIONS.length * 3);
     expect(counts.currentTarget).toBe(counts.approvedCurrent + 20);
     for (const value of Object.values(counts.status)) {
       expect(value).toBeGreaterThan(0);
@@ -232,13 +222,13 @@ describe("demo fixtures at production volume", () => {
     expect(counts.targets).toBe(648);
     expect(counts.policies).toBe(24);
     expect(counts.periods).toHaveLength(24);
-    expect(counts.approved).toBe(1380);
+    expect(counts.approved).toBe(2015);
     expect(counts.approvedCurrent).toBe(40);
-    expect(counts.approvedPrevious).toBe(40);
-    expect(counts.approvedOldest).toBe(60);
+    expect(counts.approvedPrevious).toBe(60);
+    expect(counts.approvedOldest).toBe(96);
     expect(counts.currentTarget).toBe(60);
     expect(counts.locations).toBe(2400);
-    expect(counts.revisions).toBe(2400);
+    expect(counts.revisions).toBe(2420);
     expect(counts.mapPoints).toBeGreaterThan(1000);
     expect(counts.branchPending.every((value) => value > 0)).toBe(true);
     expect(counts.branchApproved.every((value) => value > 0)).toBe(true);

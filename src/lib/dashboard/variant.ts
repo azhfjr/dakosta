@@ -12,6 +12,10 @@ export type DashboardSection =
   | "ringkasan"
   | "konten-per-cabang"
   | "konten-per-institusi"
+  | "tren-bulanan"
+  | "jenis-konten"
+  | "tren-jenis-konten"
+  | "tren-tema"
   | "kolaborasi"
   | "peta"
   | "tema-konten";
@@ -20,6 +24,7 @@ const SECTIONS: Record<DashboardVariant, readonly DashboardSection[]> = {
   national: [
     "ringkasan",
     "konten-per-cabang",
+    "tren-bulanan",
     "kolaborasi",
     "peta",
     "tema-konten",
@@ -27,6 +32,7 @@ const SECTIONS: Record<DashboardVariant, readonly DashboardSection[]> = {
   regional: [
     "ringkasan",
     "konten-per-cabang",
+    "tren-bulanan",
     "kolaborasi",
     "peta",
     "tema-konten",
@@ -34,11 +40,19 @@ const SECTIONS: Record<DashboardVariant, readonly DashboardSection[]> = {
   branch: [
     "ringkasan",
     "konten-per-institusi",
+    "tren-bulanan",
     "kolaborasi",
     "peta",
     "tema-konten",
   ],
-  stakeholder: ["ringkasan", "tema-konten"],
+  stakeholder: [
+    "ringkasan",
+    "jenis-konten",
+    "tren-bulanan",
+    "tren-jenis-konten",
+    "tren-tema",
+    "tema-konten",
+  ],
 };
 
 /**
@@ -66,27 +80,80 @@ const VIEW_ANCHORS: Record<string, string> = {
   peta: "peta",
   tema: "tema-konten",
   "tema-konten": "tema-konten",
-  "tren-tema": "tema-konten",
-  "tren-bulanan": "konten-per-cabang",
-  bulanan: "konten-per-cabang",
-  "jenis-platform": "tema-konten",
-  "tren-jenis-platform": "tema-konten",
+  "tren-tema": "tren-tema",
+  "tren-bulanan": "tren-bulanan",
+  bulanan: "tren-bulanan",
+  "jenis-konten": "jenis-konten",
+  "jenis-platform": "jenis-konten",
+  "tren-jenis-konten": "tren-jenis-konten",
+  "tren-jenis-platform": "tren-jenis-konten",
   edufast: "edufast",
   nonEdufast: "non-edufast",
   "non-edufast": "non-edufast",
 };
 
-const BRANCH_ANCHOR_OVERRIDES: Record<string, string> = {
-  "konten-per-cabang": "konten-per-institusi",
-  "pilih-cabang": "ringkasan",
+const VARIANT_ANCHOR_FALLBACKS: Record<
+  DashboardVariant,
+  Record<string, string>
+> = {
+  national: {
+    "jenis-konten": "tema-konten",
+    "tren-jenis-konten": "tema-konten",
+    "tren-tema": "tema-konten",
+  },
+  regional: {
+    "jenis-konten": "tema-konten",
+    "tren-jenis-konten": "tema-konten",
+    "tren-tema": "tema-konten",
+  },
+  branch: {
+    "konten-per-cabang": "konten-per-institusi",
+    "jenis-konten": "tema-konten",
+    "tren-jenis-konten": "tema-konten",
+    "tren-tema": "tema-konten",
+  },
+  stakeholder: {
+    "konten-per-cabang": "ringkasan",
+    "konten-per-institusi": "ringkasan",
+    kolaborasi: "ringkasan",
+    peta: "ringkasan",
+    "pilih-cabang": "ringkasan",
+    fkrtl: "ringkasan",
+    fktp: "ringkasan",
+    pemda: "ringkasan",
+    stakeholder: "ringkasan",
+  },
 };
 
-const STAKEHOLDER_ANCHORS = new Set([
-  "ringkasan",
-  "tema-konten",
-  "edufast",
-  "non-edufast",
-]);
+const PASSTHROUGH_ANCHORS: Record<DashboardVariant, Set<string>> = {
+  national: new Set([
+    "pilih-cabang",
+    "fkrtl",
+    "fktp",
+    "pemda",
+    "stakeholder",
+    "edufast",
+    "non-edufast",
+  ]),
+  regional: new Set([
+    "pilih-cabang",
+    "fkrtl",
+    "fktp",
+    "pemda",
+    "stakeholder",
+    "edufast",
+    "non-edufast",
+  ]),
+  branch: new Set([
+    "fkrtl",
+    "fktp",
+    "pemda",
+    "stakeholder",
+    "edufast",
+    "non-edufast",
+  ]),
+  stakeholder: new Set(["edufast", "non-edufast"]),
+};
 
 export function dashboardVariant(role: AppRole): DashboardVariant {
   switch (role) {
@@ -131,9 +198,9 @@ export function dashboardViewAnchor(
   if (!view) return null;
   const anchor = VIEW_ANCHORS[view];
   if (!anchor) return null;
-  if (variant === "branch") return BRANCH_ANCHOR_OVERRIDES[anchor] ?? anchor;
-  if (variant === "stakeholder") {
-    return STAKEHOLDER_ANCHORS.has(anchor) ? anchor : "ringkasan";
-  }
-  return anchor;
+
+  const sections = SECTIONS[variant];
+  if ((sections as readonly string[]).includes(anchor)) return anchor;
+  if (PASSTHROUGH_ANCHORS[variant].has(anchor)) return anchor;
+  return VARIANT_ANCHOR_FALLBACKS[variant][anchor] ?? sections[0]!;
 }

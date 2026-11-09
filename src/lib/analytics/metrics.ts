@@ -37,7 +37,6 @@ export type ScopedMetrics = {
   submitted: number;
   pending: number;
   revisionRequested: number;
-  rejected: number;
   approvalRate: number | null;
   contributingOrganizations: number;
   registeredFaskes: number;
@@ -105,7 +104,10 @@ export async function getScopedMetrics(
         .where(
           and(
             monthScope,
-            inArray(schema.contentSubmissions.status, ["APPROVED", "REJECTED"]),
+            inArray(schema.contentSubmissions.status, [
+              "APPROVED",
+              "REVISION_REQUIRED",
+            ]),
           ),
         ),
       db
@@ -152,12 +154,9 @@ export async function getScopedMetrics(
     month,
     attribution,
     approved,
-    submitted:
-      Number(statusCounts.get("SUBMITTED") ?? 0) +
-      Number(statusCounts.get("RESUBMITTED") ?? 0),
+    submitted: Number(statusCounts.get("SUBMITTED") ?? 0),
     pending,
     revisionRequested: Number(statusCounts.get("REVISION_REQUIRED") ?? 0),
-    rejected: Number(statusCounts.get("REJECTED") ?? 0),
     approvalRate:
       decided > 0 ? Math.round((approved / decided) * 1000) / 10 : null,
     contributingOrganizations: Number(contributorRows[0]?.total ?? 0),

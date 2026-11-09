@@ -68,6 +68,7 @@ export async function GET(request: Request) {
     const pdf = await renderContentReportPdf({
       scopeLabel: user.scopeLabel,
       roleLabel: ROLE_LABELS[user.role] ?? user.role,
+      role: user.role,
       filters,
       rows: data.rows,
       total: data.total,
@@ -85,7 +86,6 @@ export async function GET(request: Request) {
       after: {
         mode: filters.mode,
         status: filters.status,
-        orgType: filters.orgType,
         mainTheme: filters.mainTheme,
         subTheme: filters.subTheme,
         platform: filters.platform,

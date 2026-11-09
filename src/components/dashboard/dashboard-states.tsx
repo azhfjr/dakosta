@@ -6,6 +6,13 @@ import { AlertTriangle, RotateCcw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
+const SKELETON_GRID: Record<number, string> = {
+  2: "grid gap-3 sm:grid-cols-2 sm:gap-4",
+  3: "grid gap-3 sm:grid-cols-3 sm:gap-4",
+  4: "grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4",
+  6: "grid gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 xl:grid-cols-6",
+};
+
 export function DashboardSectionSkeleton({
   label,
   rows = 2,
@@ -16,13 +23,7 @@ export function DashboardSectionSkeleton({
   return (
     <div aria-busy="true" aria-label={label} className="space-y-4">
       <p className="text-sm text-ink-muted">{label}</p>
-      <div
-        className={
-          rows > 2
-            ? "grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4"
-            : "grid gap-3 sm:grid-cols-2 sm:gap-4"
-        }
-      >
+      <div className={SKELETON_GRID[rows] ?? SKELETON_GRID[2]}>
         {Array.from({ length: rows }).map((_, index) => (
           <div
             key={index}
@@ -30,6 +31,15 @@ export function DashboardSectionSkeleton({
           />
         ))}
       </div>
+    </div>
+  );
+}
+
+export function DashboardChartSkeleton({ label }: { label: string }) {
+  return (
+    <div aria-busy="true" aria-label={label} className="space-y-3">
+      <p className="text-sm text-ink-muted">{label}</p>
+      <div className="h-[300px] animate-pulse rounded-xl border border-border bg-surface-muted/50" />
     </div>
   );
 }

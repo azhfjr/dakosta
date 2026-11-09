@@ -44,7 +44,7 @@ export type ReviewAction = (typeof REVIEW_ACTIONS)[number];
 const ACTION_TO_STATUS: Record<ReviewAction, ContentStatus> = {
   APPROVE: "APPROVED",
   REQUEST_REVISION: "REVISION_REQUIRED",
-  REJECT: "REJECTED",
+  REJECT: "REVISION_REQUIRED",
 };
 
 const ACTION_AUDIT: Record<ReviewAction, string> = {
@@ -69,8 +69,8 @@ const ACTION_NOTIFICATION: Record<
   },
   REJECT: {
     eventType: "CONTENT_REJECTED",
-    title: "Konten ditolak",
-    verb: "ditolak dan tidak dihitung sebagai capaian",
+    title: "Konten perlu revisi",
+    verb: "dikembalikan sebagai Perlu Revisi dan belum dihitung sebagai capaian; perbaiki lalu kirim ulang",
   },
 };
 
@@ -117,7 +117,7 @@ export const reviewDecisionSchema = z
 export type ReviewDecisionInput = z.infer<typeof reviewDecisionSchema>;
 
 export type ReviewQueueFilters = {
-  status?: "ALL" | "SUBMITTED" | "RESUBMITTED" | "IN_REVIEW";
+  status?: "ALL" | "SUBMITTED";
   stakeholderId?: string;
   orgType?: "FASKES" | "PEMDA" | "OTHER";
   mainTheme?: MainTheme;
@@ -154,8 +154,6 @@ export type ReviewQueueResult = {
   counts: {
     ALL: number;
     SUBMITTED: number;
-    RESUBMITTED: number;
-    IN_REVIEW: number;
   };
   oldestSubmittedAt: Date | null;
   generatedAt: Date;
@@ -318,14 +316,10 @@ async function loadReviewQueue(
   ]);
 
   const total = Number(totalRow[0]?.total ?? 0);
-  const counts = { ALL: 0, SUBMITTED: 0, RESUBMITTED: 0, IN_REVIEW: 0 };
+  const counts = { ALL: 0, SUBMITTED: 0 };
   for (const row of countRows) {
-    if (
-      row.status === "SUBMITTED" ||
-      row.status === "RESUBMITTED" ||
-      row.status === "IN_REVIEW"
-    ) {
-      counts[row.status] = Number(row.total);
+    if (row.status === "SUBMITTED") {
+      counts.SUBMITTED = Number(row.total);
       counts.ALL += Number(row.total);
     }
   }
@@ -592,76 +586,6 @@ export async function reviewSubmission(
   return decision;
 }
 
-export async function startReview(
-  reviewer: SessionUser,
-  submissionId: string,
-  requestId?: string,
-): Promise<{ submissionId: string; status: ContentStatus }> {
-  assertCan(reviewer, "content:review");
-  const db = getDb();
-
-  const result = await db.transaction(async (tx) => {
-    const [current] = await tx
-      .select({
-        status: schema.contentSubmissions.status,
-        version: schema.contentSubmissions.version,
-        branchOfficeId: schema.stakeholders.branchOfficeId,
-        organizationId: schema.contentSubmissions.stakeholderId,
-      })
-      .from(schema.contentSubmissions)
-      .innerJoin(
-        schema.stakeholders,
-        eq(schema.stakeholders.id, schema.contentSubmissions.stakeholderId),
-      )
-      .where(eq(schema.contentSubmissions.id, submissionId))
-      .for("update")
-      .limit(1);
-
-    if (!current) throw errors.notFound("Konten tidak ditemukan.");
-    if (
-      reviewer.role === "BRANCH_ADMIN" &&
-      (reviewer.scope.kind !== "BRANCH" ||
-        !current.branchOfficeId ||
-        current.branchOfficeId !== reviewer.scope.branchId)
-    ) {
-      throw errors.notFound("Konten tidak ditemukan.");
-    }
-
-    if (current.status === "IN_REVIEW") {
-      return { submissionId, status: "IN_REVIEW" as ContentStatus };
-    }
-    if (current.status !== "SUBMITTED" && current.status !== "RESUBMITTED") {
-      throw errors.conflict(
-        "Konten ini tidak berada pada tahap yang dapat direview.",
-        { status: current.status },
-      );
-    }
-
-    await tx
-      .update(schema.contentSubmissions)
-      .set({ status: "IN_REVIEW", updatedAt: new Date() })
-      .where(eq(schema.contentSubmissions.id, submissionId));
-
-    await tx.insert(schema.auditLogs).values({
-      actorId: reviewer.id,
-      actorRole: reviewer.role,
-      action: "CONTENT_REVIEW_STARTED",
-      recordType: "CONTENT_SUBMISSION",
-      recordId: submissionId,
-      branchId: current.branchOfficeId,
-      organizationId: current.organizationId,
-      before: { status: current.status },
-      after: { status: "IN_REVIEW" },
-      requestId: requestId ?? null,
-    });
-
-    return { submissionId, status: "IN_REVIEW" as ContentStatus };
-  });
-
-  invalidateReadCache();
-  return result;
-}
-
 export type RevokeResult = {
   submissionId: string;
   referenceCode: string;
@@ -715,7 +639,7 @@ export async function revokeSubmission(
     const [updated] = await tx
       .update(schema.contentSubmissions)
       .set({
-        status: "REVOKED",
+        status: "REVISION_REQUIRED",
         decisionReason: notes,
         revokedAt: now,
         approvedAt: null,
@@ -743,7 +667,7 @@ export async function revokeSubmission(
       checklist: {},
       notes,
       previousStatus: current.status,
-      nextStatus: "REVOKED",
+      nextStatus: "REVISION_REQUIRED",
       conflictOfInterest: false,
       reviewerRole: master.role,
       reviewerBranchId: null,
@@ -754,14 +678,14 @@ export async function revokeSubmission(
     const subject = current.title
       ? `${current.referenceCode} — ${current.title}`
       : current.referenceCode;
-    const body = `${subject} dicabut oleh Master Admin. Alasan: ${notes}`;
+    const body = `${subject} dicabut oleh Master Admin dan dikembalikan sebagai Perlu Revisi. Alasan: ${notes}`;
 
     const inserted = await tx
       .insert(schema.notifications)
       .values({
         recipientId: current.submittedBy,
         eventType: "CONTENT_REVOKED",
-        title: "Konten dicabut",
+        title: "Konten perlu revisi",
         body,
         objectType: "CONTENT_SUBMISSION",
         objectId: input.submissionId,
@@ -785,7 +709,7 @@ export async function revokeSubmission(
         payload: {
           notificationId,
           recipientId: current.submittedBy,
-          title: "Konten dicabut",
+          title: "Konten perlu revisi",
           body,
           href: `/client/konten/${input.submissionId}`,
           referenceCode: current.referenceCode,
@@ -805,14 +729,18 @@ export async function revokeSubmission(
       organizationId: current.organizationId,
       reason: notes,
       before: { status: current.status, version: current.version },
-      after: { status: "REVOKED", version: current.version, notificationId },
+      after: {
+        status: "REVISION_REQUIRED",
+        version: current.version,
+        notificationId,
+      },
       requestId: requestId ?? null,
     });
 
     return {
       submissionId: input.submissionId,
       referenceCode: current.referenceCode,
-      status: "REVOKED" as ContentStatus,
+      status: "REVISION_REQUIRED" as ContentStatus,
     };
   });
 

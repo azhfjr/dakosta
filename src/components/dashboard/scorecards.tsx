@@ -1,13 +1,79 @@
-import { Building2, FileCheck2, GraduationCap, Layers } from "lucide-react";
+import {
+  Building2,
+  FileCheck2,
+  GraduationCap,
+  Hospital,
+  Landmark,
+  Layers,
+  Stethoscope,
+  type LucideIcon,
+} from "lucide-react";
 
 import { StatCard } from "@/components/dashboard/stat-card";
-import type {
-  DashboardFiltered,
-  DashboardSummary,
+import { formatShareId } from "@/lib/dashboard/series";
+import {
+  DASHBOARD_CATEGORIES,
+  DASHBOARD_CATEGORY_LABELS,
+  type DashboardCategory,
+  type DashboardFiltered,
+  type DashboardSummary,
 } from "@/lib/dashboard/types";
 import { formatNumberId } from "@/lib/dates";
 
-const CARD_GRID = "grid gap-3 sm:grid-cols-2 sm:gap-4";
+const SCOPE_GRID =
+  "grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-6";
+
+const CATEGORY_CARDS: Record<
+  DashboardCategory,
+  { icon: LucideIcon; tone: "green" | "teal" | "blue" | "amber"; hint: string }
+> = {
+  FKRTL: {
+    icon: Hospital,
+    tone: "green",
+    hint: "Fasilitas kesehatan rujukan tingkat lanjut.",
+  },
+  FKTP: {
+    icon: Stethoscope,
+    tone: "teal",
+    hint: "Fasilitas kesehatan tingkat pertama.",
+  },
+  PEMDA: {
+    icon: Landmark,
+    tone: "blue",
+    hint: "Pemerintah daerah.",
+  },
+  STAKEHOLDER: {
+    icon: Building2,
+    tone: "amber",
+    hint: "Stakeholder mitra di luar faskes dan pemda.",
+  },
+};
+
+function CategoryScorecards({ summary }: { summary: DashboardSummary }) {
+  return (
+    <>
+      {DASHBOARD_CATEGORIES.map((category) => {
+        const card = CATEGORY_CARDS[category];
+        const share = formatShareId(summary.categoryShares[category]);
+        return (
+          <StatCard
+            key={category}
+            label={DASHBOARD_CATEGORY_LABELS[category]}
+            value={formatNumberId(summary.categoryTotals[category])}
+            share={{
+              value: share,
+              srLabel: `${share} dari konten tervalidasi terkategori`,
+            }}
+            hint={card.hint}
+            icon={card.icon}
+            tone={card.tone}
+            size="compact"
+          />
+        );
+      })}
+    </>
+  );
+}
 
 export function SummaryScorecards({ summary }: { summary: DashboardSummary }) {
   const zeroBranches = summary.branchCount === 0;
@@ -17,7 +83,7 @@ export function SummaryScorecards({ summary }: { summary: DashboardSummary }) {
       aria-label="Ringkasan konten tervalidasi"
       className="scroll-mt-20"
     >
-      <div className={CARD_GRID}>
+      <div className={SCOPE_GRID}>
         <StatCard
           label="Total Konten Tervalidasi"
           value={formatNumberId(summary.totalApproved)}
@@ -38,6 +104,7 @@ export function SummaryScorecards({ summary }: { summary: DashboardSummary }) {
           icon={Building2}
           tone="blue"
         />
+        <CategoryScorecards summary={summary} />
       </div>
     </section>
   );
@@ -56,7 +123,7 @@ export function BranchScopeScorecards({
       aria-label="Ringkasan konten cabang"
       className="scroll-mt-20"
     >
-      <div className={CARD_GRID}>
+      <div className={SCOPE_GRID}>
         <StatCard
           label="Total Konten Tervalidasi"
           value={formatNumberId(summary.totalApproved)}
@@ -71,6 +138,7 @@ export function BranchScopeScorecards({
           icon={Building2}
           tone="blue"
         />
+        <CategoryScorecards summary={summary} />
       </div>
     </section>
   );
@@ -89,20 +157,13 @@ export function StakeholderScorecards({
       aria-label="Ringkasan konten organisasi"
       className="scroll-mt-20"
     >
-      <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-3 sm:gap-4">
         <StatCard
           label="Total Konten Tervalidasi"
           value={formatNumberId(summary.totalApproved)}
           hint="Seluruh riwayat, hanya konten dengan approval final."
           icon={FileCheck2}
           tone="green"
-        />
-        <StatCard
-          label="Institusi dengan Konten"
-          value={`${formatNumberId(filtered.map.totals.institutions)} institusi`}
-          hint="Institusi organisasi Anda yang memiliki konten tervalidasi."
-          icon={Building2}
-          tone="blue"
         />
         <StatCard
           id="edufast"

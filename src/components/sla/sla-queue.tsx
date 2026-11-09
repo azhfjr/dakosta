@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarClock, Inbox, Search, ShieldCheck } from "lucide-react";
+import { Inbox, ShieldCheck } from "lucide-react";
 
 import { ContentTypeBadge } from "@/components/content/content-type-badge";
 import { StatusBadge } from "@/components/content/status-badge";
@@ -27,8 +27,6 @@ import {
 const TABS = [
   { key: "ALL", label: "Semua" },
   { key: "SUBMITTED", label: "Terkirim" },
-  { key: "RESUBMITTED", label: "Dikirim ulang" },
-  { key: "IN_REVIEW", label: "Ditinjau" },
 ] as const;
 
 export type SlaTabKey = (typeof TABS)[number]["key"];
@@ -182,28 +180,14 @@ export function SlaQueue({
 
       <section
         aria-label="Ringkasan antrean"
-        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        className="grid gap-4 sm:grid-cols-2"
       >
         <StatCard
           label="Menunggu keputusan"
           value={formatNumberId(queue.counts.ALL)}
-          hint={`Terkirim, dikirim ulang, ditinjau · ${scopeLabel}`}
+          hint={`Status Terkirim · ${scopeLabel}`}
           icon={Inbox}
           tone="amber"
-        />
-        <StatCard
-          label="Dikirim ulang"
-          value={formatNumberId(queue.counts.RESUBMITTED)}
-          hint="Perlu verifikasi ulang"
-          icon={CalendarClock}
-          tone="blue"
-        />
-        <StatCard
-          label="Sedang ditinjau"
-          value={formatNumberId(queue.counts.IN_REVIEW)}
-          hint="Sudah dimulai reviewer"
-          icon={Search}
-          tone="teal"
         />
         <StatCard
           label="Melewati tenggat"

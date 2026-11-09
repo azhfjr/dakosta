@@ -613,7 +613,7 @@ const CONTENT = [
   },
   {
     title: "Alur pengaduan layanan yang mudah",
-    status: "IN_REVIEW",
+    status: "SUBMITTED",
     days: 6,
     org: 2,
     type: "INFOGRAFIS",
@@ -622,7 +622,7 @@ const CONTENT = [
   },
   {
     title: "Kesehatan mental remaja: ruang aman",
-    status: "IN_REVIEW",
+    status: "SUBMITTED",
     days: 9,
     org: 12,
     type: "VIDEO",
@@ -649,7 +649,7 @@ const CONTENT = [
   },
   {
     title: "Kampanye vaksinasi dewasa",
-    status: "REJECTED",
+    status: "REVISION_REQUIRED",
     days: 15,
     org: 7,
     type: "VIDEO",
@@ -658,7 +658,7 @@ const CONTENT = [
   },
   {
     title: "Pola makan untuk penderita diabetes",
-    status: "REJECTED",
+    status: "REVISION_REQUIRED",
     days: 44,
     org: 12,
     type: "INFOGRAFIS",
@@ -667,7 +667,7 @@ const CONTENT = [
   },
   {
     title: "Pendampingan persalinan aman",
-    status: "REVOKED",
+    status: "REVISION_REQUIRED",
     days: 22,
     org: 1,
     type: "VIDEO",
@@ -676,7 +676,7 @@ const CONTENT = [
   },
   {
     title: "Rekam medis elektronik dan privasi pasien",
-    status: "ARCHIVED",
+    status: "APPROVED",
     days: 60,
     org: 2,
     type: "INFOGRAFIS",
@@ -721,25 +721,13 @@ function decisionReason(status: string): string | null {
       return "Konten sesuai tema, tautan aktif, dan lokasi terverifikasi.";
     case "REVISION_REQUIRED":
       return "Mohon lengkapi tautan publikasi dan perjelas sumber data pendukung.";
-    case "REJECTED":
-      return "Konten di luar cakupan tema dan tidak dapat diverifikasi.";
-    case "REVOKED":
-      return "Konten ditarik oleh Master Admin karena permintaan koreksi organisasi.";
-    case "ARCHIVED":
-      return "Konten diarsipkan karena periode kampanye berakhir.";
     default:
       return null;
   }
 }
 
 function hasDecision(status: string): boolean {
-  return [
-    "APPROVED",
-    "REVOKED",
-    "ARCHIVED",
-    "REJECTED",
-    "REVISION_REQUIRED",
-  ].includes(status);
+  return status === "APPROVED" || status === "REVISION_REQUIRED";
 }
 
 function reviewerFor(orgN: number): string {
@@ -1075,10 +1063,10 @@ export async function runSeed(db: SeedDb): Promise<void> {
       firstSubmittedAt: submitted ? instantDaysAgo(item.days + 2) : null,
       submittedAt: submitted ? instantDaysAgo(item.days + 2) : null,
       approvedAt: item.status === "APPROVED" ? instantDaysAgo(item.days) : null,
-      revokedAt: item.status === "REVOKED" ? instantDaysAgo(item.days) : null,
+      revokedAt: null,
       reviewedBy: decided ? reviewer : null,
       decisionReason: decisionReason(item.status),
-      archived: item.status === "ARCHIVED",
+      archived: false,
       isDemo: true,
       createdAt: instantDaysAgo(item.days + 5),
       updatedAt: instantDaysAgo(item.days),
@@ -1117,11 +1105,7 @@ export async function runSeed(db: SeedDb): Promise<void> {
     .values(
       reviewTargets.map(({ row, n }, index) => {
         const action =
-          row.status === "REVISION_REQUIRED"
-            ? "REQUEST_REVISION"
-            : row.status === "REJECTED"
-              ? "REJECT"
-              : "APPROVE";
+          row.status === "REVISION_REQUIRED" ? "REQUEST_REVISION" : "APPROVE";
         const branchId = ids.branch(
           ORGANIZATIONS[CONTENT[n - 1]!.org - 1]!.branch,
         );
@@ -1132,13 +1116,13 @@ export async function runSeed(db: SeedDb): Promise<void> {
           reviewerId: row.reviewedBy ?? BRANCH_A1,
           action,
           checklist: {
-            relevansiTema: action !== "REJECT",
+            relevansiTema: true,
             akurasiKonten: action === "APPROVE",
             kelengkapanTautan: action === "APPROVE",
             etikaDanPrivasi: true,
           },
           notes: row.decisionReason,
-          previousStatus: action === "REJECT" ? "IN_REVIEW" : "SUBMITTED",
+          previousStatus: "SUBMITTED",
           nextStatus: row.status,
           conflictOfInterest: false,
           reviewerRole: "BRANCH_ADMIN",
@@ -1320,15 +1304,15 @@ export async function runSeed(db: SeedDb): Promise<void> {
       {
         id: ids.notification(8),
         recipientId: ids.user(11),
-        eventType: "SUBMISSION_REJECTED",
-        title: "Konten ditolak",
-        body: "Pola makan untuk penderita diabetes ditolak karena di luar cakupan tema.",
+        eventType: "REVISION_REQUIRED",
+        title: "Konten perlu revisi",
+        body: "Pola makan untuk penderita diabetes perlu diperbaiki sebelum dapat disetujui.",
         objectType: "CONTENT_SUBMISSION",
         objectId: ids.submission(21),
         href: `/client/konten/${ids.submission(21)}`,
         branchOfficeId: ids.branch(3),
         organizationId: ids.organization(12),
-        dedupeKey: "seed:notif:client-5:rejected",
+        dedupeKey: "seed:notif:client-5:revision",
         createdAt: instantDaysAgo(44),
       },
     ])
@@ -1369,13 +1353,13 @@ export async function runSeed(db: SeedDb): Promise<void> {
         id: ids.audit(3),
         actorId: BRANCH_B1,
         actorRole: "BRANCH_ADMIN",
-        action: "CONTENT_REJECTED",
+        action: "CONTENT_REVISION_REQUESTED",
         recordType: "CONTENT_SUBMISSION",
         recordId: ids.submission(21),
         regionId: ids.region(2),
         branchId: ids.branch(3),
         organizationId: ids.organization(12),
-        after: { status: "REJECTED" },
+        after: { status: "REVISION_REQUIRED" },
         source: "SEED",
       },
       {
@@ -1480,16 +1464,7 @@ async function assertSeedCounts(db: SeedDb): Promise<void> {
         "content_submissions",
         "where is_demo = true and status = 'SUBMITTED'",
       ),
-      expected: 3,
-    },
-    {
-      label: "konten ditinjau",
-      actual: await count(
-        db,
-        "content_submissions",
-        "where is_demo = true and status = 'IN_REVIEW'",
-      ),
-      expected: 2,
+      expected: 5,
     },
     {
       label: "konten revisi",
@@ -1498,34 +1473,7 @@ async function assertSeedCounts(db: SeedDb): Promise<void> {
         "content_submissions",
         "where is_demo = true and status = 'REVISION_REQUIRED'",
       ),
-      expected: 2,
-    },
-    {
-      label: "konten ditolak",
-      actual: await count(
-        db,
-        "content_submissions",
-        "where is_demo = true and status = 'REJECTED'",
-      ),
-      expected: 2,
-    },
-    {
-      label: "konten dicabut",
-      actual: await count(
-        db,
-        "content_submissions",
-        "where is_demo = true and status = 'REVOKED'",
-      ),
-      expected: 1,
-    },
-    {
-      label: "konten diarsipkan",
-      actual: await count(
-        db,
-        "content_submissions",
-        "where is_demo = true and status = 'ARCHIVED'",
-      ),
-      expected: 1,
+      expected: 5,
     },
     {
       label: "draf",

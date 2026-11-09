@@ -1,5 +1,9 @@
 import type { ContentStatus } from "@/lib/content-status";
-import type { DashboardCategory } from "@/lib/dashboard/types";
+import type {
+  DashboardCategory,
+  DashboardContentTypeKey,
+  DashboardThemeKey,
+} from "@/lib/dashboard/types";
 
 export const CHART_COLORS = [
   "var(--chart-1)",
@@ -37,6 +41,33 @@ export const CATEGORY_MAP_COLORS: Record<DashboardCategory, string> = {
   PEMDA: "#005B9F",
   STAKEHOLDER: "#B45309",
 };
+
+/** Content-type palette shared by the pie, trend charts, and legends. */
+export const CONTENT_TYPE_CHART_COLORS: Record<
+  DashboardContentTypeKey,
+  string
+> = {
+  VIDEO: "var(--chart-1)",
+  INFOGRAFIS: "var(--chart-2)",
+  UNCLASSIFIED: "var(--chart-5)",
+};
+
+/** Literal copies for the PDF renderer and other non-CSS surfaces. */
+export const CONTENT_TYPE_MAP_COLORS: Record<DashboardContentTypeKey, string> =
+  {
+    VIDEO: "#00A651",
+    INFOGRAFIS: "#005B9F",
+    UNCLASSIFIED: "#64748B",
+  };
+
+/** Dashboard EDUFAST split; distinct from legacy submission sub-themes. */
+export const DASHBOARD_THEME_CHART_COLORS: Record<DashboardThemeKey, string> = {
+  EDUFAST: "var(--chart-1)",
+  NON_EDUFAST: "var(--chart-3)",
+};
+
+/** Single-series monthly trend color. */
+export const MONTHLY_TREND_COLOR = "var(--chart-1)";
 
 export const THEME_CHART_COLORS: Record<string, string> = {
   MOBILE_JKN: "var(--chart-1)",
@@ -84,13 +115,8 @@ export function themeChartColor(key: string, fallbackIndex = 0): string {
 export const STATUS_CHART_COLOR: Record<ContentStatus, string> = {
   APPROVED: "var(--status-approved)",
   SUBMITTED: "var(--status-submitted)",
-  RESUBMITTED: "var(--status-submitted)",
-  IN_REVIEW: "var(--status-review)",
   REVISION_REQUIRED: "var(--status-revision)",
-  REJECTED: "var(--status-rejected)",
   DRAFT: "var(--status-draft)",
-  REVOKED: "var(--ink-muted)",
-  ARCHIVED: "var(--ink-muted)",
 };
 
 /**
@@ -109,11 +135,6 @@ export const MAP_BRAND = {
 export const MAP_STATUS_COLOR: Record<string, string> = {
   APPROVED: "#0F7A46",
   SUBMITTED: "#005B9F",
-  RESUBMITTED: "#005B9F",
-  IN_REVIEW: "#8F560F",
   REVISION_REQUIRED: "#B45309",
-  REJECTED: "#B4232A",
-  REVOKED: "#4F6779",
-  ARCHIVED: "#4F6779",
   DRAFT: "#4F6779",
 };

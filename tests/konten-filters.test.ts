@@ -25,7 +25,7 @@ describe("Detail Konten filters", () => {
 
   it("keeps the approved scope when a URL asks for another status", () => {
     const filters = parseKontenFilters(
-      { status: "REJECTED", sort: "status" },
+      { status: "REVISION_REQUIRED", sort: "status" },
       "approved",
     );
     expect(filters.status).toBe("APPROVED");
@@ -56,7 +56,6 @@ describe("Detail Konten filters", () => {
     );
     expect(filters).toMatchObject({
       status: "REVISION_REQUIRED",
-      orgType: "PEMDA",
       mainTheme: "EDUFAST",
       subTheme: "MOBILE_JKN",
       contentType: "VIDEO",
@@ -80,7 +79,6 @@ describe("Detail Konten filters", () => {
       "all",
     );
     expect(filters.status).toBe("ALL");
-    expect(filters.orgType).toBeNull();
     expect(filters.mainTheme).toBeNull();
     expect(filters.dateFrom).toBeNull();
     expect(filters.dateTo).toBeNull();
@@ -92,7 +90,6 @@ describe("Detail Konten export parity", () => {
     const filters = parseKontenFilters(
       {
         status: "APPROVED",
-        orgType: "FASKES",
         marker: "ignored",
         from: "2025-01-01",
         q: "edukasi",
@@ -103,7 +100,6 @@ describe("Detail Konten export parity", () => {
     const query = new URLSearchParams(kontenExportQuery(filters).slice(1));
     expect(query.get("mode")).toBe("all");
     expect(query.get("status")).toBe("APPROVED");
-    expect(query.get("orgType")).toBe("FASKES");
     expect(query.get("from")).toBe("2025-01-01");
     expect(query.get("q")).toBe("edukasi");
     expect(query.get("page")).toBeNull();

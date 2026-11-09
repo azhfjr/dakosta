@@ -131,7 +131,6 @@ export type SubmissionVolumePoint = {
   pending: number;
   approved: number;
   revision: number;
-  rejected: number;
 };
 
 /**
@@ -172,7 +171,6 @@ export async function getSubmissionVolumeSeries(
       pending: 0,
       approved: 0,
       revision: 0,
-      rejected: 0,
     });
   }
   for (const row of rows) {
@@ -185,7 +183,6 @@ export async function getSubmissionVolumeSeries(
       point.pending += total;
     } else if (row.status === "APPROVED") point.approved += total;
     else if (row.status === "REVISION_REQUIRED") point.revision += total;
-    else if (row.status === "REJECTED") point.rejected += total;
   }
   return keys.map((key) => points.get(key)!);
 }
@@ -335,8 +332,6 @@ export async function getDecisionFunnel(
   ))`;
   const submitted = sql<number>`count(*) filter (where ${schema.contentSubmissions.submittedAt} is not null)`;
   const revision = sql<number>`count(*) filter (where ${schema.contentSubmissions.status} = 'REVISION_REQUIRED')`;
-  const rejected = sql<number>`count(*) filter (where ${schema.contentSubmissions.status} = 'REJECTED')`;
-  const revoked = sql<number>`count(*) filter (where ${schema.contentSubmissions.status} = 'REVOKED')`;
 
   const rows = await getDb()
     .select({
@@ -345,8 +340,6 @@ export async function getDecisionFunnel(
       reviewed,
       approved,
       revision,
-      rejected,
-      revoked,
     })
     .from(schema.contentSubmissions)
     .where(where([...scopeConditions(user, filters), ...createdIn(period)]));
@@ -376,11 +369,9 @@ export async function getDecisionFunnel(
     outcomes: [
       {
         stage: "revision",
-        label: "Perlu revisi",
+        label: "Perlu Revisi",
         total: toNumber(row?.revision),
       },
-      { stage: "rejected", label: "Ditolak", total: toNumber(row?.rejected) },
-      { stage: "revoked", label: "Dicabut", total: toNumber(row?.revoked) },
     ],
   };
 }
@@ -535,7 +526,7 @@ export async function getSourceBreakdown(
       organizations: new Set<string>(),
     };
     const total = toNumber(row.total);
-    if (row.status !== "DRAFT" && row.status !== "ARCHIVED") {
+    if (row.status !== "DRAFT") {
       current.submitted += total;
     }
     if ((PENDING_STATUSES as readonly string[]).includes(row.status)) {

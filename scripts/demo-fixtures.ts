@@ -35,15 +35,7 @@ export function demoTargetTotal(volume: DemoVolume = DEMO_VOLUME): number {
 }
 
 export type DemoStatus =
-  | "DRAFT"
-  | "SUBMITTED"
-  | "RESUBMITTED"
-  | "IN_REVIEW"
-  | "APPROVED"
-  | "REVISION_REQUIRED"
-  | "REJECTED"
-  | "REVOKED"
-  | "ARCHIVED";
+  "DRAFT" | "SUBMITTED" | "REVISION_REQUIRED" | "APPROVED";
 
 export type DemoRole =
   "MASTER_ADMIN" | "REGIONAL_ADMIN" | "BRANCH_ADMIN" | "STAKEHOLDER";
@@ -763,7 +755,7 @@ export function demoStatusFor(
 ): DemoStatus {
   if (age === 0) {
     return (
-      ["APPROVED", "APPROVED", "IN_REVIEW", "SUBMITTED", "DRAFT"] as const
+      ["APPROVED", "APPROVED", "SUBMITTED", "SUBMITTED", "DRAFT"] as const
     )[slot]!;
   }
   if (age === 1) {
@@ -771,22 +763,30 @@ export function demoStatusFor(
       [
         "APPROVED",
         "APPROVED",
-        "RESUBMITTED",
+        "SUBMITTED",
         "REVISION_REQUIRED",
-        "ARCHIVED",
+        "APPROVED",
       ] as const
     )[slot]!;
   }
   if (age === 2) {
     return (
-      ["APPROVED", "APPROVED", "ARCHIVED", "REJECTED", "REVOKED"] as const
+      [
+        "APPROVED",
+        "APPROVED",
+        "APPROVED",
+        "REVISION_REQUIRED",
+        "REVISION_REQUIRED",
+      ] as const
     )[slot]!;
   }
   if (slot === 0 || slot === 1 || slot === 2) return "APPROVED";
   if (slot === 3) {
-    return mix32(organizationN, age, 1) % 4 === 0 ? "REJECTED" : "ARCHIVED";
+    return mix32(organizationN, age, 1) % 4 === 0
+      ? "REVISION_REQUIRED"
+      : "APPROVED";
   }
-  return age % 3 === 0 ? "REVOKED" : "ARCHIVED";
+  return age % 3 === 0 ? "REVISION_REQUIRED" : "APPROVED";
 }
 
 const PLATFORMS = [
@@ -900,14 +900,8 @@ function decisionReason(status: DemoStatus): string | null {
   switch (status) {
     case "APPROVED":
       return "Konten sesuai tema, tautan aktif, dan lokasi terverifikasi.";
-    case "ARCHIVED":
-      return "Konten diarsipkan karena periode kampanye berakhir.";
     case "REVISION_REQUIRED":
       return "Mohon lengkapi tautan publikasi dan perjelas sumber data pendukung.";
-    case "REJECTED":
-      return "Konten di luar cakupan tema dan tidak dapat diverifikasi.";
-    case "REVOKED":
-      return "Konten ditarik setelah permintaan koreksi organisasi.";
     default:
       return null;
   }
@@ -1019,6 +1013,7 @@ export function buildSubmissions(
         const publishedUrl = `https://demo.dakosta.example/konten/${String(n).padStart(4, "0")}`;
         const normalized = normalizePublishedUrl(publishedUrl);
         const isDraft = status === "DRAFT";
+        const isResubmitted = status === "SUBMITTED" && slot === 2;
         const isEdufast = slot % 2 === 0;
 
         const createdAt = clampInstant(
@@ -1032,22 +1027,18 @@ export function buildSubmissions(
 
         let submittedAt: Date | null = isDraft ? null : initialSubmitAt;
         let approvedAt: Date | null = null;
-        let revokedAt: Date | null = null;
+        const revokedAt: Date | null = null;
         let updatedAt = isDraft ? createdAt : initialSubmitAt;
 
-        if (status === "APPROVED" || status === "ARCHIVED") {
+        if (status === "APPROVED") {
           approvedAt = clampInstant(addDays(initialSubmitAt, 1), now);
           updatedAt = approvedAt;
-        } else if (status === "REJECTED" || status === "REVISION_REQUIRED") {
+        } else if (status === "REVISION_REQUIRED") {
           updatedAt = clampInstant(addDays(initialSubmitAt, 0.5), now);
-        } else if (status === "RESUBMITTED") {
+        } else if (isResubmitted) {
           const revisionAt = clampInstant(addDays(initialSubmitAt, 0.5), now);
           submittedAt = clampInstant(addDays(revisionAt, 0.5), now);
           updatedAt = submittedAt;
-        } else if (status === "REVOKED") {
-          approvedAt = clampInstant(addDays(initialSubmitAt, 1), now);
-          revokedAt = clampInstant(addDays(approvedAt, 0.5), now);
-          updatedAt = revokedAt;
         }
 
         const approvedSnapshot =
@@ -1069,9 +1060,7 @@ export function buildSubmissions(
           branchN,
           authorAccountN,
           reviewerAccountN:
-            status === "DRAFT" ||
-            status === "SUBMITTED" ||
-            status === "IN_REVIEW"
+            status === "DRAFT" || (status === "SUBMITTED" && !isResubmitted)
               ? null
               : reviewerAccountN,
           title,
@@ -1090,15 +1079,15 @@ export function buildSubmissions(
           dateCreated,
           publishedAt: isDraft ? null : dateCreated,
           status,
-          version: status === "RESUBMITTED" ? 2 : 1,
-          resubmissionCount: status === "RESUBMITTED" ? 1 : 0,
+          version: isResubmitted ? 2 : 1,
+          resubmissionCount: isResubmitted ? 1 : 0,
           submittedAt,
           approvedAt,
           revokedAt,
           createdAt,
           updatedAt,
           decisionReason: decisionReason(status),
-          archived: status === "ARCHIVED",
+          archived: false,
           approvedSnapshot,
           approvedVersion: approvedAt !== null ? 1 : null,
           edufastPolicyN: isEdufast ? policyNForAge(age) : null,
@@ -1172,7 +1161,7 @@ export function buildRevisions(
     });
     revisionN += 1;
 
-    if (submission.status === "RESUBMITTED") {
+    if (submission.status === "SUBMITTED" && submission.version > 1) {
       revisions.push({
         n: revisionN,
         id: DEMO_IDS.revision(revisionN),
@@ -1180,7 +1169,7 @@ export function buildRevisions(
         version: 2,
         snapshot: {
           ...baseSnapshot,
-          status: "RESUBMITTED",
+          status: "SUBMITTED",
           version: 2,
         },
         actorAccountN: submission.authorAccountN,
@@ -1210,122 +1199,60 @@ export function buildReviews(
     const reviewerAccountN = submission.reviewerAccountN;
     if (reviewerAccountN === null || submission.submittedAt === null) continue;
 
-    switch (submission.status) {
-      case "APPROVED":
-      case "ARCHIVED":
-        push({
-          submissionN: submission.n,
-          version: 1,
-          reviewerAccountN,
-          action: "APPROVE",
-          checklist: {
-            relevansiTema: true,
-            akurasiKonten: true,
-            kelengkapanTautan: true,
-            etikaDanPrivasi: true,
-          },
-          notes: submission.decisionReason,
-          previousStatus: "SUBMITTED",
-          nextStatus: "APPROVED",
-          reviewerRole: "BRANCH_ADMIN",
-          createdAt: submission.approvedAt ?? submission.updatedAt,
-        });
-        break;
-      case "REJECTED":
-        push({
-          submissionN: submission.n,
-          version: 1,
-          reviewerAccountN,
-          action: "REJECT",
-          checklist: {
-            relevansiTema: true,
-            akurasiKonten: false,
-            kelengkapanTautan: false,
-            etikaDanPrivasi: true,
-          },
-          notes: submission.decisionReason,
-          previousStatus: "IN_REVIEW",
-          nextStatus: "REJECTED",
-          reviewerRole: "BRANCH_ADMIN",
-          createdAt: submission.updatedAt,
-        });
-        break;
-      case "REVISION_REQUIRED":
-        push({
-          submissionN: submission.n,
-          version: 1,
-          reviewerAccountN,
-          action: "REQUEST_REVISION",
-          checklist: {
-            relevansiTema: true,
-            akurasiKonten: false,
-            kelengkapanTautan: false,
-            etikaDanPrivasi: true,
-          },
-          notes: submission.decisionReason,
-          previousStatus: "SUBMITTED",
-          nextStatus: "REVISION_REQUIRED",
-          reviewerRole: "BRANCH_ADMIN",
-          createdAt: submission.updatedAt,
-        });
-        break;
-      case "RESUBMITTED":
-        push({
-          submissionN: submission.n,
-          version: 1,
-          reviewerAccountN,
-          action: "REQUEST_REVISION",
-          checklist: {
-            relevansiTema: true,
-            akurasiKonten: false,
-            kelengkapanTautan: false,
-            etikaDanPrivasi: true,
-          },
-          notes: "Perbaiki tautan publikasi sebelum dikirim ulang.",
-          previousStatus: "SUBMITTED",
-          nextStatus: "REVISION_REQUIRED",
-          reviewerRole: "BRANCH_ADMIN",
-          createdAt: clampInstant(addDays(submission.updatedAt, -0.5), now),
-        });
-        break;
-      case "REVOKED":
-        push({
-          submissionN: submission.n,
-          version: 1,
-          reviewerAccountN,
-          action: "APPROVE",
-          checklist: {
-            relevansiTema: true,
-            akurasiKonten: true,
-            kelengkapanTautan: true,
-            etikaDanPrivasi: true,
-          },
-          notes: "Disetujui sebelum penarikan.",
-          previousStatus: "SUBMITTED",
-          nextStatus: "APPROVED",
-          reviewerRole: "BRANCH_ADMIN",
-          createdAt: submission.approvedAt ?? submission.updatedAt,
-        });
-        push({
-          submissionN: submission.n,
-          version: 1,
-          reviewerAccountN,
-          action: "REVOKE",
-          checklist: {
-            relevansiTema: true,
-            akurasiKonten: true,
-            kelengkapanTautan: true,
-            etikaDanPrivasi: true,
-          },
-          notes: submission.decisionReason,
-          previousStatus: "APPROVED",
-          nextStatus: "REVOKED",
-          reviewerRole: "BRANCH_ADMIN",
-          createdAt: submission.revokedAt ?? submission.updatedAt,
-        });
-        break;
-      default:
-        break;
+    if (submission.status === "APPROVED") {
+      push({
+        submissionN: submission.n,
+        version: 1,
+        reviewerAccountN,
+        action: "APPROVE",
+        checklist: {
+          relevansiTema: true,
+          akurasiKonten: true,
+          kelengkapanTautan: true,
+          etikaDanPrivasi: true,
+        },
+        notes: submission.decisionReason,
+        previousStatus: "SUBMITTED",
+        nextStatus: "APPROVED",
+        reviewerRole: "BRANCH_ADMIN",
+        createdAt: submission.approvedAt ?? submission.updatedAt,
+      });
+    } else if (submission.status === "REVISION_REQUIRED") {
+      push({
+        submissionN: submission.n,
+        version: 1,
+        reviewerAccountN,
+        action: "REQUEST_REVISION",
+        checklist: {
+          relevansiTema: true,
+          akurasiKonten: false,
+          kelengkapanTautan: false,
+          etikaDanPrivasi: true,
+        },
+        notes: submission.decisionReason,
+        previousStatus: "SUBMITTED",
+        nextStatus: "REVISION_REQUIRED",
+        reviewerRole: "BRANCH_ADMIN",
+        createdAt: submission.updatedAt,
+      });
+    } else if (submission.status === "SUBMITTED" && submission.version > 1) {
+      push({
+        submissionN: submission.n,
+        version: 1,
+        reviewerAccountN,
+        action: "REQUEST_REVISION",
+        checklist: {
+          relevansiTema: true,
+          akurasiKonten: false,
+          kelengkapanTautan: false,
+          etikaDanPrivasi: true,
+        },
+        notes: "Perbaiki tautan publikasi sebelum dikirim ulang.",
+        previousStatus: "SUBMITTED",
+        nextStatus: "REVISION_REQUIRED",
+        reviewerRole: "BRANCH_ADMIN",
+        createdAt: clampInstant(addDays(submission.updatedAt, -0.5), now),
+      });
     }
   }
 
@@ -1436,22 +1363,11 @@ function decisionNotification(
         body: `${submission.referenceCode} telah disetujui admin cabang dan dihitung dalam capaian.`,
       };
     case "REJECT":
-      return {
-        eventType: "SUBMISSION_REJECTED",
-        title: "Konten ditolak",
-        body: `${submission.referenceCode} ditolak karena tidak memenuhi kriteria validasi.`,
-      };
     case "REQUEST_REVISION":
       return {
         eventType: "REVISION_REQUIRED",
         title: "Konten perlu revisi",
         body: `${submission.referenceCode} memerlukan perbaikan sebelum dapat disetujui.`,
-      };
-    case "REVOKE":
-      return {
-        eventType: "SUBMISSION_REVOKED",
-        title: "Konten dicabut",
-        body: `${submission.referenceCode} dicabut setelah permintaan koreksi organisasi.`,
       };
     default:
       throw new Error(`Aksi ulasan tidak dikenal: ${String(review.action)}`);
@@ -1476,11 +1392,7 @@ export function buildNotifications(
   };
 
   for (const submission of submissions) {
-    if (
-      submission.status !== "SUBMITTED" &&
-      submission.status !== "RESUBMITTED" &&
-      submission.status !== "IN_REVIEW"
-    ) {
+    if (submission.status !== "SUBMITTED") {
       continue;
     }
     const organization = DEMO_ORGANIZATIONS[submission.organizationN - 1]!;
@@ -1770,13 +1682,8 @@ function countByStatus(
   const base: Record<DemoStatus, number> = {
     DRAFT: 0,
     SUBMITTED: 0,
-    RESUBMITTED: 0,
-    IN_REVIEW: 0,
-    APPROVED: 0,
     REVISION_REQUIRED: 0,
-    REJECTED: 0,
-    REVOKED: 0,
-    ARCHIVED: 0,
+    APPROVED: 0,
   };
   for (const submission of submissions) base[submission.status] += 1;
   return base;
@@ -1811,10 +1718,7 @@ export function expectedCounts(
     (branch) =>
       dataset.submissions.filter(
         (submission) =>
-          submission.branchN === branch.n &&
-          (submission.status === "SUBMITTED" ||
-            submission.status === "RESUBMITTED" ||
-            submission.status === "IN_REVIEW"),
+          submission.branchN === branch.n && submission.status === "SUBMITTED",
       ).length,
   );
   const branchApproved = DEMO_BRANCHES.map(
@@ -1881,7 +1785,7 @@ export function expectedCounts(
     locations: dataset.locations.length,
     submissions: dataset.submissions.length,
     status,
-    pending: status.SUBMITTED + status.RESUBMITTED + status.IN_REVIEW,
+    pending: status.SUBMITTED,
     approved: status.APPROVED,
     approvedCurrent,
     approvedPrevious,
@@ -2134,24 +2038,14 @@ export function assertFixtureIntegrity(
     (submission) => submission.status !== "DRAFT",
   ).length;
   const resubmittedCount = dataset.submissions.filter(
-    (submission) => submission.status === "RESUBMITTED",
+    (submission) => submission.status === "SUBMITTED" && submission.version > 1,
   ).length;
-  const decisionStatuses = new Set([
-    "APPROVED",
-    "ARCHIVED",
-    "REJECTED",
-    "REVISION_REQUIRED",
-    "RESUBMITTED",
-    "REVOKED",
-  ]);
+  const decisionStatuses = new Set(["APPROVED", "REVISION_REQUIRED"]);
   const decisionReviews = dataset.submissions.filter((submission) =>
     decisionStatuses.has(submission.status),
   ).length;
-  const revokedReviews = dataset.submissions.filter(
-    (submission) => submission.status === "REVOKED",
-  ).length;
   const expectedRevisions = nonDraftCount + resubmittedCount;
-  const expectedReviews = decisionReviews + revokedReviews;
+  const expectedReviews = decisionReviews + resubmittedCount;
   const expectedNotifications = counts.pending + expectedReviews + 5;
   const expectedAudits = expectedReviews + 3;
   const expectedMapPoints = dataset.submissions.filter(
@@ -2205,19 +2099,13 @@ export function assertFixtureIntegrity(
       fail(`PII pada konten ${submission.n}`);
     if (submission.status !== "DRAFT" && submission.submittedAt === null)
       fail(`konten ${submission.n} tanpa submittedAt`);
-    if (
-      (submission.status === "APPROVED" ||
-        submission.status === "ARCHIVED" ||
-        submission.status === "REVOKED") &&
-      submission.approvedAt === null
-    ) {
+    if (submission.status === "APPROVED" && submission.approvedAt === null) {
       fail(`konten ${submission.n} tanpa approvedAt`);
     }
-    if (submission.status === "REVOKED" && submission.revokedAt === null)
-      fail(`konten ${submission.n} tanpa revokedAt`);
     if (
-      submission.status === "RESUBMITTED" &&
-      (submission.version !== 2 || submission.resubmissionCount !== 1)
+      submission.status === "SUBMITTED" &&
+      submission.version > 1 &&
+      submission.resubmissionCount !== 1
     ) {
       fail(`resubmission konten ${submission.n}`);
     }

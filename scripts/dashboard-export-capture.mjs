@@ -5,7 +5,8 @@ import { chromium } from "@playwright/test";
 import { PDFDocument } from "pdf-lib";
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3400";
-const outDir = join("docs", "audit", "evidence", "ui-v35", "pdf");
+const outDir =
+  process.env.CAPTURE_OUT ?? join("docs", "audit", "evidence", "ui-v36", "pdf");
 const roleFilter = (process.env.CAPTURE_ROLES ?? "")
   .split(",")
   .map((value) => value.trim())

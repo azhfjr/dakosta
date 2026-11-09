@@ -28,6 +28,7 @@ export function SidebarNav({
           ) : null}
           {section.items.map((item) => {
             const active = isActivePath(pathname, item);
+            const success = item.tone === "success";
             const Icon = item.icon;
             return (
               <Link
@@ -38,15 +39,24 @@ export function SidebarNav({
                 className={cn(
                   "group flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
                   "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-focus/40",
-                  active
-                    ? "bg-brand-blue-100 text-brand-blue-800"
-                    : "text-ink-muted hover:bg-surface-muted hover:text-foreground",
+                  success
+                    ? "bg-status-approved text-white shadow-sm hover:bg-status-approved/90"
+                    : active
+                      ? "bg-brand-blue-100 text-brand-blue-800"
+                      : "text-ink-muted hover:bg-surface-muted hover:text-foreground",
+                  success && active
+                    ? "ring-2 ring-status-approved/30 ring-offset-1 ring-offset-surface"
+                    : null,
                 )}
               >
                 <Icon
                   className={cn(
                     "size-[18px] shrink-0",
-                    active ? "text-brand-blue-700" : "text-ink-muted",
+                    success
+                      ? "text-white"
+                      : active
+                        ? "text-brand-blue-700"
+                        : "text-ink-muted",
                   )}
                   aria-hidden
                 />

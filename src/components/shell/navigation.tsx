@@ -23,6 +23,8 @@ export type NavItem = {
   icon: LucideIcon;
   exact?: boolean;
   ready: boolean;
+  /** Highlights primary actions such as "Input Konten". */
+  tone?: "default" | "success";
 };
 
 export type NavSection = {
@@ -149,6 +151,13 @@ const CLIENT_PRIMARY: NavItem[] = [
     label: "Dashboard",
     icon: LayoutDashboard,
     exact: true,
+    ready: true,
+  },
+  {
+    href: "/client/lapor",
+    label: "Input Konten",
+    icon: Upload,
+    tone: "success",
     ready: true,
   },
   {

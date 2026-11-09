@@ -192,6 +192,67 @@ test.describe("Aksesibilitas ruang kerja", () => {
       await context.close();
     }
   });
+
+  test("bagian dashboard baru memiliki landmark dan tabel alternatif", async ({
+    browser,
+  }) => {
+    const client = await browser.newContext({ storageState: CLIENT_STATE });
+    try {
+      const page = await client.newPage();
+      await page.goto("/client");
+      await settle(page, "/client");
+      for (const id of [
+        "jenis-konten",
+        "tren-bulanan",
+        "tren-jenis-konten",
+        "tren-tema",
+        "tema-konten",
+      ]) {
+        const section = page.locator(`#${id}`);
+        await section.waitFor({ state: "visible", timeout: 60_000 });
+        const labelledBy = await section.getAttribute("aria-labelledby");
+        expect(labelledBy, `${id} harus punya aria-labelledby`).toBeTruthy();
+        await expect(page.locator(`#${labelledBy}`)).toHaveCount(1);
+        await expect(section.locator("[data-monthly-chart]")).toHaveCount(
+          id.startsWith("tren-") ? 1 : 0,
+        );
+      }
+      for (const id of [
+        "jenis-konten",
+        "tren-bulanan",
+        "tren-jenis-konten",
+        "tren-tema",
+      ]) {
+        await expect(page.locator(`#${id} table caption`)).toHaveCount(1);
+      }
+      const violations = await withReloadRetry(page, "/client", () =>
+        seriousViolations(page),
+      );
+      expect(
+        violations.map((violation) => violation.id),
+        "Pelanggaran aksesibilitas pada bagian dashboard baru",
+      ).toEqual([]);
+    } finally {
+      await client.close();
+    }
+
+    const master = await browser.newContext({ storageState: ADMIN_STATE });
+    try {
+      const page = await master.newPage();
+      await page.goto("/admin");
+      await settle(page, "/admin");
+      const map = page.locator("[data-map-tier]").first();
+      await expect(map).toBeVisible({ timeout: 60_000 });
+      const tier = await map.getAttribute("data-map-tier");
+      expect(["region", "branch", "institution"]).toContain(tier);
+      await expect(map).toHaveAttribute("role", "region");
+      await expect(page.locator("#tren-bulanan")).toBeVisible({
+        timeout: 60_000,
+      });
+    } finally {
+      await master.close();
+    }
+  });
 });
 
 test.describe("Reflow 320px (setara zoom 400%)", () => {

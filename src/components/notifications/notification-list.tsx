@@ -128,7 +128,7 @@ export function NotificationList({ items }: { items: NotificationView[] }) {
       aria-label="Daftar notifikasi"
       className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm"
     >
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-6 sm:py-4">
         <p className="text-sm text-ink-muted" aria-live="polite">
           {unread > 0
             ? `${unread} notifikasi belum dibaca`
@@ -158,27 +158,27 @@ export function NotificationList({ items }: { items: NotificationView[] }) {
               key={item.id}
               className={isUnread ? "bg-brand-teal-100/30" : undefined}
             >
-              <div className="flex gap-3 px-4 py-4">
+              <div className="flex gap-3 px-4 py-4 sm:gap-4 sm:px-6 sm:py-5">
                 <span
-                  className={`mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border ${style.className}`}
+                  className={`mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border sm:size-10 ${style.className}`}
                 >
                   <Icon className="size-4" aria-hidden />
                 </span>
 
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
-                    <p className="text-sm font-semibold text-foreground">
+                    <p className="text-sm leading-snug font-semibold text-foreground sm:text-[15px]">
                       {item.title}
                     </p>
                     <time
                       dateTime={item.createdAt}
-                      className="shrink-0 text-xs text-ink-muted"
+                      className="shrink-0 text-xs whitespace-nowrap text-ink-muted"
                     >
                       {formatTimestamp(item.createdAt)}
                     </time>
                   </div>
 
-                  <p className="mt-1 text-sm leading-relaxed text-ink-muted">
+                  <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-ink-muted">
                     {item.body}
                   </p>
 

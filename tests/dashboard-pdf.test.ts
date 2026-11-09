@@ -21,10 +21,12 @@ import type {
   DashboardInstitutionRow,
   DashboardMapMissingRow,
   DashboardMapPoint,
+  DashboardMonthlySeries,
   DashboardRankingRow,
   DashboardSummary,
   DashboardThemeRow,
 } from "@/lib/dashboard/types";
+import { emptyMonthlySeries } from "@/lib/dashboard/series";
 import {
   dashboardExportFilename,
   planDashboardPage,
@@ -142,6 +144,16 @@ function institutionChartFixture(): DashboardInstitutionChart {
   };
 }
 
+function monthlyFixture(total: number): DashboardMonthlySeries {
+  const series = emptyMonthlySeries(new Date("2026-11-09T01:00:00Z"));
+  const per = Math.floor(total / series.points.length);
+  return {
+    ...series,
+    points: series.points.map((point) => ({ ...point, total: per })),
+    total: per * series.points.length,
+  };
+}
+
 function buildInput(
   branchCount: number,
   themeCount: number,
@@ -164,7 +176,10 @@ function buildInput(
     (_, index) => ({
       id: `point-${index}`,
       name: `Institusi ${index + 1}`,
+      branchId: `branch-${(index % Math.max(1, branchCount)) + 1}`,
       branchName: `Cabang ${(index % Math.max(1, branchCount)) + 1}`,
+      regionId: `region-${(index % 4) + 1}`,
+      regionName: `Wilayah ${(index % 4) + 1}`,
       latitude: -6.4 + (index % 5) * 0.08,
       longitude: 106.6 + Math.floor(index / 5) * 0.15,
       total: 1 + (index % 7),
@@ -186,15 +201,6 @@ function buildInput(
     }),
   );
 
-  const summary: DashboardSummary = {
-    totalApproved: branches.reduce((total, row) => total + row.total, 0),
-    branches,
-    branchCount: branches.length,
-    branchesWithContent: branches.length,
-    unassignedApproved: branches.length > 0 ? 5 : 0,
-    selectionApplicable: true,
-  };
-
   const categoryTotals = branches.reduce<DashboardCategoryTotals>(
     (totals, row) => {
       for (const category of CATEGORIES) {
@@ -204,6 +210,17 @@ function buildInput(
     },
     { FKRTL: 0, FKTP: 0, PEMDA: 0, STAKEHOLDER: 0 },
   );
+
+  const summary: DashboardSummary = {
+    totalApproved: branches.reduce((total, row) => total + row.total, 0),
+    categoryTotals,
+    categoryShares: { FKRTL: 40, FKTP: 30, PEMDA: 20, STAKEHOLDER: 10 },
+    branches,
+    branchCount: branches.length,
+    branchesWithContent: branches.length,
+    unassignedApproved: branches.length > 0 ? 5 : 0,
+    selectionApplicable: true,
+  };
 
   const fixedScope = role === "BRANCH_ADMIN" || role === "STAKEHOLDER";
   const selection: BranchSelection = fixedScope
@@ -224,9 +241,45 @@ function buildInput(
     nonEdufast: themes.reduce((total, row) => total + row.total, 0),
     unclassifiedTheme: 0,
     nonEdufastThemes: themes,
+    monthly: monthlyFixture(120),
+    contentTypes: [
+      { type: "VIDEO", label: "Video", total: 70, share: 58.3 },
+      { type: "INFOGRAFIS", label: "Infografis", total: 50, share: 41.7 },
+    ],
+    typeMonthly: [
+      {
+        type: "VIDEO",
+        label: "Video",
+        points: monthlyFixture(70).points,
+        total: 70,
+      },
+      {
+        type: "INFOGRAFIS",
+        label: "Infografis",
+        points: monthlyFixture(50).points,
+        total: 50,
+      },
+    ],
+    themeMonthly: [
+      {
+        key: "EDUFAST",
+        label: "EDUFAST",
+        points: monthlyFixture(80).points,
+        total: 80,
+      },
+      {
+        key: "NON_EDUFAST",
+        label: "Non-EDUFAST",
+        points: monthlyFixture(40).points,
+        total: 40,
+      },
+    ],
     map: {
       points,
+      branches: [],
+      regions: [],
       missingLocations,
+      maxTotal: 7,
       totals: {
         approved: summary.totalApproved,
         mappedApproved: 20,
@@ -263,6 +316,8 @@ function emptyFixture(): DashboardPdfInput {
     selection: { mode: "not-applicable", ids: [] },
     summary: {
       totalApproved: 0,
+      categoryTotals: { FKRTL: 0, FKTP: 0, PEMDA: 0, STAKEHOLDER: 0 },
+      categoryShares: { FKRTL: 0, FKTP: 0, PEMDA: 0, STAKEHOLDER: 0 },
       branches: [],
       branchCount: 0,
       branchesWithContent: 0,
@@ -283,9 +338,16 @@ function emptyFixture(): DashboardPdfInput {
       nonEdufast: 0,
       unclassifiedTheme: 0,
       nonEdufastThemes: [],
+      monthly: monthlyFixture(0),
+      contentTypes: [],
+      typeMonthly: [],
+      themeMonthly: [],
       map: {
         points: [],
+        branches: [],
+        regions: [],
         missingLocations: [],
+        maxTotal: 0,
         totals: {
           approved: 0,
           mappedApproved: 0,
@@ -459,6 +521,7 @@ describe("dashboard PDF export (role variants)", () => {
     expect(text).toContain("Cabang lainnya (45)");
     expect(text).toContain("Institusi FKRTL Nomor 1");
     expect(text).toContain("Tema Konten 1");
+    expect(text).toContain("Tren Bulanan");
     expect(text).not.toContain("Sebaran Institusi");
 
     const standalonePercent = text
@@ -478,15 +541,19 @@ describe("dashboard PDF export (role variants)", () => {
     expect(text).not.toContain("Konten per Cabang");
   }, 30_000);
 
-  it("renders only KPIs and themes for stakeholders", async () => {
+  it("renders only KPIs, content types, themes, and trend for stakeholders", async () => {
     const bytes = await renderDashboardPdf(buildInput(8, 14, "STAKEHOLDER"));
     const doc = await PDFDocument.load(bytes);
     const text = pageText(doc.getPages()[0]);
     expect(text).toContain("Total Konten Tervalidasi");
-    expect(text).toContain("Institusi dengan Konten");
     expect(text).toContain("Konten EDUFAST");
     expect(text).toContain("Konten Non-EDUFAST");
+    expect(text).toContain("Jenis Konten");
+    expect(text).toContain("Video");
+    expect(text).toContain("Infografis");
+    expect(text).toContain("Tren Bulanan");
     expect(text).toContain("Tema Konten 1");
+    expect(text).not.toContain("Institusi dengan Konten");
     expect(text).not.toContain("Konten per Cabang");
     expect(text).not.toContain("Konten per Institusi");
     expect(text).not.toContain("Institusi FKRTL Nomor 1");

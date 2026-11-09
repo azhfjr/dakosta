@@ -33,6 +33,13 @@ export const DEMO_ACCOUNTS = {
   },
   client: {
     email: "mitra.nusantara@demo.dakosta.local",
+    // The volume demo seeder provisions mitra.NN accounts instead; quick login
+    // must resolve both datasets or the stakeholder role cannot sign in.
+    alternateEmails: [
+      "mitra.01@demo.dakosta.local",
+      "mitra.02@demo.dakosta.local",
+      "mitra.03@demo.dakosta.local",
+    ],
     label: "Stakeholder",
     redirectTo: "/client",
   },

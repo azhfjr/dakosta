@@ -1,7 +1,9 @@
 import { isOrgSource, type OrgSource } from "@/lib/analytics/org-source";
 import {
   CONTENT_STATUSES,
+  LEGACY_STATUS_MAP,
   isPlatform,
+  normalizeStatus,
   type ContentStatus,
 } from "@/lib/content-status";
 import { parseOrgType, type OrgTypeFilter } from "@/lib/filters/org-type";
@@ -31,6 +33,7 @@ export const FILTER_PARAM_KEYS = [
   "type",
   "status",
   "sort",
+  "direction",
   "page",
   "q",
   "view",
@@ -128,9 +131,11 @@ export function parseFilterStatus(
 ): ContentStatus | "ALL" {
   if (!value) return fallback;
   const upper = value.trim().toUpperCase();
-  return (CONTENT_STATUSES as readonly string[]).includes(upper)
-    ? (upper as ContentStatus)
-    : fallback;
+  if ((CONTENT_STATUSES as readonly string[]).includes(upper)) {
+    return upper as ContentStatus;
+  }
+  if (upper in LEGACY_STATUS_MAP) return normalizeStatus(upper);
+  return fallback;
 }
 
 export function parseFilterSort<T extends string>(
@@ -143,6 +148,14 @@ export function parseFilterSort<T extends string>(
   return (allowed as readonly string[]).includes(lower)
     ? (lower as T)
     : fallback;
+}
+
+export function parseFilterDirection(
+  value: string | undefined,
+  fallback: "asc" | "desc" = "asc",
+): "asc" | "desc" {
+  const lower = value?.trim().toLowerCase();
+  return lower === "asc" || lower === "desc" ? lower : fallback;
 }
 
 export function parseFilterPage(value: string | undefined): number {

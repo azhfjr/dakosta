@@ -89,7 +89,7 @@ async function contentStatsByOrganization(): Promise<
       total: count(),
       submitted: sql<number>`count(*) filter (where ${schema.contentSubmissions.submittedAt} is not null)`,
       approved: sql<number>`count(*) filter (where ${schema.contentSubmissions.status} = 'APPROVED')`,
-      pending: sql<number>`count(*) filter (where ${schema.contentSubmissions.status} in ('SUBMITTED','IN_REVIEW','RESUBMITTED'))`,
+      pending: sql<number>`count(*) filter (where ${schema.contentSubmissions.status} = 'SUBMITTED')`,
       lastSubmittedAt: sql<Date | null>`max(${schema.contentSubmissions.submittedAt})`,
     })
     .from(schema.contentSubmissions)
@@ -226,7 +226,7 @@ async function contentStatsByBranch(): Promise<
       branchId: schema.stakeholders.branchOfficeId,
       total: count(),
       approved: sql<number>`count(*) filter (where ${schema.contentSubmissions.status} = 'APPROVED')`,
-      pending: sql<number>`count(*) filter (where ${schema.contentSubmissions.status} in ('SUBMITTED','IN_REVIEW','RESUBMITTED'))`,
+      pending: sql<number>`count(*) filter (where ${schema.contentSubmissions.status} = 'SUBMITTED')`,
     })
     .from(schema.contentSubmissions)
     .innerJoin(
@@ -366,7 +366,7 @@ export async function listRegions(scope: Scope): Promise<RegionSummary[]> {
         regionId: schema.branchOffices.regionalOfficeId,
         total: count(),
         approved: sql<number>`count(*) filter (where ${schema.contentSubmissions.status} = 'APPROVED')`,
-        pending: sql<number>`count(*) filter (where ${schema.contentSubmissions.status} in ('SUBMITTED','IN_REVIEW','RESUBMITTED'))`,
+        pending: sql<number>`count(*) filter (where ${schema.contentSubmissions.status} = 'SUBMITTED')`,
       })
       .from(schema.contentSubmissions)
       .innerJoin(

@@ -9,7 +9,7 @@ import {
   isOrganizationInScope,
   organizationScopePredicate,
 } from "@/lib/authz/predicates";
-import type { ContentStatus } from "@/lib/content-status";
+import { normalizeStatus, type ContentStatus } from "@/lib/content-status";
 import { errors } from "@/lib/errors";
 import { isValidCoordinate } from "@/lib/geo";
 import { cachedRead, readCacheKey } from "@/lib/read-cache";
@@ -20,7 +20,7 @@ export const MAP_STATUSES = [
   "ALL",
   "APPROVED",
   "SUBMITTED",
-  "IN_REVIEW",
+  "REVISION_REQUIRED",
 ] as const;
 
 export type MapStatus = (typeof MAP_STATUSES)[number];
@@ -282,7 +282,7 @@ async function loadMapOverview(
       isValidCoordinate(Number(row.latitude), Number(row.longitude)),
     )
     .map<MapPoint>((row) => {
-      const status = row.status as ContentStatus;
+      const status = normalizeStatus(row.status);
       const subTheme = isSubTheme(row.subTheme) ? row.subTheme : null;
       return {
         id: row.id,

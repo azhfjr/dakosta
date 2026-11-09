@@ -141,7 +141,7 @@ export default async function ClientProfilePage() {
                       "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap",
                       item.status === "ACTIVE"
                         ? STATUS_TONE.APPROVED
-                        : STATUS_TONE.ARCHIVED,
+                        : STATUS_TONE.DRAFT,
                     )}
                   >
                     {item.status === "ACTIVE" ? "Aktif" : "Nonaktif"}

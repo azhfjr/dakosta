@@ -67,8 +67,8 @@ export default async function ClientContentListPage({
 
       <p className="text-xs leading-relaxed text-ink-muted">
         Hanya konten berstatus {STATUS_LABEL.APPROVED} yang dihitung dalam
-        capaian. Draf, konten yang ditolak, perlu revisi, dicabut, atau
-        diarsipkan tidak menambah angka.
+        capaian. Draf, konten yang sedang dikirim, dan konten yang perlu revisi
+        tidak menambah angka.
       </p>
     </PageContainer>
   );

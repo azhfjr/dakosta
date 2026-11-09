@@ -18,11 +18,7 @@ import type { MapPoint, MapSite } from "@/lib/map";
 const STATUS_LABEL: Record<string, string> = {
   APPROVED: "Disetujui",
   SUBMITTED: "Terkirim",
-  IN_REVIEW: "Ditinjau",
   REVISION_REQUIRED: "Perlu revisi",
-  REJECTED: "Ditolak",
-  REVOKED: "Dicabut",
-  ARCHIVED: "Diarsipkan",
   DRAFT: "Draf",
 };
 
@@ -315,15 +311,9 @@ export function MapExplorer({
             STATUS_COLOR.APPROVED,
             "SUBMITTED",
             STATUS_COLOR.SUBMITTED,
-            "IN_REVIEW",
-            STATUS_COLOR.IN_REVIEW,
             "REVISION_REQUIRED",
             STATUS_COLOR.REVISION_REQUIRED,
-            "REJECTED",
-            STATUS_COLOR.REJECTED,
-            "REVOKED",
-            STATUS_COLOR.REVOKED,
-            STATUS_COLOR.ARCHIVED,
+            STATUS_COLOR.DRAFT,
           ];
 
           map.addLayer({
@@ -542,15 +532,15 @@ export function MapExplorer({
           <li className="flex items-center gap-1.5">
             <span
               className="size-2.5 rounded-full"
-              style={{ backgroundColor: STATUS_COLOR.IN_REVIEW }}
+              style={{ backgroundColor: STATUS_COLOR.REVISION_REQUIRED }}
               aria-hidden
             />
-            Ditinjau
+            Perlu Revisi
           </li>
           <li className="flex items-center gap-1.5">
             <span
               className="size-2.5 rounded-full border-2 bg-white"
-              style={{ borderColor: STATUS_COLOR.REVOKED }}
+              style={{ borderColor: STATUS_COLOR.DRAFT }}
               aria-hidden
             />
             Lokasi perkiraan (cincin)

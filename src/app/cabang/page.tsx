@@ -21,11 +21,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 function parseStatus(value: string | undefined): SlaTabKey {
-  return value === "SUBMITTED" ||
-    value === "RESUBMITTED" ||
-    value === "IN_REVIEW"
-    ? value
-    : "ALL";
+  return value === "SUBMITTED" ? value : "ALL";
 }
 
 export default async function BranchSlaPage({

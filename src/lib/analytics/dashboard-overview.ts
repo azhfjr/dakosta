@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, count, eq, inArray, sql, type SQL } from "drizzle-orm";
+import { and, count, eq, gte, inArray, lt, sql, type SQL } from "drizzle-orm";
 
 import { getDb, schema } from "@/db";
 import { approvedContentCondition } from "@/lib/analytics/approved";
@@ -12,11 +12,24 @@ import {
   branchSelectionKey,
   type BranchSelection,
 } from "@/lib/filters/branch-selection";
+import { monthRange } from "@/lib/kpi/formulas";
 import { cachedRead, readCacheKey } from "@/lib/read-cache";
 import type { SessionUser } from "@/lib/session";
 import { SUB_THEME_LABELS, type SubTheme } from "@/lib/taxonomy";
 
 import { buildInstitutionChart } from "@/lib/dashboard/institutions";
+import { weightedCentroid } from "@/lib/dashboard/map-tiers";
+import {
+  buildMonthlySeries,
+  buildThemeMonthly,
+  buildTypeMonthly,
+  contentTypeKey,
+  contentTypeSlices,
+  emptyMonthlySeries,
+  largestRemainderShares,
+  themeKey,
+  trailingMonthKeys,
+} from "@/lib/dashboard/series";
 import {
   DASHBOARD_CATEGORIES,
   DASHBOARD_MAP_POINT_LIMIT,
@@ -24,12 +37,15 @@ import {
   type DashboardBranchRow,
   type DashboardCategory,
   type DashboardCategoryTotals,
+  type DashboardContentTypeKey,
   type DashboardFiltered,
   type DashboardMap,
+  type DashboardMapAggregate,
   type DashboardMapMissingRow,
   type DashboardMapPoint,
   type DashboardRankingRow,
   type DashboardSummary,
+  type DashboardThemeKey,
   type DashboardThemeRow,
 } from "@/lib/dashboard/types";
 
@@ -57,8 +73,10 @@ type InstitutionAggregate = {
   name: string;
   branchId: string | null;
   branchName: string | null;
-  latitude: number;
-  longitude: number;
+  regionId: string | null;
+  regionName: string | null;
+  latitude: number | null;
+  longitude: number | null;
   total: number;
   categories: DashboardCategoryTotals;
 };
@@ -133,8 +151,13 @@ function sortBranches(
   );
 }
 
-function validCoordinate(latitude: number, longitude: number): boolean {
+function hasCoordinate<
+  T extends { latitude: number | null; longitude: number | null },
+>(row: T): row is T & { latitude: number; longitude: number } {
+  const { latitude, longitude } = row;
   return (
+    latitude != null &&
+    longitude != null &&
     Number.isFinite(latitude) &&
     Number.isFinite(longitude) &&
     latitude >= -90 &&
@@ -144,32 +167,8 @@ function validCoordinate(latitude: number, longitude: number): boolean {
   );
 }
 
-/**
- * Distributes 100.0% across the rows with the largest-remainder method so the
- * displayed legend always adds up to exactly 100.0 when total > 0.
- */
-export function percentageShares(
-  values: readonly number[],
-  total: number,
-): number[] {
-  if (total <= 0) return values.map(() => 0);
-  const exact = values.map((value) => (value * 1000) / total);
-  const tenths = exact.map((value) => Math.floor(value));
-  let remainder = 1000 - tenths.reduce((sum, value) => sum + value, 0);
-  const order = exact
-    .map((value, index) => ({ index, fraction: value - Math.floor(value) }))
-    .sort(
-      (left, right) =>
-        right.fraction - left.fraction || left.index - right.index,
-    );
-  let cursor = 0;
-  while (remainder > 0 && order.length > 0) {
-    tenths[order[cursor % order.length]!.index] += 1;
-    remainder -= 1;
-    cursor += 1;
-  }
-  return tenths.map((value) => value / 10);
-}
+/** Kept as an alias so existing imports/tests keep one rounding source. */
+export { largestRemainderShares as percentageShares };
 
 function themeLabel(subTheme: string | null): string {
   if (!subTheme) return "Tanpa sub-tema";
@@ -213,7 +212,7 @@ function buildMap(institutions: InstitutionAggregate[]): DashboardMap {
 
   for (const row of sorted) {
     approved += row.total;
-    if (!validCoordinate(row.latitude, row.longitude)) {
+    if (!hasCoordinate(row)) {
       missingApproved += row.total;
       missingLocations.push({
         id: row.stakeholderId,
@@ -229,7 +228,10 @@ function buildMap(institutions: InstitutionAggregate[]): DashboardMap {
       points.push({
         id: row.stakeholderId,
         name: row.name,
+        branchId: row.branchId,
         branchName: row.branchName,
+        regionId: row.regionId,
+        regionName: row.regionName,
         latitude: row.latitude,
         longitude: row.longitude,
         total: row.total,
@@ -238,9 +240,37 @@ function buildMap(institutions: InstitutionAggregate[]): DashboardMap {
     }
   }
 
+  const branches = aggregateMapRows(institutions, (row) =>
+    row.branchId
+      ? {
+          id: row.branchId,
+          name: row.branchName ?? row.branchId,
+          parentId: row.regionId,
+        }
+      : null,
+  );
+  const regions = aggregateMapRows(institutions, (row) =>
+    row.regionId
+      ? {
+          id: row.regionId,
+          name: row.regionName ?? row.regionId,
+          parentId: null,
+        }
+      : null,
+  );
+  const maxTotal = Math.max(
+    0,
+    ...points.map((point) => point.total),
+    ...branches.map((branch) => branch.total),
+    ...regions.map((region) => region.total),
+  );
+
   return {
     points,
+    branches,
+    regions,
     missingLocations,
+    maxTotal,
     totals: {
       approved,
       mappedApproved,
@@ -253,7 +283,87 @@ function buildMap(institutions: InstitutionAggregate[]): DashboardMap {
   };
 }
 
-function emptyFiltered(selection: BranchSelection): DashboardFiltered {
+type MapGroupRow = {
+  id: string;
+  name: string;
+  parentId: string | null;
+  total: number;
+  categories: DashboardCategoryTotals;
+  institutionCount: number;
+  missingInstitutions: number;
+  located: { latitude: number; longitude: number; total: number }[];
+};
+
+/**
+ * Rolls institutions up to a parent tier. Totals include institutions without
+ * coordinates; the centroid only uses located ones so a missing pin never
+ * drags the bubble into the ocean.
+ */
+function aggregateMapRows(
+  institutions: readonly InstitutionAggregate[],
+  group: (
+    row: InstitutionAggregate,
+  ) => { id: string; name: string; parentId: string | null } | null,
+): DashboardMapAggregate[] {
+  const groups = new Map<string, MapGroupRow>();
+  for (const row of institutions) {
+    const key = group(row);
+    if (!key) continue;
+    let entry = groups.get(key.id);
+    if (!entry) {
+      entry = {
+        ...key,
+        total: 0,
+        categories: zeroCategoryTotals(),
+        institutionCount: 0,
+        missingInstitutions: 0,
+        located: [],
+      };
+      groups.set(key.id, entry);
+    }
+    entry.total += row.total;
+    entry.institutionCount += 1;
+    for (const category of DASHBOARD_CATEGORIES) {
+      entry.categories[category] += row.categories[category];
+    }
+    if (hasCoordinate(row)) {
+      entry.located.push({
+        latitude: row.latitude,
+        longitude: row.longitude,
+        total: row.total,
+      });
+    } else {
+      entry.missingInstitutions += 1;
+    }
+  }
+
+  return [...groups.values()]
+    .map((entry) => {
+      const centroid = weightedCentroid(entry.located);
+      return {
+        id: entry.id,
+        name: entry.name,
+        parentId: entry.parentId,
+        latitude: centroid?.latitude ?? null,
+        longitude: centroid?.longitude ?? null,
+        total: entry.total,
+        categories: { ...entry.categories },
+        institutionCount: entry.institutionCount,
+        missingInstitutions: entry.missingInstitutions,
+      };
+    })
+    .sort(
+      (left, right) =>
+        right.total - left.total ||
+        compareText(left.name, right.name) ||
+        left.id.localeCompare(right.id),
+    );
+}
+
+function emptyFiltered(
+  selection: BranchSelection,
+  reference = new Date(),
+): DashboardFiltered {
   return {
     selection,
     categoryTotals: zeroCategoryTotals(),
@@ -268,9 +378,16 @@ function emptyFiltered(selection: BranchSelection): DashboardFiltered {
     nonEdufast: 0,
     unclassifiedTheme: 0,
     nonEdufastThemes: [],
+    monthly: emptyMonthlySeries(reference),
+    contentTypes: [],
+    typeMonthly: [],
+    themeMonthly: [],
     map: {
       points: [],
+      branches: [],
+      regions: [],
       missingLocations: [],
+      maxTotal: 0,
       totals: {
         approved: 0,
         mappedApproved: 0,
@@ -327,7 +444,27 @@ async function loadSummary(user: SessionUser): Promise<DashboardSummary> {
     aggregates.map((row) => [row.branchId, row]),
   );
   let totalApproved = 0;
-  for (const row of aggregates) totalApproved += Number(row.total);
+  const categoryTotals = zeroCategoryTotals();
+  for (const row of aggregates) {
+    totalApproved += Number(row.total);
+    categoryTotals.FKRTL += Number(row.fkrtl);
+    categoryTotals.FKTP += Number(row.fktp);
+    categoryTotals.PEMDA += Number(row.pemda);
+    categoryTotals.STAKEHOLDER += Number(row.stakeholder);
+  }
+
+  const categoryShares = {} as Record<DashboardCategory, number>;
+  const categorized = DASHBOARD_CATEGORIES.reduce(
+    (sum, category) => sum + categoryTotals[category],
+    0,
+  );
+  const shares = largestRemainderShares(
+    DASHBOARD_CATEGORIES.map((category) => categoryTotals[category]),
+    categorized,
+  );
+  DASHBOARD_CATEGORIES.forEach((category, index) => {
+    categoryShares[category] = shares[index] ?? 0;
+  });
 
   let matchedTotal = 0;
   const branches: DashboardBranchRow[] = universe.map((branch) => {
@@ -351,6 +488,8 @@ async function loadSummary(user: SessionUser): Promise<DashboardSummary> {
 
   return {
     totalApproved,
+    categoryTotals,
+    categoryShares,
     branches,
     branchCount: branches.length,
     branchesWithContent: branches.filter((branch) => branch.total > 0).length,
@@ -363,11 +502,12 @@ async function loadFiltered(
   user: SessionUser,
   selection: BranchSelection,
 ): Promise<DashboardFiltered> {
+  const reference = new Date();
   if (
     selection.mode === "none" ||
     (selection.mode === "subset" && selection.ids.length === 0)
   ) {
-    return emptyFiltered(selection);
+    return emptyFiltered(selection, reference);
   }
 
   const conditions = approvedConditions(user);
@@ -377,14 +517,21 @@ async function loadFiltered(
     );
   }
 
+  const monthKeys = trailingMonthKeys(reference);
+  const windowStart = monthRange(monthKeys[0]!).startInstant;
+  const windowEnd = monthRange(monthKeys[monthKeys.length - 1]!).endInstant;
+  const monthKeyExpression = sql<string>`to_char(${schema.contentSubmissions.approvedAt} at time zone 'Asia/Jakarta', 'YYYY-MM')`;
+
   const db = getDb();
-  const [institutionRows, themeRows] = await Promise.all([
+  const [institutionRows, themeRows, typeRows, monthRows] = await Promise.all([
     db
       .select({
         stakeholderId: schema.stakeholders.id,
         name: schema.stakeholders.name,
         branchId: schema.stakeholders.branchOfficeId,
         branchName: schema.branchOffices.name,
+        regionId: schema.branchOffices.regionalOfficeId,
+        regionName: schema.regionalOffices.name,
         latitude: schema.stakeholders.latitude,
         longitude: schema.stakeholders.longitude,
         total: count().mapWith(Number),
@@ -402,12 +549,18 @@ async function loadFiltered(
         schema.branchOffices,
         eq(schema.branchOffices.id, schema.stakeholders.branchOfficeId),
       )
+      .leftJoin(
+        schema.regionalOffices,
+        eq(schema.regionalOffices.id, schema.branchOffices.regionalOfficeId),
+      )
       .where(and(...conditions))
       .groupBy(
         schema.stakeholders.id,
         schema.stakeholders.name,
         schema.stakeholders.branchOfficeId,
         schema.branchOffices.name,
+        schema.branchOffices.regionalOfficeId,
+        schema.regionalOffices.name,
         schema.stakeholders.latitude,
         schema.stakeholders.longitude,
       ),
@@ -427,6 +580,42 @@ async function loadFiltered(
         schema.contentSubmissions.mainTheme,
         schema.contentSubmissions.subTheme,
       ),
+    db
+      .select({
+        contentType: schema.contentSubmissions.contentType,
+        total: count().mapWith(Number),
+      })
+      .from(schema.contentSubmissions)
+      .innerJoin(
+        schema.stakeholders,
+        eq(schema.stakeholders.id, schema.contentSubmissions.stakeholderId),
+      )
+      .where(and(...conditions))
+      .groupBy(schema.contentSubmissions.contentType),
+    db
+      .select({
+        monthKey: monthKeyExpression,
+        contentType: schema.contentSubmissions.contentType,
+        mainTheme: schema.contentSubmissions.mainTheme,
+        total: count().mapWith(Number),
+      })
+      .from(schema.contentSubmissions)
+      .innerJoin(
+        schema.stakeholders,
+        eq(schema.stakeholders.id, schema.contentSubmissions.stakeholderId),
+      )
+      .where(
+        and(
+          ...conditions,
+          gte(schema.contentSubmissions.approvedAt, windowStart),
+          lt(schema.contentSubmissions.approvedAt, windowEnd),
+        ),
+      )
+      .groupBy(
+        monthKeyExpression,
+        schema.contentSubmissions.contentType,
+        schema.contentSubmissions.mainTheme,
+      ),
   ]);
 
   const institutions: InstitutionAggregate[] = institutionRows.map((row) => ({
@@ -434,8 +623,10 @@ async function loadFiltered(
     name: row.name,
     branchId: row.branchId,
     branchName: row.branchName,
-    latitude: Number(row.latitude),
-    longitude: Number(row.longitude),
+    regionId: row.regionId,
+    regionName: row.regionName,
+    latitude: row.latitude == null ? null : Number(row.latitude),
+    longitude: row.longitude == null ? null : Number(row.longitude),
     total: Number(row.total),
     categories: {
       FKRTL: Number(row.fkrtl),
@@ -479,7 +670,7 @@ async function loadFiltered(
         ) ||
         leftKey.localeCompare(rightKey),
     );
-  const shares = percentageShares(
+  const shares = largestRemainderShares(
     themeEntries.map(([, total]) => total),
     nonEdufast,
   );
@@ -492,6 +683,39 @@ async function loadFiltered(
     }),
   );
 
+  const monthTotals = new Map<string, number>();
+  const allTimeTypeCounts: Partial<Record<DashboardContentTypeKey, number>> =
+    {};
+  for (const row of typeRows) {
+    const type = contentTypeKey(row.contentType);
+    allTimeTypeCounts[type] =
+      (allTimeTypeCounts[type] ?? 0) + Number(row.total);
+  }
+  const typeMonthTotals = new Map<
+    string,
+    { key: string; type: DashboardContentTypeKey; total: number }
+  >();
+  const themeMonthTotals = new Map<
+    string,
+    { key: string; theme: DashboardThemeKey; total: number }
+  >();
+  for (const row of monthRows) {
+    const total = Number(row.total);
+    if (total <= 0) continue;
+    const key = row.monthKey;
+    monthTotals.set(key, (monthTotals.get(key) ?? 0) + total);
+
+    const type = contentTypeKey(row.contentType);
+    const typeEntry = typeMonthTotals.get(`${key}:${type}`);
+    if (typeEntry) typeEntry.total += total;
+    else typeMonthTotals.set(`${key}:${type}`, { key, type, total });
+
+    const theme = themeKey(row.mainTheme);
+    const themeEntry = themeMonthTotals.get(`${key}:${theme}`);
+    if (themeEntry) themeEntry.total += total;
+    else themeMonthTotals.set(`${key}:${theme}`, { key, theme, total });
+  }
+
   return {
     selection,
     categoryTotals,
@@ -501,6 +725,13 @@ async function loadFiltered(
     nonEdufast,
     unclassifiedTheme,
     nonEdufastThemes,
+    monthly: buildMonthlySeries(
+      [...monthTotals].map(([key, total]) => ({ key, total })),
+      reference,
+    ),
+    contentTypes: contentTypeSlices(allTimeTypeCounts),
+    typeMonthly: buildTypeMonthly([...typeMonthTotals.values()], reference),
+    themeMonthly: buildThemeMonthly([...themeMonthTotals.values()], reference),
     map: buildMap(institutions),
     generatedAt: new Date().toISOString(),
   };

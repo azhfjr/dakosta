@@ -1,7 +1,5 @@
 import Link from "next/link";
 import {
-  ArrowDown,
-  ArrowUp,
   Building2,
   CheckCircle2,
   ChevronLeft,
@@ -15,13 +13,13 @@ import {
 import { PrintButton } from "@/components/performance/print-button";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { FilterBar, type FilterField } from "@/components/filters/filter-bar";
+import { SortHeader } from "@/components/table/sort-header";
 import { Button } from "@/components/ui/button";
 import { ORG_SOURCES, ORG_SOURCE_LABELS } from "@/lib/analytics/org-source";
 import { formatDateTimeId, formatNumberId } from "@/lib/dates";
 import {
   buildPerformanceQuery,
   performanceSourceLabel,
-  type PerformanceFilters,
   type PerformanceRow,
   type PerformanceSort,
   type PerformanceTable,
@@ -50,6 +48,9 @@ const STATUS_META: Record<
   },
 };
 
+const plainHeaderClass =
+  "px-3 py-2.5 text-left text-xs font-medium tracking-wide whitespace-nowrap text-ink-muted uppercase sm:px-4";
+
 function formatPercent(value: number | null): string {
   if (value === null) return "N/A";
   return `${new Intl.NumberFormat("id-ID", { maximumFractionDigits: 1 }).format(value)}%`;
@@ -60,54 +61,6 @@ function formatDifference(row: PerformanceRow): string {
   const formatted = formatNumberId(Math.abs(row.difference));
   if (row.difference === 0) return "0";
   return `${row.difference > 0 ? "+" : "−"}${formatted}`;
-}
-
-function SortHeader({
-  label,
-  sortKey,
-  filters,
-  basePath,
-  numeric = false,
-}: {
-  label: string;
-  sortKey: PerformanceSort;
-  filters: PerformanceFilters;
-  basePath: string;
-  numeric?: boolean;
-}) {
-  const active = filters.sort === sortKey;
-  const nextDirection = active && filters.direction === "desc" ? "asc" : "desc";
-  const href = `${basePath}?${buildPerformanceQuery(filters, {
-    sort: sortKey,
-    dir: nextDirection,
-    page: 1,
-  })}`;
-  const Icon = filters.direction === "asc" ? ArrowUp : ArrowDown;
-  return (
-    <th
-      scope="col"
-      aria-sort={
-        active
-          ? filters.direction === "asc"
-            ? "ascending"
-            : "descending"
-          : "none"
-      }
-      className={`px-3 py-2.5 text-xs font-semibold whitespace-nowrap text-ink-muted ${
-        numeric ? "text-right" : "text-left"
-      }`}
-    >
-      <Link
-        href={href}
-        className={`inline-flex items-center gap-1 rounded-sm underline-offset-4 transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none ${
-          active ? "text-foreground" : ""
-        } ${numeric ? "justify-end" : ""}`}
-      >
-        {label}
-        {active ? <Icon className="size-3.5" aria-hidden /> : null}
-      </Link>
-    </th>
-  );
 }
 
 export function PerformanceTable({
@@ -156,6 +109,27 @@ export function PerformanceTable({
         ...periodChoices,
       ];
 
+  const sortHref = (key: PerformanceSort): string => {
+    const nextDirection =
+      filters.sort === key
+        ? filters.direction === "asc"
+          ? "desc"
+          : "asc"
+        : key === "name"
+          ? "asc"
+          : "desc";
+    return `${basePath}?${buildPerformanceQuery(filters, {
+      sort: key,
+      dir: nextDirection,
+      page: 1,
+    })}`;
+  };
+  const sortProps = (key: PerformanceSort) => ({
+    href: sortHref(key),
+    active: filters.sort === key,
+    direction: filters.direction,
+  });
+
   const filterFields: FilterField[] = [
     {
       kind: "select",
@@ -193,16 +167,6 @@ export function PerformanceTable({
       allLabel: "Semua jenis",
     },
     {
-      kind: "search",
-      name: "q",
-      label: "Nama / kode instansi",
-      value: filters.q ?? "",
-      placeholder: "Cari nama atau kode",
-    },
-  ];
-
-  const advancedFields: FilterField[] = [
-    {
       kind: "select",
       name: "status",
       label: "Status target",
@@ -215,58 +179,11 @@ export function PerformanceTable({
       allLabel: "Semua status",
     },
     {
-      kind: "number",
-      name: "pmin",
-      label: "Capaian minimum (%)",
-      value: filters.percentMin === null ? "" : String(filters.percentMin),
-      min: 0,
-      step: 0.1,
-      placeholder: "Min",
-    },
-    {
-      kind: "number",
-      name: "pmax",
-      label: "Capaian maksimum (%)",
-      value: filters.percentMax === null ? "" : String(filters.percentMax),
-      min: 0,
-      step: 0.1,
-      placeholder: "Maks",
-    },
-    {
-      kind: "number",
-      name: "rmin",
-      label: "Realisasi minimum",
-      value: filters.approvedMin === null ? "" : String(filters.approvedMin),
-      min: 0,
-      step: 1,
-      placeholder: "Min",
-    },
-    {
-      kind: "number",
-      name: "rmax",
-      label: "Realisasi maksimum",
-      value: filters.approvedMax === null ? "" : String(filters.approvedMax),
-      min: 0,
-      step: 1,
-      placeholder: "Maks",
-    },
-    {
-      kind: "number",
-      name: "tmin",
-      label: "Target minimum",
-      value: filters.targetMin === null ? "" : String(filters.targetMin),
-      min: 0,
-      step: 1,
-      placeholder: "Min",
-    },
-    {
-      kind: "number",
-      name: "tmax",
-      label: "Target maksimum",
-      value: filters.targetMax === null ? "" : String(filters.targetMax),
-      min: 0,
-      step: 1,
-      placeholder: "Maks",
+      kind: "search",
+      name: "q",
+      label: "Nama / kode instansi",
+      value: filters.q ?? "",
+      placeholder: "Cari nama atau kode",
     },
   ];
 
@@ -323,7 +240,6 @@ export function PerformanceTable({
         idPrefix="kinerja"
         resetHref={basePath}
         fields={filterFields}
-        advancedFields={advancedFields}
         hidden={{
           sort: filters.sort,
           dir: filters.direction,
@@ -385,77 +301,44 @@ export function PerformanceTable({
                 hanya konten approved berdasarkan tanggal approval final.
               </caption>
               <thead className="sticky top-0 z-10 bg-surface-muted print:static print:bg-transparent">
-                <tr className="border-b border-border text-left">
-                  <th
-                    scope="col"
-                    className="px-3 py-2.5 text-xs font-semibold whitespace-nowrap text-ink-muted"
-                  >
+                <tr className="border-b border-border">
+                  <th scope="col" className={plainHeaderClass}>
                     Kedeputian
                   </th>
-                  <th
-                    scope="col"
-                    className="px-3 py-2.5 text-xs font-semibold whitespace-nowrap text-ink-muted"
-                  >
+                  <th scope="col" className={plainHeaderClass}>
                     Cabang
                   </th>
-                  <SortHeader
-                    label="Instansi"
-                    sortKey="name"
-                    filters={filters}
-                    basePath={basePath}
-                  />
-                  <th
-                    scope="col"
-                    className="px-3 py-2.5 text-xs font-semibold whitespace-nowrap text-ink-muted"
-                  >
+                  <SortHeader label="Instansi" {...sortProps("name")} />
+                  <th scope="col" className={plainHeaderClass}>
                     Jenis
                   </th>
                   <SortHeader
                     label="Target"
-                    sortKey="target"
-                    filters={filters}
-                    basePath={basePath}
-                    numeric
+                    {...sortProps("target")}
+                    align="right"
                   />
                   <SortHeader
                     label="Realisasi"
-                    sortKey="approved"
-                    filters={filters}
-                    basePath={basePath}
-                    numeric
+                    {...sortProps("approved")}
+                    align="right"
                   />
                   <SortHeader
                     label="Selisih"
-                    sortKey="difference"
-                    filters={filters}
-                    basePath={basePath}
-                    numeric
+                    {...sortProps("difference")}
+                    align="right"
                   />
                   <SortHeader
                     label="Capaian"
-                    sortKey="percent"
-                    filters={filters}
-                    basePath={basePath}
-                    numeric
+                    {...sortProps("percent")}
+                    align="right"
                   />
-                  <th
-                    scope="col"
-                    className="px-3 py-2.5 text-xs font-semibold whitespace-nowrap text-ink-muted"
-                  >
+                  <th scope="col" className={plainHeaderClass}>
                     Status
                   </th>
-                  <th
-                    scope="col"
-                    className="px-3 py-2.5 text-xs font-semibold whitespace-nowrap text-ink-muted"
-                  >
+                  <th scope="col" className={plainHeaderClass}>
                     Periode
                   </th>
-                  <SortHeader
-                    label="Diperbarui"
-                    sortKey="updated"
-                    filters={filters}
-                    basePath={basePath}
-                  />
+                  <SortHeader label="Diperbarui" {...sortProps("updated")} />
                 </tr>
               </thead>
               <tbody>
@@ -492,13 +375,13 @@ export function PerformanceTable({
                         key={row.stakeholderId}
                         className="border-b border-border/70 align-top last:border-0 hover:bg-surface-muted/40 print:break-inside-avoid"
                       >
-                        <td className="px-3 py-2.5 whitespace-nowrap text-ink-muted">
+                        <td className="px-3 py-2.5 whitespace-nowrap text-ink-muted sm:px-4">
                           {row.regionName ?? "—"}
                         </td>
-                        <td className="px-3 py-2.5 whitespace-nowrap text-ink-muted">
+                        <td className="px-3 py-2.5 whitespace-nowrap text-ink-muted sm:px-4">
                           {row.branchName ?? "—"}
                         </td>
-                        <td className="px-3 py-2.5">
+                        <td className="px-3 py-2.5 sm:px-4">
                           <p className="font-medium text-foreground">
                             {row.name}
                           </p>
@@ -508,19 +391,19 @@ export function PerformanceTable({
                             </p>
                           ) : null}
                         </td>
-                        <td className="px-3 py-2.5 whitespace-nowrap text-ink-muted">
+                        <td className="px-3 py-2.5 whitespace-nowrap text-ink-muted sm:px-4">
                           {row.sourceLabel}
                         </td>
-                        <td className="px-3 py-2.5 text-right tabular">
+                        <td className="px-3 py-2.5 text-right tabular sm:px-4">
                           {row.target === null
                             ? "N/A"
                             : formatNumberId(row.target)}
                         </td>
-                        <td className="px-3 py-2.5 text-right font-medium tabular">
+                        <td className="px-3 py-2.5 text-right font-medium tabular sm:px-4">
                           {formatNumberId(row.approved)}
                         </td>
                         <td
-                          className={`px-3 py-2.5 text-right tabular ${
+                          className={`px-3 py-2.5 text-right tabular sm:px-4 ${
                             row.difference === null
                               ? "text-ink-muted"
                               : row.difference < 0
@@ -530,7 +413,7 @@ export function PerformanceTable({
                         >
                           {formatDifference(row)}
                         </td>
-                        <td className="px-3 py-2.5 text-right">
+                        <td className="px-3 py-2.5 text-right sm:px-4">
                           <p className="font-medium tabular">
                             {formatPercent(row.achievement)}
                           </p>
@@ -544,17 +427,17 @@ export function PerformanceTable({
                             />
                           </div>
                         </td>
-                        <td className="px-3 py-2.5">
+                        <td className="px-3 py-2.5 sm:px-4">
                           <span
                             className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap ${status.className}`}
                           >
                             {status.label}
                           </span>
                         </td>
-                        <td className="px-3 py-2.5 whitespace-nowrap text-ink-muted">
+                        <td className="px-3 py-2.5 whitespace-nowrap text-ink-muted sm:px-4">
                           {filters.period.label}
                         </td>
-                        <td className="px-3 py-2.5 whitespace-nowrap text-ink-muted">
+                        <td className="px-3 py-2.5 whitespace-nowrap text-ink-muted sm:px-4">
                           {formatDateTimeId(row.updatedAt)}
                         </td>
                       </tr>

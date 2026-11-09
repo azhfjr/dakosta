@@ -80,9 +80,9 @@ const ACTION_COPY: Record<
   },
   REJECT: {
     label: "Tolak",
-    title: "Tolak konten ini?",
+    title: "Kembalikan konten sebagai Perlu Revisi?",
     description:
-      "Konten ditolak dan tidak dihitung sebagai capaian. Pelapor akan menerima alasan penolakan.",
+      "Konten dikembalikan sebagai Perlu Revisi, belum dihitung sebagai capaian, dan pelapor dapat memperbaiki lalu mengirim ulang. Alasan penolakan diteruskan ke pelapor.",
     confirm: "Ya, tolak",
     variant: "destructive",
   },
@@ -99,14 +99,12 @@ export function ReviewPanel({
   expectedVersion,
   canReview,
   decidedStatus,
-  status,
   basePath = "/admin/validasi",
 }: {
   submissionId: string;
   expectedVersion: number;
   canReview: boolean;
   decidedStatus: string;
-  status?: string;
   basePath?: string;
 }) {
   const router = useRouter();
@@ -121,37 +119,7 @@ export function ReviewPanel({
   const [error, setError] = useState<string | null>(null);
   const [conflict, setConflict] = useState<ConflictDetails | null>(null);
   const [submitting, setSubmitting] = useState<ReviewAction | null>(null);
-  const [starting, setStarting] = useState(false);
   const [confirmAction, setConfirmAction] = useState<ReviewAction | null>(null);
-
-  const awaitingStart = status === "SUBMITTED" || status === "RESUBMITTED";
-
-  async function startInReview() {
-    setStarting(true);
-    setError(null);
-    try {
-      const response = await fetch("/api/v1/admin/reviews/start", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ submissionId }),
-      });
-      const body = (await response.json().catch(() => null)) as {
-        error?: { message?: string };
-      } | null;
-      if (!response.ok) {
-        setError(body?.error?.message ?? "Konten tidak dapat mulai ditinjau.");
-        return;
-      }
-      toast.success("Konten masuk tahap peninjauan.");
-      router.refresh();
-    } catch {
-      setError(
-        "Tidak dapat menghubungi server. Periksa koneksi lalu coba lagi.",
-      );
-    } finally {
-      setStarting(false);
-    }
-  }
 
   function toggle(key: ChecklistKey) {
     setChecklist((current) => ({ ...current, [key]: !current[key] }));
@@ -234,8 +202,7 @@ export function ReviewPanel({
         <p className="mt-2 text-sm leading-relaxed text-ink-muted">
           Konten ini sudah diputuskan dengan status{" "}
           <span className="font-medium text-foreground">{decidedStatus}</span>.
-          Keputusan baru hanya dapat dilakukan pada konten berstatus Terkirim
-          atau Ditinjau.
+          Keputusan baru hanya dapat dilakukan pada konten berstatus Terkirim.
         </p>
         <Button asChild variant="outline" className="mt-4 h-11">
           <Link href={basePath}>Kembali ke antrean</Link>
@@ -265,27 +232,6 @@ export function ReviewPanel({
       </div>
 
       <div className="space-y-5 px-5 py-5">
-        {awaitingStart ? (
-          <div className="flex flex-col gap-2 rounded-lg border border-brand-blue-100 bg-brand-blue-100/40 p-3">
-            <p className="text-xs leading-relaxed text-brand-blue-800">
-              Tandai konten ini sedang ditinjau agar antrean cabang mencerminkan
-              beban kerja sebenarnya.
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              className="h-11"
-              onClick={startInReview}
-              disabled={starting || submitting !== null}
-            >
-              {starting ? (
-                <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />
-              ) : null}
-              Mulai tinjau
-            </Button>
-          </div>
-        ) : null}
-
         <fieldset>
           <legend className="text-sm font-medium text-foreground">
             Checklist validasi

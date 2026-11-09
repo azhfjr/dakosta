@@ -34,6 +34,76 @@ type SyncResult = {
   }>;
 };
 
+/** Quote-aware CSV split so link cells and quoted titles stay intact. */
+function parseCsvRows(text: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let field = "";
+  let quoted = false;
+  const body = text.replace(/^\uFEFF/, "");
+  for (let index = 0; index < body.length; index += 1) {
+    const char = body[index];
+    if (quoted) {
+      if (char === '"') {
+        if (body[index + 1] === '"') {
+          field += '"';
+          index += 1;
+        } else {
+          quoted = false;
+        }
+      } else {
+        field += char;
+      }
+    } else if (char === '"') {
+      quoted = true;
+    } else if (char === ",") {
+      row.push(field);
+      field = "";
+    } else if (char === "\n") {
+      row.push(field.replace(/\r$/, ""));
+      rows.push(row);
+      row = [];
+      field = "";
+    } else {
+      field += char;
+    }
+  }
+  if (field.length > 0 || row.length > 0) {
+    row.push(field.replace(/\r$/, ""));
+    rows.push(row);
+  }
+  return rows;
+}
+
+function parseCsv(text: string): { header: string[]; records: string[][] } {
+  const rows = parseCsvRows(text).filter((row) => row.length > 1);
+  return { header: rows[0] ?? [], records: rows.slice(1) };
+}
+
+async function pdfLinkUris(bytes: Uint8Array): Promise<string[]> {
+  const pdfjs = await import("pdfjs-dist");
+  const doc = await pdfjs.getDocument({
+    data: new Uint8Array(bytes),
+    isEvalSupported: false,
+    useSystemFonts: false,
+  }).promise;
+  try {
+    const uris: string[] = [];
+    for (let index = 1; index <= doc.numPages; index += 1) {
+      const page = await doc.getPage(index);
+      const annotations = await page.getAnnotations();
+      for (const annotation of annotations) {
+        if (annotation.subtype === "Link" && annotation.url) {
+          uris.push(annotation.url);
+        }
+      }
+    }
+    return uris;
+  } finally {
+    await doc.destroy();
+  }
+}
+
 function jakartaMonth(offset = 0): string {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Jakarta",
@@ -251,6 +321,87 @@ test.describe("Dashboard PDF", () => {
       } finally {
         await context.close();
       }
+    }
+  });
+});
+
+test.describe("Tautan konten pada ekspor", () => {
+  test("PDF memuat satu anotasi tautan per baris dan CSV memuat URL absolut", async () => {
+    test.setTimeout(240_000);
+    const admin = await playwrightRequest.newContext({
+      baseURL,
+      storageState: ADMIN_STATE,
+    });
+    try {
+      const csvResponse = await admin.get(
+        "/api/v1/exports/submissions?scope=approved",
+      );
+      expect(csvResponse.status()).toBe(200);
+      expect(csvResponse.headers()["content-type"]).toContain("text/csv");
+      const { header, records } = parseCsv(await csvResponse.text());
+      const statusIndex = header.indexOf("Status");
+      const linkIndex = header.indexOf("Tautan Konten");
+      expect(linkIndex).toBeGreaterThan(-1);
+      expect(records.length).toBeGreaterThan(0);
+      for (const record of records) {
+        expect(record[statusIndex]).toBe("Disetujui");
+        expect(record[linkIndex]).toMatch(/^https?:\/\//);
+        expect(record[linkIndex]).not.toMatch(/^=/);
+      }
+
+      const pdfResponse = await admin.get(
+        "/api/v1/reports/contents?mode=approved",
+      );
+      expect(pdfResponse.status()).toBe(200);
+      expect(pdfResponse.headers()["content-type"]).toContain(
+        "application/pdf",
+      );
+      const bytes = new Uint8Array(await pdfResponse.body());
+      expect(Buffer.from(bytes.subarray(0, 5)).toString()).toBe("%PDF-");
+
+      const uris = await pdfLinkUris(bytes);
+      expect(uris.length).toBeGreaterThan(0);
+      for (const uri of uris) {
+        expect(uri).toMatch(/^https?:\/\//);
+      }
+      // The report caps rows at 2,000; below the cap every row is annotated.
+      if (records.length <= 2_000) {
+        expect(uris).toHaveLength(records.length);
+      } else {
+        expect(uris.length).toBeGreaterThanOrEqual(2_000);
+      }
+    } finally {
+      await admin.dispose();
+    }
+  });
+
+  test("CSV stakeholder hanya memakai status kanonik dengan tautan absolut", async () => {
+    const client = await playwrightRequest.newContext({
+      baseURL,
+      storageState: CLIENT_STATE,
+    });
+    try {
+      const response = await client.get("/api/v1/exports/submissions");
+      expect(response.status()).toBe(200);
+      expect(response.headers()["content-type"]).toContain("text/csv");
+      const { header, records } = parseCsv(await response.text());
+      const statusIndex = header.indexOf("Status");
+      const linkIndex = header.indexOf("Tautan Konten");
+      expect(linkIndex).toBeGreaterThan(-1);
+      expect(records.length).toBeGreaterThan(0);
+
+      const canonical = new Set([
+        "Draf",
+        "Terkirim",
+        "Perlu Revisi",
+        "Disetujui",
+      ]);
+      for (const record of records) {
+        expect(canonical.has(record[statusIndex]!)).toBe(true);
+        expect(record[linkIndex]).toMatch(/^https?:\/\//);
+      }
+    } finally {
+      await client.dispose();
     }
   });
 });

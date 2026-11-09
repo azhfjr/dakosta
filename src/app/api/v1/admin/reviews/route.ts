@@ -17,9 +17,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const queueQuerySchema = z.object({
-  status: z
-    .enum(["ALL", "SUBMITTED", "RESUBMITTED", "IN_REVIEW"])
-    .default("ALL"),
+  status: z.enum(["ALL", "SUBMITTED"]).default("ALL"),
   stakeholderId: z.string().uuid().optional(),
   subTheme: z.enum(SUB_THEMES).optional(),
   search: z.string().trim().max(120).optional(),

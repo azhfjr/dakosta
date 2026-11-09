@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-const PENDING = new Set(["SUBMITTED", "RESUBMITTED", "IN_REVIEW"]);
+const PENDING = new Set(["SUBMITTED"]);
 
 export default async function BranchReviewDetailPage({
   params,
@@ -50,7 +50,6 @@ export default async function BranchReviewDetailPage({
           expectedVersion={detail.version}
           canReview={canReview}
           decidedStatus={STATUS_LABEL[detail.status]}
-          status={detail.status}
           basePath="/cabang/review"
         />
       }

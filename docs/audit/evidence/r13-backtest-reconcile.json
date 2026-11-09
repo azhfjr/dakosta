@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-11-09T05:56:02.168Z",
+  "generatedAt": "2026-11-09T20:48:14.247Z",
   "jakartaMonth": "2026-11",
   "fixtures": 72,
-  "total": 72,
-  "passed": 72,
+  "total": 119,
+  "passed": 119,
   "failed": 0,
   "checks": [
     {
@@ -127,6 +127,166 @@
       "detail": ""
     },
     {
+      "name": "overview A1 category totals cover every approved row",
+      "ok": true,
+      "detail": "actual=57 expected=57"
+    },
+    {
+      "name": "overview A1 category shares add to 100.0",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview A1 category shares follow the counts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview filtered category totals match A1",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview monthly has 12 points",
+      "ok": true,
+      "detail": "actual=12 expected=12"
+    },
+    {
+      "name": "overview monthly ends at the current Jakarta month",
+      "ok": true,
+      "detail": "2026-11 vs 2026-11"
+    },
+    {
+      "name": "overview monthly keys are consecutive",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview monthly total = sum of points",
+      "ok": true,
+      "detail": "actual=56 expected=56"
+    },
+    {
+      "name": "overview monthly total = SQL approved in window",
+      "ok": true,
+      "detail": "actual=56 expected=56"
+    },
+    {
+      "name": "overview monthly stays inside the all-time approved total",
+      "ok": true,
+      "detail": "56/57"
+    },
+    {
+      "name": "overview content types total = approved",
+      "ok": true,
+      "detail": "actual=57 expected=57"
+    },
+    {
+      "name": "overview content type shares add to 100.0",
+      "ok": true,
+      "detail": "100%"
+    },
+    {
+      "name": "overview content type slices are unique",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview content type slices match SQL",
+      "ok": true,
+      "detail": "[[\"INFOGRAFIS\",24],[\"VIDEO\",30],[\"UNCLASSIFIED\",3]]"
+    },
+    {
+      "name": "overview content type slice count matches SQL groups",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview type trends have 12 points each",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview type trend totals equal their points",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview type trends reconcile to the monthly series",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview type trends stay inside their all-time slices",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview theme trends cover both themes",
+      "ok": true,
+      "detail": "actual=2 expected=2"
+    },
+    {
+      "name": "overview theme trends have 12 points each",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview theme trends reconcile to the monthly series",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview EDUFAST trend total = SQL in window",
+      "ok": true,
+      "detail": "actual=18 expected=18"
+    },
+    {
+      "name": "overview map branch tier totals = approved",
+      "ok": true,
+      "detail": "actual=57 expected=57"
+    },
+    {
+      "name": "overview map region tier totals = approved",
+      "ok": true,
+      "detail": "actual=57 expected=57"
+    },
+    {
+      "name": "overview map aggregate categories reconcile",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview map branch institution counts = institutions",
+      "ok": true,
+      "detail": "actual=15 expected=15"
+    },
+    {
+      "name": "overview map branch missing counts = missing institutions",
+      "ok": true,
+      "detail": "actual=1 expected=1"
+    },
+    {
+      "name": "overview map institution totals reconcile",
+      "ok": true,
+      "detail": "actual=15 expected=15"
+    },
+    {
+      "name": "overview map aggregates include institutions without coordinates",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview map region aggregates expose their branch parents",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "overview map maxTotal = largest tier total",
+      "ok": true,
+      "detail": "actual=37 expected=37"
+    },
+    {
       "name": "overview FKRTL ranking has at most 10 rows",
       "ok": true,
       "detail": ""
@@ -242,6 +402,31 @@
       "detail": "actual=37 expected=37"
     },
     {
+      "name": "regional overview monthly total = SQL in window",
+      "ok": true,
+      "detail": "actual=36 expected=36"
+    },
+    {
+      "name": "regional overview content types = A1",
+      "ok": true,
+      "detail": "actual=37 expected=37"
+    },
+    {
+      "name": "regional overview trends reconcile to the monthly series",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "regional overview map branch tier = A1",
+      "ok": true,
+      "detail": "actual=37 expected=37"
+    },
+    {
+      "name": "regional overview map region tier = A1",
+      "ok": true,
+      "detail": "actual=37 expected=37"
+    },
+    {
       "name": "regional overview is narrower than national",
       "ok": true,
       "detail": "37 <= 57"
@@ -267,6 +452,31 @@
       "detail": "actual=28 expected=28"
     },
     {
+      "name": "branch overview monthly total = SQL in window",
+      "ok": true,
+      "detail": "actual=27 expected=27"
+    },
+    {
+      "name": "branch overview content types = A1",
+      "ok": true,
+      "detail": "actual=28 expected=28"
+    },
+    {
+      "name": "branch overview trends reconcile to the monthly series",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "branch overview map branch tier = A1",
+      "ok": true,
+      "detail": "actual=28 expected=28"
+    },
+    {
+      "name": "branch overview map region tier = A1",
+      "ok": true,
+      "detail": "actual=28 expected=28"
+    },
+    {
       "name": "branch overview is narrower than national",
       "ok": true,
       "detail": "28 <= 57"
@@ -288,6 +498,31 @@
     },
     {
       "name": "stakeholder overview map = A1",
+      "ok": true,
+      "detail": "actual=19 expected=19"
+    },
+    {
+      "name": "stakeholder overview monthly total = SQL in window",
+      "ok": true,
+      "detail": "actual=18 expected=18"
+    },
+    {
+      "name": "stakeholder overview content types = A1",
+      "ok": true,
+      "detail": "actual=19 expected=19"
+    },
+    {
+      "name": "stakeholder overview trends reconcile to the monthly series",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "stakeholder overview map branch tier = A1",
+      "ok": true,
+      "detail": "actual=19 expected=19"
+    },
+    {
+      "name": "stakeholder overview map region tier = A1",
       "ok": true,
       "detail": "actual=19 expected=19"
     },

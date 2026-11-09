@@ -1,7 +1,7 @@
 /**
  * Sitewide UI/UX quality audit for every role and route.
  *
- * Measures the v3.5 spacing gates (section/card/panel/heading/micro), chart,
+ * Measures the v3.6 spacing gates (section/card/panel/heading/micro), chart,
  * map, and donut proportions, header action alignment, touch targets, clipped
  * text, overflow, and overlaps at 1440x900, 768x1024, and 375x812. Requires
  * `e2e/.auth/*.json` sessions from the E2E setup and an already-running server.
@@ -27,7 +27,7 @@ const baseURL =
 const mode = process.env.AUDIT_MODE === "baseline" ? "baseline" : "gate";
 const outFile =
   process.env.AUDIT_OUT ??
-  join("docs", "audit", "evidence", "ui-v35", "audit.json");
+  join("docs", "audit", "evidence", "ui-v36", "audit.json");
 const baselineFile = process.env.AUDIT_BASELINE ?? null;
 const outDir = dirname(outFile);
 const screenshotDir = join(outDir, "screenshots");
@@ -179,6 +179,7 @@ const BANDS = {
   panelPadding: [16, 24],
   chartHeight: [140, 380],
   barThickness: [10, 16],
+  columnWidth: [14, 32],
   rankingTrack: [6, 8],
   mapHeight: [260, 360],
   donut: [210, 240],
@@ -194,6 +195,38 @@ function inBand(value, [min, max]) {
 
 function describeBand([min, max]) {
   return max === null ? `>= ${min}px` : `${min}-${max}px`;
+}
+
+function worstBarCheck(barCharts) {
+  const checks = (barCharts ?? []).flatMap((chart) => {
+    if (!chart || chart.width == null || chart.height == null) return [];
+    // Uniform widths with varying heights identify vertical column charts;
+    // uniform heights identify horizontal ranking bars. Varying values change
+    // a segment's height, never the column's width.
+    const constantWidth = chart.widthRange != null && chart.widthRange <= 0.5;
+    const constantHeight =
+      chart.heightRange != null && chart.heightRange <= 0.5;
+    const isColumn =
+      constantWidth || (!constantHeight && chart.width <= chart.height);
+    return [
+      {
+        thickness: isColumn ? chart.width : chart.height,
+        band: isColumn ? BANDS.columnWidth : BANDS.barThickness,
+        kind: isColumn ? "column" : "bar",
+      },
+    ];
+  });
+  if (checks.length === 0) return null;
+  const deviation = (check) => {
+    const [min, max] = check.band;
+    if (check.thickness < min) return min - check.thickness;
+    if (max !== null && check.thickness > max) return check.thickness - max;
+    return 0;
+  };
+  return checks.reduce(
+    (worst, check) => (deviation(check) > deviation(worst) ? check : worst),
+    checks[0],
+  );
 }
 
 async function discoverDetail(context, listPath, pattern) {
@@ -327,15 +360,33 @@ async function measure(page) {
       ...document.querySelectorAll(".recharts-wrapper"),
     ].filter(visible);
     const chart = chartNodes.length > 0 ? box(chartNodes[0]) : null;
-    const barRects = [
-      ...document.querySelectorAll(".recharts-bar-rectangle path"),
-    ]
-      .map((node) => box(node))
+    const median = (values) => {
+      if (values.length === 0) return null;
+      const sorted = [...values].sort((a, b) => a - b);
+      return sorted[Math.floor(sorted.length / 2)];
+    };
+    // Per chart: stacked column segments have value-dependent heights, so the
+    // column width is the bar thickness there; horizontal ranking bars use
+    // their height. Keep raw medians and decide outside the page context.
+    const barCharts = chartNodes
+      .map((wrapper) => {
+        const rects = [
+          ...wrapper.querySelectorAll(".recharts-bar-rectangle path"),
+        ]
+          .map((node) => box(node))
+          .filter(Boolean);
+        if (rects.length === 0) return null;
+        const widths = rects.map((rect) => rect.width);
+        const heights = rects.map((rect) => rect.height);
+        const range = (values) => Math.max(...values) - Math.min(...values);
+        return {
+          width: median(widths),
+          height: median(heights),
+          widthRange: range(widths),
+          heightRange: range(heights),
+        };
+      })
       .filter(Boolean);
-    const barThickness =
-      barRects.length > 0
-        ? Math.min(...barRects.map((rect) => rect.height))
-        : null;
 
     const mapCanvas = box(document.querySelector("[data-map-canvas]"));
     const donut = box(document.querySelector("[data-theme-donut]"));
@@ -417,7 +468,7 @@ async function measure(page) {
       gridGaps,
       panels,
       chart,
-      barThickness,
+      barCharts,
       map: mapCanvas,
       donut,
       rankingTrack: rankingTracks.length
@@ -567,16 +618,20 @@ function evaluate(result, viewport) {
           describeBand(BANDS.chartHeight),
         );
       }
-      if (metrics.barThickness !== null) {
-        if (!inBand(metrics.barThickness, BANDS.barThickness)) {
+      const barCheck = worstBarCheck(metrics.barCharts);
+      if (barCheck) {
+        if (!inBand(barCheck.thickness, barCheck.band)) {
+          const label =
+            barCheck.kind === "column" ? "Lebar kolom" : "Tebal bar";
           push(
             "bar-thickness",
-            `Tebal bar ${metrics.barThickness.toFixed(1)}px di luar 10-16px.`,
+            `${label} ${barCheck.thickness.toFixed(1)}px di luar ${describeBand(barCheck.band)}.`,
             ".recharts-bar-rectangle",
             null,
-            describeBand(BANDS.barThickness),
+            describeBand(barCheck.band),
           );
         }
+        metrics.barThickness = barCheck.thickness;
       }
     }
     if (metrics.map && !inBand(metrics.map.height, BANDS.mapHeight)) {

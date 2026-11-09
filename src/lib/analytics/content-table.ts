@@ -8,6 +8,7 @@ import {
   eq,
   gte,
   ilike,
+  inArray,
   lt,
   lte,
   or,
@@ -22,7 +23,12 @@ import {
   jakartaDayStart,
 } from "@/lib/analytics/approved";
 import { contentScopePredicate } from "@/lib/authz/predicates";
-import { CONTENT_STATUSES, type ContentStatus } from "@/lib/content-status";
+import {
+  CONTENT_STATUSES,
+  LEGACY_STATUS_MAP,
+  normalizeStatus,
+  type ContentStatus,
+} from "@/lib/content-status";
 import { monthRange } from "@/lib/kpi/formulas";
 import {
   ORG_SOURCE_LABELS,
@@ -39,12 +45,36 @@ export const ANALYTICS_TABLE_PAGE_SIZE = 25;
 export type AnalyticsSort =
   | "recent"
   | "oldest"
+  | "code"
   | "title"
-  | "decision"
+  | "organization"
+  | "type"
+  | "platform"
   | "status"
   | "approved_recent"
-  | "approved_oldest"
-  | "organization";
+  | "approved_oldest";
+
+export type SortDirection = "asc" | "desc";
+
+/**
+ * Filtering and sorting must see legacy rows (deploy→migration window) as
+ * their canonical status, otherwise the four status tabs disagree with the
+ * table.
+ */
+function statusFilterValues(status: ContentStatus): string[] {
+  return [
+    status,
+    ...Object.entries(LEGACY_STATUS_MAP)
+      .filter(([, canonical]) => canonical === status)
+      .map(([legacy]) => legacy),
+  ];
+}
+
+const NORMALIZED_STATUS = sql<string>`case ${schema.contentSubmissions.status} ${sql.raw(
+  Object.entries(LEGACY_STATUS_MAP)
+    .map(([legacy, canonical]) => `when '${legacy}' then '${canonical}'`)
+    .join(" "),
+)} else ${schema.contentSubmissions.status} end`;
 
 export type AnalyticsContentFilters = {
   period: string;
@@ -60,7 +90,6 @@ export type AnalyticsContentFilters = {
   sources: OrgSource[];
   stakeholderId?: string | null;
   branchId?: string | null;
-  orgType?: string | null;
   mainTheme?: MainTheme | null;
   subTheme?: SubTheme | null;
   contentType?: ContentType | null;
@@ -70,21 +99,27 @@ export type AnalyticsContentFilters = {
   dateTo?: string | null;
   decidedBy: "ANY" | "BRANCH" | "MASTER";
   sort: AnalyticsSort;
+  direction?: SortDirection;
   search: string;
   page: number;
   /** Report exports raise this; the table keeps the default page size. */
   pageSize?: number;
 };
 
+/** Ceiling shared with report exports so `CONTENT_REPORT_ROW_CAP` stays truthful. */
+export const ANALYTICS_TABLE_MAX_PAGE_SIZE = 2000;
+
 const SORTS: readonly AnalyticsSort[] = [
   "recent",
   "oldest",
+  "code",
   "title",
-  "decision",
+  "organization",
+  "type",
+  "platform",
   "status",
   "approved_recent",
   "approved_oldest",
-  "organization",
 ];
 
 function firstValue(
@@ -122,6 +157,9 @@ export function parseAnalyticsContentFilters(
   const sort = SORTS.includes(rawSort as AnalyticsSort)
     ? (rawSort as AnalyticsSort)
     : "recent";
+  const rawDirection = firstValue(params, "direction")?.toLowerCase();
+  const direction: SortDirection =
+    rawDirection === "asc" || rawDirection === "desc" ? rawDirection : "desc";
 
   const rawPage = Number(firstValue(params, "page"));
   const page =
@@ -133,6 +171,7 @@ export function parseAnalyticsContentFilters(
     sources: parseOrgSources(params),
     decidedBy,
     sort,
+    direction,
     search: (firstValue(params, "q") ?? "").trim().slice(0, 80),
     page,
   };
@@ -191,7 +230,12 @@ export async function listAnalyticsContents(
     conditions.push(approvedContentCondition());
   }
   if (filters.status !== "ALL") {
-    conditions.push(eq(schema.contentSubmissions.status, filters.status));
+    conditions.push(
+      inArray(
+        schema.contentSubmissions.status,
+        statusFilterValues(filters.status),
+      ),
+    );
   }
   const sourceCondition = orgSourceCondition(
     schema.contentSubmissions.stakeholderId,
@@ -205,9 +249,6 @@ export async function listAnalyticsContents(
   }
   if (filters.branchId) {
     conditions.push(eq(schema.stakeholders.branchOfficeId, filters.branchId));
-  }
-  if (filters.orgType) {
-    conditions.push(eq(schema.stakeholders.organizationType, filters.orgType));
   }
   if (filters.mainTheme) {
     conditions.push(eq(schema.contentSubmissions.mainTheme, filters.mainTheme));
@@ -293,56 +334,79 @@ export async function listAnalyticsContents(
     )
     .as("latest_review");
 
+  const direction = filters.direction ?? "desc";
+  const ascending = direction === "asc";
   const orderBy = (() => {
     switch (filters.sort) {
-      case "oldest":
+      case "code":
         return [
-          asc(schema.contentSubmissions.dateCreated),
-          asc(schema.contentSubmissions.id),
+          ascending
+            ? asc(schema.contentSubmissions.referenceCode)
+            : desc(schema.contentSubmissions.referenceCode),
+          ascending
+            ? asc(schema.contentSubmissions.id)
+            : desc(schema.contentSubmissions.id),
         ];
       case "title":
         return [
-          asc(schema.contentSubmissions.title),
+          ascending
+            ? asc(schema.contentSubmissions.title)
+            : desc(schema.contentSubmissions.title),
+          ascending
+            ? asc(schema.contentSubmissions.id)
+            : desc(schema.contentSubmissions.id),
+        ];
+      case "organization":
+        return [
+          ascending
+            ? asc(schema.stakeholders.name)
+            : desc(schema.stakeholders.name),
+          ascending
+            ? asc(schema.contentSubmissions.title)
+            : desc(schema.contentSubmissions.title),
           asc(schema.contentSubmissions.id),
         ];
-      case "decision":
+      case "type":
         return [
-          sql`${latestReview.createdAt} desc nulls last`,
+          sql`${schema.contentSubmissions.contentType} ${sql.raw(ascending ? "asc" : "desc")} nulls last`,
+          desc(schema.contentSubmissions.dateCreated),
+          asc(schema.contentSubmissions.id),
+        ];
+      case "platform":
+        return [
+          sql`${schema.contentSubmissions.platform} ${sql.raw(ascending ? "asc" : "desc")} nulls last`,
+          desc(schema.contentSubmissions.dateCreated),
           asc(schema.contentSubmissions.id),
         ];
       case "status":
         return [
-          asc(schema.contentSubmissions.status),
+          ascending ? asc(NORMALIZED_STATUS) : desc(NORMALIZED_STATUS),
           desc(schema.contentSubmissions.dateCreated),
           asc(schema.contentSubmissions.id),
         ];
       case "approved_recent":
-        return [
-          sql`${schema.contentSubmissions.approvedAt} desc nulls last`,
-          desc(schema.contentSubmissions.id),
-        ];
       case "approved_oldest":
         return [
-          sql`${schema.contentSubmissions.approvedAt} asc nulls last`,
-          asc(schema.contentSubmissions.id),
-        ];
-      case "organization":
-        return [
-          asc(schema.stakeholders.name),
-          asc(schema.contentSubmissions.title),
-          asc(schema.contentSubmissions.id),
+          sql`${schema.contentSubmissions.approvedAt} ${sql.raw(ascending ? "asc" : "desc")} nulls last`,
+          ascending
+            ? asc(schema.contentSubmissions.id)
+            : desc(schema.contentSubmissions.id),
         ];
       default:
         return [
-          desc(schema.contentSubmissions.dateCreated),
-          desc(schema.contentSubmissions.id),
+          ascending
+            ? asc(schema.contentSubmissions.dateCreated)
+            : desc(schema.contentSubmissions.dateCreated),
+          ascending
+            ? asc(schema.contentSubmissions.id)
+            : desc(schema.contentSubmissions.id),
         ];
     }
   })();
 
   const pageSize = Math.min(
     Math.max(Math.floor(filters.pageSize ?? ANALYTICS_TABLE_PAGE_SIZE), 1),
-    1000,
+    ANALYTICS_TABLE_MAX_PAGE_SIZE,
   );
 
   const [rows, totals] = await Promise.all([
@@ -408,7 +472,7 @@ export async function listAnalyticsContents(
       const source = sourceOfOrganization(row);
       return {
         ...row,
-        status: row.status as ContentStatus,
+        status: normalizeStatus(row.status),
         source,
         sourceLabel: ORG_SOURCE_LABELS[source],
         decisionAt: row.decisionAt ? new Date(row.decisionAt) : null,
@@ -424,12 +488,14 @@ export async function listAnalyticsContents(
 export const ANALYTICS_SORT_LABELS: Record<AnalyticsSort, string> = {
   recent: "Terbaru dibuat",
   oldest: "Terlama dibuat",
-  title: "Judul A–Z",
-  decision: "Keputusan terbaru",
+  code: "Kode",
+  title: "Judul",
+  organization: "Organisasi",
+  type: "Jenis konten",
+  platform: "Platform",
   status: "Status",
   approved_recent: "Terbaru disetujui",
   approved_oldest: "Terlama disetujui",
-  organization: "Organisasi A–Z",
 };
 
 export const ANALYTICS_PERIOD_LABEL = "Semua periode";

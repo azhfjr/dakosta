@@ -32,25 +32,15 @@ export type FilterField =
       name: string;
       label: string;
       value: string;
-    }
-  | {
-      kind: "number";
-      name: string;
-      label: string;
-      value: string;
-      min?: number;
-      max?: number;
-      step?: number;
-      placeholder?: string;
     };
 
-const selectClass =
+const controlClass =
   "h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 const columnClass = {
   2: "sm:grid-cols-2",
   3: "sm:grid-cols-2 lg:grid-cols-3",
-  4: "sm:grid-cols-2 lg:grid-cols-4",
+  4: "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
 } as const;
 
 function FilterControl({
@@ -71,7 +61,7 @@ function FilterControl({
           id={id}
           name={field.name}
           defaultValue={field.value}
-          className={selectClass}
+          className={controlClass}
         >
           {field.includeEmpty === false ? null : (
             <option value="">{field.allLabel}</option>
@@ -85,20 +75,11 @@ function FilterControl({
       ) : (
         <input
           id={id}
-          type={
-            field.kind === "number"
-              ? "number"
-              : field.kind === "date"
-                ? "date"
-                : "search"
-          }
+          type={field.kind === "date" ? "date" : "search"}
           name={field.name}
           defaultValue={field.value}
           placeholder={field.kind === "date" ? undefined : field.placeholder}
-          min={field.kind === "number" ? field.min : undefined}
-          max={field.kind === "number" ? field.max : undefined}
-          step={field.kind === "number" ? field.step : undefined}
-          className={selectClass}
+          className={controlClass}
         />
       )}
     </div>
@@ -106,13 +87,13 @@ function FilterControl({
 }
 
 /**
- * One filter contract for every list and dashboard: categorical filters are
- * dropdowns, search stays a text field, and the URL always carries the state.
+ * One filter contract for every list and dashboard: every field sits in a
+ * single responsive grid (no separate advanced panel), the URL always carries
+ * the state, and actions stay grouped with the reset and submit controls.
  */
 export function FilterBar({
   action,
   fields,
-  advancedFields = [],
   hidden = {},
   resetHref,
   summary,
@@ -124,7 +105,6 @@ export function FilterBar({
 }: {
   action: string;
   fields: FilterField[];
-  advancedFields?: FilterField[];
   hidden?: Record<string, string>;
   resetHref: string;
   summary?: string;
@@ -138,7 +118,7 @@ export function FilterBar({
 
   // Uncontrolled inputs keep their DOM value across same-route client
   // navigations, so remount whenever the URL-derived filter state changes.
-  const formKey = [...fields, ...advancedFields]
+  const formKey = fields
     .map((field) => `${field.name}:${field.value}`)
     .join("|");
 
@@ -150,14 +130,19 @@ export function FilterBar({
         className,
       )}
     >
-      <AutoSubmitForm key={formKey} action={action} className="space-y-3">
-        <p className="flex items-center gap-2 text-sm font-medium text-foreground">
-          <SlidersHorizontal
-            className="size-4 text-brand-green-700"
-            aria-hidden
-          />
-          {label}
-        </p>
+      <AutoSubmitForm key={formKey} action={action} className="space-y-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <p className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <SlidersHorizontal
+              className="size-4 text-brand-green-700"
+              aria-hidden
+            />
+            {label}
+          </p>
+          {summary ? (
+            <p className="text-xs text-ink-muted sm:text-right">{summary}</p>
+          ) : null}
+        </div>
         {Object.entries(hidden).map(([name, value]) => (
           <input key={name} type="hidden" name={name} value={value} />
         ))}
@@ -166,24 +151,7 @@ export function FilterBar({
             <FilterControl key={field.name} field={field} idPrefix={idPrefix} />
           ))}
         </div>
-        {advancedFields.length > 0 ? (
-          <details className="rounded-lg border border-border bg-surface-muted/40 px-3 py-2">
-            <summary className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-ink-muted select-none">
-              <SlidersHorizontal className="size-3.5" aria-hidden />
-              Filter lanjutan
-            </summary>
-            <div className={cn("mt-3 grid gap-3", columnClass[columns])}>
-              {advancedFields.map((field) => (
-                <FilterControl
-                  key={field.name}
-                  field={field}
-                  idPrefix={idPrefix}
-                />
-              ))}
-            </div>
-          </details>
-        ) : null}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 border-t border-border/70 pt-3">
           <Button type="submit" size="sm" className="h-9">
             Terapkan
           </Button>
@@ -193,8 +161,9 @@ export function FilterBar({
               Atur ulang
             </Link>
           </Button>
-          {actions}
-          {summary ? <p className="text-xs text-ink-muted">{summary}</p> : null}
+          {actions ? (
+            <div className="flex flex-wrap gap-2 sm:ml-auto">{actions}</div>
+          ) : null}
         </div>
       </AutoSubmitForm>
     </section>

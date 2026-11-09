@@ -39,6 +39,7 @@ const MIGRATIONS = [
   "0004_v1_1_foundations.sql",
   "0005_v1_1_perf_indexes.sql",
   "0006_v1_2_imports_sync.sql",
+  "0007_fantastic_prowler.sql",
 ];
 
 const REGION_A = "a0000000-0000-4000-8000-00000000000a";
@@ -329,15 +330,15 @@ function buildFixtures(): Fixture[] {
       orgId: ORG_S3,
       branchId: BRANCH_A1,
       regionId: REGION_A,
-      status: "REJECTED",
+      status: "REVISION_REQUIRED",
       approvedAt: null,
       dateCreated: "2026-10-16",
       platform: "WEBSITE",
       contentType: "INFOGRAFIS",
       mainTheme: "NON_EDUFAST",
       subTheme: "EDUKATIF_PERSUASIF",
-      title: "Ditolak Oktober",
-      url: "https://contoh.test/2026-10/rejected",
+      title: "Perlu revisi kedua Oktober",
+      url: "https://contoh.test/2026-10/revision-two",
     }),
     fixture({
       orgId: ORG_S1,
@@ -357,15 +358,15 @@ function buildFixtures(): Fixture[] {
       orgId: ORG_S2,
       branchId: BRANCH_A2,
       regionId: REGION_A,
-      status: "IN_REVIEW",
+      status: "SUBMITTED",
       approvedAt: null,
       dateCreated: "2026-09-20",
       platform: "YOUTUBE",
       contentType: "VIDEO",
       mainTheme: "EDUFAST",
       subTheme: "TESTIMONI_PESERTA",
-      title: "Sedang ditinjau",
-      url: "https://contoh.test/2026-09/review",
+      title: "Terkirim September",
+      url: "https://contoh.test/2026-09/submitted",
     }),
   );
 
@@ -480,7 +481,7 @@ function buildFixtures(): Fixture[] {
     }),
   );
 
-  // Excluded from approved analytics: archived, null timestamp, revoked, old.
+  // Excluded from approved analytics: archived, null timestamp, revision, old.
   rows.push(
     fixture({
       orgId: ORG_S1,
@@ -515,15 +516,15 @@ function buildFixtures(): Fixture[] {
       orgId: ORG_S3,
       branchId: BRANCH_A1,
       regionId: REGION_A,
-      status: "REVOKED",
-      approvedAt: new Date("2026-08-05T03:00:00.000Z"),
+      status: "REVISION_REQUIRED",
+      approvedAt: null,
       dateCreated: "2026-08-05",
       platform: "WEBSITE",
       contentType: "INFOGRAFIS",
       mainTheme: "NON_EDUFAST",
       subTheme: "INFORMASI",
-      title: "Dicabut",
-      url: "https://contoh.test/2026-08/revoked",
+      title: "Perlu revisi setelah dicabut",
+      url: "https://contoh.test/2026-08/revoked-revision",
     }),
     fixture({
       orgId: ORG_S1,
@@ -543,15 +544,15 @@ function buildFixtures(): Fixture[] {
       orgId: ORG_S4,
       branchId: BRANCH_B1,
       regionId: REGION_B,
-      status: "REVOKED",
-      approvedAt: new Date("2026-10-09T03:00:00.000Z"),
+      status: "REVISION_REQUIRED",
+      approvedAt: null,
       dateCreated: "2026-10-09",
       platform: "TIKTOK",
       contentType: "VIDEO",
       mainTheme: "EDUFAST",
       subTheme: "MOBILE_JKN",
-      title: "Dicabut luar wilayah",
-      url: "https://contoh.test/2026-10/revoked-b",
+      title: "Perlu revisi luar wilayah",
+      url: "https://contoh.test/2026-10/revoked-b-revision",
     }),
   );
 
@@ -1061,6 +1062,276 @@ async function reconcileDashboardOverview(): Promise<void> {
       (theme) => theme.key === "TANPA_SUB_TEMA" && theme.total === 2,
     ),
   );
+
+  // v3.6: category shares, trailing-12-month series, content types, map tiers.
+  const categorized = totalOf(masterSummary.categoryTotals);
+  expectEqual(
+    "overview A1 category totals cover every approved row",
+    categorized,
+    approved,
+  );
+  check(
+    "overview A1 category shares add to 100.0",
+    categorized === 0 ||
+      Math.round(
+        DASHBOARD_CATEGORIES.reduce(
+          (sum, category) => sum + masterSummary.categoryShares[category],
+          0,
+        ) * 10,
+      ) === 1000,
+  );
+  check(
+    "overview A1 category shares follow the counts",
+    categorized === 0 ||
+      DASHBOARD_CATEGORIES.every(
+        (category) =>
+          Math.abs(
+            masterSummary.categoryShares[category] -
+              (masterSummary.categoryTotals[category] * 100) / categorized,
+          ) <= 0.1,
+      ),
+  );
+  check(
+    "overview filtered category totals match A1",
+    DASHBOARD_CATEGORIES.every(
+      (category) =>
+        masterFiltered.categoryTotals[category] ===
+        masterSummary.categoryTotals[category],
+    ),
+  );
+
+  const monthly = masterFiltered.monthly;
+  const currentJakartaMonth = monthKeyFor();
+  expectEqual("overview monthly has 12 points", monthly.points.length, 12);
+  check(
+    "overview monthly ends at the current Jakarta month",
+    monthly.endKey === currentJakartaMonth,
+    `${monthly.endKey} vs ${currentJakartaMonth}`,
+  );
+  check(
+    "overview monthly keys are consecutive",
+    monthly.points.every((point, index) => {
+      const previous = monthly.points[index - 1];
+      if (!previous) return true;
+      const [previousYear, previousMonth] = previous.key
+        .split("-")
+        .map(Number) as [number, number];
+      const [year, month] = point.key.split("-").map(Number) as [
+        number,
+        number,
+      ];
+      const expectedYear =
+        previousMonth === 12 ? previousYear + 1 : previousYear;
+      const expectedMonth = previousMonth === 12 ? 1 : previousMonth + 1;
+      return year === expectedYear && month === expectedMonth;
+    }),
+  );
+  expectEqual(
+    "overview monthly total = sum of points",
+    monthly.total,
+    monthly.points.reduce((sum, point) => sum + point.total, 0),
+  );
+  expectEqual(
+    "overview monthly total = SQL approved in window",
+    monthly.total,
+    await scalar(
+      `select count(*)::int as total
+         from content_submissions s
+        where s.archived = false and s.status = 'APPROVED'
+          and s.approved_at is not null
+          and to_char(s.approved_at at time zone 'Asia/Jakarta', 'YYYY-MM')
+              between $1 and $2`,
+      [monthly.startKey, monthly.endKey],
+    ),
+  );
+  check(
+    "overview monthly stays inside the all-time approved total",
+    monthly.total <= approved,
+    `${monthly.total}/${approved}`,
+  );
+
+  const typeSlices = masterFiltered.contentTypes;
+  expectEqual(
+    "overview content types total = approved",
+    typeSlices.reduce((sum, slice) => sum + slice.total, 0),
+    approved,
+  );
+  check(
+    "overview content type shares add to 100.0",
+    typeSlices.length === 0 ||
+      Math.round(
+        typeSlices.reduce((sum, slice) => sum + slice.share, 0) * 10,
+      ) === 1000,
+    `${typeSlices.reduce((sum, slice) => sum + slice.share, 0)}%`,
+  );
+  check(
+    "overview content type slices are unique",
+    new Set(typeSlices.map((slice) => slice.type)).size === typeSlices.length,
+  );
+  const rawTypes = await client.query<{ type: string | null; total: number }>(
+    `select s.content_type as type, count(*)::int as total
+       from content_submissions s
+      where s.archived = false and s.status = 'APPROVED'
+        and s.approved_at is not null
+      group by s.content_type`,
+  );
+  const rawTypeTotals = new Map<string, number>();
+  for (const row of rawTypes.rows) {
+    const key =
+      row.type === "VIDEO" || row.type === "INFOGRAFIS"
+        ? row.type
+        : "UNCLASSIFIED";
+    rawTypeTotals.set(key, (rawTypeTotals.get(key) ?? 0) + Number(row.total));
+  }
+  check(
+    "overview content type slices match SQL",
+    typeSlices.every(
+      (slice) => rawTypeTotals.get(slice.type) === slice.total,
+    ) &&
+      [...rawTypeTotals.values()].reduce((sum, value) => sum + value, 0) ===
+        typeSlices.reduce((sum, slice) => sum + slice.total, 0),
+    JSON.stringify([...rawTypeTotals]),
+  );
+  check(
+    "overview content type slice count matches SQL groups",
+    typeSlices.length ===
+      [...rawTypeTotals.values()].filter((total) => total > 0).length,
+  );
+
+  const typeMonthly = masterFiltered.typeMonthly;
+  check(
+    "overview type trends have 12 points each",
+    typeMonthly.every((trend) => trend.points.length === 12),
+  );
+  check(
+    "overview type trend totals equal their points",
+    typeMonthly.every(
+      (trend) =>
+        trend.total ===
+        trend.points.reduce((sum, point) => sum + point.total, 0),
+    ),
+  );
+  check(
+    "overview type trends reconcile to the monthly series",
+    monthly.points.every(
+      (point) =>
+        typeMonthly.reduce(
+          (sum, trend) =>
+            sum +
+            (trend.points.find((entry) => entry.key === point.key)?.total ?? 0),
+          0,
+        ) === point.total,
+    ),
+  );
+  check(
+    "overview type trends stay inside their all-time slices",
+    typeMonthly.every((trend) => {
+      const slice = typeSlices.find((entry) => entry.type === trend.type);
+      return slice !== undefined && trend.total <= slice.total;
+    }),
+  );
+
+  const themeMonthly = masterFiltered.themeMonthly;
+  expectEqual(
+    "overview theme trends cover both themes",
+    themeMonthly.length,
+    2,
+  );
+  check(
+    "overview theme trends have 12 points each",
+    themeMonthly.every((trend) => trend.points.length === 12),
+  );
+  check(
+    "overview theme trends reconcile to the monthly series",
+    monthly.points.every(
+      (point) =>
+        themeMonthly.reduce(
+          (sum, trend) =>
+            sum +
+            (trend.points.find((entry) => entry.key === point.key)?.total ?? 0),
+          0,
+        ) === point.total,
+    ),
+  );
+  expectEqual(
+    "overview EDUFAST trend total = SQL in window",
+    themeMonthly.find((trend) => trend.key === "EDUFAST")?.total ?? -1,
+    await scalar(
+      `select count(*)::int as total
+         from content_submissions s
+        where s.archived = false and s.status = 'APPROVED'
+          and s.approved_at is not null
+          and s.main_theme = 'EDUFAST'
+          and to_char(s.approved_at at time zone 'Asia/Jakarta', 'YYYY-MM')
+              between $1 and $2`,
+      [monthly.startKey, monthly.endKey],
+    ),
+  );
+
+  const map = masterFiltered.map;
+  expectEqual(
+    "overview map branch tier totals = approved",
+    map.branches.reduce((sum, row) => sum + row.total, 0),
+    approved,
+  );
+  expectEqual(
+    "overview map region tier totals = approved",
+    map.regions.reduce((sum, row) => sum + row.total, 0),
+    approved,
+  );
+  check(
+    "overview map aggregate categories reconcile",
+    [...map.branches, ...map.regions].every(
+      (aggregate) => totalOf(aggregate.categories) === aggregate.total,
+    ),
+  );
+  expectEqual(
+    "overview map branch institution counts = institutions",
+    map.branches.reduce((sum, row) => sum + row.institutionCount, 0),
+    map.totals.institutions,
+  );
+  expectEqual(
+    "overview map branch missing counts = missing institutions",
+    map.branches.reduce((sum, row) => sum + row.missingInstitutions, 0),
+    map.totals.missingInstitutions,
+  );
+  expectEqual(
+    "overview map institution totals reconcile",
+    map.totals.mappedInstitutions + map.totals.missingInstitutions,
+    map.totals.institutions,
+  );
+  check(
+    "overview map aggregates include institutions without coordinates",
+    (() => {
+      const branch = map.branches.find((row) => row.id === BRANCH_A1);
+      return (
+        branch !== undefined &&
+        branch.missingInstitutions === 1 &&
+        branch.total >= 1 &&
+        branch.latitude !== null &&
+        branch.longitude !== null
+      );
+    })(),
+  );
+  check(
+    "overview map region aggregates expose their branch parents",
+    map.branches.every(
+      (row) =>
+        row.parentId === null ||
+        map.regions.some((region) => region.id === row.parentId),
+    ),
+  );
+  expectEqual(
+    "overview map maxTotal = largest tier total",
+    map.maxTotal,
+    Math.max(
+      0,
+      ...map.points.map((point) => point.total),
+      ...map.branches.map((row) => row.total),
+      ...map.regions.map((row) => row.total),
+    ),
+  );
+
   for (const category of DASHBOARD_CATEGORIES) {
     const rows = masterFiltered.rankings[category];
     check(
@@ -1166,6 +1437,49 @@ async function reconcileDashboardOverview(): Promise<void> {
       filtered.map.totals.approved,
       rawScoped,
     );
+    expectEqual(
+      `${label} overview monthly total = SQL in window`,
+      filtered.monthly.total,
+      await rawApprovedCount(
+        viewer.scope,
+        `to_char(s.approved_at at time zone 'Asia/Jakarta', 'YYYY-MM') between '${filtered.monthly.startKey}' and '${filtered.monthly.endKey}'`,
+      ),
+    );
+    expectEqual(
+      `${label} overview content types = A1`,
+      filtered.contentTypes.reduce((sum, slice) => sum + slice.total, 0),
+      rawScoped,
+    );
+    check(
+      `${label} overview trends reconcile to the monthly series`,
+      filtered.monthly.points.every(
+        (point) =>
+          filtered.typeMonthly.reduce(
+            (sum, trend) =>
+              sum +
+              (trend.points.find((entry) => entry.key === point.key)?.total ??
+                0),
+            0,
+          ) === point.total &&
+          filtered.themeMonthly.reduce(
+            (sum, trend) =>
+              sum +
+              (trend.points.find((entry) => entry.key === point.key)?.total ??
+                0),
+            0,
+          ) === point.total,
+      ),
+    );
+    expectEqual(
+      `${label} overview map branch tier = A1`,
+      filtered.map.branches.reduce((sum, row) => sum + row.total, 0),
+      rawScoped,
+    );
+    expectEqual(
+      `${label} overview map region tier = A1`,
+      filtered.map.regions.reduce((sum, row) => sum + row.total, 0),
+      rawScoped,
+    );
     check(
       `${label} overview is narrower than national`,
       summary.totalApproved <= masterSummary.totalApproved,
@@ -1235,9 +1549,7 @@ async function reconcileSla(): Promise<void> {
   expectEqual(
     "SLA pending = SQL pending statuses in the period",
     sla.summary.pending,
-    await rawCount(
-      `${periodWhere} and s.status in ('SUBMITTED', 'RESUBMITTED', 'IN_REVIEW')`,
-    ),
+    await rawCount(`${periodWhere} and s.status = 'SUBMITTED'`),
   );
 
   const slaFaskes = await getSlaAnalytics(master, {

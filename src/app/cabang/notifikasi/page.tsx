@@ -24,7 +24,7 @@ export default async function BranchNotificationsPage() {
   }));
 
   return (
-    <PageContainer width="narrow">
+    <PageContainer width="wide">
       <PageHeader
         title="Notifikasi"
         description={`Pemberitahuan konten baru dan pengiriman ulang pada ${user.scopeLabel}.`}

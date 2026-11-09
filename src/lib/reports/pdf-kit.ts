@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import {
   PDFDocument,
+  PDFString,
   StandardFonts,
   rgb,
   type PDFFont,
@@ -159,6 +160,29 @@ export function setReportMetadata(
 }
 
 export type ReportFonts = { font: PDFFont; bold: PDFFont };
+
+/** Low-level Link annotation; pdf-lib has no high-level helper for URI actions. */
+export function addUriAnnotation(
+  page: PDFPage,
+  rect: { x: number; y: number; width: number; height: number },
+  uri: string,
+): void {
+  const context = page.doc.context;
+  const annotation = context.register(
+    context.obj({
+      Type: "Annot",
+      Subtype: "Link",
+      Rect: [rect.x, rect.y, rect.x + rect.width, rect.y + rect.height],
+      Border: [0, 0, 0],
+      A: {
+        Type: "Action",
+        S: "URI",
+        URI: PDFString.of(uri),
+      },
+    }),
+  );
+  page.node.addAnnot(annotation);
+}
 
 export async function loadReportFonts(doc: PDFDocument): Promise<ReportFonts> {
   return {

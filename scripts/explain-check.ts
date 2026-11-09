@@ -127,7 +127,7 @@ function sqlFor(scenario: Scenario): string {
           select s.id from stakeholders s
            where s.branch_office_id = $1 and s.status = 'ACTIVE'
         )
-          and cs.status in ('SUBMITTED', 'RESUBMITTED', 'IN_REVIEW')
+          and cs.status = 'SUBMITTED'
         group by cs.status`;
     case "ranking":
       return `with counts as (

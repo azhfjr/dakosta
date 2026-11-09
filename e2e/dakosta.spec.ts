@@ -353,11 +353,16 @@ test.describe("Dasbor Master", () => {
     await expect(hero).toContainText("Total Konten Tervalidasi");
     await expect(hero).toContainText("Cabang dengan Konten");
     const values = hero.locator("p.tabular");
-    await expect(values).toHaveCount(2);
+    await expect(values).toHaveCount(6);
     await expect(values.first()).toHaveText(/^[\d.]+$/);
     await expect(values.nth(1)).toHaveText(
       /^\d+(?:\.\d+)? dari \d+(?:\.\d+)? cabang$/,
     );
+    const shares = hero.locator("[data-stat-share]");
+    await expect(shares).toHaveCount(4);
+    for (let index = 0; index < 4; index += 1) {
+      await expect(shares.nth(index)).toHaveText(/^\d+,\d%$/);
+    }
   });
 
   test("halaman hierarki menampilkan wilayah dan redirect cabang", async ({
@@ -526,7 +531,7 @@ test.describe("Siklus keputusan reviewer cabang", () => {
     );
     expect(resubmitted.status, resubmitted.text).toBe(200);
     expect(resubmitted.body.data?.submission.version).toBe(2);
-    expect(resubmitted.body.data?.submission.status).toBe("RESUBMITTED");
+    expect(resubmitted.body.data?.submission.status).toBe("SUBMITTED");
 
     const baseline = await approvedValue(admin);
     const approval = await decide(branch, created.id, 2, "APPROVE");
@@ -552,7 +557,7 @@ test.describe("Siklus keputusan reviewer cabang", () => {
     );
     expect(rejection.status, rejection.text).toBe(200);
     expect((await submissionDetail(client, created.id)).status).toBe(
-      "REJECTED",
+      "REVISION_REQUIRED",
     );
     expect(await approvedValue(admin)).toBe(baseline);
   });

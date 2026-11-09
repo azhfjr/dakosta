@@ -20,7 +20,11 @@ import {
   isOrganizationInScope,
 } from "@/lib/authz/predicates";
 import { errors, AppError } from "@/lib/errors";
-import { CONTENT_STATUSES, type ContentStatus } from "@/lib/content-status";
+import {
+  CONTENT_STATUSES,
+  normalizeStatus,
+  type ContentStatus,
+} from "@/lib/content-status";
 import { drainOutbox } from "@/lib/notifications";
 import { invalidateReadCache } from "@/lib/read-cache";
 import { assertStakeholderAccess, assertCan } from "@/lib/rbac";
@@ -128,19 +132,14 @@ export type SubmissionDetail = {
   timeline: SubmissionTimelineEntry[];
 };
 
-const STATUS_SET = new Set<string>(CONTENT_STATUSES);
-
 export function assertSubmissionEditable(status: string): void {
-  if (status !== "DRAFT" && status !== "REVISION_REQUIRED") {
+  const normalized = normalizeStatus(status);
+  if (normalized !== "DRAFT" && normalized !== "REVISION_REQUIRED") {
     throw errors.conflict(
       "Konten ini sudah dikirim dan tidak dapat diubah. Muat ulang halaman untuk melihat status terbaru.",
       { status },
     );
   }
-}
-
-function isContentStatus(value: string): value is ContentStatus {
-  return STATUS_SET.has(value);
 }
 
 function isUniqueViolation(error: unknown): boolean {
@@ -162,7 +161,7 @@ function toSaved(
   return {
     id: row.id,
     referenceCode: row.referenceCode,
-    status: isContentStatus(row.status) ? row.status : "DRAFT",
+    status: normalizeStatus(row.status),
     version: row.version,
     submittedAt: row.submittedAt,
     updatedAt: row.updatedAt,
@@ -240,7 +239,7 @@ export async function listSubmissions(
       (isSubTheme(row.subTheme)
         ? SUB_THEME_LABELS[row.subTheme]
         : "Tanpa tema"),
-    status: isContentStatus(row.status) ? row.status : "DRAFT",
+    status: normalizeStatus(row.status),
   }));
 }
 
@@ -266,9 +265,7 @@ export async function getSubmissionStatusCounts(
     CONTENT_STATUSES.map((status) => [status, 0]),
   ) as Record<ContentStatus, number>;
   for (const row of rows) {
-    if (isContentStatus(row.status)) {
-      counts[row.status] = Number(row.total);
-    }
+    counts[normalizeStatus(row.status)] += Number(row.total);
   }
   return counts;
 }
@@ -423,7 +420,7 @@ export async function getSubmissionDetail(
     referenceCode: submission.referenceCode,
     title: submission.title,
     narrative: submission.narrative,
-    status: isContentStatus(submission.status) ? submission.status : "DRAFT",
+    status: normalizeStatus(submission.status),
     version: submission.version,
     platform: submission.platform,
     publishedUrl: submission.publishedUrl,
@@ -753,7 +750,7 @@ export async function saveSubmission(
       schema.contentSubmissions.normalizedUrlHash,
       normalized.normalizedUrlHash,
     ),
-    ne(schema.contentSubmissions.status, "ARCHIVED"),
+    eq(schema.contentSubmissions.archived, false),
   ];
   if (existing) {
     duplicateConditions.push(ne(schema.contentSubmissions.id, existing.id));
@@ -803,10 +800,8 @@ export async function saveSubmission(
         : existing.version;
     const nextStatus: ContentStatus =
       input.action === "SUBMIT"
-        ? isResubmission
-          ? "RESUBMITTED"
-          : "SUBMITTED"
-        : (existing.status as ContentStatus);
+        ? "SUBMITTED"
+        : normalizeStatus(existing.status);
 
     try {
       await db.transaction(async (tx) => {

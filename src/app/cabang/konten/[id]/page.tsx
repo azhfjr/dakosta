@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-const PENDING = new Set(["SUBMITTED", "RESUBMITTED", "IN_REVIEW"]);
+const PENDING = new Set(["SUBMITTED"]);
 
 export default async function BranchContentDetailPage({
   params,

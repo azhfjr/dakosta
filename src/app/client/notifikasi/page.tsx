@@ -17,7 +17,7 @@ export default async function ClientNotificationsPage() {
   const items = await listNotifications(user.id, { limit: 50 });
 
   return (
-    <PageContainer width="narrow">
+    <PageContainer width="wide">
       <PageHeader
         title="Notifikasi"
         description="Keputusan validasi dan pembaruan status konten yang Anda kirimkan."

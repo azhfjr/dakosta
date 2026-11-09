@@ -15,9 +15,8 @@ describe("dashboard view anchors", () => {
     expect(dashboardViewAnchor({ view: "pencapaian-cabang" })).toBe(
       "konten-per-cabang",
     );
-    expect(dashboardViewAnchor({ view: "tren-bulanan" })).toBe(
-      "konten-per-cabang",
-    );
+    expect(dashboardViewAnchor({ view: "tren-bulanan" })).toBe("tren-bulanan");
+    expect(dashboardViewAnchor({ view: "jenis-platform" })).toBe("tema-konten");
   });
 
   it("keeps current anchors stable", () => {

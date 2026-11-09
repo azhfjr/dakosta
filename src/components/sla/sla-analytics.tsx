@@ -1,4 +1,4 @@
-import { Activity, CheckCircle2, Clock, Inbox } from "lucide-react";
+import { Activity, CheckCircle2, Clock, FileText, Inbox } from "lucide-react";
 
 import { ChartFrame, ChartLegendChip } from "@/components/charts/chart-frame";
 import { StatusBadge } from "@/components/content/status-badge";
@@ -10,10 +10,9 @@ import type { SlaAnalytics } from "@/lib/analytics/sla";
 import { periodLabel } from "@/lib/taxonomy";
 
 const VOLUME_SEGMENTS = [
-  { key: "pending", label: "Menunggu" },
+  { key: "pending", label: "Terkirim" },
   { key: "approved", label: "Disetujui" },
-  { key: "revision", label: "Revisi" },
-  { key: "rejected", label: "Ditolak" },
+  { key: "revision", label: "Perlu Revisi" },
   { key: "draft", label: "Draf" },
 ] as const;
 
@@ -21,7 +20,6 @@ const SEGMENT_COLOR: Record<(typeof VOLUME_SEGMENTS)[number]["key"], string> = {
   pending: "var(--status-review)",
   approved: "var(--status-approved)",
   revision: "var(--status-revision)",
-  rejected: "var(--status-rejected)",
   draft: "var(--status-draft)",
 };
 
@@ -69,16 +67,23 @@ export function SlaAnalyticsView({ analytics }: { analytics: SlaAnalytics }) {
             Semua status
           </span>
         </div>
-        <div className="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           <StatCard
-            label="Menunggu keputusan"
+            label="Draf"
+            value={formatNumberId(summary.draft)}
+            hint="Belum dikirim untuk validasi"
+            icon={FileText}
+            tone="neutral"
+          />
+          <StatCard
+            label="Terkirim"
             value={formatNumberId(summary.pending)}
-            hint="Terkirim, kirim ulang, dan ditinjau"
+            hint="Menunggu keputusan admin"
             icon={Inbox}
             tone={summary.pending > 0 ? "amber" : "teal"}
           />
           <StatCard
-            label="Perlu revisi"
+            label="Perlu Revisi"
             value={formatNumberId(summary.revision)}
             hint="Menunggu perbaikan pengirim"
             icon={Clock}
@@ -87,7 +92,7 @@ export function SlaAnalyticsView({ analytics }: { analytics: SlaAnalytics }) {
           <StatCard
             label="Disetujui"
             value={formatNumberId(summary.approved)}
-            hint="Keputusan approval final pada periode"
+            hint="Dihitung sebagai capaian"
             icon={CheckCircle2}
             tone="green"
           />
@@ -98,7 +103,7 @@ export function SlaAnalyticsView({ analytics }: { analytics: SlaAnalytics }) {
                 ? "N/A"
                 : `${formatNumberId(summary.approvalRate)}%`
             }
-            hint="Disetujui dibagi seluruh keputusan"
+            hint="Disetujui dibagi disetujui + perlu revisi"
             icon={Activity}
             tone="blue"
           />
@@ -138,7 +143,7 @@ export function SlaAnalyticsView({ analytics }: { analytics: SlaAnalytics }) {
                     <div
                       className="mt-1 flex h-2.5 w-full overflow-hidden rounded-full bg-surface-muted"
                       role="img"
-                      aria-label={`${point.label}: ${point.total} konten, ${point.pending} menunggu, ${point.approved} disetujui, ${point.revision} revisi, ${point.rejected} ditolak`}
+                      aria-label={`${point.label}: ${point.total} konten, ${point.pending} terkirim, ${point.approved} disetujui, ${point.revision} perlu revisi, ${point.draft} draf`}
                     >
                       {VOLUME_SEGMENTS.map((segment) => {
                         const value = point[segment.key];

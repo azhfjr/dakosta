@@ -1,14 +1,21 @@
-import { cache, Suspense } from "react";
+import { cache, Suspense, type ReactNode } from "react";
 import { Building2 } from "lucide-react";
 
 import { BranchChecklist } from "@/components/dashboard/branch-checklist";
 import { CategoryRankingPanel } from "@/components/dashboard/category-ranking";
+import {
+  ContentTypePanel,
+  ContentTypeTrendChart,
+  ThemeTrendChart,
+} from "@/components/dashboard/content-type-panel";
 import { DashboardMapSection } from "@/components/dashboard/dashboard-map";
 import {
+  DashboardChartSkeleton,
   DashboardErrorState,
   DashboardSectionBoundary,
   DashboardSectionSkeleton,
 } from "@/components/dashboard/dashboard-states";
+import { MonthlyTrendChart } from "@/components/dashboard/monthly-trend-chart";
 import {
   RankedBarChart,
   type RankedBarRow,
@@ -92,12 +99,64 @@ export function DashboardOverview({
         fallback={
           <DashboardSectionSkeleton
             label="Memuat ringkasan…"
-            rows={variant === "stakeholder" ? 4 : 2}
+            rows={variant === "stakeholder" ? 3 : 6}
           />
         }
       >
         <SummarySection user={user} params={params} variant={variant} />
       </Suspense>
+      {sections.includes("konten-per-cabang") ? (
+        <Suspense
+          fallback={
+            <DashboardChartSkeleton label="Memuat konten per cabang…" />
+          }
+        >
+          <BranchChartSection user={user} />
+        </Suspense>
+      ) : null}
+      {sections.includes("konten-per-institusi") ? (
+        <Suspense
+          fallback={
+            <DashboardChartSkeleton label="Memuat konten per institusi…" />
+          }
+        >
+          <InstitutionChartSection
+            user={user}
+            params={params}
+            variant={variant}
+          />
+        </Suspense>
+      ) : null}
+      {sections.includes("jenis-konten") ? (
+        <Suspense
+          fallback={<DashboardChartSkeleton label="Memuat jenis konten…" />}
+        >
+          <ContentTypeSection user={user} params={params} variant={variant} />
+        </Suspense>
+      ) : null}
+      {sections.includes("tren-bulanan") ? (
+        <Suspense
+          fallback={<DashboardChartSkeleton label="Memuat tren bulanan…" />}
+        >
+          <TrendSection user={user} params={params} variant={variant} />
+        </Suspense>
+      ) : null}
+      {sections.includes("tren-jenis-konten") ? (
+        <Suspense
+          fallback={
+            <DashboardChartSkeleton label="Memuat tren jenis konten…" />
+          }
+        >
+          <TypeTrendSection user={user} params={params} variant={variant} />
+        </Suspense>
+      ) : null}
+      {sections.includes("tren-tema") ? (
+        <Suspense
+          fallback={<DashboardChartSkeleton label="Memuat tren tema…" />}
+        >
+          <ThemeTrendSection user={user} params={params} variant={variant} />
+        </Suspense>
+      ) : null}
       {showCollaboration ? (
         <Suspense
           fallback={
@@ -192,23 +251,222 @@ async function SummarySection({
       title="Ringkasan gagal ditampilkan"
       description="Data berhasil diambil tetapi tampilan gagal dirender. Muat ulang bagian ini."
     >
-      <div className="space-y-4 sm:space-y-5">
-        {variant === "stakeholder" && filtered ? (
-          <StakeholderScorecards summary={summary} filtered={filtered} />
-        ) : variant === "branch" && filtered ? (
-          <BranchScopeScorecards summary={summary} filtered={filtered} />
-        ) : (
-          <SummaryScorecards summary={summary} />
-        )}
-        {variant === "branch" && filtered ? (
-          <InstitutionChart chart={filtered.institutionChart} />
-        ) : null}
-        {variant === "national" || variant === "regional" ? (
-          <BranchChart summary={summary} />
-        ) : null}
-      </div>
+      {variant === "stakeholder" && filtered ? (
+        <StakeholderScorecards summary={summary} filtered={filtered} />
+      ) : variant === "branch" && filtered ? (
+        <BranchScopeScorecards summary={summary} filtered={filtered} />
+      ) : (
+        <SummaryScorecards summary={summary} />
+      )}
     </DashboardSectionBoundary>
   );
+}
+
+async function BranchChartSection({ user }: { user: SessionUser }) {
+  let summary: DashboardSummary;
+  try {
+    summary = await summaryForRequest(user);
+  } catch (error) {
+    console.error("[dashboard] grafik cabang gagal dimuat", error);
+    return (
+      <DashboardErrorState
+        title="Grafik cabang belum dapat dimuat"
+        description="Ringkasan di atas tidak terpengaruh. Coba lagi tanpa mengubah filter."
+      />
+    );
+  }
+
+  return (
+    <DashboardSectionBoundary
+      title="Grafik cabang gagal ditampilkan"
+      description="Data berhasil diambil tetapi tampilan gagal dirender. Muat ulang bagian ini."
+    >
+      <BranchChart summary={summary} />
+    </DashboardSectionBoundary>
+  );
+}
+
+async function InstitutionChartSection({
+  user,
+  params,
+  variant,
+}: {
+  user: SessionUser;
+  params: FilterParams;
+  variant: DashboardVariant;
+}) {
+  return (
+    <FilteredSection
+      user={user}
+      params={params}
+      variant={variant}
+      errorTitle="Grafik institusi belum dapat dimuat"
+      errorDescription="Ringkasan di atas tidak terpengaruh. Coba lagi tanpa mengubah filter."
+    >
+      {(filtered) => (
+        <DashboardSectionBoundary
+          title="Grafik institusi gagal ditampilkan"
+          description="Data berhasil diambil tetapi tampilan gagal dirender. Muat ulang bagian ini."
+        >
+          <InstitutionChart chart={filtered.institutionChart} />
+        </DashboardSectionBoundary>
+      )}
+    </FilteredSection>
+  );
+}
+
+async function ContentTypeSection({
+  user,
+  params,
+  variant,
+}: {
+  user: SessionUser;
+  params: FilterParams;
+  variant: DashboardVariant;
+}) {
+  return (
+    <FilteredSection
+      user={user}
+      params={params}
+      variant={variant}
+      errorTitle="Jenis konten belum dapat dimuat"
+      errorDescription="Sebaran jenis konten tidak tersedia saat ini. Bagian lain tidak terpengaruh."
+    >
+      {(filtered) => (
+        <DashboardSectionBoundary
+          title="Jenis konten gagal ditampilkan"
+          description="Data berhasil diambil tetapi tampilan gagal dirender. Muat ulang bagian ini."
+        >
+          <ContentTypePanel
+            slices={filtered.contentTypes}
+            scopeDescription={scopeDescription(variant)}
+          />
+        </DashboardSectionBoundary>
+      )}
+    </FilteredSection>
+  );
+}
+
+async function TrendSection({
+  user,
+  params,
+  variant,
+}: {
+  user: SessionUser;
+  params: FilterParams;
+  variant: DashboardVariant;
+}) {
+  return (
+    <FilteredSection
+      user={user}
+      params={params}
+      variant={variant}
+      errorTitle="Tren bulanan belum dapat dimuat"
+      errorDescription="Tren 12 bulan terakhir tidak tersedia saat ini. Bagian lain tidak terpengaruh."
+    >
+      {(filtered) => (
+        <DashboardSectionBoundary
+          title="Tren bulanan gagal ditampilkan"
+          description="Data berhasil diambil tetapi tampilan gagal dirender. Muat ulang bagian ini."
+        >
+          <MonthlyTrendChart
+            series={filtered.monthly}
+            scopeDescription={scopeDescription(variant)}
+          />
+        </DashboardSectionBoundary>
+      )}
+    </FilteredSection>
+  );
+}
+
+async function TypeTrendSection({
+  user,
+  params,
+  variant,
+}: {
+  user: SessionUser;
+  params: FilterParams;
+  variant: DashboardVariant;
+}) {
+  return (
+    <FilteredSection
+      user={user}
+      params={params}
+      variant={variant}
+      errorTitle="Tren jenis konten belum dapat dimuat"
+      errorDescription="Tren per jenis konten tidak tersedia saat ini. Bagian lain tidak terpengaruh."
+    >
+      {(filtered) => (
+        <DashboardSectionBoundary
+          title="Tren jenis konten gagal ditampilkan"
+          description="Data berhasil diambil tetapi tampilan gagal dirender. Muat ulang bagian ini."
+        >
+          <ContentTypeTrendChart
+            trends={filtered.typeMonthly}
+            months={filtered.monthly.points}
+            scopeDescription={scopeDescription(variant)}
+          />
+        </DashboardSectionBoundary>
+      )}
+    </FilteredSection>
+  );
+}
+
+async function ThemeTrendSection({
+  user,
+  params,
+  variant,
+}: {
+  user: SessionUser;
+  params: FilterParams;
+  variant: DashboardVariant;
+}) {
+  return (
+    <FilteredSection
+      user={user}
+      params={params}
+      variant={variant}
+      errorTitle="Tren tema belum dapat dimuat"
+      errorDescription="Tren EDUFAST dan Non-EDUFAST tidak tersedia saat ini. Bagian lain tidak terpengaruh."
+    >
+      {(filtered) => (
+        <DashboardSectionBoundary
+          title="Tren tema gagal ditampilkan"
+          description="Data berhasil diambil tetapi tampilan gagal dirender. Muat ulang bagian ini."
+        >
+          <ThemeTrendChart
+            trends={filtered.themeMonthly}
+            months={filtered.monthly.points}
+            scopeDescription={scopeDescription(variant)}
+          />
+        </DashboardSectionBoundary>
+      )}
+    </FilteredSection>
+  );
+}
+
+async function FilteredSection({
+  user,
+  params,
+  variant,
+  errorTitle,
+  errorDescription,
+  children,
+}: {
+  user: SessionUser;
+  params: FilterParams;
+  variant: DashboardVariant;
+  errorTitle: string;
+  errorDescription: string;
+  children: (filtered: DashboardFiltered) => ReactNode;
+}) {
+  const result = await loadFiltered(user, params, variant);
+  if (!result.ok) {
+    return (
+      <DashboardErrorState title={errorTitle} description={errorDescription} />
+    );
+  }
+  return <>{children(result.filtered)}</>;
 }
 
 // Ten named bars stay readable inside the 380px chart budget; the remainder
@@ -400,7 +658,11 @@ function CollaborationView({
           />
         ))}
       </div>
-      <DashboardMapSection map={filtered.map} styleUrl={styleUrl} />
+      <DashboardMapSection
+        map={filtered.map}
+        styleUrl={styleUrl}
+        variant={variant}
+      />
     </section>
   );
 }

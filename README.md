@@ -59,10 +59,13 @@ mencabut sesi dan berlaku pada permintaan berikutnya.
 
 ## Alur konten, revisi, dan EDUFAST
 
-Status: `DRAFT → SUBMITTED → IN_REVIEW → APPROVED`;
-`REVISION_REQUIRED → RESUBMITTED → IN_REVIEW`; `REJECTED` (final);
-`REVOKED` (koreksi Master, teraudit). `REVISION_REQUIRED` adalah padanan
-persisten dari `REVISION_REQUESTED` pada kontrak.
+Status: `DRAFT → SUBMITTED → APPROVED`; `SUBMITTED → REVISION_REQUIRED →
+SUBMITTED` untuk revisi; `APPROVED → REVISION_REQUIRED` untuk pencabutan
+teraudit oleh Master. Hanya empat nilai status yang disimpan di database:
+`DRAFT`, `SUBMITTED`, `REVISION_REQUIRED`, `APPROVED`. Keputusan reviewer
+tetap tercatat lengkap di riwayat (`APPROVE`, `REQUEST_REVISION`, `REJECT`,
+`REVOKE`); `REJECT` dan `REVOKE` mengembalikan konten sebagai
+`REVISION_REQUIRED` agar dapat diperbaiki dan dikirim ulang.
 
 - Wizard pelaporan tidak memilih organisasi; organisasi diturunkan dari
   membership dan ditampilkan sebagai badge baca-saja (`organisasi • FKTP/FKRTL •

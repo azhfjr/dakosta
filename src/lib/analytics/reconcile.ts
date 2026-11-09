@@ -43,7 +43,7 @@ export async function reconcileRegion(
       .select({
         branchId: schema.stakeholders.branchOfficeId,
         approved: sql<number>`count(*) filter (where ${schema.contentSubmissions.status} = 'APPROVED')`,
-        pending: sql<number>`count(*) filter (where ${schema.contentSubmissions.status} in ('SUBMITTED','IN_REVIEW','RESUBMITTED'))`,
+        pending: sql<number>`count(*) filter (where ${schema.contentSubmissions.status} = 'SUBMITTED')`,
         organizations: sql<number>`count(distinct ${schema.contentSubmissions.stakeholderId})`,
       })
       .from(schema.contentSubmissions)
@@ -75,7 +75,7 @@ export async function reconcileRegion(
   const [regionAggregate] = await db
     .select({
       approved: sql<number>`count(*) filter (where ${schema.contentSubmissions.status} = 'APPROVED')`,
-      pending: sql<number>`count(*) filter (where ${schema.contentSubmissions.status} in ('SUBMITTED','IN_REVIEW','RESUBMITTED'))`,
+      pending: sql<number>`count(*) filter (where ${schema.contentSubmissions.status} = 'SUBMITTED')`,
     })
     .from(schema.contentSubmissions)
     .innerJoin(

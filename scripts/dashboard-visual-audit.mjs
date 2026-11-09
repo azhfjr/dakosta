@@ -1,14 +1,15 @@
 /**
- * Dashboard v3.5 role-aware visual audit.
+ * Dashboard v3.6 role-aware visual audit.
  *
  * Captures the four roles at desktop, tablet, and mobile widths against an
  * already-running local/staging server. Requires `e2e/.auth/*.json` sessions
  * produced by the E2E global setup. Never prints credentials.
  *
- * Gating verifies the v3.5 composition per role (national/regional branch
- * chart, branch institution chart, stakeholder KPI + theme only), proportional
- * charts/map/donut, header actions on the right, spacing bands, equal-height
- * panel pairs, and zero overlaps or clipped labels.
+ * Gating verifies the v3.6 composition per role (category scorecard shares,
+ * national/regional branch chart, branch institution chart, 12-column monthly
+ * trend, stakeholder type donut + three trends, theme only), proportional
+ * charts/map/donut, 240px sidebar, header actions on the right, spacing bands,
+ * equal-height panel pairs, and zero overlaps or clipped labels.
  *
  *   PLAYWRIGHT_BASE_URL=http://localhost:3400 node scripts/dashboard-visual-audit.mjs
  */
@@ -33,6 +34,7 @@ const ROLES = [
     sections: [
       "ringkasan",
       "konten-per-cabang",
+      "tren-bulanan",
       "kolaborasi",
       "pilih-cabang",
       "fkrtl",
@@ -56,6 +58,7 @@ const ROLES = [
     sections: [
       "ringkasan",
       "konten-per-cabang",
+      "tren-bulanan",
       "kolaborasi",
       "pilih-cabang",
       "fkrtl",
@@ -79,6 +82,7 @@ const ROLES = [
     sections: [
       "ringkasan",
       "konten-per-institusi",
+      "tren-bulanan",
       "kolaborasi",
       "fkrtl",
       "fktp",
@@ -98,7 +102,16 @@ const ROLES = [
     chartId: null,
     hasFilter: false,
     hasCollaboration: false,
-    sections: ["ringkasan", "edufast", "non-edufast", "tema-konten"],
+    sections: [
+      "ringkasan",
+      "jenis-konten",
+      "tren-bulanan",
+      "tren-jenis-konten",
+      "tren-tema",
+      "edufast",
+      "non-edufast",
+      "tema-konten",
+    ],
   },
 ];
 
@@ -111,11 +124,18 @@ const VIEWPORTS = [
 const CHART_WIDTH_MIN = { 1440: 1000, 768: 600, 375: 280 };
 const MAP_WIDTH_MIN = { 1440: 1000, 768: 600, 375: 280 };
 
-const outDir = join("docs", "audit", "evidence", "dashboard-v35");
+const outDir =
+  process.env.AUDIT_OUT ?? join("docs", "audit", "evidence", "dashboard-v36");
 
 function gapPairsFor(role, viewport) {
   if (!role.hasCollaboration) {
-    return [["ringkasan", "tema-konten", 20, 32]];
+    return [
+      ["ringkasan", "jenis-konten", 20, 32],
+      ["jenis-konten", "tren-bulanan", 20, 32],
+      ["tren-bulanan", "tren-jenis-konten", 20, 32],
+      ["tren-jenis-konten", "tren-tema", 20, 32],
+      ["tren-tema", "tema-konten", 20, 32],
+    ];
   }
   // Below `sm` the ranking grid stacks into one column, so only consecutive
   // panels are adjacent; measuring fkrtl→pemda there would span a whole panel.
@@ -132,7 +152,8 @@ function gapPairsFor(role, viewport) {
         ];
   return [
     ["ringkasan", role.chartId, 12, 32],
-    [role.chartId, "kolaborasi", 20, 32],
+    [role.chartId, "tren-bulanan", 20, 32],
+    ["tren-bulanan", "kolaborasi", 20, 32],
     ...(role.hasFilter ? [["pilih-cabang", "fkrtl", 12, 32]] : []),
     ...rankingPairs,
     ["stakeholder", "peta", 12, 32],
@@ -142,7 +163,7 @@ function gapPairsFor(role, viewport) {
 
 async function measureLayout(page, role, gapPairs) {
   return page.evaluate(
-    ({ gapPairs, panelIds, chartId, hasCollaboration }) => {
+    ({ gapPairs, panelIds, chartId, hasCollaboration, requiredMonthly }) => {
       function box(node) {
         if (!node) return null;
         const rect = node.getBoundingClientRect();
@@ -264,6 +285,55 @@ async function measureLayout(page, role, gapPairs) {
           ?.textContent?.includes("Belum ada konten Non-EDUFAST"),
       );
 
+      const monthlyNodes = [
+        ...document.querySelectorAll("[data-monthly-chart]"),
+      ].map((node) => {
+        const section = node.closest("section");
+        const rect = node.getBoundingClientRect();
+        return {
+          id: section?.id ?? null,
+          width: rect.width,
+          height: rect.height,
+          bars: node.querySelectorAll(".recharts-bar-rectangle").length,
+          // Zero-filled months render no rectangle group, so the accessible
+          // table is the honest witness that the series spans 12 months.
+          months: section
+            ? section.querySelectorAll("table tbody tr").length
+            : 0,
+          svg: node.querySelector("svg") !== null,
+          innerOverflow: node.scrollWidth - node.clientWidth,
+        };
+      });
+      const monthlyEmpty = requiredMonthly.filter((id) => {
+        const section = document.getElementById(id);
+        return (
+          section &&
+          !section.querySelector("[data-monthly-chart]") &&
+          Boolean(section.textContent?.includes("Belum ada konten tervalidasi"))
+        );
+      });
+
+      const summaryNode = document.getElementById("ringkasan");
+      const shareNodes = summaryNode
+        ? [...summaryNode.querySelectorAll("[data-stat-share]")]
+        : [];
+      const scorecards = {
+        count: summaryNode
+          ? summaryNode.querySelectorAll("[data-dashboard-panel]").length
+          : 0,
+        shares: shareNodes.map((node) => node.getAttribute("data-stat-share")),
+        text: summaryNode?.textContent ?? "",
+      };
+
+      const asideNode = document.querySelector("aside");
+      const sidebarWidth = asideNode
+        ? asideNode.getBoundingClientRect().width
+        : null;
+      const mapTier =
+        document
+          .querySelector("[data-map-tier]")
+          ?.getAttribute("data-map-tier") ?? null;
+
       const overlaps = [];
       function check(name, left, right) {
         if (!left || !right) return;
@@ -288,9 +358,25 @@ async function measureLayout(page, role, gapPairs) {
       if (hasCollaboration) {
         check("pilih-cabang-fkrtl", byId("pilih-cabang"), byId("fkrtl"));
         check("ringkasan-grafik", byId("ringkasan"), byId(chartId));
+        check("grafik-tren", byId(chartId), byId("tren-bulanan"));
+        check("tren-kolaborasi", byId("tren-bulanan"), byId("kolaborasi"));
         check("stakeholder-peta", byId("stakeholder"), byId("peta"));
         check("peta-tema", byId("peta"), byId("tema-konten"));
         check("judul-peta-kanvas", byId("peta-judul"), map);
+      } else {
+        check("ringkasan-jenis", byId("ringkasan"), byId("jenis-konten"));
+        check("jenis-tren", byId("jenis-konten"), byId("tren-bulanan"));
+        check(
+          "tren-tren-jenis",
+          byId("tren-bulanan"),
+          byId("tren-jenis-konten"),
+        );
+        check(
+          "tren-jenis-tren-tema",
+          byId("tren-jenis-konten"),
+          byId("tren-tema"),
+        );
+        check("tren-tema-tema", byId("tren-tema"), byId("tema-konten"));
       }
       check("donut-legenda", donut, legend);
       check("edufast-non-edufast", byId("edufast"), byId("non-edufast"));
@@ -319,9 +405,14 @@ async function measureLayout(page, role, gapPairs) {
         chartEmpty,
         map,
         mapEmpty,
+        mapTier,
         donut,
         legend,
         themeEmpty,
+        monthlyNodes,
+        monthlyEmpty,
+        scorecards,
+        sidebarWidth,
         rankingTrackMin: tracks.length > 0 ? Math.min(...tracks) : null,
         rankingTrackMax: tracks.length > 0 ? Math.max(...tracks) : null,
         panelRows,
@@ -333,6 +424,10 @@ async function measureLayout(page, role, gapPairs) {
       panelIds: ["fkrtl", "fktp", "pemda", "stakeholder"],
       chartId: role.chartId,
       hasCollaboration: role.hasCollaboration,
+      requiredMonthly:
+        role.variant === "stakeholder"
+          ? ["tren-bulanan", "tren-jenis-konten", "tren-tema"]
+          : ["tren-bulanan"],
     },
   );
 }
@@ -488,6 +583,53 @@ async function main() {
                   Math.abs(left.height - right.height) <= 2),
             );
 
+          const expectedCards = role.variant === "stakeholder" ? 3 : 6;
+          const shareValues = layout.scorecards.shares.map((value) =>
+            Number.parseFloat(String(value).replace("%", "").replace(",", ".")),
+          );
+          const shareSum = shareValues.reduce((sum, value) => sum + value, 0);
+          const sharesBalanced =
+            shareValues.length === 0 ||
+            shareValues.every((value) => value === 0) ||
+            Math.abs(shareSum - 100) <= 0.11;
+          const scorecardsOk =
+            layout.scorecards.count === expectedCards &&
+            (role.variant === "stakeholder"
+              ? layout.scorecards.shares.length === 0 &&
+                !layout.scorecards.text.includes("Institusi dengan Konten") &&
+                !layout.scorecards.text.includes("FKRTL")
+              : layout.scorecards.shares.length === 4 && sharesBalanced);
+
+          const requiredMonthly =
+            role.variant === "stakeholder"
+              ? ["tren-bulanan", "tren-jenis-konten", "tren-tema"]
+              : ["tren-bulanan"];
+          const monthlyOk = requiredMonthly.every((id) => {
+            if (layout.monthlyEmpty.includes(id)) return true;
+            const monthly = layout.monthlyNodes.find(
+              (entry) => entry.id === id,
+            );
+            return Boolean(
+              monthly &&
+              monthly.width >= CHART_WIDTH_MIN[viewport.name] &&
+              monthly.height >= 220 &&
+              monthly.height <= 260 &&
+              monthly.svg &&
+              monthly.months === 12 &&
+              monthly.bars >= 1 &&
+              monthly.innerOverflow <= 1,
+            );
+          });
+
+          const sidebarOk =
+            viewport.width < 1024
+              ? true
+              : Math.round(layout.sidebarWidth ?? 0) === 240;
+          const mapTierOk =
+            !role.hasCollaboration ||
+            mapState !== "ready" ||
+            ["region", "branch", "institution"].includes(layout.mapTier);
+
           const layoutOk =
             layout.overflow <= 1 &&
             layout.overlaps.length === 0 &&
@@ -498,7 +640,11 @@ async function main() {
             mapOk &&
             themeOk &&
             rankingOk &&
-            panelRowsOk;
+            panelRowsOk &&
+            scorecardsOk &&
+            monthlyOk &&
+            sidebarOk &&
+            mapTierOk;
 
           const screenshot = join(outDir, `${role.name}-${viewport.name}.png`);
           await page.screenshot({
@@ -535,6 +681,22 @@ async function main() {
               overlaps: layout.overlaps,
               headerRightAligned: headerOk,
               panelRowsOk,
+              scorecards: {
+                count: layout.scorecards.count,
+                shares: layout.scorecards.shares,
+                sum: Number(shareSum.toFixed(1)),
+              },
+              monthly: layout.monthlyNodes.map((entry) => ({
+                id: entry.id,
+                width: Math.round(entry.width),
+                height: Math.round(entry.height),
+                bars: entry.bars,
+                months: entry.months,
+              })),
+              monthlyEmpty: layout.monthlyEmpty,
+              sidebarWidth:
+                viewport.width < 1024 ? null : Math.round(layout.sidebarWidth),
+              mapTier: layout.mapTier,
             },
             consoleErrors,
             pageErrors,
@@ -557,7 +719,9 @@ async function main() {
               layout.map
                 ? `${Math.round(layout.map.width)}x${Math.round(layout.map.height)}`
                 : "kosong"
-            }, gap ${
+            }, kartu ${layout.scorecards.count}/${layout.scorecards.shares.length} share, tren ${layout.monthlyNodes
+              .map((entry) => `${entry.bars} bar/${entry.months} bln`)
+              .join("/")}, sidebar ${Math.round(layout.sidebarWidth)}px, gap ${
               gapViolations.length > 0
                 ? `LANGAR ${gapViolations
                     .map((gap) => `${gap.from}→${gap.to} ${gap.gap}px`)

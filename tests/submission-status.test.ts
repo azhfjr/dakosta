@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { PENDING_STATUSES } from "@/lib/content-status";
+import { PENDING_STATUSES, normalizeStatus } from "@/lib/content-status";
 import { AppError } from "@/lib/errors";
 import { assertSubmissionEditable } from "@/lib/submissions";
 
@@ -21,16 +21,15 @@ describe("submission edit gate", () => {
     ).toBeNull();
   });
 
-  it("rejects terminal and in-flight statuses with an actionable conflict", () => {
-    for (const status of [
-      "SUBMITTED",
-      "RESUBMITTED",
-      "IN_REVIEW",
-      "APPROVED",
-      "REJECTED",
-      "REVOKED",
-      "ARCHIVED",
-    ]) {
+  it("allows legacy revision statuses after normalization", () => {
+    for (const status of ["REJECTED", "REVOKED"]) {
+      expect(normalizeStatus(status)).toBe("REVISION_REQUIRED");
+      expect(codeOf(() => assertSubmissionEditable(status))).toBeNull();
+    }
+  });
+
+  it("rejects in-flight and approved statuses with an actionable conflict", () => {
+    for (const status of ["SUBMITTED", "APPROVED"]) {
       expect(codeOf(() => assertSubmissionEditable(status))).toBe("CONFLICT");
     }
   });
@@ -38,10 +37,6 @@ describe("submission edit gate", () => {
 
 describe("review gate", () => {
   it("keeps every status that a reviewer may decide", () => {
-    expect([...PENDING_STATUSES].sort()).toEqual([
-      "IN_REVIEW",
-      "RESUBMITTED",
-      "SUBMITTED",
-    ]);
+    expect([...PENDING_STATUSES]).toEqual(["SUBMITTED"]);
   });
 });

@@ -5,13 +5,14 @@ import { getDb, schema } from "@/db";
 import { getRequestId, jsonError } from "@/lib/api";
 import { recordAudit } from "@/lib/audit";
 import {
-  CONTENT_STATUSES,
   PLATFORM_LABEL,
   STATUS_LABEL,
+  normalizeStatus,
 } from "@/lib/content-status";
 import { csvBody, csvFileName, csvHeaderLine } from "@/lib/csv";
 import { formatDateId, formatDateTimeId } from "@/lib/dates";
 import { errors } from "@/lib/errors";
+import { parseFilterStatus } from "@/lib/filters/query";
 import {
   consumeRateLimit,
   getClientIp,
@@ -23,6 +24,7 @@ import {
   isOrganizationInScope,
 } from "@/lib/authz/predicates";
 import { getApiUser } from "@/lib/session";
+import { absoluteContentUrl } from "@/lib/reports/content-links";
 import {
   currentPeriod,
   isContentType,
@@ -40,7 +42,6 @@ import {
   jakartaDayEndExclusive,
   jakartaDayStart,
 } from "@/lib/analytics/approved";
-import { parseOrgType } from "@/lib/filters/org-type";
 import { monthRange } from "@/lib/kpi/formulas";
 import { parsePeriod } from "@/lib/periods";
 
@@ -69,7 +70,7 @@ const HEADERS = [
   "Label lokasi",
   "Presisi",
   "Status verifikasi lokasi",
-  "URL terbit",
+  "Tautan Konten",
   "Sumber data",
 ];
 
@@ -105,10 +106,8 @@ export async function GET(request: Request) {
     }
 
     const rawStatus = url.searchParams.get("status");
-    const status =
-      rawStatus && (CONTENT_STATUSES as readonly string[]).includes(rawStatus)
-        ? rawStatus
-        : null;
+    const parsedStatus = parseFilterStatus(rawStatus ?? undefined, "ALL");
+    const status = parsedStatus === "ALL" ? null : parsedStatus;
     const stakeholderId = param(url.searchParams, "stakeholderId");
     const rawSubTheme = url.searchParams.get("subTheme");
     const subTheme = isSubTheme(rawSubTheme) ? rawSubTheme : null;
@@ -124,7 +123,6 @@ export async function GET(request: Request) {
       url.searchParams.get("attribution") === "date_created"
         ? "date_created"
         : "approved_at";
-    const orgType = parseOrgType(url.searchParams.get("orgType") ?? undefined);
     const rawMainTheme = url.searchParams.get("mainTheme");
     const mainTheme = isMainTheme(rawMainTheme) ? rawMainTheme : null;
     const rawPlatform = url.searchParams.get("platform");
@@ -184,9 +182,6 @@ export async function GET(request: Request) {
       conditions.push(
         eq(schema.contentSubmissions.stakeholderId, stakeholderId),
       );
-    }
-    if (orgType) {
-      conditions.push(eq(schema.stakeholders.organizationType, orgType));
     }
     if (mainTheme) {
       conditions.push(eq(schema.contentSubmissions.mainTheme, mainTheme));
@@ -258,6 +253,7 @@ export async function GET(request: Request) {
     async function fetchChunk(offset: number) {
       return db
         .select({
+          id: schema.contentSubmissions.id,
           referenceCode: schema.contentSubmissions.referenceCode,
           title: schema.contentSubmissions.title,
           stakeholderName: schema.stakeholders.name,
@@ -341,8 +337,7 @@ export async function GET(request: Request) {
                       ? (CONTENT_TYPE_LABELS[row.contentType as ContentType] ??
                         row.contentType)
                       : "Belum ditentukan",
-                    STATUS_LABEL[row.status as keyof typeof STATUS_LABEL] ??
-                      row.status,
+                    STATUS_LABEL[normalizeStatus(row.status)],
                     formatDateId(row.dateCreated),
                     formatDateTimeId(row.submittedAt),
                     formatDateTimeId(row.approvedAt),
@@ -352,7 +347,11 @@ export async function GET(request: Request) {
                     row.verifiedStatus === "VERIFIED"
                       ? "Terverifikasi"
                       : "Belum diverifikasi",
-                    row.publishedUrl,
+                    absoluteContentUrl({
+                      role: user.role,
+                      id: row.id,
+                      publishedUrl: row.publishedUrl,
+                    }),
                     "DEMO",
                   ]),
                 ),

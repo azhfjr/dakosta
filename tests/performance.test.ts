@@ -22,7 +22,7 @@ describe("performance filters", () => {
     expect(filters.q).toBeNull();
   });
 
-  it("parses period, branch, source, status, and numeric ranges", () => {
+  it("parses period, branch, source, and status and ignores numeric ranges", () => {
     const filters = parsePerformanceFilters(
       new URLSearchParams({
         period: "2026-Q4",
@@ -45,10 +45,6 @@ describe("performance filters", () => {
     expect(filters.source).toBe("FASKES_FKTP");
     expect(filters.status).toBe("BELOW");
     expect(filters.q).toBe("klinik");
-    expect(filters.percentMin).toBe(10.5);
-    expect(filters.percentMax).toBe(80);
-    expect(filters.approvedMin).toBe(2);
-    expect(filters.targetMin).toBe(5);
     expect(filters.sort).toBe("percent");
     expect(filters.direction).toBe("asc");
     expect(filters.page).toBe(3);
@@ -76,8 +72,9 @@ describe("performance filters", () => {
     expect(filters.direction).toBe("desc");
     expect(filters.page).toBe(1);
     expect(filters.pageSize).toBe(25);
-    expect(filters.percentMin).toBeNull();
-    expect(filters.approvedMax).toBeNull();
+    expect(buildPerformanceQuery(filters)).not.toMatch(
+      /pmin|pmax|rmin|rmax|tmin|tmax/,
+    );
   });
 
   it("caps the search term at 80 characters", () => {

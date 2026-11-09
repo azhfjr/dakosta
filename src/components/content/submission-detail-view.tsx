@@ -44,6 +44,7 @@ const REVIEW_ACTION_LABEL: Record<string, string> = {
   APPROVE: "Disetujui",
   REQUEST_REVISION: "Diminta revisi",
   REJECT: "Ditolak",
+  REVOKE: "Dicabut",
 };
 
 function coordinates(latitude: number, longitude: number): string {
@@ -55,13 +56,17 @@ export function SubmissionDetailView({
   backHref,
   backLabel,
   decisionNote,
+  actions,
   aside,
+  securityNote,
 }: {
   detail: SubmissionDetail;
   backHref: string;
   backLabel: string;
   decisionNote?: ReactNode;
+  actions?: ReactNode;
   aside?: ReactNode;
+  securityNote?: ReactNode;
 }) {
   const mapLink = detail.location
     ? `https://www.openstreetmap.org/?mlat=${detail.location.latitude}&mlon=${detail.location.longitude}#map=16/${detail.location.latitude}/${detail.location.longitude}`
@@ -93,7 +98,7 @@ export function SubmissionDetailView({
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            <h1 className="text-xl font-semibold tracking-tight break-words text-foreground sm:text-2xl">
               {detail.title ?? "(tanpa judul)"}
             </h1>
             <StatusBadge status={detail.status} />
@@ -101,24 +106,31 @@ export function SubmissionDetailView({
               v{detail.version}
             </span>
           </div>
-          <p className="mt-1 text-sm text-ink-muted">
-            {detail.referenceCode} · dikirim{" "}
+          <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">
+            <span className="font-mono text-xs">{detail.referenceCode}</span>
+            {" · dikirim "}
             {formatDateTimeId(detail.submittedAt)} WIB
+            {detail.approvedAt
+              ? ` · disetujui ${formatDateTimeId(detail.approvedAt)} WIB`
+              : ""}
             {detail.resubmissionCount > 0
               ? ` · ${detail.resubmissionCount}× dikirim ulang`
               : ""}
           </p>
         </div>
-        <Button asChild variant="outline" className="h-10 self-start">
-          <a
-            href={detail.publishedUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Buka konten
-            <ExternalLink className="ml-1.5 size-4" aria-hidden />
-          </a>
-        </Button>
+        <div className="flex flex-wrap items-center gap-2 self-start">
+          {actions}
+          <Button asChild variant="outline" className="h-10">
+            <a
+              href={detail.publishedUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Buka konten
+              <ExternalLink className="ml-1.5 size-4" aria-hidden />
+            </a>
+          </Button>
+        </div>
       </header>
 
       {decisionNote ? (
@@ -127,11 +139,11 @@ export function SubmissionDetailView({
         </div>
       ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(340px,1fr)]">
-        <div className="space-y-6">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(340px,1fr)] xl:gap-6">
+        <div className="space-y-5 sm:space-y-6">
           <section
             aria-labelledby="konten-title"
-            className="rounded-xl border border-border bg-surface p-5 shadow-sm"
+            className="rounded-xl border border-border bg-surface p-4 shadow-sm sm:p-5"
           >
             <h2
               id="konten-title"
@@ -143,23 +155,23 @@ export function SubmissionDetailView({
               {detail.narrative}
             </p>
 
-            <dl className="mt-5 grid gap-4 border-t border-border pt-4 sm:grid-cols-2">
-              <div>
+            <dl className="mt-5 grid gap-x-6 gap-y-5 border-t border-border pt-5 sm:grid-cols-2">
+              <div className="min-w-0">
                 <dt className="text-xs font-medium tracking-wide text-ink-muted uppercase">
                   Organisasi
                 </dt>
-                <dd className="mt-1 text-sm font-medium text-foreground">
+                <dd className="mt-1 text-sm font-medium break-words text-foreground">
                   {detail.stakeholder.name}
                 </dd>
                 <dd className="text-xs text-ink-muted">
                   {detail.stakeholder.serviceArea}
                 </dd>
               </div>
-              <div>
+              <div className="min-w-0">
                 <dt className="text-xs font-medium tracking-wide text-ink-muted uppercase">
                   Tema
                 </dt>
-                <dd className="mt-1 text-sm text-foreground">
+                <dd className="mt-1 text-sm break-words text-foreground">
                   {mainThemeLabel ?? detail.theme.name}
                 </dd>
                 <dd className="text-xs text-ink-muted">
@@ -169,7 +181,7 @@ export function SubmissionDetailView({
                     : ""}
                 </dd>
               </div>
-              <div>
+              <div className="min-w-0">
                 <dt className="text-xs font-medium tracking-wide text-ink-muted uppercase">
                   Jenis & platform
                 </dt>
@@ -180,7 +192,7 @@ export function SubmissionDetailView({
                   {PLATFORM_LABEL[detail.platform] ?? detail.platform}
                 </dd>
               </div>
-              <div>
+              <div className="min-w-0">
                 <dt className="text-xs font-medium tracking-wide text-ink-muted uppercase">
                   Tanggal konten
                 </dt>
@@ -191,7 +203,7 @@ export function SubmissionDetailView({
                     : ""}
                 </dd>
               </div>
-              <div className="sm:col-span-2">
+              <div className="min-w-0 sm:col-span-2">
                 <dt className="text-xs font-medium tracking-wide text-ink-muted uppercase">
                   Tautan publik
                 </dt>
@@ -211,7 +223,7 @@ export function SubmissionDetailView({
 
           <section
             aria-labelledby="lokasi-title"
-            className="rounded-xl border border-border bg-surface p-5 shadow-sm"
+            className="rounded-xl border border-border bg-surface p-4 shadow-sm sm:p-5"
           >
             <div className="flex items-center gap-2">
               <MapPin className="size-4 text-brand-teal-700" aria-hidden />
@@ -228,26 +240,26 @@ export function SubmissionDetailView({
                 <p className="mt-3 text-sm font-medium text-foreground">
                   {detail.location.label}
                 </p>
-                <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
-                  <div>
+                <dl className="mt-4 grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
+                  <div className="min-w-0">
                     <dt className="text-xs text-ink-muted">Koordinat</dt>
-                    <dd className="mt-0.5 font-medium text-foreground tabular">
+                    <dd className="mt-1 font-medium text-foreground tabular">
                       {coordinates(
                         detail.location.latitude,
                         detail.location.longitude,
                       )}
                     </dd>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <dt className="text-xs text-ink-muted">Sumber</dt>
-                    <dd className="mt-0.5 text-foreground">
+                    <dd className="mt-1 break-words text-foreground">
                       {SOURCE_LABEL[detail.location.source] ??
                         detail.location.source}
                     </dd>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <dt className="text-xs text-ink-muted">Presisi</dt>
-                    <dd className="mt-0.5 text-foreground">
+                    <dd className="mt-1 text-foreground">
                       {PRECISION_LABEL[detail.location.precision] ??
                         detail.location.precision}
                       {detail.location.accuracyMeters
@@ -255,9 +267,9 @@ export function SubmissionDetailView({
                         : ""}
                     </dd>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <dt className="text-xs text-ink-muted">Verifikasi</dt>
-                    <dd className="mt-0.5 text-foreground">
+                    <dd className="mt-1 text-foreground">
                       {VERIFIED_LABEL[detail.location.verifiedStatus] ??
                         detail.location.verifiedStatus}
                     </dd>
@@ -284,7 +296,7 @@ export function SubmissionDetailView({
 
           <section
             aria-labelledby="riwayat-title"
-            className="rounded-xl border border-border bg-surface p-5 shadow-sm"
+            className="rounded-xl border border-border bg-surface p-4 shadow-sm sm:p-5"
           >
             <div className="flex items-center gap-2">
               <History className="size-4 text-ink-muted" aria-hidden />
@@ -309,25 +321,25 @@ export function SubmissionDetailView({
                 {detail.reviews.map((review) => (
                   <li
                     key={review.id}
-                    className="rounded-lg border border-border bg-surface-muted/40 p-3"
+                    className="rounded-lg border border-border bg-surface-muted/40 p-3 sm:p-4"
                   >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                       <p className="text-sm font-medium text-foreground">
                         {REVIEW_ACTION_LABEL[review.action] ?? review.action} ·
                         v{review.version}
                       </p>
-                      <p className="text-xs text-ink-muted">
+                      <p className="text-xs whitespace-nowrap text-ink-muted tabular">
                         {formatDateTimeId(review.createdAt)} WIB
                       </p>
                     </div>
-                    <p className="mt-1 text-xs text-ink-muted">
+                    <p className="mt-1 text-xs break-words text-ink-muted">
                       Oleh {review.reviewerName}
                       {review.conflictOfInterest
                         ? " · ditandai konflik kepentingan"
                         : ""}
                     </p>
                     {review.notes ? (
-                      <p className="mt-2 text-sm leading-relaxed text-ink">
+                      <p className="mt-2 text-sm leading-relaxed break-words text-ink">
                         {review.notes}
                       </p>
                     ) : null}
@@ -337,14 +349,14 @@ export function SubmissionDetailView({
             )}
 
             {detail.revisions.length > 0 ? (
-              <div className="mt-5 border-t border-border pt-4">
+              <div className="mt-5 border-t border-border pt-5">
                 <h3 className="text-sm font-medium text-foreground">
                   Versi tersimpan
                 </h3>
-                <ul className="mt-2 space-y-1.5 text-sm text-ink-muted">
+                <ul className="mt-2 space-y-2 text-sm text-ink-muted">
                   {detail.revisions.map((revision) => (
-                    <li key={revision.id}>
-                      v{revision.version} ·{" "}
+                    <li key={revision.id} className="break-words">
+                      <span className="tabular">v{revision.version}</span> ·{" "}
                       {formatDateTimeId(revision.createdAt)} WIB ·{" "}
                       {revision.actorName}
                       {revision.reason ? ` · ${revision.reason}` : ""}
@@ -358,9 +370,8 @@ export function SubmissionDetailView({
           <div className="flex items-start gap-2 rounded-xl border border-brand-blue-100 bg-brand-blue-100/40 p-4 text-xs leading-relaxed text-brand-blue-800">
             <ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden />
             <p>
-              Data pada DAKOSTA adalah data operasional organisasi. Sistem tidak
-              menyimpan nomor identitas, nomor kepesertaan, atau rekam medis
-              pasien. Setiap keputusan tercatat pada audit log.
+              {securityNote ??
+                "Data pada DAKOSTA adalah data operasional organisasi. Sistem tidak menyimpan nomor identitas, nomor kepesertaan, atau rekam medis pasien. Setiap keputusan tercatat pada audit log."}
             </p>
           </div>
         </div>

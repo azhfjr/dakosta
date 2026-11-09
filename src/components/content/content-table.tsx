@@ -5,16 +5,17 @@ import { ContentDetailDrawer } from "@/components/content/content-detail-drawer"
 import { ContentTypeBadge } from "@/components/content/content-type-badge";
 import { StatusBadge } from "@/components/content/status-badge";
 import { FilterBar, type FilterField } from "@/components/filters/filter-bar";
+import { SortHeader } from "@/components/table/sort-header";
 import { Button } from "@/components/ui/button";
 import type { AnalyticsContentPage } from "@/lib/analytics/content-table";
-import { PLATFORM_LABEL, STATUS_LABEL } from "@/lib/content-status";
+import { PLATFORM_LABEL } from "@/lib/content-status";
 import { formatDateId, formatDateTimeId, formatNumberId } from "@/lib/dates";
 import {
-  KONTEN_SORTS,
-  KONTEN_SORT_LABELS,
-  defaultKontenSort,
+  defaultKontenDirection,
   kontenQuery,
+  type KontenDirection,
   type KontenFilters,
+  type KontenSort,
 } from "@/lib/filters/konten";
 import type { FilterOptions } from "@/lib/filters/options";
 import { buildFilterHref, filterResetHref } from "@/lib/filters/query";
@@ -24,6 +25,22 @@ import {
   type MainTheme,
   type SubTheme,
 } from "@/lib/taxonomy";
+
+const DECISION_ROLE_LABEL: Record<string, string> = {
+  MASTER_ADMIN: "Master",
+  REGIONAL_ADMIN: "Wilayah",
+  BRANCH_ADMIN: "Cabang",
+};
+
+function decisionMeta(row: {
+  decidedBy: string | null;
+  decisionAt: Date | null;
+}): string | null {
+  if (!row.decisionAt) return null;
+  const role = row.decidedBy ? DECISION_ROLE_LABEL[row.decidedBy] : null;
+  const when = formatDateTimeId(row.decisionAt);
+  return role ? `${role} · ${when}` : when;
+}
 
 /**
  * Shared Detail Konten table. `filters.mode` decides whether every status is
@@ -55,11 +72,24 @@ export function ContentTable({
   const resetHref = filterResetHref(action);
   const mode = filters.mode;
 
-  const statusOptions = options.statuses.map((option) =>
-    option.value === "APPROVED"
-      ? { ...option, label: "Hanya disetujui" }
-      : option,
-  );
+  const sortHref = (key: KontenSort): string => {
+    const nextDirection: KontenDirection =
+      filters.sort === key
+        ? filters.direction === "asc"
+          ? "desc"
+          : "asc"
+        : defaultKontenDirection(key);
+    return buildFilterHref(action, query, {
+      sort: key,
+      direction: nextDirection,
+    });
+  };
+
+  const sortProps = (key: KontenSort) => ({
+    href: sortHref(key),
+    active: filters.sort === key,
+    direction: filters.direction,
+  });
 
   const fields: FilterField[] = [
     {
@@ -69,22 +99,30 @@ export function ContentTable({
       value: filters.search,
       placeholder: "Judul, kode, atau organisasi",
     },
-    {
-      kind: "select",
-      name: "status",
-      label: "Status",
-      value: filters.status === "ALL" ? "" : filters.status,
-      options: statusOptions,
-      allLabel: "Semua status",
-    },
-    {
-      kind: "select",
-      name: "orgType",
-      label: "Jenis organisasi",
-      value: filters.orgType ?? "",
-      options: options.orgTypes,
-      allLabel: "Semua jenis",
-    },
+    ...(mode === "all"
+      ? ([
+          {
+            kind: "select",
+            name: "status",
+            label: "Status",
+            value: filters.status === "ALL" ? "" : filters.status,
+            options: options.statuses,
+            allLabel: "Semua status",
+          },
+        ] satisfies FilterField[])
+      : []),
+    ...(showStakeholderFilter
+      ? ([
+          {
+            kind: "select",
+            name: "stakeholderId",
+            label: "Instansi",
+            value: filters.stakeholderId ?? "",
+            options: options.stakeholders,
+            allLabel: "Semua instansi",
+          },
+        ] satisfies FilterField[])
+      : []),
     {
       kind: "select",
       name: "mainTheme",
@@ -101,21 +139,6 @@ export function ContentTable({
       options: options.subThemes,
       allLabel: "Semua sub-tema",
     },
-    ...(showStakeholderFilter
-      ? ([
-          {
-            kind: "select",
-            name: "stakeholderId",
-            label: "Instansi",
-            value: filters.stakeholderId ?? "",
-            options: options.stakeholders,
-            allLabel: "Semua instansi",
-          },
-        ] satisfies FilterField[])
-      : []),
-  ];
-
-  const advancedFields: FilterField[] = [
     {
       kind: "select",
       name: "type",
@@ -135,32 +158,14 @@ export function ContentTable({
     {
       kind: "date",
       name: "from",
-      label: mode === "approved" ? "Disetujui dari" : "Konten dari",
+      label: mode === "approved" ? "Disetujui dari" : "Dibuat dari",
       value: filters.dateFrom ?? "",
     },
     {
       kind: "date",
       name: "to",
-      label: mode === "approved" ? "Disetujui sampai" : "Konten sampai",
+      label: mode === "approved" ? "Disetujui sampai" : "Dibuat sampai",
       value: filters.dateTo ?? "",
-    },
-    {
-      kind: "select",
-      name: "period",
-      label: "Bulan",
-      value: filters.period === "ALL" ? "" : filters.period,
-      options: options.periods,
-      allLabel: "Semua bulan",
-    },
-    {
-      kind: "select",
-      name: "sort",
-      label: "Urutkan",
-      value: filters.sort === defaultKontenSort(mode) ? "" : filters.sort,
-      options: KONTEN_SORTS.filter(
-        (sort) => sort !== defaultKontenSort(mode),
-      ).map((sort) => ({ value: sort, label: KONTEN_SORT_LABELS[sort] })),
-      allLabel: KONTEN_SORT_LABELS[defaultKontenSort(mode)],
     },
   ];
 
@@ -186,7 +191,6 @@ export function ContentTable({
       <FilterBar
         action={action}
         fields={fields}
-        advancedFields={advancedFields}
         hidden={Object.keys(hidden).length > 0 ? hidden : undefined}
         resetHref={resetHref}
         label="Filter detail konten"
@@ -229,50 +233,43 @@ export function ContentTable({
           </div>
         ) : (
           <div
-            className="relative overflow-x-auto"
+            className="max-h-[72vh] overflow-auto"
             tabIndex={0}
             role="region"
             aria-label="Tabel detail konten, dapat digulir"
           >
-            <table className="w-full min-w-[76rem] border-collapse text-sm">
+            <table className="w-full min-w-[68rem] border-collapse text-sm">
               <caption className="sr-only">
                 Detail konten pada cakupan Anda beserta status dan keputusannya
               </caption>
-              <thead>
-                <tr className="border-b border-border text-left text-xs font-medium tracking-wide text-ink-muted uppercase">
-                  <th scope="col" className="px-4 py-3 sm:px-5">
-                    Kode
-                  </th>
-                  <th scope="col" className="px-4 py-3 sm:px-5">
-                    Judul
-                  </th>
+              <thead className="sticky top-0 z-10 bg-surface-muted">
+                <tr className="border-b border-border">
+                  <SortHeader label="Kode" {...sortProps("code")} />
+                  <SortHeader label="Judul" {...sortProps("title")} />
                   {showStakeholderFilter ? (
-                    <th scope="col" className="px-4 py-3 sm:px-5">
-                      Organisasi
-                    </th>
+                    <SortHeader
+                      label="Organisasi"
+                      {...sortProps("organization")}
+                    />
                   ) : null}
-                  <th scope="col" className="px-4 py-3 sm:px-5">
+                  <th
+                    scope="col"
+                    className="px-3 py-2.5 text-left text-xs font-medium tracking-wide whitespace-nowrap text-ink-muted uppercase sm:px-4"
+                  >
                     Tema / sub-tema
                   </th>
-                  <th scope="col" className="px-4 py-3 sm:px-5">
-                    Jenis
-                  </th>
-                  <th scope="col" className="px-4 py-3 sm:px-5">
-                    Platform
-                  </th>
-                  <th scope="col" className="px-4 py-3 sm:px-5">
-                    Status
-                  </th>
-                  <th scope="col" className="px-4 py-3 sm:px-5">
-                    Dibuat
-                  </th>
-                  <th scope="col" className="px-4 py-3 sm:px-5">
-                    Disetujui
-                  </th>
-                  <th scope="col" className="px-4 py-3 sm:px-5">
-                    Keputusan
-                  </th>
-                  <th scope="col" className="px-4 py-3 text-right sm:px-5">
+                  <SortHeader label="Jenis" {...sortProps("type")} />
+                  <SortHeader label="Platform" {...sortProps("platform")} />
+                  <SortHeader label="Status" {...sortProps("status")} />
+                  <SortHeader label="Dibuat" {...sortProps("recent")} />
+                  <SortHeader
+                    label="Disetujui"
+                    {...sortProps("approved_recent")}
+                  />
+                  <th
+                    scope="col"
+                    className="px-3 py-2.5 text-right text-xs font-medium tracking-wide whitespace-nowrap text-ink-muted uppercase sm:px-4"
+                  >
                     <span className="sr-only">Tindakan</span>
                   </th>
                 </tr>
@@ -280,23 +277,26 @@ export function ContentTable({
               <tbody>
                 {data.rows.map((row) => {
                   const detailHref = `${detailBase}/${row.id}`;
+                  const meta = decisionMeta(row);
+                  const title = row.title ?? "(tanpa judul)";
                   return (
                     <tr
                       key={row.id}
-                      className="border-b border-border/70 align-top last:border-0 hover:bg-surface-muted/60"
+                      className="border-b border-border/70 align-top last:border-0 hover:bg-surface-muted/50"
                     >
-                      <td className="px-4 py-3 font-mono text-xs text-ink-muted sm:px-5">
+                      <td className="px-3 py-2.5 font-mono text-xs whitespace-nowrap text-ink-muted sm:px-4">
                         {row.referenceCode}
                       </td>
-                      <td className="px-4 py-3 sm:px-5">
+                      <td className="max-w-[22rem] px-3 py-2.5 sm:px-4">
                         <Link
                           href={detailHref}
-                          className="font-medium text-foreground underline-offset-4 hover:underline"
+                          title={title}
+                          className="line-clamp-2 font-medium text-foreground underline-offset-4 hover:underline"
                         >
-                          {row.title ?? "(tanpa judul)"}
+                          {title}
                         </Link>
                         {row.version > 1 || row.resubmissionCount > 0 ? (
-                          <p className="text-xs text-ink-muted">
+                          <p className="mt-0.5 text-xs text-ink-muted">
                             versi {row.version}
                             {row.resubmissionCount > 0
                               ? ` · ${row.resubmissionCount}× revisi`
@@ -305,8 +305,11 @@ export function ContentTable({
                         ) : null}
                       </td>
                       {showStakeholderFilter ? (
-                        <td className="px-4 py-3 text-ink-muted sm:px-5">
-                          <span className="block text-foreground">
+                        <td className="max-w-[18rem] px-3 py-2.5 text-ink-muted sm:px-4">
+                          <span
+                            className="line-clamp-2 block text-foreground"
+                            title={row.organization}
+                          >
                             {row.organization}
                           </span>
                           <span className="text-xs">
@@ -314,7 +317,7 @@ export function ContentTable({
                           </span>
                         </td>
                       ) : null}
-                      <td className="px-4 py-3 text-ink-muted sm:px-5">
+                      <td className="px-3 py-2.5 text-ink-muted sm:px-4">
                         <span className="block text-foreground">
                           {row.subTheme
                             ? (SUB_THEME_LABELS[row.subTheme as SubTheme] ??
@@ -328,38 +331,32 @@ export function ContentTable({
                             : "—"}
                         </span>
                       </td>
-                      <td className="px-4 py-3 sm:px-5">
+                      <td className="px-3 py-2.5 sm:px-4">
                         <ContentTypeBadge contentType={row.contentType} />
                       </td>
-                      <td className="px-4 py-3 text-ink-muted sm:px-5">
+                      <td className="px-3 py-2.5 text-ink-muted sm:px-4">
                         {row.platform
                           ? (PLATFORM_LABEL[row.platform] ?? row.platform)
                           : "—"}
                       </td>
-                      <td className="px-4 py-3 sm:px-5">
+                      <td className="px-3 py-2.5 sm:px-4">
                         <StatusBadge status={row.status} />
+                        {meta ? (
+                          <p
+                            className="mt-1 text-xs whitespace-nowrap text-ink-muted tabular"
+                            title={row.decidedBy ?? undefined}
+                          >
+                            oleh {meta}
+                          </p>
+                        ) : null}
                       </td>
-                      <td className="px-4 py-3 text-ink-muted sm:px-5">
+                      <td className="px-3 py-2.5 text-ink-muted whitespace-nowrap tabular sm:px-4">
                         {formatDateId(row.dateCreated)}
                       </td>
-                      <td className="px-4 py-3 text-ink-muted sm:px-5">
+                      <td className="px-3 py-2.5 text-ink-muted whitespace-nowrap tabular sm:px-4">
                         {row.approvedAt ? formatDateId(row.approvedAt) : "—"}
                       </td>
-                      <td className="px-4 py-3 text-ink-muted sm:px-5">
-                        <span className="block text-foreground">
-                          {row.decidedBy
-                            ? (STATUS_LABEL[
-                                row.status as keyof typeof STATUS_LABEL
-                              ] ?? row.status)
-                            : "Belum diputuskan"}
-                        </span>
-                        <span className="text-xs">
-                          {row.decisionAt
-                            ? formatDateTimeId(row.decisionAt)
-                            : "—"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 sm:px-5">
+                      <td className="px-3 py-2.5 sm:px-4">
                         <div className="flex flex-wrap justify-end gap-2">
                           <ContentDetailDrawer
                             id={row.id}

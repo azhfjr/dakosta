@@ -28,7 +28,7 @@ const PRIMARY_LABELS: Record<AppRole, string[]> = {
     "Red Notice",
     "Notifikasi",
   ],
-  STAKEHOLDER: ["Dashboard", "Detail Konten", "Notifikasi"],
+  STAKEHOLDER: ["Dashboard", "Input Konten", "Detail Konten", "Notifikasi"],
 };
 
 describe("role navigation", () => {
@@ -50,6 +50,27 @@ describe("role navigation", () => {
   it("starts Regional and Branch at their dashboards", () => {
     expect(getNavItems("REGIONAL_ADMIN")[0]?.href).toBe("/wilayah/dashboard");
     expect(getNavItems("BRANCH_ADMIN")[0]?.href).toBe("/cabang/dashboard");
+  });
+
+  it("puts Input Konten directly after Dashboard for stakeholders only", () => {
+    for (const role of Object.keys(PRIMARY_LABELS) as AppRole[]) {
+      const index = getNavItems(role).findIndex(
+        (item) => item.label === "Input Konten",
+      );
+      if (role === "STAKEHOLDER") {
+        expect(index).toBe(1);
+      } else {
+        expect(index).toBe(-1);
+      }
+    }
+    const input = getNavItems("STAKEHOLDER").find(
+      (item) => item.label === "Input Konten",
+    );
+    expect(input).toMatchObject({
+      href: "/client/lapor",
+      tone: "success",
+      ready: true,
+    });
   });
 
   it("moves Master management tools into a separate section", () => {

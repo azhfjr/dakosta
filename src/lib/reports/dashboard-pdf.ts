@@ -9,17 +9,23 @@ import {
 } from "pdf-lib";
 
 import type { AppRole } from "@/lib/authz/types";
-import { themeMapColor } from "@/lib/chart-theme";
+import { CONTENT_TYPE_MAP_COLORS, themeMapColor } from "@/lib/chart-theme";
 import {
   DASHBOARD_CATEGORIES,
   DASHBOARD_CATEGORY_LABELS,
   type DashboardCategory,
   type DashboardCategoryTotals,
   type DashboardFiltered,
+  type DashboardMonthlyPoint,
   type DashboardRankingRow,
   type DashboardSummary,
   type DashboardThemeRow,
 } from "@/lib/dashboard/types";
+import {
+  formatShareId,
+  largestRemainderShares,
+  monthAxisLabel,
+} from "@/lib/dashboard/series";
 import { rankingShare } from "@/lib/dashboard/ranking";
 import {
   dashboardVariant,
@@ -50,8 +56,9 @@ const HEADER_H = 46;
 const FOOTER_LINE_Y = 30;
 
 const KPI_HEIGHT = 40;
-const MID_HEIGHT = 272;
-const THEME_HEIGHT = 138;
+const MID_HEIGHT = 238;
+const THEME_HEIGHT = 126;
+const TREND_HEIGHT = 54;
 const COLUMN_GAP = 12;
 const CHART_COLUMN_WIDTH = 392;
 const RANKING_COLUMN_X = MARGIN + CHART_COLUMN_WIDTH + COLUMN_GAP;
@@ -679,7 +686,7 @@ function drawPieSlice(
   page.drawSvgPath(points.join(" "), { x: 0, y: PAGE_H, color });
 }
 
-function drawDonut(
+function drawSegmentedDonut(
   page: PDFPage,
   fonts: ReportFonts,
   input: {
@@ -688,12 +695,12 @@ function drawDonut(
     outer: number;
     inner: number;
     total: number;
-    themes: DashboardThemeRow[];
+    segments: ReadonlyArray<{ value: number; color: string }>;
   },
 ): void {
   let angle = 90;
-  input.themes.forEach((theme, index) => {
-    const sweep = (theme.total / input.total) * 360;
+  for (const segment of input.segments) {
+    const sweep = (segment.value / input.total) * 360;
     const end = angle - sweep;
     drawPieSlice(
       page,
@@ -702,10 +709,10 @@ function drawDonut(
       input.outer,
       angle,
       end,
-      hexRgb(themeMapColor(theme.key, index)),
+      hexRgb(segment.color),
     );
     angle = end;
-  });
+  }
 
   page.drawCircle({
     x: input.cx,
@@ -730,6 +737,31 @@ function drawDonut(
     size: 5.8,
     font: fonts.font,
     color: REPORT_COLORS.muted,
+  });
+}
+
+function drawDonut(
+  page: PDFPage,
+  fonts: ReportFonts,
+  input: {
+    cx: number;
+    cy: number;
+    outer: number;
+    inner: number;
+    total: number;
+    themes: DashboardThemeRow[];
+  },
+): void {
+  drawSegmentedDonut(page, fonts, {
+    cx: input.cx,
+    cy: input.cy,
+    outer: input.outer,
+    inner: input.inner,
+    total: input.total,
+    segments: input.themes.map((theme, index) => ({
+      value: theme.total,
+      color: themeMapColor(theme.key, index),
+    })),
   });
 }
 
@@ -781,6 +813,155 @@ function scopePhrase(variant: DashboardVariant): string {
     default:
       return "cabang terpilih";
   }
+}
+
+const TREND_PAST_HEX = "#A7D3BC";
+const TREND_SUBTITLE =
+  "12 bulan terakhir - dihitung dari tanggal disetujui (WIB)";
+
+/**
+ * Compact twelve-column trend band. The last column is the current month and
+ * uses the brand green; earlier months stay in a muted tint so the eye lands
+ * on the present without a legend.
+ */
+function drawMonthlyStrip(
+  page: PDFPage,
+  fonts: ReportFonts,
+  input: {
+    x: number;
+    top: number;
+    width: number;
+    height: number;
+    points: DashboardMonthlyPoint[];
+    total: number;
+    title?: string;
+    subtitle?: string;
+    framed?: boolean;
+  },
+): void {
+  const bottom = input.top - input.height;
+  if (input.framed !== false) {
+    page.drawRectangle({
+      x: input.x,
+      y: bottom,
+      width: input.width,
+      height: input.height,
+      color: REPORT_COLORS.white,
+      borderColor: REPORT_COLORS.line,
+      borderWidth: 0.6,
+    });
+    page.drawRectangle({
+      x: input.x,
+      y: input.top - 2.5,
+      width: input.width,
+      height: 2.5,
+      color: hexRgb(BRAND_HEX),
+    });
+  }
+
+  const title = safe(input.title ?? "Tren Bulanan");
+  page.drawText(title, {
+    x: input.x + 10,
+    y: input.top - 14,
+    size: 8.6,
+    font: fonts.bold,
+    color: REPORT_COLORS.ink,
+  });
+  const titleWidth = fonts.bold.widthOfTextAtSize(title, 8.6);
+  const totalLabel = `${formatNumber(input.total)} konten / 12 bulan`;
+  const totalWidth = fonts.bold.widthOfTextAtSize(totalLabel, 6.6);
+  const subtitle = input.subtitle ?? TREND_SUBTITLE;
+  const subtitleMax = input.width - 20 - titleWidth - totalWidth - 26;
+  if (subtitleMax > 60) {
+    page.drawText(fitText(fonts.font, subtitle, 6.2, subtitleMax), {
+      x: input.x + 10 + titleWidth + 12,
+      y: input.top - 13.4,
+      size: 6.2,
+      font: fonts.font,
+      color: REPORT_COLORS.muted,
+    });
+  }
+  drawRightText(
+    page,
+    fonts.bold,
+    totalLabel,
+    6.6,
+    input.x + input.width - 10,
+    input.top - 13,
+  );
+
+  const points = input.points;
+  if (points.length === 0 || input.total <= 0) {
+    page.drawText("Belum ada konten tervalidasi dalam 12 bulan terakhir.", {
+      x: input.x + 10,
+      y: bottom + input.height / 2 - 10,
+      size: 6.8,
+      font: fonts.font,
+      color: REPORT_COLORS.muted,
+    });
+    return;
+  }
+
+  const chartLeft = input.x + 34;
+  const chartRight = input.x + input.width - 10;
+  const chartBottom = bottom + 11;
+  const chartTop = input.top - 21;
+  const chartHeight = Math.max(8, chartTop - chartBottom);
+  const maxTotal = Math.max(...points.map((point) => point.total), 1);
+  const slot = (chartRight - chartLeft) / points.length;
+  const barWidth = Math.max(3, Math.min(24, slot * 0.56));
+
+  page.drawLine({
+    start: { x: chartLeft, y: chartBottom - 1 },
+    end: { x: chartRight, y: chartBottom - 1 },
+    thickness: 0.4,
+    color: REPORT_COLORS.line,
+  });
+  page.drawLine({
+    start: { x: chartLeft, y: chartTop },
+    end: { x: chartRight, y: chartTop },
+    thickness: 0.3,
+    color: REPORT_COLORS.line,
+  });
+  page.drawLine({
+    start: { x: chartLeft, y: chartBottom + chartHeight / 2 },
+    end: { x: chartRight, y: chartBottom + chartHeight / 2 },
+    thickness: 0.3,
+    color: REPORT_COLORS.line,
+  });
+  const maxLabel = formatNumber(maxTotal);
+  page.drawText(maxLabel, {
+    x: chartLeft - 5 - fonts.font.widthOfTextAtSize(maxLabel, 5.2),
+    y: chartTop - 2,
+    size: 5.2,
+    font: fonts.font,
+    color: REPORT_COLORS.muted,
+  });
+
+  points.forEach((point, index) => {
+    const cx = chartLeft + slot * index + slot / 2;
+    const height =
+      point.total > 0
+        ? Math.max(1.4, (chartHeight * point.total) / maxTotal)
+        : 0;
+    if (height > 0) {
+      page.drawRectangle({
+        x: cx - barWidth / 2,
+        y: chartBottom,
+        width: barWidth,
+        height,
+        color: hexRgb(index === points.length - 1 ? BRAND_HEX : TREND_PAST_HEX),
+      });
+    }
+    const label = monthAxisLabel(point.key);
+    page.drawText(label, {
+      x: cx - fonts.font.widthOfTextAtSize(label, 5.2) / 2,
+      y: bottom + 4.2,
+      size: 5.2,
+      font: fonts.font,
+      color: REPORT_COLORS.muted,
+    });
+  });
 }
 
 function drawThemeBand(
@@ -859,6 +1040,14 @@ function drawThemeBand(
       total: Math.max(input.filtered.nonEdufast, 1),
       themes: input.filtered.nonEdufastThemes,
     });
+    const caption = "Non-EDUFAST";
+    page.drawText(caption, {
+      x: donutCx - fonts.font.widthOfTextAtSize(caption, 6) / 2,
+      y: donutCy - 55,
+      size: 6,
+      font: fonts.font,
+      color: REPORT_COLORS.muted,
+    });
   }
 
   const legendX = MARGIN + 380;
@@ -896,8 +1085,8 @@ function drawThemeBand(
 }
 
 /**
- * Stakeholder layout: the theme band owns the whole body, so the donut grows
- * and the legend gets one full-width column with proportional tracks.
+ * Stakeholder layout: three stacked bands (content-type mix, Non-EDUFAST
+ * themes, twelve-month trend), each with its own header and divider.
  */
 function drawStakeholderThemeBand(
   page: PDFPage,
@@ -916,34 +1105,156 @@ function drawStakeholderThemeBand(
     borderColor: REPORT_COLORS.line,
     borderWidth: 0.6,
   });
-  page.drawText("Tema Konten", {
+
+  page.drawText("Jenis Konten", {
     x: MARGIN + 12,
     y: band.top - 17,
     size: 9.5,
     font: fonts.bold,
     color: REPORT_COLORS.ink,
   });
-  page.drawText("EDUFAST dan sub-tema Non-EDUFAST pada organisasi Anda", {
+  page.drawText(
+    fitText(
+      fonts.font,
+      "Komposisi konten tervalidasi pada organisasi Anda",
+      6.4,
+      CONTENT_W - 180,
+    ),
+    {
+      x: MARGIN + 82,
+      y: band.top - 16.5,
+      size: 6.4,
+      font: fonts.font,
+      color: REPORT_COLORS.muted,
+    },
+  );
+
+  const types = input.filtered.contentTypes;
+  const typeTotal = types.reduce((sum, row) => sum + row.total, 0);
+  const typeCy = band.top - 62;
+  if (typeTotal === 0) {
+    const lines = wrapText(
+      fonts.font,
+      "Belum ada konten tervalidasi untuk diklasifikasikan.",
+      7,
+      160,
+    );
+    lines.forEach((line, index) => {
+      page.drawText(line, {
+        x: MARGIN + 12,
+        y: typeCy + 10 - index * 10,
+        size: 7,
+        font: fonts.font,
+        color: REPORT_COLORS.muted,
+      });
+    });
+  } else {
+    drawSegmentedDonut(page, fonts, {
+      cx: MARGIN + 80,
+      cy: typeCy,
+      outer: 34,
+      inner: 20,
+      total: typeTotal,
+      segments: types.map((row) => ({
+        value: row.total,
+        color: CONTENT_TYPE_MAP_COLORS[row.type],
+      })),
+    });
+  }
+
+  const typeLegendX = MARGIN + 168;
+  const typeLegendWidth = CONTENT_RIGHT - 12 - typeLegendX;
+  types.forEach((row, index) => {
+    const y = band.top - 38 - index * 17;
+    page.drawCircle({
+      x: typeLegendX + 2.5,
+      y: y + 3,
+      size: 2.6,
+      color: hexRgb(CONTENT_TYPE_MAP_COLORS[row.type]),
+    });
+    page.drawText(fitText(fonts.bold, row.label, 7, typeLegendWidth - 120), {
+      x: typeLegendX + 9,
+      y,
+      size: 7,
+      font: fonts.bold,
+      color: REPORT_COLORS.ink,
+    });
+    drawRightText(
+      page,
+      fonts.bold,
+      `${formatNumber(row.total)} (${formatShareId(row.share)})`,
+      6.8,
+      typeLegendX + typeLegendWidth,
+      y,
+    );
+    page.drawRectangle({
+      x: typeLegendX + 9,
+      y: y - 4.6,
+      width: typeLegendWidth - 9,
+      height: 2.4,
+      color: REPORT_COLORS.surface,
+    });
+    page.drawRectangle({
+      x: typeLegendX + 9,
+      y: y - 4.6,
+      width: Math.max(
+        ((typeLegendWidth - 9) * row.share) / 100,
+        row.total > 0 ? 1.2 : 0,
+      ),
+      height: 2.4,
+      color: hexRgb(CONTENT_TYPE_MAP_COLORS[row.type]),
+    });
+  });
+
+  page.drawLine({
+    start: { x: MARGIN + 10, y: band.top - 104 },
+    end: { x: CONTENT_RIGHT - 10, y: band.top - 104 },
+    thickness: 0.4,
+    color: REPORT_COLORS.line,
+  });
+
+  page.drawText("Tema Konten", {
+    x: MARGIN + 12,
+    y: band.top - 122,
+    size: 9.5,
+    font: fonts.bold,
+    color: REPORT_COLORS.ink,
+  });
+  const themeSubtitle =
+    input.filtered.unclassifiedTheme > 0
+      ? `EDUFAST dan sub-tema Non-EDUFAST - termasuk ${formatNumber(input.filtered.unclassifiedTheme)} konten tanpa tema`
+      : "EDUFAST dan sub-tema Non-EDUFAST pada organisasi Anda";
+  page.drawText(fitText(fonts.font, themeSubtitle, 6.4, CONTENT_W - 280), {
     x: MARGIN + 82,
-    y: band.top - 16.5,
+    y: band.top - 121.5,
     size: 6.4,
     font: fonts.font,
     color: REPORT_COLORS.muted,
   });
+  if (plan.hiddenThemes > 0) {
+    drawRightText(
+      page,
+      fonts.font,
+      `+${formatNumber(plan.hiddenThemes)} tema lainnya (lihat dashboard)`,
+      5.8,
+      CONTENT_RIGHT - 12,
+      band.top - 121.5,
+      REPORT_COLORS.muted,
+    );
+  }
 
-  const donutCx = MARGIN + 130;
-  const donutCy = bottom + band.height / 2 - 8;
+  const themeCy = band.top - 200;
   if (input.filtered.nonEdufastThemes.length === 0) {
     const lines = wrapText(
       fonts.font,
       "Belum ada konten Non-EDUFAST pada organisasi Anda.",
       7,
-      150,
+      160,
     );
     lines.forEach((line, index) => {
       page.drawText(line, {
-        x: donutCx - 75,
-        y: donutCy + 16 - index * 10,
+        x: MARGIN + 12,
+        y: themeCy + 10 - index * 10,
         size: 7,
         font: fonts.font,
         color: REPORT_COLORS.muted,
@@ -951,23 +1262,33 @@ function drawStakeholderThemeBand(
     });
   } else {
     drawDonut(page, fonts, {
-      cx: donutCx,
-      cy: donutCy,
-      outer: 66,
-      inner: 40,
+      cx: MARGIN + 80,
+      cy: themeCy,
+      outer: 36,
+      inner: 22,
       total: Math.max(input.filtered.nonEdufast, 1),
       themes: input.filtered.nonEdufastThemes,
     });
+    const caption = "Non-EDUFAST";
+    page.drawText(caption, {
+      x: MARGIN + 80 - fonts.font.widthOfTextAtSize(caption, 6) / 2,
+      y: themeCy - 45,
+      size: 6,
+      font: fonts.font,
+      color: REPORT_COLORS.muted,
+    });
   }
 
-  const legendX = MARGIN + 260;
+  const legendX = MARGIN + 168;
   const legendWidth = CONTENT_RIGHT - 12 - legendX;
-  const rowsTop = band.top - 46;
-  const rowsBottom = bottom + 18;
-  const available = rowsTop - rowsBottom;
+  const columnGap = 16;
+  const columnWidth = (legendWidth - columnGap) / 2;
+  const rowsTop = band.top - 146;
+  const available = rowsTop - (band.top - 292);
+  const rowsPerColumn = Math.max(1, Math.ceil(plan.themeLegend.length / 2));
   const rowHeight =
     plan.themeLegend.length > 0
-      ? Math.min(22, (available - 8) / plan.themeLegend.length)
+      ? Math.min(17, (available - 6) / rowsPerColumn)
       : 0;
 
   if (plan.themeLegend.length === 0) {
@@ -979,19 +1300,19 @@ function drawStakeholderThemeBand(
       color: REPORT_COLORS.muted,
     });
   } else {
-    const blockHeight = rowHeight * plan.themeLegend.length;
-    const start =
-      rowsTop - Math.max(0, (available - blockHeight) / 2) - rowHeight + 6;
     plan.themeLegend.forEach((row, index) => {
-      const y = start - index * rowHeight;
+      const column = Math.floor(index / rowsPerColumn);
+      const line = index % rowsPerColumn;
+      const x = legendX + column * (columnWidth + columnGap);
+      const y = rowsTop - line * rowHeight;
       page.drawCircle({
-        x: legendX + 2.5,
+        x: x + 2.5,
         y: y + 3,
         size: 2.6,
         color: hexRgb(themeMapColor(row.key, index)),
       });
-      page.drawText(fitText(fonts.font, row.label, 6.8, legendWidth - 96), {
-        x: legendX + 9,
+      page.drawText(fitText(fonts.font, row.label, 6.8, columnWidth - 84), {
+        x: x + 9,
         y,
         size: 6.8,
         font: fonts.font,
@@ -1002,22 +1323,22 @@ function drawStakeholderThemeBand(
         fonts.bold,
         `${formatNumber(row.total)} (${percentFormatter.format(row.percentage)}%)`,
         6.8,
-        legendX + legendWidth,
+        x + columnWidth,
         y,
       );
       const trackY = y - 4.2;
       page.drawRectangle({
-        x: legendX + 9,
+        x: x + 9,
         y: trackY,
-        width: legendWidth - 9,
+        width: columnWidth - 9,
         height: 2.4,
         color: REPORT_COLORS.surface,
       });
       page.drawRectangle({
-        x: legendX + 9,
+        x: x + 9,
         y: trackY,
         width: Math.max(
-          ((legendWidth - 9) * row.percentage) / 100,
+          ((columnWidth - 9) * row.percentage) / 100,
           row.total > 0 ? 1.2 : 0,
         ),
         height: 2.4,
@@ -1026,30 +1347,21 @@ function drawStakeholderThemeBand(
     });
   }
 
-  if (plan.hiddenThemes > 0) {
-    page.drawText(
-      `+${formatNumber(plan.hiddenThemes)} tema lainnya (lihat dashboard)`,
-      {
-        x: legendX,
-        y: bottom + 8,
-        size: 6,
-        font: fonts.font,
-        color: REPORT_COLORS.muted,
-      },
-    );
-  }
-  if (input.filtered.unclassifiedTheme > 0) {
-    page.drawText(
-      `Termasuk ${formatNumber(input.filtered.unclassifiedTheme)} konten tanpa tema.`,
-      {
-        x: MARGIN + 12,
-        y: bottom + 10,
-        size: 6,
-        font: fonts.font,
-        color: REPORT_COLORS.muted,
-      },
-    );
-  }
+  page.drawLine({
+    start: { x: MARGIN + 10, y: band.top - 300 },
+    end: { x: CONTENT_RIGHT - 10, y: band.top - 300 },
+    thickness: 0.4,
+    color: REPORT_COLORS.line,
+  });
+
+  drawMonthlyStrip(page, fonts, {
+    x: MARGIN + 10,
+    top: band.top - 310,
+    width: CONTENT_W - 20,
+    height: band.top - 310 - (bottom + 10),
+    points: input.filtered.monthly.points,
+    total: input.filtered.monthly.total,
+  });
 }
 
 function kpiCards(
@@ -1079,19 +1391,26 @@ function kpiCards(
   if (plan.variant === "stakeholder") {
     return [
       total,
-      scopeKpi,
       ["Konten EDUFAST", formatNumber(input.filtered.edufast)],
       ["Konten Non-EDUFAST", formatNumber(input.filtered.nonEdufast)],
     ];
   }
 
+  const categoryTotals = DASHBOARD_CATEGORIES.map(
+    (category) => input.filtered.categoryTotals[category],
+  );
+  const categorized = categoryTotals.reduce((sum, value) => sum + value, 0);
+  const shares = largestRemainderShares(categoryTotals, categorized);
+
   return [
     total,
     scopeKpi,
-    ["FKRTL", formatNumber(input.filtered.categoryTotals.FKRTL)],
-    ["FKTP", formatNumber(input.filtered.categoryTotals.FKTP)],
-    ["Pemda", formatNumber(input.filtered.categoryTotals.PEMDA)],
-    ["Stakeholder", formatNumber(input.filtered.categoryTotals.STAKEHOLDER)],
+    ...DASHBOARD_CATEGORIES.map((category, index): [string, string] => [
+      categorized > 0
+        ? `${DASHBOARD_CATEGORY_LABELS[category]} · ${formatShareId(shares[index]!)}`
+        : DASHBOARD_CATEGORY_LABELS[category],
+      formatNumber(input.filtered.categoryTotals[category]),
+    ]),
   ];
 }
 
@@ -1168,8 +1487,17 @@ export async function renderDashboardPdf(
     });
 
     drawThemeBand(page, fonts, input, plan, {
-      top: midTop - MID_HEIGHT - 8,
+      top: midTop - MID_HEIGHT - TREND_HEIGHT - 16,
       height: THEME_HEIGHT,
+    });
+
+    drawMonthlyStrip(page, fonts, {
+      x: MARGIN,
+      top: midTop - MID_HEIGHT - 8,
+      width: CONTENT_W,
+      height: TREND_HEIGHT,
+      points: input.filtered.monthly.points,
+      total: input.filtered.monthly.total,
     });
   }
 

@@ -12,7 +12,6 @@ import {
   isNotNull,
   isNull,
   lt,
-  lte,
   or,
   sql,
   type SQL,
@@ -64,12 +63,6 @@ export type PerformanceFilters = {
   source: OrgSource | null;
   q: string | null;
   status: PerformanceStatusFilter;
-  percentMin: number | null;
-  percentMax: number | null;
-  approvedMin: number | null;
-  approvedMax: number | null;
-  targetMin: number | null;
-  targetMax: number | null;
   sort: PerformanceSort;
   direction: "asc" | "desc";
   page: number;
@@ -141,18 +134,6 @@ function param(
     : firstValue(params[key]);
 }
 
-function numberParam(value: string | undefined): number | null {
-  if (!value) return null;
-  const parsed = Number(value.replace(",", "."));
-  if (!Number.isFinite(parsed) || parsed < 0 || parsed > 1_000_000) return null;
-  return parsed;
-}
-
-function integerParam(value: string | undefined): number | null {
-  const parsed = numberParam(value);
-  return parsed === null ? null : Math.floor(parsed);
-}
-
 export function parsePerformanceFilters(
   params: Record<string, string | string[] | undefined> | URLSearchParams,
 ): PerformanceFilters {
@@ -180,12 +161,6 @@ export function parsePerformanceFilters(
     )
       ? (rawStatus as PerformanceStatusFilter)
       : "ALL",
-    percentMin: numberParam(param(params, "pmin")),
-    percentMax: numberParam(param(params, "pmax")),
-    approvedMin: integerParam(param(params, "rmin")),
-    approvedMax: integerParam(param(params, "rmax")),
-    targetMin: integerParam(param(params, "tmin")),
-    targetMax: integerParam(param(params, "tmax")),
     sort,
     direction,
     page: Number.isFinite(rawPage) && rawPage >= 1 ? Math.floor(rawPage) : 1,
@@ -205,12 +180,6 @@ export function buildPerformanceQuery(
     type: filters.source,
     q: filters.q,
     status: filters.status === "ALL" ? null : filters.status,
-    pmin: filters.percentMin,
-    pmax: filters.percentMax,
-    rmin: filters.approvedMin,
-    rmax: filters.approvedMax,
-    tmin: filters.targetMin,
-    tmax: filters.targetMax,
     sort: filters.sort,
     dir: filters.direction,
     page: filters.page,
@@ -356,24 +325,6 @@ async function queryPerformanceRows(
         ilike(schema.stakeholders.faskesCode, pattern),
       )!,
     );
-  }
-  if (filters.percentMin !== null) {
-    conditions.push(gte(percentExpr, filters.percentMin));
-  }
-  if (filters.percentMax !== null) {
-    conditions.push(lte(percentExpr, filters.percentMax));
-  }
-  if (filters.approvedMin !== null) {
-    conditions.push(gte(approvedExpr, filters.approvedMin));
-  }
-  if (filters.approvedMax !== null) {
-    conditions.push(lte(approvedExpr, filters.approvedMax));
-  }
-  if (filters.targetMin !== null) {
-    conditions.push(gte(targetAgg.target, filters.targetMin));
-  }
-  if (filters.targetMax !== null) {
-    conditions.push(lte(targetAgg.target, filters.targetMax));
   }
   if (filters.status === "MET") {
     conditions.push(
@@ -605,12 +556,6 @@ export async function getPerformanceTable(
       filters.source,
       filters.q,
       filters.status,
-      filters.percentMin,
-      filters.percentMax,
-      filters.approvedMin,
-      filters.approvedMax,
-      filters.targetMin,
-      filters.targetMax,
       filters.sort,
       filters.direction,
       filters.page,
@@ -722,12 +667,6 @@ async function loadPerformanceSummary(
     source: null,
     q: null,
     status: "ALL",
-    percentMin: null,
-    percentMax: null,
-    approvedMin: null,
-    approvedMax: null,
-    targetMin: null,
-    targetMax: null,
     sort: "approved",
     direction: "desc",
     page: 1,
