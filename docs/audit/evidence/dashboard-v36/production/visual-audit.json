@@ -1,0 +1,1367 @@
+{
+  "generatedAt": "2026-11-09T23:11:47.241Z",
+  "baseURL": "https://dakosta-dakosta.vercel.app",
+  "results": [
+    {
+      "role": "master",
+      "variant": "national",
+      "path": "/admin",
+      "viewport": "1440",
+      "screenshot": "C:\\Users\\PLN\\AppData\\Local\\Temp\\audit-v36\\prod-visual\\master-1440.png",
+      "mapState": "ready",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 3736,
+      "layout": {
+        "chartW": 1094,
+        "chartH": 328,
+        "chartLabels": 8,
+        "chartBarThickness": 14,
+        "chartLabelOverflow": -20.5460205078125,
+        "mapW": 1134,
+        "mapH": 330,
+        "donut": 220,
+        "rankingTrack": 6,
+        "gaps": [
+          {
+            "pair": "ringkasan→konten-per-cabang",
+            "gap": 24,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "konten-per-cabang→tren-bulanan",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "tren-bulanan→kolaborasi",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "pilih-cabang→fkrtl",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "fkrtl→pemda",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "fktp→stakeholder",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "stakeholder→peta",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "kolaborasi→tema-konten",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true,
+        "scorecards": {
+          "count": 6,
+          "shares": [
+            "20,0%",
+            "55,0%",
+            "5,0%",
+            "20,0%"
+          ],
+          "sum": 100
+        },
+        "monthly": [
+          {
+            "id": "tren-bulanan",
+            "width": 1094,
+            "height": 240,
+            "bars": 12,
+            "months": 12
+          }
+        ],
+        "monthlyEmpty": [],
+        "sidebarWidth": 240,
+        "mapTier": "region"
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "master",
+      "variant": "national",
+      "path": "/admin",
+      "viewport": "768",
+      "screenshot": "C:\\Users\\PLN\\AppData\\Local\\Temp\\audit-v36\\prod-visual\\master-768.png",
+      "mapState": "ready",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 4083,
+      "layout": {
+        "chartW": 678,
+        "chartH": 328,
+        "chartLabels": 8,
+        "chartBarThickness": 14,
+        "chartLabelOverflow": -20.5460205078125,
+        "mapW": 718,
+        "mapH": 310,
+        "donut": 220,
+        "rankingTrack": 6,
+        "gaps": [
+          {
+            "pair": "ringkasan→konten-per-cabang",
+            "gap": 24,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "konten-per-cabang→tren-bulanan",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "tren-bulanan→kolaborasi",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "pilih-cabang→fkrtl",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "fkrtl→pemda",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "fktp→stakeholder",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "stakeholder→peta",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "kolaborasi→tema-konten",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true,
+        "scorecards": {
+          "count": 6,
+          "shares": [
+            "20,0%",
+            "55,0%",
+            "5,0%",
+            "20,0%"
+          ],
+          "sum": 100
+        },
+        "monthly": [
+          {
+            "id": "tren-bulanan",
+            "width": 678,
+            "height": 240,
+            "bars": 12,
+            "months": 12
+          }
+        ],
+        "monthlyEmpty": [],
+        "sidebarWidth": null,
+        "mapTier": "region"
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "master",
+      "variant": "national",
+      "path": "/admin",
+      "viewport": "375",
+      "screenshot": "C:\\Users\\PLN\\AppData\\Local\\Temp\\audit-v36\\prod-visual\\master-375.png",
+      "mapState": "ready",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 5607,
+      "layout": {
+        "chartW": 309,
+        "chartH": 328,
+        "chartLabels": 8,
+        "chartBarThickness": 14,
+        "chartLabelOverflow": -20.5460205078125,
+        "mapW": 341,
+        "mapH": 280,
+        "donut": 220,
+        "rankingTrack": 6,
+        "gaps": [
+          {
+            "pair": "ringkasan→konten-per-cabang",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "konten-per-cabang→tren-bulanan",
+            "gap": 20,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "tren-bulanan→kolaborasi",
+            "gap": 20,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "pilih-cabang→fkrtl",
+            "gap": 16,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "fkrtl→fktp",
+            "gap": 12,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "fktp→pemda",
+            "gap": 12,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "pemda→stakeholder",
+            "gap": 12,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "stakeholder→peta",
+            "gap": 16,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "kolaborasi→tema-konten",
+            "gap": 20,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true,
+        "scorecards": {
+          "count": 6,
+          "shares": [
+            "20,0%",
+            "55,0%",
+            "5,0%",
+            "20,0%"
+          ],
+          "sum": 100
+        },
+        "monthly": [
+          {
+            "id": "tren-bulanan",
+            "width": 309,
+            "height": 240,
+            "bars": 12,
+            "months": 12
+          }
+        ],
+        "monthlyEmpty": [],
+        "sidebarWidth": null,
+        "mapTier": "region"
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "regional",
+      "variant": "regional",
+      "path": "/wilayah/dashboard",
+      "viewport": "1440",
+      "screenshot": "C:\\Users\\PLN\\AppData\\Local\\Temp\\audit-v36\\prod-visual\\regional-1440.png",
+      "mapState": "ready",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 3200,
+      "layout": {
+        "chartW": 1094,
+        "chartH": 160,
+        "chartLabels": 3,
+        "chartBarThickness": 14,
+        "chartLabelOverflow": -20.5460205078125,
+        "mapW": 1134,
+        "mapH": 330,
+        "donut": 220,
+        "rankingTrack": 6,
+        "gaps": [
+          {
+            "pair": "ringkasan→konten-per-cabang",
+            "gap": 24,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "konten-per-cabang→tren-bulanan",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "tren-bulanan→kolaborasi",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "pilih-cabang→fkrtl",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "fkrtl→pemda",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "fktp→stakeholder",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "stakeholder→peta",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "kolaborasi→tema-konten",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true,
+        "scorecards": {
+          "count": 6,
+          "shares": [
+            "22,2%",
+            "55,6%",
+            "0,0%",
+            "22,2%"
+          ],
+          "sum": 100
+        },
+        "monthly": [
+          {
+            "id": "tren-bulanan",
+            "width": 1094,
+            "height": 240,
+            "bars": 12,
+            "months": 12
+          }
+        ],
+        "monthlyEmpty": [],
+        "sidebarWidth": 240,
+        "mapTier": "branch"
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "regional",
+      "variant": "regional",
+      "path": "/wilayah/dashboard",
+      "viewport": "768",
+      "screenshot": "C:\\Users\\PLN\\AppData\\Local\\Temp\\audit-v36\\prod-visual\\regional-768.png",
+      "mapState": "ready",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 3567,
+      "layout": {
+        "chartW": 678,
+        "chartH": 160,
+        "chartLabels": 3,
+        "chartBarThickness": 14,
+        "chartLabelOverflow": -20.5460205078125,
+        "mapW": 718,
+        "mapH": 310,
+        "donut": 220,
+        "rankingTrack": 6,
+        "gaps": [
+          {
+            "pair": "ringkasan→konten-per-cabang",
+            "gap": 24,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "konten-per-cabang→tren-bulanan",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "tren-bulanan→kolaborasi",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "pilih-cabang→fkrtl",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "fkrtl→pemda",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "fktp→stakeholder",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "stakeholder→peta",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "kolaborasi→tema-konten",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true,
+        "scorecards": {
+          "count": 6,
+          "shares": [
+            "22,2%",
+            "55,6%",
+            "0,0%",
+            "22,2%"
+          ],
+          "sum": 100
+        },
+        "monthly": [
+          {
+            "id": "tren-bulanan",
+            "width": 678,
+            "height": 240,
+            "bars": 12,
+            "months": 12
+          }
+        ],
+        "monthlyEmpty": [],
+        "sidebarWidth": null,
+        "mapTier": "branch"
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "regional",
+      "variant": "regional",
+      "path": "/wilayah/dashboard",
+      "viewport": "375",
+      "screenshot": "C:\\Users\\PLN\\AppData\\Local\\Temp\\audit-v36\\prod-visual\\regional-375.png",
+      "mapState": "ready",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 5031,
+      "layout": {
+        "chartW": 309,
+        "chartH": 160,
+        "chartLabels": 3,
+        "chartBarThickness": 14,
+        "chartLabelOverflow": -20.5460205078125,
+        "mapW": 341,
+        "mapH": 280,
+        "donut": 220,
+        "rankingTrack": 6,
+        "gaps": [
+          {
+            "pair": "ringkasan→konten-per-cabang",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "konten-per-cabang→tren-bulanan",
+            "gap": 20,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "tren-bulanan→kolaborasi",
+            "gap": 20,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "pilih-cabang→fkrtl",
+            "gap": 16,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "fkrtl→fktp",
+            "gap": 12,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "fktp→pemda",
+            "gap": 12,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "pemda→stakeholder",
+            "gap": 12,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "stakeholder→peta",
+            "gap": 16,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "kolaborasi→tema-konten",
+            "gap": 20,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true,
+        "scorecards": {
+          "count": 6,
+          "shares": [
+            "22,2%",
+            "55,6%",
+            "0,0%",
+            "22,2%"
+          ],
+          "sum": 100
+        },
+        "monthly": [
+          {
+            "id": "tren-bulanan",
+            "width": 309,
+            "height": 240,
+            "bars": 12,
+            "months": 12
+          }
+        ],
+        "monthlyEmpty": [],
+        "sidebarWidth": null,
+        "mapTier": "branch"
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "branch",
+      "variant": "branch",
+      "path": "/cabang/dashboard",
+      "viewport": "1440",
+      "screenshot": "C:\\Users\\PLN\\AppData\\Local\\Temp\\audit-v36\\prod-visual\\branch-1440.png",
+      "mapState": "ready",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 2949,
+      "layout": {
+        "chartW": 1094,
+        "chartH": 160,
+        "chartLabels": 3,
+        "chartBarThickness": 14,
+        "chartLabelOverflow": -27.906005859375,
+        "mapW": 1134,
+        "mapH": 330,
+        "donut": 220,
+        "rankingTrack": 6,
+        "gaps": [
+          {
+            "pair": "ringkasan→konten-per-institusi",
+            "gap": 24,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "konten-per-institusi→tren-bulanan",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "tren-bulanan→kolaborasi",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "fkrtl→pemda",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "fktp→stakeholder",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "stakeholder→peta",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "kolaborasi→tema-konten",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true,
+        "scorecards": {
+          "count": 6,
+          "shares": [
+            "0,0%",
+            "100,0%",
+            "0,0%",
+            "0,0%"
+          ],
+          "sum": 100
+        },
+        "monthly": [
+          {
+            "id": "tren-bulanan",
+            "width": 1094,
+            "height": 240,
+            "bars": 12,
+            "months": 12
+          }
+        ],
+        "monthlyEmpty": [],
+        "sidebarWidth": 240,
+        "mapTier": "institution"
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "branch",
+      "variant": "branch",
+      "path": "/cabang/dashboard",
+      "viewport": "768",
+      "screenshot": "C:\\Users\\PLN\\AppData\\Local\\Temp\\audit-v36\\prod-visual\\branch-768.png",
+      "mapState": "ready",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 3313,
+      "layout": {
+        "chartW": 678,
+        "chartH": 160,
+        "chartLabels": 3,
+        "chartBarThickness": 14,
+        "chartLabelOverflow": -27.906005859375,
+        "mapW": 718,
+        "mapH": 310,
+        "donut": 220,
+        "rankingTrack": 6,
+        "gaps": [
+          {
+            "pair": "ringkasan→konten-per-institusi",
+            "gap": 24,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "konten-per-institusi→tren-bulanan",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "tren-bulanan→kolaborasi",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "fkrtl→pemda",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "fktp→stakeholder",
+            "gap": 16,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "stakeholder→peta",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "kolaborasi→tema-konten",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true,
+        "scorecards": {
+          "count": 6,
+          "shares": [
+            "0,0%",
+            "100,0%",
+            "0,0%",
+            "0,0%"
+          ],
+          "sum": 100
+        },
+        "monthly": [
+          {
+            "id": "tren-bulanan",
+            "width": 678,
+            "height": 240,
+            "bars": 12,
+            "months": 12
+          }
+        ],
+        "monthlyEmpty": [],
+        "sidebarWidth": null,
+        "mapTier": "institution"
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "branch",
+      "variant": "branch",
+      "path": "/cabang/dashboard",
+      "viewport": "375",
+      "screenshot": "C:\\Users\\PLN\\AppData\\Local\\Temp\\audit-v36\\prod-visual\\branch-375.png",
+      "mapState": "ready",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 4681,
+      "layout": {
+        "chartW": 309,
+        "chartH": 160,
+        "chartLabels": 3,
+        "chartBarThickness": 14,
+        "chartLabelOverflow": -27.906005859375,
+        "mapW": 341,
+        "mapH": 280,
+        "donut": 220,
+        "rankingTrack": 6,
+        "gaps": [
+          {
+            "pair": "ringkasan→konten-per-institusi",
+            "gap": 20,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "konten-per-institusi→tren-bulanan",
+            "gap": 20,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "tren-bulanan→kolaborasi",
+            "gap": 20,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "fkrtl→fktp",
+            "gap": 12,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "fktp→pemda",
+            "gap": 12,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "pemda→stakeholder",
+            "gap": 12,
+            "band": [
+              12,
+              20
+            ]
+          },
+          {
+            "pair": "stakeholder→peta",
+            "gap": 16,
+            "band": [
+              12,
+              32
+            ]
+          },
+          {
+            "pair": "kolaborasi→tema-konten",
+            "gap": 20,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true,
+        "scorecards": {
+          "count": 6,
+          "shares": [
+            "0,0%",
+            "100,0%",
+            "0,0%",
+            "0,0%"
+          ],
+          "sum": 100
+        },
+        "monthly": [
+          {
+            "id": "tren-bulanan",
+            "width": 309,
+            "height": 240,
+            "bars": 12,
+            "months": 12
+          }
+        ],
+        "monthlyEmpty": [],
+        "sidebarWidth": null,
+        "mapTier": "institution"
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "stakeholder",
+      "variant": "stakeholder",
+      "path": "/client",
+      "viewport": "1440",
+      "screenshot": "C:\\Users\\PLN\\AppData\\Local\\Temp\\audit-v36\\prod-visual\\stakeholder-1440.png",
+      "mapState": "not-applicable",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 2541,
+      "layout": {
+        "chartW": null,
+        "chartH": null,
+        "chartLabels": null,
+        "chartBarThickness": null,
+        "chartLabelOverflow": null,
+        "mapW": null,
+        "mapH": null,
+        "donut": 220,
+        "rankingTrack": null,
+        "gaps": [
+          {
+            "pair": "ringkasan→jenis-konten",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "jenis-konten→tren-bulanan",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "tren-bulanan→tren-jenis-konten",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "tren-jenis-konten→tren-tema",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "tren-tema→tema-konten",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true,
+        "scorecards": {
+          "count": 3,
+          "shares": [],
+          "sum": 0
+        },
+        "monthly": [
+          {
+            "id": "tren-bulanan",
+            "width": 1094,
+            "height": 240,
+            "bars": 12,
+            "months": 12
+          },
+          {
+            "id": "tren-jenis-konten",
+            "width": 1094,
+            "height": 240,
+            "bars": 24,
+            "months": 12
+          },
+          {
+            "id": "tren-tema",
+            "width": 1094,
+            "height": 240,
+            "bars": 24,
+            "months": 12
+          }
+        ],
+        "monthlyEmpty": [],
+        "sidebarWidth": 240,
+        "mapTier": null
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "stakeholder",
+      "variant": "stakeholder",
+      "path": "/client",
+      "viewport": "768",
+      "screenshot": "C:\\Users\\PLN\\AppData\\Local\\Temp\\audit-v36\\prod-visual\\stakeholder-768.png",
+      "mapState": "not-applicable",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 2529,
+      "layout": {
+        "chartW": null,
+        "chartH": null,
+        "chartLabels": null,
+        "chartBarThickness": null,
+        "chartLabelOverflow": null,
+        "mapW": null,
+        "mapH": null,
+        "donut": 220,
+        "rankingTrack": null,
+        "gaps": [
+          {
+            "pair": "ringkasan→jenis-konten",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "jenis-konten→tren-bulanan",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "tren-bulanan→tren-jenis-konten",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "tren-jenis-konten→tren-tema",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "tren-tema→tema-konten",
+            "gap": 24,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true,
+        "scorecards": {
+          "count": 3,
+          "shares": [],
+          "sum": 0
+        },
+        "monthly": [
+          {
+            "id": "tren-bulanan",
+            "width": 678,
+            "height": 240,
+            "bars": 12,
+            "months": 12
+          },
+          {
+            "id": "tren-jenis-konten",
+            "width": 678,
+            "height": 240,
+            "bars": 24,
+            "months": 12
+          },
+          {
+            "id": "tren-tema",
+            "width": 678,
+            "height": 240,
+            "bars": 24,
+            "months": 12
+          }
+        ],
+        "monthlyEmpty": [],
+        "sidebarWidth": null,
+        "mapTier": null
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "stakeholder",
+      "variant": "stakeholder",
+      "path": "/client",
+      "viewport": "375",
+      "screenshot": "C:\\Users\\PLN\\AppData\\Local\\Temp\\audit-v36\\prod-visual\\stakeholder-375.png",
+      "mapState": "not-applicable",
+      "mapReady": true,
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 3228,
+      "layout": {
+        "chartW": null,
+        "chartH": null,
+        "chartLabels": null,
+        "chartBarThickness": null,
+        "chartLabelOverflow": null,
+        "mapW": null,
+        "mapH": null,
+        "donut": 220,
+        "rankingTrack": null,
+        "gaps": [
+          {
+            "pair": "ringkasan→jenis-konten",
+            "gap": 20,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "jenis-konten→tren-bulanan",
+            "gap": 20,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "tren-bulanan→tren-jenis-konten",
+            "gap": 20,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "tren-jenis-konten→tren-tema",
+            "gap": 20,
+            "band": [
+              20,
+              32
+            ]
+          },
+          {
+            "pair": "tren-tema→tema-konten",
+            "gap": 20,
+            "band": [
+              20,
+              32
+            ]
+          }
+        ],
+        "overlaps": [],
+        "headerRightAligned": true,
+        "panelRowsOk": true,
+        "scorecards": {
+          "count": 3,
+          "shares": [],
+          "sum": 0
+        },
+        "monthly": [
+          {
+            "id": "tren-bulanan",
+            "width": 309,
+            "height": 240,
+            "bars": 12,
+            "months": 12
+          },
+          {
+            "id": "tren-jenis-konten",
+            "width": 309,
+            "height": 240,
+            "bars": 24,
+            "months": 12
+          },
+          {
+            "id": "tren-tema",
+            "width": 309,
+            "height": 240,
+            "bars": 24,
+            "months": 12
+          }
+        ],
+        "monthlyEmpty": [],
+        "sidebarWidth": null,
+        "mapTier": null
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "ok": true
+    }
+  ],
+  "passed": 12,
+  "failed": 0
+}

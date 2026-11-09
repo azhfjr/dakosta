@@ -250,3 +250,35 @@ Menggantikan komposisi PDF v3.3 (lima halaman + peta) di atas; rincian di `19-da
 | Smoke produksi  | DONE (25/25)   | PDF dashboard 265.764 byte; infografis 200 + header PNG; rekonsiliasi 41 = 41 dan 19 = 19; worker 200 | `E-smoke-production-2026-11-09T02-50-30-370Z.json`     |
 
 Tidak ada perubahan skema, seed, data produksi, autentikasi, aturan approval, atau variabel lingkungan. Satu dependensi klien baru: `pdfjs-dist@4.10.38`.
+
+## Status v3.6 — empat status, peta bertingkat, analitik per peran (2026-11-09)
+
+v3.6 menggantikan status deploy/rollback v3.5 di atas. Buku bukti lengkap:
+`docs/audit/21-v36-dashboard-workflow.md`. Ringkas: sembilan status konten menjadi
+empat (`DRAFT`, `SUBMITTED`, `REVISION_REQUIRED`, `APPROVED`) di database melalui
+migrasi `0007_fantastic_prowler.sql`; dashboard mendapat kartu kategori + porsi,
+tren 12 bulan, irisan jenis konten, tren jenis/tema, dan peta tier
+region→cabang→institusi dengan radius proporsional konten; Detail Konten memakai
+filter gabungan, tabel sortable, dan tautan konten pada PDF/CSV.
+
+| Area                   | Status                            | Angka terverifikasi                                                                                                  | Artefak / waktu                                                              |
+| ---------------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Lint/typecheck/format  | DONE (PASS)                       | 0 error                                                                                                              | 2026-11-09                                                                   |
+| Unit/integration       | DONE (308/308 PASS)               | 45 berkas                                                                                                            | `npm test`, 2026-11-09                                                       |
+| Build produksi         | DONE (PASS)                       | `.next-verify`                                                                                                       | `npm run build`, 2026-11-09                                                  |
+| Backtest rekonsiliasi  | DONE (119/119 PASS)               | PGlite, fixture deterministik                                                                                        | `docs/audit/evidence/r13-backtest-reconcile.json`                            |
+| E2E penuh              | DONE (162 PASS / 3 skip / 0 FAIL) | 15,9 mnt, rate-limit aware                                                                                           | Playwright port 3400, 2026-11-09                                             |
+| Audit UI/UX lokal      | DONE (123/123 PASS)               | 4 peran × 360/768/1280/1440, 92 tangkapan layar                                                                      | `docs/audit/evidence/ui-v36/ui-audit.json`                                   |
+| Visual audit dashboard | DONE (12/12 PASS)                 | 4 peran × 3 viewport                                                                                                 | `docs/audit/evidence/dashboard-v36/visual-audit.json`                        |
+| Ekspor PDF/infografis  | DONE (6 ekspor)                   | 1 halaman A4 landscape; PNG infografis tidak dapat memuat tautan (batasan raster, dicatat di release notes)          | `docs/audit/evidence/ui-v36/pdf/`                                            |
+| Migrasi 0007 produksi  | DONE                              | Census ketat: APPROVED 1.381 aktif + 635 arsip, DRAFT 20, REVISION_REQUIRED 306, SUBMITTED 58, total 2.400, legacy 0 | `MIGRATE_CONFIRM=apply-production npm run db:migrate:production`, 2026-11-09 |
+| Reparasi invariant     | DONE (160 baris)                  | `approved_at` pada baris non-APPROVED dibersihkan; 1.381 persetujuan aktif tidak berubah                             | `scripts/repair-approved-at.ts`, 2026-11-09                                  |
+| Commit/deploy          | DONE                              | Commit `271a926`; `dpl_EfSURKdQPH5XTbB4iKTMXsEH6oep`; rollback v3.5 `dpl_5dnHcwACpnC6ZcTp7FftALfbikhY`               | `npx vercel deploy --prod --yes`, 2026-11-09 23:04 UTC                       |
+| Backup pra-migrasi     | DONE                              | 24 tabel, 14 MB; nilai rahasia tidak dicetak                                                                         | `backups/2026-11-09T23-04-47-997Z-production` (gitignored)                   |
+| Smoke produksi         | DONE (25/25 PASS)                 | Rekonsiliasi dashboard/CSV/Kinerja/SLA: 41 = 41 (Master), 19 = 19 (Wilayah)                                          | `docs/audit/evidence/E-smoke-production-2026-11-09T23-09-58-833Z.json`       |
+| Audit live produksi    | DONE (12/12 PASS dashboard)       | 4 peran × 3 viewport pada alias produksi pasca-migrasi                                                               | `docs/audit/evidence/dashboard-v36/production/`                              |
+
+Catatan rollback: v3.5 tidak boleh dipromosikan terhadap CHECK 4 nilai. Longgarkan
+CHECK lebih dulu (SQL terkonfirmasi eksplisit), baru promosikan v3.5; pemulihan nilai
+status persis hanya dari backup pra-migrasi. Prosedur lengkap di
+`docs/audit/21-v36-dashboard-workflow.md` bagian 3.

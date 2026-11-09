@@ -2,8 +2,8 @@
 
 **Tanggal:** 2026-11-09
 **Branch:** `fix/all-features-hardening`
-**Baseline produksi:** v3.5 `a937c55`, deployment `dpl_5dnHcwACpnC6ZcTp7FftALfbikhY` (rollback target v3.6)
-**Status:** Phase 0–8 selesai (semua gate hijau); Phase 9–10 menunggu rilis
+**Baseline produksi:** v3.6 `271a926`, deployment `dpl_EfSURKdQPH5XTbB4iKTMXsEH6oep` (rollback target v3.5 `dpl_5dnHcwACpnC6ZcTp7FftALfbikhY`)
+**Status:** selesai — Phase 0–10 tuntas; semua gate hijau; produksi ter-deploy, termigrasi, tersensus, ter-smoke
 
 Dokumen ini adalah buku bukti berjalan. Setiap angka menyebut artefak dan waktunya.
 Nilai rahasia (URL database, secret, cookie) tidak pernah dicetak; hanya nama variabel.
@@ -191,3 +191,55 @@ Pemeriksaan visual manual (bukti di `ui-v36/screenshots/`):
 - Wilayah 1440 Notifikasi: kontainer lebar, jarak kartu 16–20px, status belum dibaca jelas.
 - Client 1440 dashboard: 3 kartu (tanpa institusi), Input Konten hijau tepat di bawah Dashboard,
   donat jenis konten, tiga tren bulanan.
+
+## 7. Rilis produksi (Phase 9, 2026-11-09)
+
+Konfirmasi eksplisit pengguna diterima untuk urutan penuh: backup → deploy → verifikasi alias →
+migrasi 0007 → census → smoke. Tidak ada nilai rahasia yang dicetak.
+
+| Langkah                | Hasil                                                                                                                                                                                               |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backup pra-migrasi     | `backups/2026-11-09T23-04-47-997Z-production` — 14 MB, 24 tabel, manifest + sha256 per tabel; folder di luar git                                                                                    |
+| Commit rilis           | `271a926` — `feat(v3.6): four-status workflow, tiered map, role-aware analytics, UX hardening`                                                                                                      |
+| Deploy produksi        | `dpl_EfSURKdQPH5XTbB4iKTMXsEH6oep`, build 44 dtk; URL deployment `dakosta-dakosta-hk57b9hs6-jarjirjor777-5316.vercel.app`; alias `dakosta-dakosta.vercel.app`                                       |
+| Verifikasi pra-migrasi | Alias menunjuk deployment baru (`vercel inspect`); `/api/health` 200; `/masuk` 200; `/` 200 — migrasi belum dijalankan saat verifikasi                                                              |
+| Migrasi 0007           | `MIGRATE_CONFIRM=apply-production npm run db:migrate:production` → "Migrasi selesai."                                                                                                               |
+| Census pasca-migrasi   | SUBMITTED 58; REVISION_REQUIRED 306; APPROVED 1381 aktif + 635 arsip; DRAFT 20; total 2400; legacy 0; disetujui aktif 1381                                                                          |
+| Perbaikan invarian     | 160 `approved_at` pada baris non-APPROVED (warisan REVOKED) dibersihkan via `scripts/repair-approved-at.ts`; sisa 0; disetujui aktif tetap 1381                                                     |
+| Smoke produksi         | **25/25 PASS** — health, header keamanan, 401/307, login 4 peran, RBAC 403, PDF Kinerja/dashboard, infografis, CSV; evidence `docs/audit/evidence/E-smoke-production-2026-11-09T23-09-58-833Z.json` |
+| Rekonsiliasi live      | Dashboard 41 = CSV admin 41; Kinerja wilayah 19 = CSV wilayah 19                                                                                                                                    |
+| Audit visual live      | **12/12 PASS** (4 peran × 1440/768/375): 12 bar/12 bulan, sidebar 240px, 0 overflow/overlap/page error; stakeholder 3 kartu tanpa peta                                                              |
+| Audit UI live          | **123/123 PASS**, 0 temuan (0 existing, 0 baseline, 0 NEW); 4 peran × 1440/768/375; evidence `docs/audit/evidence/ui-v36/production-ui-audit.json`                                                  |
+
+Catatan rilis:
+
+- Infografis diekspor sebagai PNG raster sehingga tidak dapat memuat tautan yang dapat diklik;
+  tautan konten hanya tersedia pada PDF konten (anotasi URI) dan CSV (URL absolut).
+- Rollback sebelum migrasi: promosikan v3.5 `dpl_5dnHcwACpnC6ZcTp7FftALfbikhY`.
+  Rollback aplikasi sesudah migrasi: longgarkan `content_submissions_status_check` agar memuat
+  `RESUBMITTED` dan `IN_REVIEW` (SQL terkonfirmasi), lalu promosikan v3.5. Rollback data penuh:
+  pulihkan backup pra-migrasi (destruktif, konfirmasi eksplisit).
+
+## 8. Audit UI produksi pasca-migrasi (Phase 9)
+
+`node scripts/ui-quality-audit.mjs` terhadap alias produksi
+`https://dakosta-dakosta.vercel.app`, 2026-11-09 23:16 UTC.
+
+| Metrik                | Hasil                                                    |
+| --------------------- | -------------------------------------------------------- |
+| Halaman diperiksa     | 123 (Master, Wilayah, Cabang, Stakeholder; 1440/768/375) |
+| Lolos                 | **123/123 PASS**                                         |
+| Temuan                | 0 (0 existing, 0 baseline, 0 NEW), `byCode` kosong       |
+| Overflow / page error | 0 px / 0 per halaman                                     |
+| Evidence              | `docs/audit/evidence/ui-v36/production-ui-audit.json`    |
+
+Cakupan mencakup dashboard empat peran, Detail Konten + detail per konten, Kinerja,
+SLA, Notifikasi, Validasi, Peta, Target, Audit, Sinkronisasi, Analitik, Impor,
+Akun, Pengguna, Stakeholder, EDUFAST, dan halaman klien. Pemeriksaan memakai baseline
+lokal v3.6 sehingga setiap penyimpangan terhadap ambient spacing/overflow akan muncul
+sebagai temuan NEW; hasil nol menegaskan paritas produksi dengan hasil lokal 123/123.
+
+Dengan demikian seluruh gate Phase 8 dan verifikasi Phase 9 hijau: 123/123 audit UI
+lokal dan produksi, 12/12 audit visual lokal dan produksi, 162 E2E, 308 unit,
+119 backtest, build/lint/typecheck/format PASS, smoke 25/25, census ketat legacy 0,
+dan rekonsiliasi dashboard = CSV = Kinerja = SLA.

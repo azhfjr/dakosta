@@ -183,3 +183,7 @@ Tidak ada skema, seed, data produksi, autentikasi, aturan approval, rate limit, 
 ### Temuan di luar cakupan v3.5
 
 Form login dapat melakukan submit GET bawaan apabila dikirim sebelum React selesai hydration (perilaku lama, bukan perubahan v3.5): kredensial dapat muncul di URL. Audit live menghindari kondisi ini dengan menunggu hydration. Disarankan patch terpisah (mis. `method="post"` atau menonaktifkan tombol sampai hydration) berikut gate dan smoke tersendiri.
+
+### Superseded oleh v3.6 (2026-11-09)
+
+Status deploy dan rollback di dokumen ini berlaku untuk v3.5 dan **tidak lagi menjadi acuan produksi**. v3.6 (`271a926`, deployment `dpl_EfSURKdQPH5XTbB4iKTMXsEH6oep`) menggantikannya: sembilan status konten menjadi empat di database (migrasi `0007_fantastic_prowler.sql`), dashboard memakai kontrak baru (kartu kategori + porsi, tren 12 bulan, irisan jenis konten, tren jenis/tema, peta tier region→cabang→institusi), dan rollback target menjadi v3.5 `dpl_5dnHcwACpnC6ZcTp7FftALfbikhY` dengan syarat CHECK dilonggarkan lebih dulu. Buku bukti v3.6: `docs/audit/21-v36-dashboard-workflow.md`; status terkini: `docs/audit/13-status.md`.
