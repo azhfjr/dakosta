@@ -1,0 +1,113 @@
+{
+  "baseUrl": "https://dakosta-dakosta.vercel.app",
+  "period": "2026-11",
+  "generatedAt": "2026-11-09T01:00:42.953Z",
+  "passed": true,
+  "checks": [
+    {
+      "name": "/api/health 200",
+      "passed": true,
+      "detail": "status 200"
+    },
+    {
+      "name": "header keamanan",
+      "passed": true,
+      "detail": "X-Frame-Options/CSP/X-Content-Type-Options"
+    },
+    {
+      "name": "unauth /admin diarahkan ke /masuk",
+      "passed": true,
+      "detail": "status 307"
+    },
+    {
+      "name": "unauth API 401",
+      "passed": true,
+      "detail": "status 401"
+    },
+    {
+      "name": "login 4 peran",
+      "passed": true,
+      "detail": "sesi dibuat tanpa mencetak kredensial"
+    },
+    {
+      "name": "admin /admin 200",
+      "passed": true,
+      "detail": "status 200"
+    },
+    {
+      "name": "regional /wilayah 200",
+      "passed": true,
+      "detail": "status 200"
+    },
+    {
+      "name": "regional /wilayah/dashboard?period=2026-11 200",
+      "passed": true,
+      "detail": "status 200"
+    },
+    {
+      "name": "regional /wilayah/kinerja?period=2026-11 200",
+      "passed": true,
+      "detail": "status 200"
+    },
+    {
+      "name": "branch /cabang 200",
+      "passed": true,
+      "detail": "status 200"
+    },
+    {
+      "name": "branch /cabang/dashboard?period=2026-11 200",
+      "passed": true,
+      "detail": "status 200"
+    },
+    {
+      "name": "branch /cabang/kinerja?period=2026-11 200",
+      "passed": true,
+      "detail": "status 200"
+    },
+    {
+      "name": "client /client 200",
+      "passed": true,
+      "detail": "status 200"
+    },
+    {
+      "name": "regional tidak boleh approve",
+      "passed": true,
+      "detail": "status 403"
+    },
+    {
+      "name": "cabang tidak boleh mengelola cabang",
+      "passed": true,
+      "detail": "status 403"
+    },
+    {
+      "name": "PDF Kinerja valid",
+      "passed": true,
+      "detail": "status 200, 263504 byte"
+    },
+    {
+      "name": "PDF Kinerja diberi nama periode",
+      "passed": true,
+      "detail": "Content-Disposition"
+    },
+    {
+      "name": "PDF lama tidak tersedia",
+      "passed": true,
+      "detail": "status 404"
+    },
+    {
+      "name": "CSV Kinerja dapat diunduh",
+      "passed": true,
+      "detail": "status 200, 9 baris"
+    },
+    {
+      "name": "rekonsiliasi Dashboard = Kinerja = CSV",
+      "passed": true,
+      "detail": "dashboard 41, csv admin 41, kinerja wilayah 19, csv wilayah 19"
+    },
+    {
+      "name": "CSV konten terunduh",
+      "passed": true,
+      "detail": "status 200"
+    }
+  ]
+}

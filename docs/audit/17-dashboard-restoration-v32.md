@@ -1,9 +1,10 @@
 # Laporan Restorasi Dashboard Dakosta v3.2
 
-- Tanggal: 9 November 2026
+- Tanggal rilis: 9 November 2026
 - Branch kerja: `fix/all-features-hardening`
-- Status: **TERVERIFIKASI LOKAL** — seluruh gate lulus; belum di-commit dan belum di-deploy
-- Produksi saat ini: Dashboard v3.1 (`dpl_59uYtGsJUDEZUfdYdvtGZAibjFq3`)
+- Commit rilis: `63219f5`
+- Status deploy: **PRODUCTION** — `dpl_3jMB35EEUcnFZtyHrPwLo6VaKRCT`, alias `https://dakosta-dakosta.vercel.app`, smoke produksi 21/21
+- Rollback target: Dashboard v3.1 `dpl_59uYtGsJUDEZUfdYdvtGZAibjFq3`
 
 ## 1. Konteks permintaan
 
@@ -79,6 +80,8 @@ Halaman pada 1440 memang menggulir; itu konsekuensi yang diterima dari pemulihan
 | `PLAYWRIGHT_BASE_URL=http://localhost:3400 npx playwright test` | **101 passed (10.2m)**, termasuk 2 test layout proporsional desktop/mobile                      |
 | `node scripts/dashboard-visual-audit.mjs`                       | **12/12 lolos**; 0 overlap; gap min 16px; 0 overflow; peta siap; 0 console/page error           |
 | Tinjauan tangkapan layar 1440/768/375 (4 peran)                 | Proporsional, tanpa tumpang tindih, filter inline horizontal utuh, peta dan donut terbaca penuh |
+| `node scripts/smoke-production.mjs`                             | **21/21 PASS**; health, header, 401/307, login 4 peran, RBAC 403, PDF/CSV, rekonsiliasi 41 = 41 |
+| Audit live produksi 4 peran (1440×900)                          | **4/4 PASS**; 0 overlap, gap min 16px, 0 overflow, peta siap, 0 page error                      |
 
 Rate limit login demo tidak diubah dan tidak di-bypass. Server verifikasi berjalan di port 3400 terhadap build produksi.
 
@@ -106,17 +109,27 @@ Tidak ada perubahan skema, kueri data, aturan approval, autentikasi, variabel li
 - `16-dashboard-refinement-v31.md` ditandai superseded. Butir "bar proporsional terhadap himpunan tampil" tidak akurat: sejak v3.1 bar selalu dihitung terhadap total kategori (`rankingShare(row.total, score)`), sehingga bar teratas hanya penuh bila baris tersebut meliputi seluruh kategori. Unit test `tests/dashboard-ranking.test.ts` mengunci perilaku ini.
 - Gate satu layar 1440×900 tidak lagi berlaku. Dokumen status merujuk laporan ini untuk definisi gate yang aktif.
 
-## 9. Status rilis dan rollback
+## 9. Rilis produksi dan rollback
 
-- Perubahan ini **belum di-commit dan belum di-deploy**. Produksi tetap v3.1 `dpl_59uYtGsJUDEZUfdYdvtGZAibjFq3`.
-- Bila nanti dirilis, rollback aplikasi cukup mempromosikan kembali deployment v3.1 tersebut; tidak ada migrasi atau perubahan data sehingga tidak diperlukan pemulihan basis data.
+Deploy final: `dpl_3jMB35EEUcnFZtyHrPwLo6VaKRCT` dari commit `63219f5`, dipromosikan ke alias `https://dakosta-dakosta.vercel.app`.
+
+1. `/api/health` 200 dan alias produksi aktif.
+2. Smoke produksi **21/21 PASS**: health, header keamanan, 401/307 tanpa sesi, login 4 peran, halaman per peran, RBAC negatif (403), PDF/CSV Kinerja, rekonsiliasi dashboard = Kinerja = CSV (41 = 41 admin, 19 = 19 wilayah), CSV konten. Evidence `E-smoke-production-2026-11-09T01-00-42-952Z.json`.
+3. Audit live 1440×900 pada data produksi penuh (Master 1.381 konten, 8 cabang, 19 baris peringkat):
+   - master: chart 1062×416 (8 bar), peta 1102×340, donut 336×230, tinggi 3187px
+   - regional: chart 1062×180, peta 1102×340, donut 336×230, tinggi 2545px
+   - branch: chart 1062×180, peta 1102×340, donut 336×230, tinggi 2393px
+   - stakeholder: chart 1062×180, peta 1102×340, donut 336×230, tinggi 2299px
+   - Keempat peran: 12/12 anchor ada dan terurut, toolbar filter tunggal, panel 544px, bar 6px, 0 overlap, gap min 16px, 0 overflow, peta siap, 0 page error.
+4. Screenshot produksi: `docs/audit/evidence/dashboard-v3/production-{master,regional,branch,stakeholder}-1440.png`; evidence `production-live-audit.json` (generatedAt `2026-11-09T01:03:51.539Z`).
+5. Rollback: promosikan kembali `dpl_59uYtGsJUDEZUfdYdvtGZAibjFq3` (v3.1) lalu jalankan smoke produksi. Tidak ada migrasi skema atau perubahan data pada rilis ini, sehingga tidak diperlukan pemulihan basis data.
 
 ## 10. Risiko dan catatan
 
-| Risiko                                                     | Mitigasi / status                                                                               |
-| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Halaman 1440 menggulir                                     | Disengaja; gate proporsi memastikan chart, peta, dan panel tidak dikorbankan untuk satu layar   |
-| Volume peringkat produksi lebih besar dari dataset demo    | Grid 2×2 dengan tinggi baris tetap dan tanpa batas tinggi kartu; E2E memakai data admin lengkap |
-| Kategori tanpa konten menampilkan kartu kosong yang tinggi | Empty state eksplisit; tinggi kartu mengikuti grid 2×2 agar sejajar                             |
-| Peta membutuhkan basemap eksternal                         | Gate membedakan state `ready`/`empty`/`failed`; audit menuntut peta siap pada semua tangkapan   |
-| Data demo sintetis                                         | Tidak ada PII/NIK/JKN; dataset demo berlabel DEMO                                               |
+| Risiko                                                     | Mitigasi / status                                                                             |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Halaman 1440 menggulir                                     | Disengaja; gate proporsi memastikan chart, peta, dan panel tidak dikorbankan untuk satu layar |
+| Volume peringkat produksi lebih besar dari dataset demo    | Terverifikasi live: Master 8 bar chart, 19 baris peringkat, chart 1062×416, 0 overflow        |
+| Kategori tanpa konten menampilkan kartu kosong yang tinggi | Empty state eksplisit; tinggi kartu mengikuti grid 2×2 agar sejajar                           |
+| Peta membutuhkan basemap eksternal                         | Gate membedakan state `ready`/`empty`/`failed`; audit menuntut peta siap pada semua tangkapan |
+| Data demo sintetis                                         | Tidak ada PII/NIK/JKN; dataset demo berlabel DEMO                                             |

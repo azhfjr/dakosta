@@ -1,0 +1,153 @@
+{
+  "generatedAt": "2026-11-09T01:03:51.539Z",
+  "baseURL": "https://dakosta-dakosta.vercel.app",
+  "viewport": "1440x900",
+  "results": [
+    {
+      "role": "master",
+      "path": "/admin",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v3\\production-master-1440.png",
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 3187,
+      "minGap": 16,
+      "overlaps": [],
+      "chart": {
+        "width": 1062,
+        "height": 416,
+        "svg": true,
+        "innerOverflow": 0
+      },
+      "map": {
+        "width": 1102,
+        "height": 340
+      },
+      "mapState": "ready",
+      "donut": {
+        "width": 336,
+        "height": 230
+      },
+      "panelWidths": [
+        544,
+        544,
+        544,
+        544
+      ],
+      "barH": 6,
+      "toolbar": true,
+      "anchorOrdered": true,
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "regional",
+      "path": "/wilayah/dashboard",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v3\\production-regional-1440.png",
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 2545,
+      "minGap": 16,
+      "overlaps": [],
+      "chart": {
+        "width": 1062,
+        "height": 180,
+        "svg": true,
+        "innerOverflow": 0
+      },
+      "map": {
+        "width": 1102,
+        "height": 340
+      },
+      "mapState": "ready",
+      "donut": {
+        "width": 336,
+        "height": 230
+      },
+      "panelWidths": [
+        544,
+        544,
+        544,
+        544
+      ],
+      "barH": 6,
+      "toolbar": true,
+      "anchorOrdered": true,
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "branch",
+      "path": "/cabang/dashboard",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v3\\production-branch-1440.png",
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 2393,
+      "minGap": 16,
+      "overlaps": [],
+      "chart": {
+        "width": 1062,
+        "height": 180,
+        "svg": true,
+        "innerOverflow": 0
+      },
+      "map": {
+        "width": 1102,
+        "height": 340
+      },
+      "mapState": "ready",
+      "donut": {
+        "width": 336,
+        "height": 230
+      },
+      "panelWidths": [
+        544,
+        544,
+        544,
+        544
+      ],
+      "barH": 6,
+      "toolbar": true,
+      "anchorOrdered": true,
+      "pageErrors": [],
+      "ok": true
+    },
+    {
+      "role": "stakeholder",
+      "path": "/client",
+      "screenshot": "docs\\audit\\evidence\\dashboard-v3\\production-stakeholder-1440.png",
+      "missingSections": [],
+      "horizontalOverflowPx": 0,
+      "pageHeight": 2299,
+      "minGap": 16,
+      "overlaps": [],
+      "chart": {
+        "width": 1062,
+        "height": 180,
+        "svg": true,
+        "innerOverflow": 0
+      },
+      "map": {
+        "width": 1102,
+        "height": 340
+      },
+      "mapState": "ready",
+      "donut": {
+        "width": 336,
+        "height": 230
+      },
+      "panelWidths": [
+        544,
+        544,
+        544,
+        544
+      ],
+      "barH": 6,
+      "toolbar": true,
+      "anchorOrdered": true,
+      "pageErrors": [],
+      "ok": true
+    }
+  ],
+  "passed": 4,
+  "failed": 0
+}
